@@ -19,7 +19,6 @@ import { Dream } from '../types/dream';
 import { getDreamById, saveDream, deleteDream } from '../utils/storage';
 import { formatDate, toISODate, generateId } from '../utils/date';
 import { getRandomSymbol } from '../components/symbols';
-import { extractDreamSymbolsAndArchetypes } from '../services/ai';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamEditor'>;
 type EditorRouteProp = RouteProp<RootStackParamList, 'DreamEditor'>;
@@ -81,25 +80,9 @@ const DreamEditorScreen: React.FC = () => {
             updatedAt: new Date().toISOString(),
           };
 
+      // Save dream locally only (no API calls)
+      // Symbols/archetypes will be extracted when user requests AI interpretation
       await saveDream(dreamData);
-      
-      // Extract symbols and archetypes in the background if content changed
-      const contentChanged = !dream || dream.content !== dreamData.content;
-      if (contentChanged) {
-        extractDreamSymbolsAndArchetypes(dreamData)
-          .then(({ symbols, archetypes }) => {
-            const updatedDream: Dream = {
-              ...dreamData,
-              symbols,
-              archetypes,
-            };
-            saveDream(updatedDream);
-          })
-          .catch((error) => {
-            console.error('[DreamEditor] Failed to extract symbols/archetypes:', error);
-            // Silently fail - don't block user experience
-          });
-      }
       
       navigation.goBack();
     } catch (error) {

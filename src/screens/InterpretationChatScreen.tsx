@@ -23,7 +23,9 @@ import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes } from '../services/ai';
+import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes } from '../services/ai';
+import { isOnline } from '../utils/network';
+import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
@@ -300,11 +302,18 @@ const InterpretationChatScreen: React.FC = () => {
   const [isLoadingDream, setIsLoadingDream] = useState(true);
   const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+  const [showOfflineMessage, setShowOfflineMessage] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     loadData();
+    // Clear typing state when component unmounts or dreamId changes
+    // This ensures that if user navigated away during typing,
+    // the message won't restart typing when they come back
+    return () => {
+      setTypingMessageId(null);
+    };
   }, [dreamId]);
 
   React.useLayoutEffect(() => {
@@ -338,6 +347,9 @@ const InterpretationChatScreen: React.FC = () => {
           console.log('[ChatScreen] Found existing interpretation, using it');
           setInterpretation(interpretationData);
           setMessages(interpretationData.messages);
+          // Clear typing state when loading existing messages
+          // Messages from storage are already complete, no need to type them
+          setTypingMessageId(null);
         }
       } else {
         // Generate initial interpretation - ALWAYS use API, never mock
@@ -348,6 +360,16 @@ const InterpretationChatScreen: React.FC = () => {
   };
 
   const generateInitialAIInterpretation = async (dreamData: Dream) => {
+    // Check if online before proceeding
+    const online = await isOnline();
+    if (!online) {
+      setShowOfflineMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowOfflineMessage(false), 5000);
+      return;
+    }
+
+    setShowOfflineMessage(false);
     setIsGeneratingInitial(true);
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
@@ -405,6 +427,16 @@ const InterpretationChatScreen: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputText.trim() || !dream || !interpretation || isLoading) return;
 
+    // Check if online before proceeding
+    const online = await isOnline();
+    if (!online) {
+      setShowOfflineMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowOfflineMessage(false), 5000);
+      return;
+    }
+
+    setShowOfflineMessage(false);
     const messageContent = inputText.trim();
     const userMessage: ChatMessage = {
       id: generateId(),
@@ -569,6 +601,16 @@ const InterpretationChatScreen: React.FC = () => {
         </View>
       )}
 
+      {/* Offline Message */}
+      {showOfflineMessage && (
+        <View style={styles.offlineMessageContainer}>
+          <OfflineMessage
+            featureName="Jungian AI chat"
+            icon="🧠"
+          />
+        </View>
+      )}
+
       {/* Input Bar */}
       <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
         <TextInput
@@ -703,6 +745,10 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.accent,
     fontWeight: typography.weights.medium,
+  },
+  offlineMessageContainer: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   inputContainer: {
     padding: spacing.md,

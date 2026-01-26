@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "dream-journal-working",
-    "slug": "dream-journal-working",
+    "name": "oneiros-app",
+    "slug": "oneiros-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

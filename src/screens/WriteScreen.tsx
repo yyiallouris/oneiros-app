@@ -21,7 +21,6 @@ import { formatDate, getTodayDate, getGreeting, generateId } from '../utils/date
 import { saveDream, getDreamsByDate, saveDraft, getDraft, clearDraft } from '../utils/storage';
 import { Dream } from '../types/dream';
 import { getRandomSymbol } from '../components/symbols';
-import { extractDreamSymbolsAndArchetypes } from '../services/ai';
 import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -52,10 +51,17 @@ const WriteScreen: React.FC = () => {
 
   const today = getTodayDate();
 
-  // Load today's dream or draft on mount
+  // Load today's dream or draft when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadTodaysDream();
+      // Clear any pending auto-save timeout when screen gains focus
+      // This prevents stale drafts from loading
+      return () => {
+        if (autoSaveTimeout.current) {
+          clearTimeout(autoSaveTimeout.current);
+        }
+      };
     }, [])
   );
 
@@ -74,13 +80,19 @@ const WriteScreen: React.FC = () => {
       // Load draft if no non-archived dream exists
       const draft = await getDraft();
       if (draft && draft.date === today) {
+        // Only load draft if it's from today
         setTitle(draft.title || '');
         setContent(draft.content);
+        setTodaysDream(null);
       } else {
         // Clear form for fresh writing
         setTitle('');
         setContent('');
         setTodaysDream(null);
+        // Also clear any stale draft that's not from today
+        if (draft && draft.date !== today) {
+          await clearDraft();
+        }
       }
     }
   };
@@ -112,6 +124,12 @@ const WriteScreen: React.FC = () => {
   const handleSaveDream = async () => {
     if (!content.trim()) return;
 
+    // Clear any pending auto-save to prevent race conditions
+    if (autoSaveTimeout.current) {
+      clearTimeout(autoSaveTimeout.current);
+      autoSaveTimeout.current = undefined;
+    }
+
     setIsSaving(true);
     try {
       const dream: Dream = todaysDream
@@ -133,33 +151,22 @@ const WriteScreen: React.FC = () => {
             archived: true, // Mark as archived
           };
 
+      // Save dream locally only (no API calls)
+      // Symbols/archetypes will be extracted when user requests AI interpretation
       await saveDream(dream);
       await clearDraft();
       
-      // Extract symbols and archetypes before navigating (with timeout)
-      try {
-        const extractionPromise = extractDreamSymbolsAndArchetypes(dream);
-        const timeoutPromise = new Promise<{ symbols: string[]; archetypes: string[] }>((resolve) => {
-          setTimeout(() => resolve({ symbols: [], archetypes: [] }), 5000); // 5 second timeout
-        });
-        
-        const { symbols, archetypes } = await Promise.race([extractionPromise, timeoutPromise]);
-        
-        if (symbols.length > 0 || archetypes.length > 0) {
-          const updatedDream: Dream = {
-            ...dream,
-            symbols,
-            archetypes,
-          };
-          await saveDream(updatedDream);
-        }
-      } catch (error) {
-        console.error('[WriteScreen] Failed to extract symbols/archetypes:', error);
-        // Continue anyway - extraction can happen in background later
-      }
+      // Clear form fields immediately after successful save
+      // Do this BEFORE navigation to ensure state is cleared
+      setTitle('');
+      setContent('');
+      setTodaysDream(null);
       
       // Navigate to dream detail page
       navigation.navigate('DreamDetail', { dreamId: dream.id });
+    } catch (error) {
+      console.error('[WriteScreen] Error saving dream:', error);
+      // Don't clear fields on error - user can retry
     } finally {
       setIsSaving(false);
     }

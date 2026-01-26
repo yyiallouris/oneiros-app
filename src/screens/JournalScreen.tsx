@@ -88,25 +88,34 @@ const JournalScreen: React.FC = () => {
 
   const loadDreams = async () => {
     setIsLoading(true);
-    const allDreams = await getDreams();
-    
-    // Sort: first by date (descending - newest days first), then by createdAt within same date (descending - newest first)
-    const sorted = allDreams.sort((a, b) => {
-      // First sort by date (descending - newest days first)
-      const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
-      if (dateCompare !== 0) {
-        return dateCompare;
-      }
-      // If same date, sort by createdAt (descending - newest first)
-      // Use updatedAt as fallback if createdAt doesn't exist
-      const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
-      const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
-      return bTime - aTime; // Descending (newest first)
-    });
-    
-    setDreams(sorted);
-    setFilteredDreams(sorted);
-    setIsLoading(false);
+    try {
+      const allDreams = await getDreams();
+      
+      // Sort: first by date (descending - newest days first), then by createdAt within same date (descending - newest first)
+      const sorted = allDreams.sort((a, b) => {
+        // First sort by date (descending - newest days first)
+        const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
+        if (dateCompare !== 0) {
+          return dateCompare;
+        }
+        // If same date, sort by createdAt (descending - newest first)
+        // Use updatedAt as fallback if createdAt doesn't exist
+        const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
+        const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
+        return bTime - aTime; // Descending (newest first)
+      });
+      
+      setDreams(sorted);
+      setFilteredDreams(sorted);
+    } catch (error) {
+      // If loading fails, show empty list but stop loading
+      console.error('[Journal] Failed to load dreams:', error);
+      setDreams([]);
+      setFilteredDreams([]);
+    } finally {
+      // Always stop loading, even if there's an error
+      setIsLoading(false);
+    }
   };
 
   const handleSearch = (query: string) => {

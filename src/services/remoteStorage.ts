@@ -107,6 +107,7 @@ export async function remoteGetDreams(): Promise<Dream[] | null> {
   const { data, error } = await supabase
     .from('dreams')
     .select('*')
+    .eq('user_id', userId) // SECURITY: Only fetch dreams for the current user
     .order('date', { ascending: false });
 
   if (error || !data) {
@@ -120,6 +121,31 @@ export async function remoteGetDreams(): Promise<Dream[] | null> {
 export async function remoteSaveDream(dream: Dream): Promise<void> {
   const userId = await getUserId();
   if (!userId) return;
+
+  // SECURITY: If dream already exists, verify ownership before updating
+  if (dream.id) {
+    const { data: existingDream, error: fetchError } = await supabase
+      .from('dreams')
+      .select('user_id')
+      .eq('id', dream.id)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned, which is fine for new dreams
+      logError('remote_save_dream_ownership_check_error', fetchError, { dreamId: dream.id });
+      return;
+    }
+
+    // If dream exists and belongs to another user, reject the update
+    if (existingDream && existingDream.user_id !== userId) {
+      logError('remote_save_dream_ownership_violation', new Error('User does not own this dream'), {
+        dreamId: dream.id,
+        userId,
+        ownerId: existingDream.user_id,
+      });
+      return;
+    }
+  }
 
   const payload = mapDreamToRow(dream, userId);
   const { error } = await supabase.from('dreams').upsert(payload as any, {
@@ -158,6 +184,7 @@ export async function remoteGetInterpretations(): Promise<Interpretation[] | nul
   const { data, error } = await supabase
     .from('interpretations')
     .select('*')
+    .eq('user_id', userId) // SECURITY: Only fetch interpretations for the current user
     .order('created_at', { ascending: false });
 
   if (error || !data) {
@@ -173,6 +200,37 @@ export async function remoteSaveInterpretation(
 ): Promise<void> {
   const userId = await getUserId();
   if (!userId) return;
+
+  // SECURITY: If interpretation already exists, verify ownership before updating
+  if (interpretation.id) {
+    const { data: existingInterpretation, error: fetchError } = await supabase
+      .from('interpretations')
+      .select('user_id')
+      .eq('id', interpretation.id)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned, which is fine for new interpretations
+      logError('remote_save_interpretation_ownership_check_error', fetchError, {
+        interpretationId: interpretation.id,
+      });
+      return;
+    }
+
+    // If interpretation exists and belongs to another user, reject the update
+    if (existingInterpretation && existingInterpretation.user_id !== userId) {
+      logError(
+        'remote_save_interpretation_ownership_violation',
+        new Error('User does not own this interpretation'),
+        {
+          interpretationId: interpretation.id,
+          userId,
+          ownerId: existingInterpretation.user_id,
+        }
+      );
+      return;
+    }
+  }
 
   const payload = mapInterpretationToRow(interpretation, userId);
   const { error } = await supabase.from('interpretations').upsert(payload as any, {

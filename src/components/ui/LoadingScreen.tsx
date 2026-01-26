@@ -66,7 +66,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           style={[styles.logo, { width: imgW, height: imgH }]}
           resizeMode="contain"
         />
-        <Text style={styles.title}>Oneiros</Text>
+        <Text style={styles.title}>Oneiros Dream Journal</Text>
         
         {/* Progress bar */}
         <View style={styles.progressContainer}>

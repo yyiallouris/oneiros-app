@@ -24,6 +24,8 @@ import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
 import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes } from '../services/ai';
+import { isOnline } from '../utils/network';
+import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
@@ -385,6 +387,7 @@ const DreamDetailScreen: React.FC = () => {
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const [chatScrollHeight, setChatScrollHeight] = useState(0);
   const [chatScrollOffset, setChatScrollOffset] = useState(0);
+  const [showOfflineMessage, setShowOfflineMessage] = useState(false);
   
   const flatListRef = useRef<ScrollView>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -392,33 +395,55 @@ const DreamDetailScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       loadDreamData();
+      // Clear typing state when screen gains focus
+      // This ensures that if user navigated away during typing,
+      // the message won't restart typing when they come back
+      return () => {
+        // Clear typing state when screen loses focus
+        setTypingMessageId(null);
+      };
     }, [dreamId])
   );
 
   const loadDreamData = async () => {
     setIsLoadingInitial(true);
-    const dreamData = await getDreamById(dreamId);
-    setDream(dreamData);
+    try {
+      const dreamData = await getDreamById(dreamId);
+      setDream(dreamData);
 
-    if (dreamData) {
-      const interpretationData = await getInterpretationByDreamId(dreamId);
-      
-      if (interpretationData) {
-        // Check if this is a mock response
-        const isMockResponse = interpretationData.messages[0]?.content?.includes('Thank you for sharing this dream. Let me reflect on it from a Jungian perspective:') &&
-                               interpretationData.messages[0]?.content?.includes('What emotions arose most strongly during the dream?');
-        
-        if (isMockResponse) {
-          await deleteInterpretation(interpretationData.id);
-        } else {
-          setInterpretation(interpretationData);
-          setMessages(interpretationData.messages);
-          // Default to overview; keep chat closed until user taps
-          setShowChat(false);
+      if (dreamData) {
+        try {
+          const interpretationData = await getInterpretationByDreamId(dreamId);
+          
+          if (interpretationData) {
+            // Check if this is a mock response
+            const isMockResponse = interpretationData.messages[0]?.content?.includes('Thank you for sharing this dream. Let me reflect on it from a Jungian perspective:') &&
+                                 interpretationData.messages[0]?.content?.includes('What emotions arose most strongly during the dream?');
+            
+            if (isMockResponse) {
+              await deleteInterpretation(interpretationData.id);
+            } else {
+              setInterpretation(interpretationData);
+              setMessages(interpretationData.messages);
+              // Clear typing state when loading existing messages
+              // Messages from storage are already complete, no need to type them
+              setTypingMessageId(null);
+              // Default to overview; keep chat closed until user taps
+              setShowChat(false);
+            }
+          }
+        } catch (error) {
+          // If interpretation loading fails, that's okay - dream will still show
+          console.warn('[DreamDetail] Failed to load interpretation:', error);
         }
       }
+    } catch (error) {
+      // If dream loading fails, show error but stop loading
+      console.error('[DreamDetail] Failed to load dream:', error);
+    } finally {
+      // Always stop loading, even if there's an error
+      setIsLoadingInitial(false);
     }
-    setIsLoadingInitial(false);
   };
 
   const animateChatOpen = () => {
@@ -500,14 +525,34 @@ const DreamDetailScreen: React.FC = () => {
   };
 
   const handleAskAI = async () => {
-    if (dream) {
-      await generateInitialAIInterpretation(dream);
+    if (!dream) return;
+    
+    // Check if online before proceeding
+    const online = await isOnline();
+    if (!online) {
+      setShowOfflineMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowOfflineMessage(false), 5000);
+      return;
     }
+    
+    setShowOfflineMessage(false);
+    await generateInitialAIInterpretation(dream);
   };
 
   const handleUpdateInterpretation = async () => {
     if (!dream || !interpretation) return;
 
+    // Check if online before proceeding
+    const online = await isOnline();
+    if (!online) {
+      setShowOfflineMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowOfflineMessage(false), 5000);
+      return;
+    }
+
+    setShowOfflineMessage(false);
     setIsGeneratingInitial(true);
     try {
       const aiResponse = await generateInitialInterpretation(dream);
@@ -788,12 +833,20 @@ const DreamDetailScreen: React.FC = () => {
                   {/* Show update button only if content changed (not just title) */}
                   {dream.updatedAt > interpretation.updatedAt && 
                    dream.content !== interpretation.dreamContentAtCreation && (
-                    <Button
-                      title="Update interpretation"
-                      onPress={handleUpdateInterpretation}
-                      variant="secondary"
-                      style={[styles.conversationButton, styles.updateButton]}
-                    />
+                    <>
+                      {showOfflineMessage && (
+                        <OfflineMessage
+                          featureName="Jungian AI interpretation"
+                          icon="🧠"
+                        />
+                      )}
+                      <Button
+                        title="Update interpretation"
+                        onPress={handleUpdateInterpretation}
+                        variant="secondary"
+                        style={[styles.conversationButton, styles.updateButton]}
+                      />
+                    </>
                   )}
                   
                   {/* Expand/Continue conversation button */}
@@ -831,6 +884,12 @@ const DreamDetailScreen: React.FC = () => {
                 <Text style={styles.noInterpretationText}>
                   Ask the AI to reflect on symbols, archetypes and shadow dynamics.
                 </Text>
+                {showOfflineMessage && (
+                  <OfflineMessage
+                    featureName="Jungian AI interpretation"
+                    icon="🧠"
+                  />
+                )}
                 <Button
                   title="Ask Jungian AI"
                   onPress={handleAskAI}
