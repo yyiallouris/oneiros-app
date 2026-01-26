@@ -1,0 +1,2 @@
+[functions.whisper-transcription]
+verify_jwt = false
