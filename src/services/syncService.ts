@@ -204,11 +204,20 @@ export class SyncService {
       const remote = await remoteGetInterpretations();
       if (remote) {
         const local = await LocalStorage.getInterpretations();
-        
-        // Merge remote + local, preferring remote by id
+
+        // Merge remote + local by id; prefer remote but preserve local-only fields (e.g. landscapes) when remote omits them
         const mergedById = new Map<string, Interpretation>();
         local.forEach((i) => mergedById.set(i.id, i));
-        remote.forEach((i) => mergedById.set(i.id, i));
+        remote.forEach((remoteI) => {
+          const localI = mergedById.get(remoteI.id);
+          const merged: Interpretation = {
+            ...remoteI,
+            landscapes: (remoteI.landscapes && remoteI.landscapes.length > 0)
+              ? remoteI.landscapes
+              : localI?.landscapes,
+          };
+          mergedById.set(remoteI.id, merged);
+        });
 
         const merged = Array.from(mergedById.values());
         

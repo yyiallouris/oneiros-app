@@ -1,6 +1,7 @@
 import { Dream, ChatMessage } from '../types/dream';
 import Constants from 'expo-constants';
 import { logError } from './logger';
+import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 
 // Feature flags for model capabilities
 // These should be configured per model/endpoint, not guessed by string matching
@@ -525,8 +526,9 @@ CRITICAL: Always use hypothetical language. Never state interpretations as certa
 - Never use: "This means that...", "This is...", "This represents..."
 
 End with exactly 2 reflective questions that deepen symbolic inquiry, not therapy coaching.
-- 1 question about a specific symbol
-- 1 question about a lived life situation
+- Question 1: about a specific symbol AND must include a somatic prompt (breath, tension, warmth, posture, impulse).
+- Question 2: about a lived life situation AND must include a somatic prompt (where it shows up in the body, what action impulse arises).
+- Avoid "how do you feel about…"; prefer "what happens in your body when…"
 `;
 
 // Format contract for initial interpretation
@@ -549,15 +551,17 @@ Structure your interpretation as follows:
 
 3. **Archetypal Dynamics** (bullet points)
    - Identify which autonomous complexes are ACTIVE and playing a role in the dream's dynamics
-   - Use only these archetype names: Shadow, Anima, Animus, Self, Persona, Trickster, Great Mother, Wise Old Man, Child, Hero
+   - Use only these archetype names: ${ARCHETYPE_WHITELIST.join(', ')}
    - CRITICAL: Only include an archetype if it is actively present in the dream's dynamics, not just mentioned or "possibly present"
    - If an archetype is only "possibly present" or not clearly active, omit it
    - Describe how the ego relates to these complexes
+   - SPECIAL RULE FOR "Self": Only include "Self" if there is a strong centering/ordering symbol or numinous organizing force in the dream (e.g., mandala/circle center, radiant fire/stone, axis/tree, sacred child as center, unifying third, explicit wholeness motif). If uncertain, omit "Self". FALSE CENTER / FALSE MANDALA: If a symbol resembles a mandala or central ordering image BUT it destabilizes the body, increases arousal or confusion, or fails to organize attention — treat it explicitly as a false center; do NOT include "Self". Mandala-like + destabilization = false mandala; omit Self.
+   - Do NOT include modern system archetypes (Explorer, Sage, Warrior, etc.) unless there is explicit behavior in the dream showing that function in action (e.g. deliberate exploration, teaching, assertion).
 
 4. **Reflective Questions** (exactly 2 questions)
-   - 1 question about a specific symbol
-   - 1 question about a lived life situation
-   - Questions that deepen symbolic inquiry, not therapy coaching
+   - Q1: about a specific symbol AND must include a body prompt (breath, chest, throat, belly, jaw, posture, impulse to act).
+   - Q2: about a lived life situation AND must include a body prompt (where you feel it; urge to fight/flee/freeze/please).
+   - Questions deepen symbolic inquiry, not therapy coaching.
 `;
 
 export const generateInitialInterpretation = async (dream: Dream): Promise<string> => {
@@ -565,13 +569,16 @@ export const generateInitialInterpretation = async (dream: Dream): Promise<strin
   const emotionOnWaking = (dream as any).emotionOnWaking || '';
   const bodySensation = (dream as any).bodySensation || '';
   const currentLifeTheme = (dream as any).currentLifeTheme || '';
-  
-  const personalizationSection = [emotionOnWaking, bodySensation, currentLifeTheme]
-    .filter(Boolean)
-    .map((val, idx) => {
-      const labels = ['Emotion on waking', 'Body sensation', 'Current life theme'];
-      return `${labels[idx]}: ${val}`;
-    })
+
+  const personalizationPairs: Array<[string, string]> = [
+    ['Emotion on waking', emotionOnWaking],
+    ['Body sensation', bodySensation],
+    ['Current life theme', currentLifeTheme],
+  ];
+
+  const personalizationSection = personalizationPairs
+    .filter(([, v]) => Boolean(v))
+    .map(([k, v]) => `${k}: ${v}`)
     .join('\n');
   
   const userPrompt = `Here is a dream I want to explore symbolically.
@@ -774,52 +781,55 @@ Content: ${dreamExcerpt}`;
   }
 };
 
-// Fallback extraction function - now only used for parsing "Key Symbols" section from main interpretation
-// This is more reliable than pattern matching disconnected phrases
+// Helper: extract a markdown section by heading title
+const extractSection = (text: string, title: string): string | null => {
+  const re = new RegExp(
+    `##?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n([\\s\\S]*?)(?=\\n##?\\s*|$)`,
+    'i'
+  );
+  const m = text.match(re);
+  return m ? m[1].trim() : null;
+};
+
+// Fallback extraction: parse only Key Symbols + Archetypal Dynamics sections (no full-text scan)
 export const extractSymbolsAndArchetypes = (aiResponse: string): {
   symbols: string[];
   archetypes: string[];
+  landscapes: string[];
 } => {
   const symbols: string[] = [];
   const archetypes: string[] = [];
 
-  // Try to extract from "Key Symbols" section (matches our format)
-  const keySymbolsMatch = aiResponse.match(/##?\s*Key Symbols\s*##?\s*\n([\s\S]*?)(?=\n##?\s*|$)/i);
-  if (keySymbolsMatch) {
-    const symbolsSection = keySymbolsMatch[1];
-    // Extract bullet points (lines starting with - or *)
-    const bulletMatches = symbolsSection.match(/^[-*]\s*(.+)$/gm);
+  // --- Symbols: only from Key Symbols section ---
+  const keySymbolsSection = extractSection(aiResponse, 'Key Symbols');
+  if (keySymbolsSection) {
+    const bulletMatches = keySymbolsSection.match(/^[-*]\s*(.+)$/gm);
     if (bulletMatches) {
-      bulletMatches.forEach(bullet => {
+      bulletMatches.forEach((bullet) => {
         const text = bullet.replace(/^[-*]\s*/, '').trim();
-        // Extract symbol name (usually first phrase before colon or comma)
         const symbolName = text.split(/[:,\-]/)[0].trim();
-        if (symbolName && symbolName.length < 50) {
-          symbols.push(symbolName);
-        }
+        if (symbolName && symbolName.length < 50) symbols.push(symbolName);
       });
     }
   }
 
-  // Archetype extraction: look for whole-word matches from allowed list
-  const archetypePatterns = [
-    'Shadow', 'Anima', 'Animus', 'Self', 'Persona',
-    'Trickster', 'Great Mother', 'Wise Old Man',
-    'Child', 'Hero'
-  ];
+  // --- Archetypes: only from Archetypal Dynamics bullets (avoids "self" in "self-image" elsewhere) ---
+  const archeSection = extractSection(aiResponse, 'Archetypal Dynamics');
+  if (archeSection) {
+    const bulletMatches = archeSection.match(/^[-*]\s*(.+)$/gm) || [];
+    const candidates = bulletMatches
+      .map((b) => b.replace(/^[-*]\s*/, '').trim())
+      .map((line) => line.split(/[:–—-]/)[0].trim())
+      .flatMap((raw) => normalizeArchetypeList(raw));
+    archetypes.push(...candidates);
+  }
 
-  archetypePatterns.forEach(a => {
-    if (new RegExp(`\\b${a}\\b`, 'i').test(aiResponse)) {
-      archetypes.push(a);
-    }
-  });
-
-  // Filter out affect words and limit symbols to 4-5
   const filteredSymbols = filterAffectWords([...new Set(symbols)]);
-  
+
   return {
-    symbols: filteredSymbols.slice(0, 5), // Max 5 symbols
-    archetypes: [...new Set(archetypes)].slice(0, 2), // Max 2 archetypes (only if actively present)
+    symbols: filteredSymbols.slice(0, 12),
+    archetypes: [...new Set(archetypes)].slice(0, 12),
+    landscapes: [],
   };
 };
 
@@ -864,24 +874,27 @@ const filterAffectWords = (symbols: string[]): string[] => {
 };
 
 const EXTRACTION_SYSTEM_PROMPT = `
-You are a post-Jungian dream analyst extracting symbols and archetypes from a dream.
+You are a post-Jungian dream analyst extracting symbols, archetypes, and landscapes from a dream.
 
-For symbols: Identify key symbolic elements that are concrete or imaginal entities: objects, animals, places, figures, or forces (e.g., "wind", "jacket", "helmet", "open space", "bridge", "water").
-CRITICAL: Symbols must be images/objects/forces, NOT emotional states.
-- ✅ Include: "wind", "jacket", "helmet", "open space", "bridge", "water", "mountain", "door"
+For symbols: Identify ALL key symbolic elements—objects, animals, places, figures, or forces (e.g. "mask", "lantern", "cavern", "throne", "water", "ash"). Rich dreams often have 6-12 symbols; include every image that carries meaning.
+CRITICAL: Symbols must be concrete or imaginal images/objects/forces, NOT emotional states.
+- ✅ Include: "mask", "gate", "lantern", "roots", "cavern", "throne", "water", "meadow", "fire", "staff"
 - ❌ Exclude: "worry", "fear", "sadness", "anxiety", "anger" (these are affect, not symbols)
-Focus on elements that function symbolically in relation to the dreamer's affect and inner conflict, not fixed dictionary meanings.
-Prefer quality over quantity: 3-4 well-chosen symbols are better than 7 generic ones.
 
-For archetypes: Identify which Jungian archetypes are ACTIVE and playing a role in the dream's dynamics.
-Use only these archetype names: Shadow, Anima, Animus, Self, Persona, Trickster, Great Mother, Wise Old Man, Child, Hero.
-CRITICAL: Only include an archetype if it is actively present in the dream's dynamics, not just mentioned or "possibly present".
-If an archetype is only "possibly present" or not clearly active, omit it.
+For archetypes: Identify EVERY Jungian archetype that is clearly active in the dream (appears as a figure, role, or dynamic). A single dream often has many—e.g. Child, Great Mother, Father, King, Queen, Trickster, Shadow, Warrior, Anima, Animus, Death Archetype, Rebirth, Wise Old Man, Wounded Healer. Include all that apply.
+Use only these archetype names: ${ARCHETYPE_WHITELIST.join(', ')}.
+Only omit an archetype if it is merely mentioned in passing; if a figure or dynamic is present, include it.
+
+For landscapes: Identify the main settings or spaces where the dream takes place—places, environments, or spatial contexts (e.g. "forest", "beach", "childhood home", "city street", "empty room", "school corridor", "open road").
+- ✅ Include: "forest", "beach", "childhood home", "city street", "empty room", "school", "hospital", "open road", "mountain path", "underwater", "old house"
+- Keep 1-3 landscapes per dream; prefer concrete, imageable places.
+- Do NOT list emotions or abstract concepts as landscapes.
 
 Return your response as a JSON object with exactly this format:
 {
   "symbols": ["symbol1", "symbol2", ...],
-  "archetypes": ["archetype1", "archetype2", ...]
+  "archetypes": ["archetype1", "archetype2", ...],
+  "landscapes": ["place1", "place2", ...]
 }
 
 CRITICAL INSTRUCTIONS:
@@ -889,18 +902,19 @@ CRITICAL INSTRUCTIONS:
 - Return a single-line JSON object with no whitespace before/after
 - Do NOT wrap the JSON in markdown code fences (no \`\`\`json)
 - Do NOT add explanatory text before or after the JSON
-- If you are unsure about a symbol or archetype, omit it (empty arrays are acceptable)
-- Return empty arrays [] if no symbols or archetypes are found
+- If you are unsure about a symbol, archetype, or landscape, omit it (empty arrays are acceptable)
+- Return empty arrays [] if none are found
 
-Example valid response:
-{"symbols": ["water", "bridge"], "archetypes": ["Shadow", "Anima"]}
+Example (short dream): {"symbols": ["water", "bridge"], "archetypes": ["Shadow", "Anima"], "landscapes": ["riverbank", "forest"]}
+Example (rich dream): {"symbols": ["mask", "gate", "lantern", "cavern", "throne", "ash", "water", "meadow"], "archetypes": ["Persona", "Child", "Great Mother", "Father", "King", "Queen", "Trickster", "Shadow", "Warrior", "Anima", "Animus", "Death Archetype", "Rebirth Archetype", "Wise Old Man", "Wounded Healer"], "landscapes": ["circular city", "underground cavern", "meadow"]}
 `;
 
 export const extractDreamSymbolsAndArchetypes = async (dream: Dream): Promise<{
   symbols: string[];
   archetypes: string[];
+  landscapes: string[];
 }> => {
-  const extractionPrompt = `Analyze this dream and extract symbols and archetypes:
+  const extractionPrompt = `Analyze this dream and extract symbols, archetypes, and landscapes (settings/places).
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
@@ -908,7 +922,7 @@ Date: ${dream.date}
 Dream:
 ${dream.content}
 
-Return a JSON object with "symbols" and "archetypes" arrays. If unsure, return empty arrays [].`;
+Return a JSON object with "symbols", "archetypes", and "landscapes" arrays. Include every symbol and archetype that is clearly present; rich dreams will have longer arrays. If unsure, return empty arrays [].`;
 
   const { requestId, model } = startRequest();
 
@@ -939,7 +953,7 @@ Return a JSON object with "symbols" and "archetypes" arrays. If unsure, return e
     if (capabilities.supportsMaxCompletionTokens) {
       // Use helper to get token param name (DRY - avoids copy-paste bugs)
       const tokenParamName = getTokenParamName(apiUrl);
-      payload[tokenParamName] = 900;
+      payload[tokenParamName] = 1600;
     }
 
     // Only add response_format if supported
@@ -1002,23 +1016,32 @@ Return a JSON object with "symbols" and "archetypes" arrays. If unsure, return e
       
       const parsed = JSON.parse(jsonStr);
       
-      // Filter out affect words and limit to 4-5 symbols (prefer quality over quantity)
-      let symbols = Array.isArray(parsed.symbols) ? parsed.symbols : [];
-      symbols = filterAffectWords(symbols);
-      symbols = symbols.slice(0, 5); // Max 5 symbols (Jungian-wise, economy is a virtue)
-      
-      // Limit archetypes to max 2 (only if actively present)
-      const archetypes = Array.isArray(parsed.archetypes) ? parsed.archetypes.slice(0, 2) : [];
+      // Filter out affect words; allow up to 12 symbols for rich dreams
+      const rawSymbols: string[] = Array.isArray(parsed.symbols)
+        ? parsed.symbols.map((s: unknown) => String(s))
+        : [];
+      let symbols = filterAffectWords(rawSymbols).slice(0, 12);
+
+      // Normalize to whitelist; expand "X / Y" into separate archetypes; allow up to 12
+      const rawArchetypes: unknown[] = Array.isArray(parsed.archetypes) ? parsed.archetypes : [];
+      const expanded: string[] = rawArchetypes.flatMap((a) => normalizeArchetypeList(String(a)));
+      const uniqueArchetypes = [...new Set(expanded)].slice(0, 12);
+
+      // Landscapes: settings/places, up to 5
+      const landscapes = (Array.isArray(parsed.landscapes)
+        ? (parsed.landscapes as unknown[]).slice(0, 5).map((s) => String(s))
+        : []) as string[];
       
       if (__DEV__) {
         console.log('[AI] Extracted:', { 
           symbolsCount: symbols.length, 
-          archetypesCount: archetypes.length,
+          archetypesCount: uniqueArchetypes.length,
+          landscapesCount: landscapes.length,
           filteredAffect: parsed.symbols?.length - symbols.length || 0
         });
       }
       
-      return { symbols, archetypes };
+      return { symbols, archetypes: uniqueArchetypes, landscapes };
     } catch (parseError) {
       // If JSON parsing fails, return empty arrays rather than using weak fallback
       // The fallback heuristic is disconnected from our format and often produces incorrect results
@@ -1027,11 +1050,11 @@ Return a JSON object with "symbols" and "archetypes" arrays. If unsure, return e
         console.warn('[AI] Content that failed to parse (first 200 chars):', content.substring(0, 200));
       }
       logError('ai_extract_json_parse_error', parseError, { contentLength: content.length });
-      return { symbols: [], archetypes: [] };
+      return { symbols: [], archetypes: [], landscapes: [] };
     }
   } catch (error) {
     logError('ai_extract_symbols_error', error, { requestId, model });
     // Return empty arrays on error so the app doesn't break
-    return { symbols: [], archetypes: [] };
+    return { symbols: [], archetypes: [], landscapes: [] };
   }
 };

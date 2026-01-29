@@ -7,17 +7,19 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types';
+import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Card, MountainWaveBackground, BreathingLine, LinoSkeletonCard } from '../components/ui';
 import { Dream } from '../types/dream';
-import { getDreams, searchDreams } from '../utils/storage';
+import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
+import { normalizeSymbolKey } from '../services/insightsService';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
+type JournalRouteProp = RouteProp<MainTabsParamList, 'Journal'>;
 
 // Search icon
 const SearchIcon = ({ size = 20, color = colors.textSecondary }) => (
@@ -72,48 +74,92 @@ const DreamCard: React.FC<DreamCardProps> = ({ dream, onPress }) => {
   );
 };
 
-const JournalScreen: React.FC = () => {
+const sortDreams = (list: Dream[]) =>
+  [...list].sort((a, b) => {
+    const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (dateCompare !== 0) return dateCompare;
+    const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
+    const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
+    return bTime - aTime;
+  });
+
+export interface JournalScreenProps {
+  /** When set, filter is driven by these params and back goes to previous stack screen (e.g. InsightsSection). */
+  overrideParams?: { filterSymbol?: string; filterLandscape?: string };
+}
+
+const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<JournalRouteProp>();
+  const isStackScreen = !!overrideParams;
+  const filterSymbol = overrideParams?.filterSymbol ?? route.params?.filterSymbol;
+  const filterLandscape = overrideParams?.filterLandscape ?? route.params?.filterLandscape;
   const [dreams, setDreams] = useState<Dream[]>([]);
+  const [baseDreams, setBaseDreams] = useState<Dream[]>([]); // all dreams or filtered by symbol/landscape from Insights
   const [filteredDreams, setFilteredDreams] = useState<Dream[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const clearFilter = useCallback(() => {
+    setSearchQuery('');
+    // In stack mode this updates JournalFilter's route params so the header title becomes "Journal"
+    navigation.setParams({ filterSymbol: undefined, filterLandscape: undefined });
+  }, [navigation]);
+
   useFocusEffect(
     useCallback(() => {
       loadDreams();
-    }, [])
+      return () => {
+        // Only clear tab params when leaving Journal tab (not when used as stack JournalFilter)
+        if (!isStackScreen) {
+          setSearchQuery('');
+          navigation.setParams({ filterSymbol: undefined, filterLandscape: undefined });
+        }
+      };
+    }, [filterSymbol, filterLandscape, isStackScreen])
   );
 
   const loadDreams = async () => {
     setIsLoading(true);
     try {
       const allDreams = await getDreams();
-      
-      // Sort: first by date (descending - newest days first), then by createdAt within same date (descending - newest first)
-      const sorted = allDreams.sort((a, b) => {
-        // First sort by date (descending - newest days first)
-        const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
-        if (dateCompare !== 0) {
-          return dateCompare;
-        }
-        // If same date, sort by createdAt (descending - newest first)
-        // Use updatedAt as fallback if createdAt doesn't exist
-        const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
-        const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
-        return bTime - aTime; // Descending (newest first)
-      });
-      
-      setDreams(sorted);
-      setFilteredDreams(sorted);
+      let toShow = sortDreams(allDreams);
+
+      if (filterSymbol || filterLandscape) {
+        const interpretations = await getInterpretations();
+        const byDreamId = new Map(interpretations.map((i) => [i.dreamId, i]));
+        const filterKeySymbol = filterSymbol ? normalizeSymbolKey(filterSymbol) : '';
+        const filterKeyLandscape = filterLandscape ? filterLandscape.trim().toLowerCase().replace(/\s+/g, ' ') : '';
+
+        toShow = toShow.filter((d) => {
+          if (filterKeySymbol) {
+            const inDream = d.symbols?.some((s) => normalizeSymbolKey(s) === filterKeySymbol);
+            const interp = byDreamId.get(d.id);
+            const inInterp = interp?.symbols?.some((s) => normalizeSymbolKey(s) === filterKeySymbol);
+            return !!(inDream || inInterp);
+          }
+          if (filterKeyLandscape) {
+            const interp = byDreamId.get(d.id);
+            return !!interp?.landscapes?.some(
+              (l) => l.trim().toLowerCase().replace(/\s+/g, ' ') === filterKeyLandscape
+            );
+          }
+          return true;
+        });
+        toShow = sortDreams(toShow);
+      }
+
+      const sortedAll = sortDreams(allDreams);
+      setDreams(sortedAll);
+      setBaseDreams(toShow);
+      setFilteredDreams(toShow);
     } catch (error) {
-      // If loading fails, show empty list but stop loading
       console.error('[Journal] Failed to load dreams:', error);
       setDreams([]);
+      setBaseDreams([]);
       setFilteredDreams([]);
     } finally {
-      // Always stop loading, even if there's an error
       setIsLoading(false);
     }
   };
@@ -124,25 +170,17 @@ const JournalScreen: React.FC = () => {
 
     if (trimmed) {
       setIsSearching(true);
-      const results = dreams.filter((d) => {
+      const results = baseDreams.filter((d) => {
         const content = d.content.toLowerCase();
         const title = d.title?.toLowerCase() || '';
-        return content.includes(trimmed) || title.includes(trimmed);
+        const inContent = content.includes(trimmed) || title.includes(trimmed);
+        const inSymbols = d.symbols?.some((s) => s.toLowerCase().includes(trimmed));
+        return inContent || inSymbols;
       });
-      // Maintain same sorting for search results (newest first within same date)
-      const sorted = results.sort((a, b) => {
-        const dateCompare = new Date(b.date).getTime() - new Date(a.date).getTime();
-        if (dateCompare !== 0) {
-          return dateCompare;
-        }
-        const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
-        const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
-        return bTime - aTime; // Descending (newest first)
-      });
-      setFilteredDreams(sorted);
+      setFilteredDreams(sortDreams(results));
       setIsSearching(false);
     } else {
-      setFilteredDreams(dreams);
+      setFilteredDreams(baseDreams);
     }
   };
 
@@ -151,17 +189,24 @@ const JournalScreen: React.FC = () => {
   };
 
   const handleCalendarPress = () => {
-    navigation.navigate('MainTabs', { screen: 'Calendar' });
+    navigation.navigate('Calendar');
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyStateTitle}>No dreams yet</Text>
-      <Text style={styles.emptyStateText}>
-        Capture the next one in the Write tab
-      </Text>
-    </View>
-  );
+  const renderEmptyState = () => {
+    const isFiltered = !!(filterSymbol || filterLandscape);
+    return (
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyStateTitle}>
+          {isFiltered ? 'No dreams with this filter' : 'No dreams yet'}
+        </Text>
+        <Text style={styles.emptyStateText}>
+          {isFiltered
+            ? 'Try another symbol or landscape from Insights'
+            : 'Capture the next one in the Write tab'}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -188,6 +233,21 @@ const JournalScreen: React.FC = () => {
             onChangeText={handleSearch}
           />
         </View>
+        {(filterSymbol || filterLandscape) && !isLoading && (
+          <View style={styles.filterRow}>
+            <Text style={styles.filterHint}>
+              {filterSymbol ? `Symbol: ${filterSymbol}` : `Landscape: ${filterLandscape}`}
+            </Text>
+            <TouchableOpacity
+              onPress={clearFilter}
+              style={styles.filterClearButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel="Clear filter"
+            >
+              <Text style={styles.filterClearText}>×</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {/* Breathing line below search bar */}
         {isLoading && (
           <View style={styles.headerLoader}>
@@ -272,6 +332,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  filterHint: {
+    fontSize: typography.sizes.xs,
+    color: colors.accent,
+  },
+  filterClearButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.accent + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterClearText: {
+    fontSize: typography.sizes.xl,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+    lineHeight: typography.sizes.xl,
   },
   searchInput: {
     flex: 1,

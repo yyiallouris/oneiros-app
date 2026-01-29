@@ -17,9 +17,10 @@ import { colors, spacing, typography, borderRadius } from '../theme';
 import { Card, Button, MountainWaveBackground } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
-import { formatDate, getTodayDate, getGreeting, generateId } from '../utils/date';
+import { formatDate, getTodayDate, generateId } from '../utils/date';
 import { saveDream, getDreamsByDate, saveDraft, getDraft, clearDraft } from '../utils/storage';
 import { Dream } from '../types/dream';
+import { UserService } from '../services/userService';
 import { getRandomSymbol } from '../components/symbols';
 import Svg, { Path } from 'react-native-svg';
 
@@ -44,17 +45,20 @@ const WriteScreen: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [todaysDream, setTodaysDream] = useState<Dream | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const autoSaveTimeout = useRef<NodeJS.Timeout>();
   const contentInputRef = useRef<TextInput>(null);
 
   const today = getTodayDate();
+  const headerGreeting = displayName ? `Hello, ${displayName}` : 'Hello';
 
-  // Load today's dream or draft when screen gains focus
+  // Load today's dream or draft and display name when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadTodaysDream();
+      UserService.getDisplayName().then((name) => setDisplayName(name ?? null));
       // Clear any pending auto-save timeout when screen gains focus
       // This prevents stale drafts from loading
       return () => {
@@ -178,7 +182,7 @@ const WriteScreen: React.FC = () => {
   };
 
   const handleCalendarPress = () => {
-    navigation.navigate('MainTabs', { screen: 'Calendar' });
+    navigation.navigate('Calendar');
   };
 
   return (
@@ -199,7 +203,7 @@ const WriteScreen: React.FC = () => {
           <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{getGreeting()}</Text>
+          <Text style={styles.headerTitle}>{headerGreeting}</Text>
           <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
             <CalendarIcon size={24} />
           </TouchableOpacity>
@@ -218,7 +222,7 @@ const WriteScreen: React.FC = () => {
           {/* Title Input */}
           <TextInput
             style={styles.titleInput}
-            placeholder="Give your dream a name (or leave it unnamed)"
+            placeholder="Name your dream (optional)"
             placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
@@ -289,6 +293,15 @@ const WriteScreen: React.FC = () => {
                 }}
               >
                 <Text style={styles.menuItemText}>Account</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setIsMenuOpen(false);
+                  navigation.navigate('Privacy');
+                }}
+              >
+                <Text style={styles.menuItemText}>Privacy</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}

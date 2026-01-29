@@ -1,0 +1,626 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
+import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/types';
+import { colors, spacing, typography, text } from '../theme';
+import { WaveBackground, BreathingLine, Card } from '../components/ui';
+import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
+import {
+  getRecurringSymbols,
+  getRecurringArchetypes,
+  getRecurringLandscapes,
+  getCollectiveInsights,
+  getSymbolClusters,
+  symbolHasAssociations,
+  getAssociationsForSymbol,
+} from '../services/insightsService';
+import { toSafeSymbolLabel } from '../constants/safeLabels';
+
+type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
+type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
+
+const TOP_THEMES_LIMIT = 5;
+
+export const InsightsSectionScreen: React.FC = () => {
+  const route = useRoute<Route>();
+  const navigation = useNavigation<NavProp>();
+  const sectionId = route.params?.sectionId ?? 'recurring-symbols';
+  const period: InsightsPeriod | undefined =
+    route.params?.periodStart != null && route.params?.periodEnd != null
+      ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
+      : undefined;
+  const [loading, setLoading] = useState(true);
+  const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
+  const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
+  const [landscapes, setLandscapes] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
+  const [collective, setCollective] = useState<{
+    topSymbolsThisMonth: { symbol: string; count: number }[];
+    archetypeTrends: { archetype: string; direction: string }[];
+  }>({ topSymbolsThisMonth: [], archetypeTrends: [] });
+  const [showExplicitTerms, setShowExplicitTerms] = useState(false);
+  const [lessFrequentExpanded, setLessFrequentExpanded] = useState(false);
+  const [allSymbolsExpanded, setAllSymbolsExpanded] = useState(false);
+  const [clustersExpanded, setClustersExpanded] = useState(false);
+  /** When set, show associations only for this symbol (Explore symbol data). */
+  const [selectedSymbolForAssociations, setSelectedSymbolForAssociations] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const currentSectionId = route.params?.sectionId ?? 'recurring-symbols';
+    if (__DEV__ && currentSectionId === 'space-landscapes') {
+      console.log('[InsightsSection] load() running for space-landscapes');
+    }
+    setLoading(true);
+    try {
+      if (currentSectionId === 'recurring-symbols' || currentSectionId === 'symbol-details') {
+        const data = await getRecurringSymbols(period);
+        setSymbols(data);
+      } else if (currentSectionId === 'recurring-archetypes') {
+        const data = await getRecurringArchetypes(period);
+        setArchetypes(data);
+      } else if (currentSectionId === 'space-landscapes') {
+        const data = await getRecurringLandscapes(period);
+        if (__DEV__) {
+          console.log('[InsightsSection] getRecurringLandscapes() returned:', data.length, 'items:', data.map((x) => x.name));
+        }
+        setLandscapes(data);
+      } else if (currentSectionId === 'collective') {
+        const data = await getCollectiveInsights();
+        setCollective(data);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [route.params?.sectionId, period?.startDate, period?.endDate]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (__DEV__ && (route.params?.sectionId ?? 'recurring-symbols') === 'space-landscapes') {
+        console.log('[InsightsSection] Focus — loading space-landscapes, sectionId from route:', route.params?.sectionId);
+      }
+      load();
+    }, [load])
+  );
+
+  // When showing space-landscapes with empty list after load, refetch once (fixes wrong sectionId on nav)
+  useEffect(() => {
+    if (sectionId === 'space-landscapes' && landscapes.length === 0 && !loading) {
+      if (__DEV__) {
+        console.log('[InsightsSection] space-landscapes empty after load — refetching getRecurringLandscapes()');
+      }
+      getRecurringLandscapes(period).then((data) => {
+        if (__DEV__) {
+          console.log('[InsightsSection] refetch returned:', data.length, 'items:', data.map((x) => x.name));
+        }
+        setLandscapes(data);
+      });
+    }
+  }, [sectionId, loading, landscapes.length, period?.startDate, period?.endDate]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <WaveBackground />
+        <View style={styles.centered}>
+          <BreathingLine width={120} height={2} color={colors.accent} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <WaveBackground />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Recurring symbols: list with count (x N), tap → Journal filtered by symbol */}
+        {sectionId === 'recurring-symbols' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Recurring symbols</Text>
+            {symbols.length === 0 ? (
+              <Text style={styles.empty}>No symbols yet. Get interpretations to see patterns.</Text>
+            ) : (
+              symbols.map((s) => (
+                <TouchableOpacity
+                  key={s.normalizedKey}
+                  style={styles.symbolLandscapeRow}
+                  onPress={() => navigation.navigate('JournalFilter', { filterSymbol: s.name })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.symbolLandscapeName} numberOfLines={1}>
+                    {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
+                  </Text>
+                  <Text style={styles.symbolLandscapeCount}>×{s.count}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
+
+        {/* Explore symbol data (deep dive): only when user taps View symbol details */}
+        {sectionId === 'symbol-details' && (
+          <>
+            {symbols.length > 0 && (() => {
+              const clusters = getSymbolClusters(symbols);
+              const topSymbols = symbols.slice(0, TOP_THEMES_LIMIT);
+              const notAllHaveAssociations = topSymbols.some((s) => !symbolHasAssociations(s.name, clusters));
+              return notAllHaveAssociations ? (
+                <Text style={styles.associationsNote}>
+                  Symbol associations are available for selected symbols only.
+                </Text>
+              ) : null;
+            })()}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Most frequent symbols</Text>
+              {symbols.length === 0 ? (
+                <Text style={styles.empty}>No symbols yet.</Text>
+              ) : (
+                (() => {
+                  const clusters = getSymbolClusters(symbols);
+                  return symbols.slice(0, TOP_THEMES_LIMIT).map((s) => (
+                    <View key={s.normalizedKey} style={styles.themeRow}>
+                      <View>
+                        <Text style={styles.themeName}>
+                          {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
+                        </Text>
+                        <Text style={styles.themeHint}>came up repeatedly</Text>
+                      </View>
+                      {symbolHasAssociations(s.name, clusters) ? (
+                        <TouchableOpacity
+                          onPress={() => setSelectedSymbolForAssociations((prev) => (prev === s.name ? null : s.name))}
+                          style={styles.viewAssociationsCta}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.viewAssociationsLabel}>
+                            {selectedSymbolForAssociations === s.name ? 'Hide associations' : 'View associations'}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  ));
+                })()
+              )}
+            </View>
+
+            {/* Inline: associations only for the selected symbol */}
+            {symbols.length > 0 && selectedSymbolForAssociations && (() => {
+              const clusters = getSymbolClusters(symbols);
+              const assoc = getAssociationsForSymbol(selectedSymbolForAssociations, clusters);
+              if (!assoc) return null;
+              return (
+                <View style={styles.singleSymbolAssociationsBlock}>
+                  <Text style={styles.singleSymbolAssociationsTitle}>
+                    Associations for {toSafeSymbolLabel(selectedSymbolForAssociations, selectedSymbolForAssociations.trim().toLowerCase().replace(/\s+/g, ' '), showExplicitTerms)}
+                  </Text>
+                  <Text style={styles.singleSymbolClusterName}>{assoc.clusterName}</Text>
+                  {assoc.relatedSymbols.length > 0 ? (
+                    <Text style={styles.singleSymbolRelated}>
+                      Related: {assoc.relatedSymbols.map((sym) => toSafeSymbolLabel(sym, sym.trim().toLowerCase().replace(/\s+/g, ' '), showExplicitTerms)).join(' · ')}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })()}
+
+            {symbols.length > 0 && (
+              <View style={styles.section}>
+                <TouchableOpacity
+                  onPress={() => setClustersExpanded((v) => !v)}
+                  style={styles.collapsibleHeader}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.advancedSectionLabel}>Symbol associations (advanced)</Text>
+                  <Text style={styles.expandHint}>{clustersExpanded ? '▼' : '▶'}</Text>
+                </TouchableOpacity>
+                {clustersExpanded && (() => {
+                  const clusters = getSymbolClusters(symbols);
+                  const mainClusters = clusters.filter((c) => c.clusterName !== 'Less frequent symbols');
+                  const lessFrequent = clusters.find((c) => c.clusterName === 'Less frequent symbols');
+                  return (
+                    <View style={styles.clustersInside}>
+                      {mainClusters.map((cluster) => (
+                        <View key={cluster.clusterName} style={styles.clusterBlock}>
+                          <Text style={styles.clusterName}>{cluster.clusterName}</Text>
+                          <Text style={styles.clusterSymbols}>
+                            {cluster.symbols.map((sym) => toSafeSymbolLabel(sym, sym.trim().toLowerCase().replace(/\s+/g, ' '), showExplicitTerms)).join(' · ')}
+                          </Text>
+                        </View>
+                      ))}
+                      {lessFrequent && lessFrequent.symbols.length > 0 && (
+                        <View style={styles.collapsibleBlock}>
+                          <TouchableOpacity
+                            onPress={() => setLessFrequentExpanded((v) => !v)}
+                            style={styles.collapsibleHeader}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={styles.clusterName}>{lessFrequent.clusterName}</Text>
+                            <Text style={styles.expandHint}>{lessFrequentExpanded ? '▼' : '▶'}</Text>
+                          </TouchableOpacity>
+                          {lessFrequentExpanded && (
+                            <Text style={[styles.clusterSymbols, { marginTop: spacing.sm }]}>
+                              {lessFrequent.symbols.map((sym) => toSafeSymbolLabel(sym, sym.trim().toLowerCase().replace(/\s+/g, ' '), showExplicitTerms)).join(' · ')}
+                            </Text>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })()}
+              </View>
+            )}
+
+            {symbols.length > 0 && (
+              <View style={styles.sectionAllSymbols}>
+                <TouchableOpacity
+                  onPress={() => setAllSymbolsExpanded((v) => !v)}
+                  style={styles.collapsibleHeader}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.allSymbolsSectionLabel}>All symbols</Text>
+                  <Text style={styles.expandHint}>{allSymbolsExpanded ? '▼' : '▶'}</Text>
+                </TouchableOpacity>
+                {allSymbolsExpanded && (
+                  <>
+                    <View style={styles.switchRow}>
+                      <Text style={styles.switchLabel}>Show explicit terms</Text>
+                      <Switch
+                        value={showExplicitTerms}
+                        onValueChange={setShowExplicitTerms}
+                        trackColor={{ false: colors.border, true: colors.accentLight }}
+                        thumbColor={colors.accent}
+                      />
+                    </View>
+                    <View style={styles.allList}>
+                      {symbols.map((s) => (
+                        <Text key={s.normalizedKey} style={styles.allSymbol}>
+                          {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
+                        </Text>
+                      ))}
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Recurring landscapes: list with count (x N), tap → Journal filtered by landscape */}
+        {sectionId === 'space-landscapes' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Recurring landscapes</Text>
+            {landscapes.length === 0 ? (
+              <Text style={styles.empty}>No landscapes yet. Get interpretations to see recurring settings and places.</Text>
+            ) : (
+              landscapes.map((l) => (
+                <TouchableOpacity
+                  key={l.normalizedKey}
+                  style={styles.symbolLandscapeRow}
+                  onPress={() => navigation.navigate('JournalFilter', { filterLandscape: l.name })}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.symbolLandscapeName} numberOfLines={1}>{l.name}</Text>
+                  <Text style={styles.symbolLandscapeCount}>×{l.count}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
+        )}
+
+        {sectionId === 'recurring-archetypes' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>Archetypal distribution (last 30 days)</Text>
+            {archetypes.length === 0 ? (
+              <Text style={styles.empty}>No archetypes yet. Get interpretations to see distribution.</Text>
+            ) : (
+              <>
+                {(() => {
+                  const maxCount = Math.max(1, ...archetypes.map((a) => a.count));
+                  return archetypes.map((a) => (
+                    <View key={a.name} style={styles.barRow}>
+                      <Text style={styles.barLabel}>{a.name}</Text>
+                      <View style={styles.barTrack}>
+                        <View
+                          style={[
+                            styles.barFill,
+                            { width: `${Math.max(8, (a.count / maxCount) * 100)}%` },
+                          ]}
+                        />
+                      </View>
+                    </View>
+                  ));
+                })()}
+                {archetypes[0] && (
+                  <Text style={styles.observedLine}>
+                    Archetypes tend to rotate over time. This period shows increased {archetypes[0].name} activity.
+                  </Text>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
+        {sectionId === 'collective' && (
+          <Card style={styles.card}>
+            <Text style={styles.body}>
+              Anonymized, aggregate only: no individual data, no quotes, no dates tied to users.
+            </Text>
+            {collective.topSymbolsThisMonth.length === 0 && collective.archetypeTrends.length === 0 ? (
+              <Text style={styles.empty}>Collective insights will appear here when the feature is available.</Text>
+            ) : (
+              <>
+                {collective.topSymbolsThisMonth.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>Global themes this month</Text>
+                    {collective.topSymbolsThisMonth.map((s, i) => (
+                      <View key={i} style={styles.themeRow}>
+                        <Text style={styles.themeName}>{s.symbol}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                {collective.archetypeTrends.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>Archetype trends</Text>
+                    {collective.archetypeTrends.map((t, i) => (
+                      <View key={i} style={styles.themeRow}>
+                        <Text style={styles.themeName}>{t.archetype}</Text>
+                        <Text style={styles.themeHint}>{t.direction}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+          </Card>
+        )}
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  section: {
+    marginBottom: spacing.xxl,
+    paddingTop: spacing.lg,
+  },
+  sectionLabel: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
+  },
+  dominantInsightBlock: {
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    borderRadius: 8,
+  },
+  dominantInsightLabel: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    marginBottom: 2,
+  },
+  dominantInsightValue: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+  },
+  themeName: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+  },
+  themeHint: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    marginTop: 2,
+  },
+  symbolLandscapeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  symbolLandscapeName: {
+    flex: 1,
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    marginRight: spacing.sm,
+  },
+  symbolLandscapeCount: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.accent,
+  },
+  viewAssociationsCta: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  viewAssociationsLabel: {
+    fontSize: typography.sizes.xs,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+  },
+  associationsNote: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    marginBottom: spacing.lg,
+    fontStyle: 'italic',
+  },
+  singleSymbolAssociationsBlock: {
+    marginBottom: spacing.xl,
+    padding: spacing.md,
+    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accent,
+  },
+  singleSymbolAssociationsTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  singleSymbolClusterName: {
+    fontSize: typography.sizes.sm,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+    marginBottom: spacing.xs,
+  },
+  singleSymbolRelated: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  barRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  barLabel: {
+    fontSize: typography.sizes.sm,
+    color: colors.textPrimary,
+    width: 120,
+    marginRight: spacing.sm,
+  },
+  barTrack: {
+    flex: 1,
+    height: 8,
+    backgroundColor: 'rgba(237, 230, 223, 0.8)',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    minWidth: 4,
+    backgroundColor: colors.accent,
+    opacity: 0.7,
+    borderRadius: 4,
+  },
+  observedLine: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    marginTop: spacing.lg,
+    fontStyle: 'italic',
+  },
+  detailCta: {
+    marginTop: spacing.xl,
+    alignSelf: 'flex-start',
+  },
+  advancedSectionLabel: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: text.muted,
+  },
+  clustersInside: {
+    marginTop: spacing.md,
+  },
+  clusterBlock: {
+    marginBottom: spacing.lg,
+  },
+  collapsibleBlock: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  expandHint: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+  },
+  clusterName: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: text.secondary,
+    marginBottom: 2,
+  },
+  clusterSymbols: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
+  },
+  sectionAllSymbols: {
+    marginTop: spacing.xl,
+    marginBottom: spacing.xxl,
+    paddingTop: spacing.xl,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  allSymbolsSectionLabel: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    color: text.muted,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  switchLabel: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    marginRight: spacing.sm,
+  },
+  allList: {
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  allSymbol: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
+  },
+  card: { marginBottom: spacing.lg },
+  body: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: 22,
+    marginBottom: spacing.md,
+  },
+  empty: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    fontStyle: 'italic',
+  },
+  muted: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    marginTop: spacing.sm,
+  },
+});
+
+export default InsightsSectionScreen;

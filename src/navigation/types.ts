@@ -1,4 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import type { InsightsSectionId } from '../types/insights';
 
 export type RootStackParamList = {
   Auth: undefined;
@@ -8,11 +9,20 @@ export type RootStackParamList = {
   DreamDetail: { dreamId: string };
   Account: undefined;
   Contact: undefined;
+  Privacy: undefined;
+  Calendar: { initialDate?: string } | undefined;
+  InsightsSection: {
+    sectionId: InsightsSectionId;
+    periodStart?: string;
+    periodEnd?: string;
+    periodLabel?: string;
+  };
+  JournalFilter: { filterSymbol?: string; filterLandscape?: string };
 };
 
 export type MainTabsParamList = {
   Write: undefined;
-  Journal: undefined;
-  Calendar: undefined;
+  Journal: { filterSymbol?: string; filterLandscape?: string } | undefined;
+  Insights: undefined;
 };
 

@@ -36,6 +36,7 @@ type InterpretationRow = {
   dream_id: string;
   symbols: string[];
   archetypes: string[];
+  landscapes?: string[]; // settings/places; optional for backward compatibility
   summary: string | null;
   messages: any[];
   created_at: string;
@@ -78,6 +79,7 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     messages: row.messages as any,
     symbols: row.symbols,
     archetypes: row.archetypes,
+    landscapes: row.landscapes && row.landscapes.length > 0 ? row.landscapes : undefined,
     summary: row.summary ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -94,6 +96,7 @@ function mapInterpretationToRow(
     dream_id: interpretation.dreamId,
     symbols: interpretation.symbols,
     archetypes: interpretation.archetypes,
+    landscapes: interpretation.landscapes,
     summary: interpretation.summary ?? null,
     messages: interpretation.messages as any[],
   };

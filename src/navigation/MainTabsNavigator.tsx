@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabsParamList } from './types';
 import WriteScreen from '../screens/WriteScreen';
 import JournalScreen from '../screens/JournalScreen';
-import CalendarScreen from '../screens/CalendarScreen';
+import InsightsScreen from '../screens/InsightsScreen';
 import { colors, typography } from '../theme';
 import Svg, { Path } from 'react-native-svg';
 
@@ -43,11 +43,11 @@ const BookIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
   </Svg>
 );
 
-// Simple calendar icon
-const CalendarIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+// Key icon for Insights tab
+const KeyIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
-      d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
+      d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
       stroke={color}
       strokeWidth={2}
       strokeLinecap="round"
@@ -95,10 +95,10 @@ export const MainTabsNavigator: React.FC = () => {
         }}
       />
       <Tab.Screen
-        name="Calendar"
-        component={CalendarScreen}
+        name="Insights"
+        component={InsightsScreen}
         options={{
-          tabBarIcon: ({ color }) => <CalendarIcon color={color} />,
+          tabBarIcon: ({ color }) => <KeyIcon color={color} />,
         }}
       />
     </Tab.Navigator>

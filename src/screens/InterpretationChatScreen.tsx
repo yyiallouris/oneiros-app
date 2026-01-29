@@ -387,22 +387,34 @@ const InterpretationChatScreen: React.FC = () => {
       // Prefer extracting from the dream content (more reliable than parsing the prose response)
       let symbols: string[] = [];
       let archetypes: string[] = [];
+      let landscapes: string[] = [];
       try {
         const extracted = await extractDreamSymbolsAndArchetypes(dreamData);
         symbols = extracted.symbols ?? [];
         archetypes = extracted.archetypes ?? [];
+        landscapes = extracted.landscapes ?? [];
       } catch {
         const fallback = extractSymbolsAndArchetypes(aiResponse);
         symbols = fallback.symbols;
         archetypes = fallback.archetypes;
+        landscapes = fallback.landscapes ?? [];
       }
 
+      if (__DEV__) {
+        console.log('[DreamInterpretation] Extracted (chat):', {
+          symbolsCount: symbols.length,
+          symbols: symbols.slice(0, 10),
+          landscapesCount: landscapes.length,
+          landscapes: landscapes,
+        });
+      }
       const newInterpretation: Interpretation = {
         id: generateId(),
         dreamId: dreamData.id,
         messages: [aiMessage],
         symbols,
         archetypes,
+        landscapes: landscapes.length > 0 ? landscapes : undefined,
         summary: aiResponse.slice(0, 200),
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),

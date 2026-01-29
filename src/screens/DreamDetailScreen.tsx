@@ -473,23 +473,35 @@ const DreamDetailScreen: React.FC = () => {
       // Prefer extracting from the dream content (more reliable than parsing the prose response)
       let symbols: string[] = [];
       let archetypes: string[] = [];
+      let landscapes: string[] = [];
       try {
         const extracted = await extractDreamSymbolsAndArchetypes(dreamData);
         symbols = extracted.symbols ?? [];
         archetypes = extracted.archetypes ?? [];
+        landscapes = extracted.landscapes ?? [];
       } catch {
         // Fallback to heuristic parsing of the AI response
         const fallback = extractSymbolsAndArchetypes(aiResponse);
         symbols = fallback.symbols;
         archetypes = fallback.archetypes;
+        landscapes = fallback.landscapes ?? [];
       }
 
+      if (__DEV__) {
+        console.log('[DreamInterpretation] Extracted (new):', {
+          symbolsCount: symbols.length,
+          symbols: symbols.slice(0, 10),
+          landscapesCount: landscapes.length,
+          landscapes: landscapes,
+        });
+      }
       const newInterpretation: Interpretation = {
         id: generateId(),
         dreamId: dreamData.id,
         messages: [aiMessage],
         symbols,
         archetypes,
+        landscapes: landscapes.length > 0 ? landscapes : undefined,
         summary: extractSummary(aiResponse, 250),
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),
@@ -567,21 +579,33 @@ const DreamDetailScreen: React.FC = () => {
       // Prefer extracting from the dream content (more reliable than parsing the prose response)
       let symbols: string[] = [];
       let archetypes: string[] = [];
+      let landscapes: string[] = [];
       try {
         const extracted = await extractDreamSymbolsAndArchetypes(dream);
         symbols = extracted.symbols ?? [];
         archetypes = extracted.archetypes ?? [];
+        landscapes = extracted.landscapes ?? [];
       } catch {
         const fallback = extractSymbolsAndArchetypes(aiResponse);
         symbols = fallback.symbols;
         archetypes = fallback.archetypes;
+        landscapes = fallback.landscapes ?? [];
       }
 
+      if (__DEV__) {
+        console.log('[DreamInterpretation] Extracted (update):', {
+          symbolsCount: symbols.length,
+          symbols: symbols.slice(0, 10),
+          landscapesCount: landscapes.length,
+          landscapes: landscapes,
+        });
+      }
       const updatedInterpretation: Interpretation = {
         ...interpretation,
         messages: [aiMessage],
         symbols,
         archetypes,
+        landscapes: landscapes.length > 0 ? landscapes : undefined,
         summary: extractSummary(aiResponse, 250),
         dreamContentAtCreation: dream.content, // Update stored content
         updatedAt: new Date().toISOString(),
@@ -792,6 +816,7 @@ const DreamDetailScreen: React.FC = () => {
 
             {interpretation ? (
               <Card style={styles.interpretationCard}>
+                {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
                 {interpretation.symbols.length > 0 && (
                   <View style={styles.chipsSection}>
                     <Text style={styles.chipsSectionTitle}>Main symbols</Text>

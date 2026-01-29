@@ -4,7 +4,7 @@ import { colors, spacing, borderRadius, typography } from '../../theme';
 
 interface ChipProps {
   label: string;
-  variant?: 'default' | 'accent';
+  variant?: 'default' | 'accent' | 'label';
 }
 
 export const Chip: React.FC<ChipProps> = ({ label, variant = 'default' }) => {
@@ -13,12 +13,14 @@ export const Chip: React.FC<ChipProps> = ({ label, variant = 'default' }) => {
       style={[
         styles.chip,
         variant === 'accent' && styles.accentChip,
+        variant === 'label' && styles.labelChip,
       ]}
     >
       <Text
         style={[
           styles.chipText,
           variant === 'accent' && styles.accentChipText,
+          variant === 'label' && styles.labelChipText,
         ]}
       >
         {label}
@@ -40,6 +42,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentLight,
     borderColor: colors.accent,
   },
+  labelChip: {
+    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(226, 216, 204, 0.6)',
+  },
   chipText: {
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
@@ -47,6 +54,10 @@ const styles = StyleSheet.create({
   },
   accentChipText: {
     color: colors.white,
+  },
+  labelChipText: {
+    color: colors.textSecondary,
+    fontWeight: typography.weights.regular,
   },
 });
 

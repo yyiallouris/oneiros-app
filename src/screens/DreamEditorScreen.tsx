@@ -147,7 +147,7 @@ const DreamEditorScreen: React.FC = () => {
           {/* Title Input */}
           <TextInput
             style={styles.titleInput}
-            placeholder="Give your dream a name (or leave it unnamed)"
+            placeholder="name your dream(optional)"
             placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}

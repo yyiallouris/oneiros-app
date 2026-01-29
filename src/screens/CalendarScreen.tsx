@@ -7,7 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
@@ -18,9 +18,11 @@ import { getDreams, getDreamsByDate } from '../utils/storage';
 import { formatDateShort, toISODate } from '../utils/date';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
+type CalendarRouteProp = RouteProp<RootStackParamList, 'Calendar'>;
 
 const CalendarScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<CalendarRouteProp>();
   const [allDreams, setAllDreams] = useState<Dream[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [dreamsForSelectedDate, setDreamsForSelectedDate] = useState<Dream[]>([]);
@@ -31,8 +33,15 @@ const CalendarScreen: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
+      const initialDate = route.params?.initialDate;
+      if (initialDate) {
+        const y = parseInt(initialDate.slice(0, 4), 10);
+        const m = parseInt(initialDate.slice(5, 7), 10);
+        setCurrentMonth(m - 1);
+        setCurrentYear(y);
+      }
       loadCalendarData();
-    }, [])
+    }, [route.params?.initialDate])
   );
 
   const loadCalendarData = async () => {
@@ -112,11 +121,6 @@ const CalendarScreen: React.FC = () => {
       <MountainWaveBackground height={300} showSun={false} />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Dream Calendar</Text>
-        </View>
-
         {/* Circular Calendar */}
         <View style={styles.calendarContainer}>
           <CircularCalendar
@@ -200,18 +204,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
-    padding: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  headerTitle: {
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
-    color: colors.textPrimary,
-  },
   calendarContainer: {
     paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
     marginBottom: spacing.lg,
   },
   daySheet: {

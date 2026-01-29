@@ -9,6 +9,12 @@ import DreamDetailScreen from '../screens/DreamDetailScreen';
 import AuthScreen from '../screens/AuthScreen';
 import AccountScreen from '../screens/AccountScreen';
 import ContactScreen from '../screens/ContactScreen';
+import PrivacyScreen from '../screens/PrivacyScreen';
+import CalendarScreen from '../screens/CalendarScreen';
+import InsightsSectionScreen from '../screens/InsightsSectionScreen';
+import JournalFilterScreen from '../screens/JournalFilterScreen';
+import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
+import type { InsightsSectionId } from '../types/insights';
 import { colors } from '../theme';
 import { supabase } from '../services/supabaseClient';
 import { Session } from '@supabase/supabase-js';
@@ -276,6 +282,17 @@ export const RootNavigator: React.FC = () => {
           }}
         />
         <Stack.Screen
+          name="Privacy"
+          component={PrivacyScreen}
+          options={{
+            headerShown: true,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.textPrimary,
+            headerTitle: 'Privacy',
+          }}
+        />
+        <Stack.Screen
           name="DreamDetail"
           component={DreamDetailScreen}
           options={{
@@ -284,6 +301,48 @@ export const RootNavigator: React.FC = () => {
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
             headerTitle: 'Dream',
+          }}
+        />
+        <Stack.Screen
+          name="Calendar"
+          component={CalendarScreen}
+          options={{
+            headerShown: true,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.textPrimary,
+            headerTitle: 'Dream Calendar',
+          }}
+        />
+        <Stack.Screen
+          name="InsightsSection"
+          component={InsightsSectionScreen}
+          options={({ route }) => {
+            const p = route.params as { sectionId?: InsightsSectionId; periodLabel?: string };
+            const baseTitle = p?.sectionId ? (INSIGHTS_SECTION_TITLES[p.sectionId] ?? 'Insights') : 'Insights';
+            const title = p?.periodLabel ? `${baseTitle} (${p.periodLabel})` : baseTitle;
+            return {
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.background },
+              headerShadowVisible: false,
+              headerTintColor: colors.textPrimary,
+              headerTitle: title,
+            };
+          }}
+        />
+        <Stack.Screen
+          name="JournalFilter"
+          component={JournalFilterScreen}
+          options={({ route }) => {
+            const p = route.params as { filterSymbol?: string; filterLandscape?: string };
+            const title = p?.filterSymbol ? `Symbol: ${p.filterSymbol}` : p?.filterLandscape ? `Landscape: ${p.filterLandscape}` : 'Journal';
+            return {
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.background },
+              headerShadowVisible: false,
+              headerTintColor: colors.textPrimary,
+              headerTitle: title,
+            };
           }}
         />
       </Stack.Navigator>

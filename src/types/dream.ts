@@ -9,6 +9,7 @@ export interface Dream {
   archived?: boolean; // If true, dream won't show on WriteScreen
   symbols?: string[]; // Extracted symbols from AI analysis
   archetypes?: string[]; // Extracted archetypes from AI analysis
+  landscapes?: string[]; // Extracted settings/places (e.g. forest, beach, childhood home)
 }
 
 export type JungianSymbol = 'moon' | 'sun' | 'key' | 'eye' | 'labyrinth';
@@ -19,6 +20,7 @@ export interface Interpretation {
   messages: ChatMessage[];
   symbols: string[];
   archetypes: string[];
+  landscapes?: string[]; // Settings/places where the dream takes place
   summary?: string;
   createdAt: string;
   updatedAt: string;

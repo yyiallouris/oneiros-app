@@ -99,4 +99,40 @@ export class UserService {
       logError('user_clear_id_error', error as Error);
     }
   }
+
+  private static displayNameKey(userId: string): string {
+    return `@display_name_${userId}`;
+  }
+
+  /**
+   * Get display name (name or nickname) for the current user.
+   * Returns null if not set or user not logged in.
+   */
+  static async getDisplayName(): Promise<string | null> {
+    try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) return null;
+      return await AsyncStorage.getItem(this.displayNameKey(userId));
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Set display name (name or nickname) for the current user.
+   */
+  static async setDisplayName(value: string): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+      if (!userId) return;
+      const trimmed = value.trim();
+      if (trimmed) {
+        await AsyncStorage.setItem(this.displayNameKey(userId), trimmed);
+      } else {
+        await AsyncStorage.removeItem(this.displayNameKey(userId));
+      }
+    } catch (error) {
+      logError('user_set_display_name_error', error as Error);
+    }
+  }
 }
