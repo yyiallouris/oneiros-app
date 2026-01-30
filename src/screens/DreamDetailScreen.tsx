@@ -19,11 +19,11 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Card, Button, Chip, WaveBackground, MountainWaveBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard } from '../components/ui';
 import { Animated, Dimensions } from 'react-native';
-import { TypingText } from '../components/ui/TypingText';
+import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes } from '../services/ai';
+import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
 import { isOnline } from '../utils/network';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -324,8 +324,6 @@ const FormattedMessageText: React.FC<{ text: string; isUser: boolean }> = ({ tex
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete, onCopy }) => {
-  const displayText = formatMarkdownText(message.content);
-  
   const handleCopy = () => {
     try {
       if (onCopy) {
@@ -345,9 +343,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
     <View style={[styles.messageContainer, isUser && styles.userMessageContainer]}>
       <View style={[styles.messageBubble, isUser && styles.userBubble]}>
         {isTyping && !isUser ? (
-          <TypingText
-            text={displayText}
-            speed={5}
+          <PhasedTypingText
+            text={message.content}
             onComplete={onTypingComplete}
             style={[styles.messageText, isUser && styles.userMessageText]}
           />
@@ -388,18 +385,23 @@ const DreamDetailScreen: React.FC = () => {
   const [chatScrollHeight, setChatScrollHeight] = useState(0);
   const [chatScrollOffset, setChatScrollOffset] = useState(0);
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
-  
+  const [showDreamSecondarySymbols, setShowDreamSecondarySymbols] = useState(false);
+  const [showInterpretationSecondarySymbols, setShowInterpretationSecondarySymbols] = useState(false);
+  const [showDreamSecondaryArchetypes, setShowDreamSecondaryArchetypes] = useState(false);
+  const [showInterpretationSecondaryArchetypes, setShowInterpretationSecondaryArchetypes] = useState(false);
+
   const flatListRef = useRef<ScrollView>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadDreamData();
+      setShowDreamSecondarySymbols(false);
+      setShowInterpretationSecondarySymbols(false);
+      setShowDreamSecondaryArchetypes(false);
+      setShowInterpretationSecondaryArchetypes(false);
       // Clear typing state when screen gains focus
-      // This ensures that if user navigated away during typing,
-      // the message won't restart typing when they come back
       return () => {
-        // Clear typing state when screen loses focus
         setTypingMessageId(null);
       };
     }, [dreamId])
@@ -470,21 +472,26 @@ const DreamDetailScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Prefer extracting from the dream content (more reliable than parsing the prose response)
+      // Symbols: prose extraction first; fallback to structured if very few (≤2)
+      // Archetypes: always from structured extraction (AI JSON) — not prose
       let symbols: string[] = [];
       let archetypes: string[] = [];
       let landscapes: string[] = [];
+      const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
+      symbols = proseExtracted.symbols;
+      landscapes = proseExtracted.landscapes ?? [];
+
       try {
-        const extracted = await extractDreamSymbolsAndArchetypes(dreamData);
-        symbols = extracted.symbols ?? [];
-        archetypes = extracted.archetypes ?? [];
-        landscapes = extracted.landscapes ?? [];
+        const structured = await extractDreamSymbolsAndArchetypes(dreamData);
+        archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+        if (proseExtracted.symbols.length <= 2 && structured.symbols && structured.symbols.length > symbols.length) {
+          symbols = structured.symbols;
+          landscapes = structured.landscapes ?? landscapes;
+        } else if (structured.landscapes && structured.landscapes.length > 0) {
+          landscapes = structured.landscapes;
+        }
       } catch {
-        // Fallback to heuristic parsing of the AI response
-        const fallback = extractSymbolsAndArchetypes(aiResponse);
-        symbols = fallback.symbols;
-        archetypes = fallback.archetypes;
-        landscapes = fallback.landscapes ?? [];
+        archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
 
       if (__DEV__) {
@@ -576,20 +583,26 @@ const DreamDetailScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Prefer extracting from the dream content (more reliable than parsing the prose response)
+      // Symbols: prose extraction first; fallback to structured if very few (≤2)
+      // Archetypes: always from structured extraction (AI JSON) — not prose
       let symbols: string[] = [];
       let archetypes: string[] = [];
       let landscapes: string[] = [];
+      const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
+      symbols = proseExtracted.symbols;
+      landscapes = proseExtracted.landscapes ?? [];
+
       try {
-        const extracted = await extractDreamSymbolsAndArchetypes(dream);
-        symbols = extracted.symbols ?? [];
-        archetypes = extracted.archetypes ?? [];
-        landscapes = extracted.landscapes ?? [];
+        const structured = await extractDreamSymbolsAndArchetypes(dream);
+        archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+        if (proseExtracted.symbols.length <= 2 && structured.symbols && structured.symbols.length > symbols.length) {
+          symbols = structured.symbols;
+          landscapes = structured.landscapes ?? landscapes;
+        } else if (structured.landscapes && structured.landscapes.length > 0) {
+          landscapes = structured.landscapes;
+        }
       } catch {
-        const fallback = extractSymbolsAndArchetypes(aiResponse);
-        symbols = fallback.symbols;
-        archetypes = fallback.archetypes;
-        landscapes = fallback.landscapes ?? [];
+        archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
 
       if (__DEV__) {
@@ -787,10 +800,30 @@ const DreamDetailScreen: React.FC = () => {
               <View style={styles.chipsSection}>
                 <Text style={styles.chipsSectionTitle}>Symbols</Text>
                 <View style={styles.chipsContainer}>
-                  {dream.symbols.map((symbol, index) => (
+                  {dream.symbols.slice(0, 4).map((symbol, index) => (
                     <Chip key={index} label={symbol} variant="accent" />
                   ))}
                 </View>
+                {dream.symbols.length > 4 && (
+                  <TouchableOpacity
+                    style={styles.viewMoreButton}
+                    onPress={() => setShowDreamSecondarySymbols((v) => !v)}
+                  >
+                    <Text style={styles.viewMoreText}>
+                      {showDreamSecondarySymbols ? 'Show less' : `View more (${dream.symbols.length - 4} symbols)`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {showDreamSecondarySymbols && dream.symbols.length > 4 && (
+                  <View style={styles.chipsSection}>
+                    <Text style={styles.chipsSectionTitle}>Secondary symbols</Text>
+                    <View style={styles.chipsContainer}>
+                      {dream.symbols.slice(4).map((symbol, index) => (
+                        <Chip key={index + 4} label={symbol} variant="default" />
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 
@@ -798,10 +831,30 @@ const DreamDetailScreen: React.FC = () => {
               <View style={styles.chipsSection}>
                 <Text style={styles.chipsSectionTitle}>Archetypes</Text>
                 <View style={styles.chipsContainer}>
-                  {dream.archetypes.map((archetype, index) => (
+                  {dream.archetypes.slice(0, 4).map((archetype, index) => (
                     <Chip key={index} label={archetype} variant="default" />
                   ))}
                 </View>
+                {dream.archetypes.length > 4 && (
+                  <TouchableOpacity
+                    style={styles.viewMoreButton}
+                    onPress={() => setShowDreamSecondaryArchetypes((v) => !v)}
+                  >
+                    <Text style={styles.viewMoreText}>
+                      {showDreamSecondaryArchetypes ? 'Show less' : `View more (${dream.archetypes.length - 4} archetypes)`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {showDreamSecondaryArchetypes && dream.archetypes.length > 4 && (
+                  <View style={styles.chipsSection}>
+                    <Text style={styles.chipsSectionTitle}>Secondary archetypes</Text>
+                    <View style={styles.chipsContainer}>
+                      {dream.archetypes.slice(4).map((archetype, index) => (
+                        <Chip key={index + 4} label={archetype} variant="default" />
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             )}
           </Card>
@@ -821,10 +874,30 @@ const DreamDetailScreen: React.FC = () => {
                   <View style={styles.chipsSection}>
                     <Text style={styles.chipsSectionTitle}>Main symbols</Text>
                     <View style={styles.chipsContainer}>
-                      {interpretation.symbols.map((symbol, index) => (
+                      {interpretation.symbols.slice(0, 4).map((symbol, index) => (
                         <Chip key={index} label={symbol} variant="accent" />
                       ))}
                     </View>
+                    {interpretation.symbols.length > 4 && (
+                      <TouchableOpacity
+                        style={styles.viewMoreButton}
+                        onPress={() => setShowInterpretationSecondarySymbols((v) => !v)}
+                      >
+                        <Text style={styles.viewMoreText}>
+                          {showInterpretationSecondarySymbols ? 'Show less' : `View more (${interpretation.symbols.length - 4} symbols)`}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    {showInterpretationSecondarySymbols && interpretation.symbols.length > 4 && (
+                      <View style={styles.chipsSection}>
+                        <Text style={styles.chipsSectionTitle}>Secondary symbols</Text>
+                        <View style={styles.chipsContainer}>
+                          {interpretation.symbols.slice(4).map((symbol, index) => (
+                            <Chip key={index + 4} label={symbol} variant="default" />
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                 )}
 
@@ -832,10 +905,30 @@ const DreamDetailScreen: React.FC = () => {
                   <View style={styles.chipsSection}>
                     <Text style={styles.chipsSectionTitle}>Archetypes</Text>
                     <View style={styles.chipsContainer}>
-                      {interpretation.archetypes.map((archetype, index) => (
+                      {interpretation.archetypes.slice(0, 4).map((archetype, index) => (
                         <Chip key={index} label={archetype} variant="default" />
                       ))}
                     </View>
+                    {interpretation.archetypes.length > 4 && (
+                      <TouchableOpacity
+                        style={styles.viewMoreButton}
+                        onPress={() => setShowInterpretationSecondaryArchetypes((v) => !v)}
+                      >
+                        <Text style={styles.viewMoreText}>
+                          {showInterpretationSecondaryArchetypes ? 'Show less' : `View more (${interpretation.archetypes.length - 4} archetypes)`}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                    {showInterpretationSecondaryArchetypes && interpretation.archetypes.length > 4 && (
+                      <View style={styles.chipsSection}>
+                        <Text style={styles.chipsSectionTitle}>Secondary archetypes</Text>
+                        <View style={styles.chipsContainer}>
+                          {interpretation.archetypes.slice(4).map((archetype, index) => (
+                            <Chip key={index + 4} label={archetype} variant="default" />
+                          ))}
+                        </View>
+                      </View>
+                    )}
                   </View>
                 )}
 
@@ -1131,6 +1224,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+  },
+  viewMoreButton: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  viewMoreText: {
+    fontSize: typography.sizes.sm,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
   },
   summary: {
     fontSize: typography.sizes.md,

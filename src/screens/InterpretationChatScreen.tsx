@@ -18,12 +18,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Card, BreathingLine, ThreadDrift } from '../components/ui';
-import { TypingText } from '../components/ui/TypingText';
+import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes } from '../services/ai';
+import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
 import { isOnline } from '../utils/network';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
@@ -246,8 +246,6 @@ const FormattedMessageText: React.FC<{ text: string; isUser: boolean }> = ({ tex
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete }) => {
-  const displayText = formatMarkdownText(message.content);
-  
   const handleCopy = () => {
     try {
       if (Clipboard && Clipboard.setString) {
@@ -265,9 +263,8 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
     <View style={[styles.messageContainer, isUser && styles.userMessageContainer]}>
       <View style={[styles.messageBubble, isUser && styles.userBubble]}>
         {isTyping && !isUser ? (
-          <TypingText
-            text={displayText}
-            speed={5}
+          <PhasedTypingText
+            text={message.content}
             onComplete={onTypingComplete}
             style={[styles.messageText, isUser && styles.userMessageText]}
           />
@@ -384,20 +381,26 @@ const InterpretationChatScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Prefer extracting from the dream content (more reliable than parsing the prose response)
+      // Symbols: prose extraction first; fallback to structured if very few (≤2)
+      // Archetypes: always from structured extraction (AI JSON) — not prose
       let symbols: string[] = [];
       let archetypes: string[] = [];
       let landscapes: string[] = [];
+      const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
+      symbols = proseExtracted.symbols;
+      landscapes = proseExtracted.landscapes ?? [];
+
       try {
-        const extracted = await extractDreamSymbolsAndArchetypes(dreamData);
-        symbols = extracted.symbols ?? [];
-        archetypes = extracted.archetypes ?? [];
-        landscapes = extracted.landscapes ?? [];
+        const structured = await extractDreamSymbolsAndArchetypes(dreamData);
+        archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+        if (proseExtracted.symbols.length <= 2 && structured.symbols && structured.symbols.length > symbols.length) {
+          symbols = structured.symbols;
+          landscapes = structured.landscapes ?? landscapes;
+        } else if (structured.landscapes && structured.landscapes.length > 0) {
+          landscapes = structured.landscapes;
+        }
       } catch {
-        const fallback = extractSymbolsAndArchetypes(aiResponse);
-        symbols = fallback.symbols;
-        archetypes = fallback.archetypes;
-        landscapes = fallback.landscapes ?? [];
+        archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
 
       if (__DEV__) {
