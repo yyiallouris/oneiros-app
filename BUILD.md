@@ -4,8 +4,10 @@ You can build an **installable app** so you don’t need to run `npx expo start`
 
 ## Security (do this first)
 
-- **Never commit secrets.** All API keys and Supabase keys live in **environment variables**, not in `app.json`.
+- **Never commit secrets.** All API keys and Supabase keys live in **environment variables**, not in `app.json` or any tracked file.
 - **Local dev:** Copy `.env.example` to `.env`, fill in values, and run the app. `.env` is gitignored.
+- **Pre-commit guard (optional):** To block commits that contain secret-like strings (e.g. `sk-proj-...`), enable the repo hook:  
+  `git config core.hooksPath .githooks` (run once from repo root).
 - **EAS builds:** Set secrets in EAS so builds get the right config:
   ```bash
   eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://your-project.supabase.co"
