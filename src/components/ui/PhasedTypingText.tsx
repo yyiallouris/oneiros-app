@@ -1,22 +1,17 @@
 /**
- * Phased typing: reveals content in layers with rest points.
- * Principle: don't "reveal" — let meaning form. Thought taking shape, not report loading.
- *
- * Phase 1: Anchor only (first 3–4 sec) — landing point, no headings/symbols/archetypes
- * Phase 2: Atmosphere & Affect — 1 paragraph, no bullets yet
- * Phase 3: Key Symbols — heading, then one bullet at a time with pauses
- * Phase 4: Archetypal Dynamics — with delay; omit if empty
- * Phase 5: Reflective Questions — last, slower, with space before
+ * Smooth word-by-word typing for dream interpretations.
+ * UX principles:
+ * - Word-by-word (not char) to avoid line-break jitter
+ * - Pre-render final text invisibly to reserve layout space
+ * - Smooth, readable pace (not aggressive)
+ * - Stable layout: no shifting, no aggressive rewrapping
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Text, TextProps } from 'react-native';
 
-const SECTION_PAUSE_MS = 450;
-const BULLET_PAUSE_MS = 280;
-const ANCHOR_SPEED = 4;
-const BODY_SPEED = 4;
-const QUESTIONS_SPEED = 7;
+// Word-by-word timing: smooth, contemplative pace
+const WORD_DELAY_MS = 35; // ~35ms per word = ~17 words/sec (comfortable reading pace)
 
 export interface PhasedTypingTextProps extends TextProps {
   text: string;
@@ -30,45 +25,45 @@ interface ParsedSection {
   chunks?: string[];
 }
 
-function parseInterpretationSections(text: string): ParsedSection[] {
-  const sections: ParsedSection[] = [];
-  if (!text.trim()) return sections;
-
-  // Split by ## headings or numbered headings (1. **Title**)
-  const parts = text.split(/(?=^##\s+|\n\d+\.\s+\*\*)/m);
-  const anchor = parts[0]?.trim() || '';
-  if (anchor) {
-    sections.push({ type: 'anchor', raw: anchor });
+/**
+ * Normalize markdown text for typing display.
+ * This must match formatMarkdownText used in FormattedMessageText for consistency.
+ * Converts markdown to clean text so live typing matches the final rendered view.
+ */
+function normalizeInterpretationForTyping(text: string): string {
+  if (!text) return '';
+  
+  let formatted = text;
+  
+  try {
+    // Convert headers to plain text with spacing (keep content, remove ## markers)
+    formatted = formatted.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
+      return content ? `\n${content}\n` : match;
+    });
+    
+    // Convert bold (**text** or __text__) to plain text (keep the text)
+    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
+    formatted = formatted.replace(/__([^_]+)__/g, '$1');
+    
+    // Convert italic (*text* or _text_) to plain text
+    formatted = formatted.replace(/\*([^*]+)\*/g, '$1');
+    formatted = formatted.replace(/_([^_]+)_/g, '$1');
+    
+    // Remove inline code markers but keep the text
+    formatted = formatted.replace(/`([^`]+)`/g, '$1');
+    
+    // Remove links but keep the text
+    formatted = formatted.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+    
+    return formatted.trim();
+  } catch (error) {
+    console.warn('[PhasedTypingText] Normalization error:', error);
+    return text;
   }
-
-  for (let i = 1; i < parts.length; i++) {
-    const block = parts[i].trim();
-    const firstLineEnd = block.indexOf('\n');
-    const firstLine = firstLineEnd >= 0 ? block.slice(0, firstLineEnd) : block;
-    const content = firstLineEnd >= 0 ? block.slice(firstLineEnd + 1).trim() : '';
-
-    const lower = firstLine.toLowerCase();
-    if (lower.includes('atmosphere') || lower.includes('affect')) {
-      sections.push({ type: 'atmosphere', raw: block });
-    } else if (lower.includes('key symbols') || lower.includes('symbols')) {
-      const lines = content.split('\n');
-      const heading = firstLine + '\n';
-      const bullets = lines.filter((l) => /^[-*]\s+/.test(l.trim()));
-      const chunks = [heading, ...bullets.map((b) => '\n' + b)];
-      sections.push({ type: 'key_symbols', raw: block, chunks });
-    } else if (lower.includes('archetypal') || lower.includes('dynamics')) {
-      if (content.replace(/\s/g, '').length > 0) {
-        sections.push({ type: 'archetypal', raw: block });
-      }
-    } else if (lower.includes('reflective') || lower.includes('questions')) {
-      sections.push({ type: 'questions', raw: block });
-    } else {
-      sections.push({ type: 'other', raw: block });
-    }
-  }
-
-  return sections;
 }
+
+// Simplified: just do simple char-by-char typing of the whole normalized text
+// No section parsing, no phased reveals - just clean, reliable typing
 
 export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   text,
@@ -76,11 +71,10 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   style,
   ...textProps
 }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const sectionsRef = useRef<ParsedSection[]>([]);
-  const sectionIdxRef = useRef(0);
-  const chunkIdxRef = useRef(0);
-  const charIdxRef = useRef(0);
+  const [displayedWords, setDisplayedWords] = useState<string[]>([]);
+  const wordIdxRef = useRef(0);
+  const wordsRef = useRef<string[]>([]);
+  const normalizedTextRef = useRef('');
   const isCompleteRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -93,11 +87,11 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
     }
   }, []);
 
-  const advance = useCallback(() => {
-    const sections = sectionsRef.current;
-    const si = sectionIdxRef.current;
+  const typeNextWord = useCallback(() => {
+    const allWords = wordsRef.current;
+    const currentIdx = wordIdxRef.current;
 
-    if (si >= sections.length) {
+    if (currentIdx >= allWords.length) {
       if (onCompleteRef.current && !isCompleteRef.current) {
         isCompleteRef.current = true;
         onCompleteRef.current();
@@ -105,83 +99,65 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
       return;
     }
 
-    const section = sections[si];
-    const speed = section.type === 'questions' ? QUESTIONS_SPEED : section.type === 'anchor' ? ANCHOR_SPEED : BODY_SPEED;
-
-    // Key Symbols: reveal chunk by chunk (heading, bullet1, bullet2, ...)
-    if (section.type === 'key_symbols' && section.chunks && section.chunks.length > 0) {
-      const chunks = section.chunks;
-      const ci = chunkIdxRef.current;
-
-      if (ci >= chunks.length) {
-        sectionIdxRef.current = si + 1;
-        chunkIdxRef.current = 0;
-        charIdxRef.current = 0;
-        timeoutRef.current = setTimeout(advance, SECTION_PAUSE_MS);
-        return;
-      }
-
-      const chunk = chunks[ci];
-      let charIdx = charIdxRef.current;
-
-      const typeChar = () => {
-        if (charIdx < chunk.length) {
-          setDisplayedText((prev) => prev + chunk[charIdx]);
-          charIdx++;
-          charIdxRef.current = charIdx;
-          timeoutRef.current = setTimeout(typeChar, speed);
-        } else {
-          charIdxRef.current = 0;
-          chunkIdxRef.current = ci + 1;
-          timeoutRef.current = setTimeout(advance, BULLET_PAUSE_MS);
-        }
-      };
-      typeChar();
-      return;
-    }
-
-    // Standard section: char-by-char
-    const target = section.raw + (si < sections.length - 1 ? '\n\n' : '');
-    let charIdx = charIdxRef.current;
-
-    const typeChar = () => {
-      if (charIdx < target.length) {
-        setDisplayedText((prev) => prev + target[charIdx]);
-        charIdx++;
-        charIdxRef.current = charIdx;
-        timeoutRef.current = setTimeout(typeChar, speed);
-      } else {
-        charIdxRef.current = 0;
-        sectionIdxRef.current = si + 1;
-        timeoutRef.current = setTimeout(advance, SECTION_PAUSE_MS);
-      }
-    };
-    typeChar();
+    setDisplayedWords((prev) => [...prev, allWords[currentIdx]]);
+    wordIdxRef.current = currentIdx + 1;
+    timeoutRef.current = setTimeout(typeNextWord, WORD_DELAY_MS);
   }, []);
 
   useEffect(() => {
-    sectionsRef.current = parseInterpretationSections(text);
-    sectionIdxRef.current = 0;
-    chunkIdxRef.current = 0;
-    charIdxRef.current = 0;
-    setDisplayedText('');
+    // Normalize text once
+    normalizedTextRef.current = normalizeInterpretationForTyping(text);
+    
+    // Split into words (preserving spaces and newlines as separate tokens)
+    // This keeps layout stable: "word " "word " "\n" "word "
+    const tokens: string[] = [];
+    let current = '';
+    
+    for (let i = 0; i < normalizedTextRef.current.length; i++) {
+      const char = normalizedTextRef.current[i];
+      
+      if (char === ' ') {
+        if (current) {
+          tokens.push(current + ' '); // word with trailing space
+          current = '';
+        }
+      } else if (char === '\n') {
+        if (current) {
+          tokens.push(current); // word without space before newline
+          current = '';
+        }
+        tokens.push('\n'); // newline as separate token
+      } else {
+        current += char;
+      }
+    }
+    
+    if (current) {
+      tokens.push(current); // last word
+    }
+    
+    wordsRef.current = tokens;
+    wordIdxRef.current = 0;
+    setDisplayedWords([]);
     isCompleteRef.current = false;
 
-    if (sectionsRef.current.length === 0) {
-      setDisplayedText(text);
+    if (tokens.length === 0) {
       onCompleteRef.current?.();
       return;
     }
 
-    advance();
+    typeNextWord();
     return clearTimeoutSafe;
-  }, [text]);
+  }, [text, typeNextWord, clearTimeoutSafe]);
 
   useEffect(() => clearTimeoutSafe, [clearTimeoutSafe]);
 
+  // Render: just the typing text (word-by-word is smooth enough, no pre-render needed)
+  const typingText = displayedWords.join('');
+
   return (
     <Text style={style} {...textProps}>
-      {displayedText}
+      {typingText}
     </Text>
   );
 };

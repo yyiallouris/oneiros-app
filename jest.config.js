@@ -7,7 +7,7 @@ module.exports = {
     'node_modules/(?!(@react-native|react-native|@react-navigation|expo-modules-core|expo-modules|expo)/)',
   ],
   moduleNameMapper: {
-    '^react-native-reanimated$': '<rootDir>/node_modules/react-native-reanimated/mock',
+    '^react-native-reanimated$': '<rootDir>/__mocks__/react-native-reanimated.js',
     '^react-native-reanimated/plugin$': '<rootDir>/__mocks__/reanimatedPlugin.js',
     '^react-native-worklets/plugin$': '<rootDir>/__mocks__/workletsPlugin.js',
     '^@jest/test-sequencer$': '<rootDir>/__mocks__/@jest/test-sequencer.js',

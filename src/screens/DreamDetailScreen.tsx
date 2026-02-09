@@ -526,14 +526,8 @@ const DreamDetailScreen: React.FC = () => {
       // Reset scroll state when starting new conversation
       setIsUserScrolledUp(false);
       
-      // Scroll to chat section
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-        // Also scroll chat messages to bottom
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 200);
-      }, 300);
+      // Don't auto-scroll to chat - let user decide when to scroll
+      // This provides ChatGPT-like experience where content appears and user scrolls when ready
     } catch (error: any) {
       console.error('[DreamDetail] Error generating interpretation:', error);
       const errorMessage = error?.message || 'Failed to generate interpretation. Please try again.';
@@ -629,16 +623,11 @@ const DreamDetailScreen: React.FC = () => {
       setMessages([aiMessage]);
       setTypingMessageId(aiMessage.id);
 
-      // Show chat and scroll into view
+      // Show chat
       setShowChat(true);
       setIsUserScrolledUp(false);
-
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 200);
-      }, 300);
+      
+      // Don't auto-scroll - ChatGPT experience: content appears, user scrolls when ready
     } catch (error: any) {
       console.error('[DreamDetail] Error updating interpretation:', error);
       const errorMessage = error?.message || 'Failed to update interpretation. Please try again.';
@@ -666,6 +655,9 @@ const DreamDetailScreen: React.FC = () => {
     setMessages(newMessages);
     setInputText('');
     setIsLoading(true);
+    
+    // Reset scroll state when user sends a message (they want to see the response)
+    setIsUserScrolledUp(false);
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
@@ -779,6 +771,12 @@ const DreamDetailScreen: React.FC = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(event) => {
+          const { contentOffset } = event.nativeEvent;
+          // Track scroll position - if user scrolls, they control the view
+          // This is used to prevent auto-scroll during typing in reflection section
+        }}
       >
         {/* Dream Content Card */}
         <Card style={styles.dreamCard}>
@@ -973,9 +971,7 @@ const DreamDetailScreen: React.FC = () => {
                       title="Expand conversation"
                       onPress={() => {
                         setIsInterpretationExpanded(true);
-                        setTimeout(() => {
-                          scrollViewRef.current?.scrollToEnd({ animated: true });
-                        }, 100);
+                        // No auto-scroll - user can scroll manually if needed
                       }}
                       variant="secondary"
                       style={styles.conversationButton}
@@ -987,9 +983,7 @@ const DreamDetailScreen: React.FC = () => {
                         setShowChat(true);
                         setIsInterpretationExpanded(false); // Reset when opening chat
                         animateChatOpen();
-                        setTimeout(() => {
-                          scrollViewRef.current?.scrollToEnd({ animated: true });
-                        }, 300);
+                        // No auto-scroll - ChatGPT experience
                       }}
                       variant="secondary"
                       style={styles.conversationButton}
@@ -1112,7 +1106,7 @@ const DreamDetailScreen: React.FC = () => {
                 multiline
                 maxLength={500}
                 onFocus={() => {
-                  // Scroll to bottom when focusing input
+                  // User focused input - they're ready to interact, scroll to show input clearly
                   setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
                   }, 100);

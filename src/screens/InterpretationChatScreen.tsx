@@ -300,6 +300,7 @@ const InterpretationChatScreen: React.FC = () => {
   const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -467,6 +468,9 @@ const InterpretationChatScreen: React.FC = () => {
     setMessages(newMessages);
     setInputText('');
     setIsLoading(true);
+    
+    // Reset scroll state when user sends a message (they want to see the response)
+    setIsUserScrolledUp(false);
 
     // Scroll to bottom
     setTimeout(() => {
@@ -500,10 +504,12 @@ const InterpretationChatScreen: React.FC = () => {
       await saveInterpretation(updatedInterpretation);
       setInterpretation(updatedInterpretation);
 
-      // Scroll to bottom
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      // Only auto-scroll if user hasn't manually scrolled up
+      if (!isUserScrolledUp) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
     } catch (error: any) {
       console.error('[ChatScreen] Error sending message:', error);
       // Remove the user message that failed
@@ -589,7 +595,18 @@ const InterpretationChatScreen: React.FC = () => {
         )}
         contentContainerStyle={styles.chatContent}
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onScroll={(event) => {
+          // Detect if user scrolled up manually
+          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+          const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 20;
+          setIsUserScrolledUp(!isAtBottom);
+        }}
+        onContentSizeChange={() => {
+          // Only auto-scroll if user hasn't manually scrolled up
+          if (!isUserScrolledUp) {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          }
+        }}
       />
 
       {/* Quick Questions */}

@@ -3,10 +3,11 @@
     "name": "oneiros-app",
     "slug": "oneiros-app",
     "version": "1.0.0",
+    "projectId": "b81471aa-9f89-4729-8bf3-5ec9e8ec62e9",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -29,6 +30,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-web-browser"]
+    "plugins": ["expo-web-browser"],
+    "extra": {}
   }
 }

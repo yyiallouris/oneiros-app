@@ -6,8 +6,8 @@ process.env.REANIMATED_PLUGIN_SKIP = 'true';
 // Silence NativeAnimatedHelper warnings
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
-// Mock reanimated
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+// Mock reanimated (local stub when package is not installed)
+jest.mock('react-native-reanimated', () => require('./__mocks__/react-native-reanimated.js'));
 
 // Mock AsyncStorage
 jest.mock(
