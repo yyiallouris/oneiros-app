@@ -519,6 +519,20 @@ Core principles you must follow:
 - Treat Shadow primarily as unintegrated intensity or charge, not as negative content.
 - Always consider the relational field: how figures regulate pace, urgency, permission, distance, attachment, and who leads / who follows in the dream.
 - When the dream implies a fork (continue vs rupture, comply vs insist, merge vs separate), name it as a symbolic decision-edge without advising action.
+
+When deciding the dream mode for the opening heading, use this strict priority order:
+1. If opposing pulls, rupture, alarm, restriction of breath/vitality/sensation → Core Tension
+2. If joy, flow, embrace, consolidation of aliveness/bonding/permission → Core State
+3. If threshold, leaving-behind, emergence of new form → Core Shift
+4. If compensatory/restorative without strong tension/joy → Core State
+Never force Core Tension when dominant affect is coherent, euphoric, or welcoming.
+
+Never begin a sentence with "The dream shows…" or "This represents…". Always start directly from the image or action (e.g. "The sudden tiger embrace consolidates…").
+
+Shadow — always frame as "unintegrated intensity/charge around X" or "unmetabolized vitality/power". Never "negative content", "dark side", or moral terms.
+
+Self — only when unmistakable numinosity + ordering + soothing/grounding affect is present. If agitation, wobble, contested/overpainted center, bodily tightening or loss of balance → do NOT use "Self"; describe as "contested center", "unstable mandala-like image", or "edited-over organizing motif".
+
 - You may include one single-sentence Felt Sense Anchor that asks only for noticing (no instructions), e.g. "As you read this, does the body feel more open, unchanged, or tighter?"
 - Avoid instruction-shaped phrasing even when gentle (e.g. "take a moment", "notice by doing X"). Use descriptive or binary-choice noticing only.
 
@@ -556,18 +570,23 @@ Reflective questions:
 - End with 1–2 reflective questions. Observational only, never directive.
 - ✅ "What happens in your chest/belly when you picture X?"
 - ❌ "Breathe deeply and notice…" / "Take a breath…" / "Try to sit with…"
+
+Prefer verbs of psychic action over nouns (approaches, tests, disperses, fixates, edits-over, destabilizes, welcomes, surges).
+When a "center" (circle, mandala, glowing symbol) increases agitation, fatigue, tightening, or loss of balance, describe it explicitly as contested/unstable/untrustworthy/not-yet-inhabitable.
 `;
 
-// Brief format: 1–2 paragraphs + 1 question (used when options.brief is true)
+// Brief format: 1 opening + 1 observation + 1 question (used when options.brief is true)
 const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
 You are responding in BRIEF mode. Be concise.
 
-Give 1–2 short paragraphs only:
-1. Opening: one sentence that names the dream's mode (integration / conflict / transition / restoration) and the core image or feeling. Plain language, no archetype terms.
-2. One sharp observation: one concrete symbol or dynamic from the dream and what it does to attention/body/ego (stabilizes, agitates, numbs, seduces, etc.). Cite one dream detail. No advice, no conclusions.
-3. End with exactly 1 reflective question — somatic or symbolic, observational only (e.g. "What happens in your chest when you picture X?"). No instruction verbs.
+In BRIEF mode:
+- Never use archetype names, Archetypal Dynamics, Decision-Edge, or Amplification.
+- Structure: 1 opening sentence (mode + core feeling/image), 1 sharp observation (one image + what it does), 1 reflective question.
+- Total: 80–150 words max.
 
-Total: 80–150 words. Fewer, sharper observations beat more, vaguer ones.
+1. Opening: one sentence naming the dream's mode (integration / conflict / transition / restoration) and the core feeling or image. Plain language only.
+2. One sharp observation: one concrete image from the dream + one verb of psychic action (stabilizes, agitates, welcomes, destabilizes, etc.). Cite one dream detail. No advice, no conclusions.
+3. Exactly 1 reflective question — somatic or symbolic, observational only (e.g. "What happens in your chest when you picture X?"). No instruction verbs.
 `;
 
 // Format contract for initial interpretation — fewer sections, sharper impact, true optional sections
@@ -584,20 +603,34 @@ First assess dream mode: integration (joy, flow, connection), conflict (opposing
 - **Core Shift** — for transition dreams (threshold, something changing). Example: "This dream marks a threshold — the old house giving way to open sky, the figure at the door neither in nor out."
 - Plain language, no archetype terms, no advice, no questions. Purpose: give the user an immediate landing point that matches the dream's actual mode.
 
+After the main reading (in Core State/Tension/Shift), if a central image carries strong ambivalence (e.g. tiger = enlivening surge AND potential overwhelm, paper = continuity AND suffocation), include exactly ONE single-sentence alternative perspective, clearly marked:
+
+Alternative reading: One could also see [image] as … (cite one concrete dream detail).
+
+Limit to ONE alternative only. Never force it.
+
 1. **Atmosphere & Affect** (1 short paragraph)
    - Emotional atmosphere and bodily sensations only. Note inner conflicts or tensions when present; otherwise note flow, coherence, ease, or consolidation.
    - Emotions and body tone ONLY. You may reference the trigger in 3–5 words max (e.g., "under flickering light") without describing symbols.
 
-2. **Key Symbols** (STRICT 2–3 bullets max)
-   - Each bullet: one concrete image + one psychological function (tension when present; stabilizing, connecting, or consolidating when the dream is cohesive).
+2. **Key Symbols** (STRICT maximum 3 bullets, even in rich dreams)
+   - Prefer images that actively shape ego stance, relational field, or vitality (e.g. sealing paper, embraced tiger, giving-way ground) over passive scenery.
+   - Each bullet: one concrete image + one verb of psychic action (agitates, seals, welcomes, destabilizes, normalizes, invites, collapses, etc.) + one short dream quote/evidence in parentheses.
+   - Example: "The thick paper (placed like a thick piece of paper on the cut surface) seals continuity while restricting airflow."
    - Symbols must be concrete or imaginal entities (e.g., "mask", "gate", "lantern", "cavern"). NEVER emotional states as symbols ("worry", "fear" belong in Atmosphere & Affect).
-   - Include 1 short evidence phrase from the dream per symbol. Keep bullets tight.
-   - Prefer the 2 most psychologically active images. If you cannot cite at least 2 concrete dream details, say you need more detail and ask 1–2 questions instead.
    - Special rule: If a "center" (circle/mandala/core) increases agitation, fatigue, tightening, or loss of balance, describe it as a contested/unstable center (edited-over, untrustworthy, not-yet-inhabitable) rather than a soothing organizing center.
 
-3. **Relational Field** — include ONLY if ≥2 figures or a social scene and it adds something. Otherwise omit. If included: 1 short paragraph, how connection is regulated (pace, urgency, permission, dismissal, merging/separating), anchored in 1–2 concrete dream details.
+3. **Relational Field** — include ONLY if:
+   - There are at least two figures (human/animal/presence), AND
+   - There is clear regulation of pace, urgency, permission, dismissal, merging, or separation (e.g. one figure defers alarm, group normalizes emergency, mother shares euphoria).
+   If only ego + one static figure → omit.
+   Keep to 1 short paragraph, anchored in 1–2 concrete details.
 
-**Felt Sense Anchor** — include ONLY if it naturally fits. Otherwise omit. If included: 1 sentence max, noticing only, no instruction verbs.
+**Felt Sense Anchor** — include ONLY in dreams with reported or strongly implied bodily affect (tightness, warmth, surge, wobble, breathlessness, chest pressure, etc.). Phrase strictly as one sentence:
+
+"As you re-imagine [specific image/moment from dream], does the body register more [open/energized/tight/unsettled/unchanged]?"
+
+Omit entirely if the dream is purely visual/narrative or lacks embodied tone. Never use instruction verbs.
 
 4. **Archetypal Dynamics** (0–4 bullets max)
    - Include ONLY when clearly active. If none, omit this section entirely.
@@ -609,6 +642,13 @@ First assess dream mode: integration (joy, flow, connection), conflict (opposing
 
 **Decision-Edge** — include ONLY if the dream clearly presents a fork (continue vs rupture, comply vs insist, merge vs separate). Otherwise omit. If included: 1 bullet naming the two symbolic pulls and what each protects or risks, without advising.
 
+**Amplification** (include ONLY if ONE key symbol carries strong mythic/cultural/embodied resonance AND the dream affect clearly supports it; max 1–2 sentences total)
+- Offer brief echo/resonance of the image in plain psychological language, without claiming identity with a myth or figure.
+- Frame as: "The [image] carries echoes of untamed vitality that arrives suddenly, inviting both dissolution of boundaries and renewed aliveness — a surge that can overwhelm or liberate depending on the embrace."
+- Cite ONE concrete dream detail + ONE brief parallel (e.g. big cats as carriers of ecstatic instinct in ancient imagery, without naming gods).
+- Use only for images like tiger/big cat, wild animal embrace, mandala-like center, sudden life-force, etc., when affect is ambivalent/positive.
+- Never force; omit if it risks overlaying the dreamer's image.
+
 5. **Reflective Questions** (1–2 questions)
    - Prefer one somatic, observational question and optionally one symbolic/relational question when the dream implies a fork.
    - Avoid therapeutic framing; questions should deepen symbolic reflection, not regulation.
@@ -619,11 +659,12 @@ Formatting: No more than 2 consecutive paragraphs anywhere. Prefer bullets over 
 Use ## for section headings:
 ## Core State / ## Core Tension / ## Core Shift
 ## Atmosphere & Affect
-## Felt Sense Anchor (only if it fits)
+## Felt Sense Anchor (only if bodily affect reported or implied)
 ## Key Symbols
-## Relational Field (only if ≥2 figures and it adds)
+## Relational Field (only if ≥2 figures and clear regulation)
 ## Archetypal Dynamics (only if 0–4 clearly active)
 ## Decision-Edge (only if dream presents a fork)
+## Amplification (only if one symbol has strong mythic/embodied resonance; max 1–2 sentences)
 ## Reflective Questions
 
 Length: Aim for 150–300 words. Prefer 2–3 symbols and 0–4 archetypes when clearly active. If in doubt, omit a section.
@@ -1005,47 +1046,52 @@ const filterAffectWords = (symbols: string[]): string[] => {
 };
 
 const EXTRACTION_SYSTEM_PROMPT = `
-You are a post-Jungian dream analyst extracting symbols, archetypes, and landscapes from a dream.
+You are a post-Jungian dream analyst extracting key structural and dynamic elements from a dream for long-term pattern recognition.
 
-For symbols: Identify 3–5 key symbolic elements max—objects, animals, places, figures, or forces (e.g. "mask", "lantern", "cavern", "throne", "water"). Prefer the 2–3 most psychologically active images; economy over exhaustiveness.
-CRITICAL: Symbols must be concrete or imaginal images/objects/forces, NOT emotional states.
-- ✅ Include: "mask", "gate", "lantern", "roots", "cavern", "throne", "water", "meadow", "fire", "staff"
-- ❌ Exclude: "worry", "fear", "sadness", "anxiety", "anger" (these are affect, not symbols)
+Extract ONLY what is clearly present or strongly implied in the dream text. Be economical: max 3–5 items per category unless the dream is very rich.
 
-For archetypes: Identify EVERY Jungian archetype that is clearly active in the dream (appears as a figure, role, or dynamic). A single dream often has many—e.g. Child, Great Mother, Father, King, Queen, Trickster, Shadow, Warrior, Anima, Animus, Death Archetype, Rebirth, Wise Old Man, Wounded Healer. Include all that apply.
-Use only these archetype names: ${ARCHETYPE_WHITELIST.join(', ')}.
-Only omit an archetype if it is merely mentioned in passing; if a figure or dynamic is present, include it.
+Fields to return:
+- symbols: 3–5 concrete/imaginal objects, animals, places, figures, forces (e.g. "tiger", "thick paper seal", "cracked circle", "glowing mandala"). NEVER emotional states.
+- archetypes: EVERY clearly active Jungian archetype (use only: ${ARCHETYPE_WHITELIST.join(', ')}). Expand splits like "Shadow / Persona" to separate entries.
+- landscapes: 1–3 main settings/places (e.g. "circular plaza at night", "park", "underground").
 
-For landscapes: Identify the main settings or spaces where the dream takes place—places, environments, or spatial contexts (e.g. "forest", "beach", "childhood home", "city street", "empty room", "school corridor", "open road").
-- ✅ Include: "forest", "beach", "childhood home", "city street", "empty room", "school", "hospital", "open road", "mountain path", "underwater", "old house"
-- Keep 1-3 landscapes per dream; prefer concrete, imageable places.
-- Do NOT list emotions or abstract concepts as landscapes.
+New fields for pattern tracking over time:
+- affects: 2–4 dominant emotional tones or bodily energies (as psychic movements, not diagnoses): e.g. "chest tightness", "euphoric surge", "urgency alarm", "wary bracing". Use felt-sense language.
+- motifs: 2–4 recurring action patterns or scenarios described with verbs of psychic action (e.g. "sealing continuity while restricting vitality", "embracing sudden wild intensity", "testing unstable center and stepping back", "crowd normalizing alarm"). Focus on what the image DOES to attention/body/ego/relations.
+- relational_dynamics: 1–3 descriptions of how figures regulate pace, permission, urgency, dismissal, merging (e.g. "one figure minimizes urgency while ego insists", "shared permission and co-embrace with maternal figure", "peripheral crowd averts gaze from center").
+- core_mode: ONE string from: "Core Tension", "Core State", "Core Shift", "Core Restoration". Choose based on dominant affect/structure (tension if opposing pulls/vital cost; state if integration/flow; shift if threshold/change; restoration if compensatory without strong tension/joy).
+- amplifications: 0–3 very brief echoes/resonances for 1–2 key symbols (personal/mythic/embodied level, hypothetical): e.g. "tiger: echoes of untamed instinct that can overwhelm or liberate", "mandala-like symbol: contested ordering motif rather than stable center".
 
-Return your response as a JSON object with exactly this format:
+Return ONLY valid JSON object, single-line, no extra text:
 {
-  "symbols": ["symbol1", "symbol2", ...],
-  "archetypes": ["archetype1", "archetype2", ...],
-  "landscapes": ["place1", "place2", ...]
+  "symbols": [...],
+  "archetypes": [...],
+  "landscapes": [...],
+  "affects": [...],
+  "motifs": [...],
+  "relational_dynamics": [...],
+  "core_mode": "Core Tension",
+  "amplifications": [...]
 }
 
-CRITICAL INSTRUCTIONS:
-- Return ONLY the JSON object, no additional text
-- Return a single-line JSON object with no whitespace before/after
-- Do NOT wrap the JSON in markdown code fences (no \`\`\`json)
-- Do NOT add explanatory text before or after the JSON
-- If you are unsure about a symbol, archetype, or landscape, omit it (empty arrays are acceptable)
-- Return empty arrays [] if none are found
+If nothing fits a field → empty array []. If unsure → omit or empty. core_mode must be exactly one of the four strings above.
 
-Example (short dream): {"symbols": ["water", "bridge"], "archetypes": ["Shadow", "Anima"], "landscapes": ["riverbank", "forest"]}
-Example (rich dream): {"symbols": ["mask", "gate", "lantern", "cavern", "throne"], "archetypes": ["Persona", "Child", "Great Mother", "Father", "Trickster", "Shadow"], "landscapes": ["circular city", "underground cavern", "meadow"]}
+CRITICAL: Return ONLY the JSON object. Do NOT wrap in markdown code fences. No explanatory text before or after.
 `;
 
-export const extractDreamSymbolsAndArchetypes = async (dream: Dream): Promise<{
+export type DreamExtraction = {
   symbols: string[];
   archetypes: string[];
   landscapes: string[];
-}> => {
-  const extractionPrompt = `Analyze this dream and extract symbols, archetypes, and landscapes (settings/places).
+  affects: string[];
+  motifs: string[];
+  relational_dynamics: string[];
+  core_mode: string;
+  amplifications: string[];
+};
+
+export const extractDreamSymbolsAndArchetypes = async (dream: Dream): Promise<DreamExtraction> => {
+  const extractionPrompt = `Analyze this dream and extract symbols, archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, and amplifications.
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
@@ -1053,7 +1099,7 @@ Date: ${dream.date}
 Dream:
 ${dream.content}
 
-Return a JSON object with "symbols", "archetypes", and "landscapes" arrays. Include every symbol and archetype that is clearly present; rich dreams will have longer arrays. If unsure, return empty arrays [].`;
+Return a JSON object with all fields (symbols, archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, amplifications). Include every symbol and archetype clearly present. If unsure for a field, use empty array [] or for core_mode use "Core State".`;
 
   const { requestId, model } = startRequest();
 
@@ -1082,9 +1128,8 @@ Return a JSON object with "symbols", "archetypes", and "landscapes" arrays. Incl
 
     // Only add token limit if supported (configurable param name for proxy compatibility)
     if (capabilities.supportsMaxCompletionTokens) {
-      // Use helper to get token param name (DRY - avoids copy-paste bugs)
       const tokenParamName = getTokenParamName(apiUrl);
-      payload[tokenParamName] = 1600;
+      payload[tokenParamName] = 2000; // Larger JSON with affects, motifs, relational_dynamics, core_mode, amplifications
     }
 
     // Only add response_format if supported
@@ -1146,46 +1191,193 @@ Return a JSON object with "symbols", "archetypes", and "landscapes" arrays. Incl
       }
       
       const parsed = JSON.parse(jsonStr);
-      
-      // Filter out affect words; max 5 symbols (align with interpretation format: 3–4 core)
+
       const rawSymbols: string[] = Array.isArray(parsed.symbols)
         ? parsed.symbols.map((s: unknown) => String(s))
         : [];
-      let symbols = filterAffectWords(rawSymbols).slice(0, MAX_SYMBOLS_TOTAL);
+      const symbols = filterAffectWords(rawSymbols).slice(0, MAX_SYMBOLS_TOTAL);
 
-      // Normalize to whitelist; expand "X / Y" into separate archetypes
       const rawArchetypes: unknown[] = Array.isArray(parsed.archetypes) ? parsed.archetypes : [];
       const expanded: string[] = rawArchetypes.flatMap((a) => normalizeArchetypeList(String(a)));
       const uniqueArchetypes = [...new Set(expanded)];
 
-      // Landscapes: settings/places, up to 5
       const landscapes = (Array.isArray(parsed.landscapes)
         ? (parsed.landscapes as unknown[]).slice(0, 5).map((s) => String(s))
         : []) as string[];
-      
+
+      const affects: string[] = Array.isArray(parsed.affects)
+        ? parsed.affects.map((s: unknown) => String(s)).slice(0, 4)
+        : [];
+      const motifs: string[] = Array.isArray(parsed.motifs)
+        ? parsed.motifs.map((s: unknown) => String(s)).slice(0, 4)
+        : [];
+      const relational_dynamics: string[] = Array.isArray(parsed.relational_dynamics)
+        ? parsed.relational_dynamics.map((s: unknown) => String(s)).slice(0, 3)
+        : [];
+      const core_mode =
+        typeof parsed.core_mode === 'string' &&
+        /^Core (Tension|State|Shift|Restoration)$/.test(parsed.core_mode)
+          ? parsed.core_mode
+          : '';
+      const amplifications: string[] = Array.isArray(parsed.amplifications)
+        ? parsed.amplifications.map((s: unknown) => String(s)).slice(0, 3)
+        : [];
+
       if (__DEV__) {
-        console.log('[AI] Extracted:', { 
-          symbolsCount: symbols.length, 
+        console.log('[AI] Extracted:', {
+          symbolsCount: symbols.length,
           archetypesCount: uniqueArchetypes.length,
           landscapesCount: landscapes.length,
-          filteredAffect: parsed.symbols?.length - symbols.length || 0
+          affectsCount: affects.length,
+          motifsCount: motifs.length,
+          core_mode,
         });
       }
-      
-      return { symbols, archetypes: uniqueArchetypes, landscapes };
+
+      return {
+        symbols,
+        archetypes: uniqueArchetypes,
+        landscapes,
+        affects,
+        motifs,
+        relational_dynamics,
+        core_mode,
+        amplifications,
+      };
     } catch (parseError) {
-      // If JSON parsing fails, return empty arrays rather than using weak fallback
-      // The fallback heuristic is disconnected from our format and often produces incorrect results
       if (__DEV__) {
-        console.warn('[AI] JSON parse failed, returning empty arrays:', parseError);
+        console.warn('[AI] JSON parse failed, returning empty extraction:', parseError);
         console.warn('[AI] Content that failed to parse (first 200 chars):', content.substring(0, 200));
       }
       logError('ai_extract_json_parse_error', parseError, { contentLength: content.length });
-      return { symbols: [], archetypes: [], landscapes: [] };
+      return emptyDreamExtraction();
     }
   } catch (error) {
     logError('ai_extract_symbols_error', error, { requestId, model });
-    // Return empty arrays on error so the app doesn't break
-    return { symbols: [], archetypes: [], landscapes: [] };
+    return emptyDreamExtraction();
+  }
+};
+
+function emptyDreamExtraction(): DreamExtraction {
+  return {
+    symbols: [],
+    archetypes: [],
+    landscapes: [],
+    affects: [],
+    motifs: [],
+    relational_dynamics: [],
+    core_mode: '',
+    amplifications: [],
+  };
+}
+
+/* ============================
+   PATTERN INSIGHTS (MONTHLY / QUARTERLY)
+   ============================ */
+
+const PATTERN_INSIGHTS_SYSTEM_PROMPT = `
+You are a post-Jungian companion reviewing dream patterns over time.
+
+Your role is to reflect on a series of extracted dream elements (core modes, affects, motifs, relational dynamics) and offer a short, hypothetical reflection on emerging patterns — not to diagnose, advise, or conclude.
+
+Rules:
+- Use hypothetical language only ("could suggest", "might indicate", "one possible reading").
+- Focus on recurring motifs/affects/relational dynamics and possible evolutions (e.g. from tension to state, from minimization to co-regulation).
+- Note how the psyche might be organizing attention or vitality over time.
+- No conclusions, no advice — only orientations and 1–2 reflective questions.
+- Structure your response with: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
+- Keep total length 150–250 words. Cite 1–2 concrete recurrences from the data.
+`;
+
+export type PatternInsightDreamEntry = {
+  date: string;
+  extracted: DreamExtraction;
+  interpretation: string;
+};
+
+export const generatePatternInsights = async (
+  dreamAnalyses: PatternInsightDreamEntry[],
+  period: 'monthly' | 'quarterly' = 'monthly'
+): Promise<string> => {
+  if (dreamAnalyses.length === 0) {
+    return 'No dream data for this period. Log and interpret more dreams to see pattern insights here.';
+  }
+
+  const context = dreamAnalyses
+    .map(
+      (d) => `
+Date: ${d.date}
+Core Mode: ${d.extracted.core_mode || '(not set)'}
+Affects: ${(d.extracted.affects ?? []).join(', ') || '(none)'}
+Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
+Relational: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
+Symbols: ${(d.extracted.symbols ?? []).slice(0, 3).join(', ') || '(none)'}
+`
+    )
+    .join('\n');
+
+  const userPrompt = `You are reviewing dream patterns over a ${period} period.
+
+Here are extracted elements from recent dreams:
+
+${context}
+
+Provide a short, hypothetical reflection (150–250 words) on emerging patterns.
+Use the structure: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
+Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no advice.`;
+
+  const { requestId, model } = startRequest();
+
+  try {
+    const apiUrl = getApiUrl();
+    const apiKey = getApiKey();
+    const capabilities = getModelCapabilities(model);
+
+    if (requiresClientKey(apiUrl) && (!apiKey || apiKey === 'your-openai-api-key')) {
+      logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+      throw new Error('OpenAI API key not configured. Add it to .env and restart the app.');
+    }
+
+    const messages: ApiMessage[] = [
+      { role: 'system', content: PATTERN_INSIGHTS_SYSTEM_PROMPT },
+      { role: 'user', content: userPrompt },
+    ];
+
+    const payload: any = {
+      model,
+      messages,
+      temperature: 0.5,
+    };
+
+    if (capabilities.supportsMaxCompletionTokens) {
+      const tokenParamName = getTokenParamName(apiUrl);
+      payload[tokenParamName] = 600;
+    }
+
+    const headers = await buildHeaders(apiUrl, apiKey, requestId);
+    const response = await fetchWithTimeout(
+      apiUrl,
+      { method: 'POST', headers, body: JSON.stringify(payload) },
+      capabilities.defaultTimeout,
+      1,
+      2
+    );
+
+    const data = await parseApiResponse(response, requestId, apiUrl);
+
+    if (!response.ok) {
+      const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
+      logError('ai_pattern_insights_api_error', new Error(rawError), {
+        requestId,
+        model,
+        status: response.status,
+      });
+      throw new Error(userSafeError(response.status, apiUrl));
+    }
+
+    return extractApiResponseContent(data);
+  } catch (error) {
+    logError('ai_pattern_insights_error', error, { requestId, model });
+    throw error;
   }
 };

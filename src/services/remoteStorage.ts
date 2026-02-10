@@ -36,7 +36,12 @@ type InterpretationRow = {
   dream_id: string;
   symbols: string[];
   archetypes: string[];
-  landscapes?: string[]; // settings/places; optional for backward compatibility
+  landscapes?: string[];
+  affects?: string[];
+  motifs?: string[];
+  relational_dynamics?: string[];
+  core_mode?: string | null;
+  amplifications?: string[];
   summary: string | null;
   messages: any[];
   created_at: string;
@@ -80,6 +85,11 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     symbols: row.symbols,
     archetypes: row.archetypes,
     landscapes: row.landscapes && row.landscapes.length > 0 ? row.landscapes : undefined,
+    affects: row.affects && row.affects.length > 0 ? row.affects : undefined,
+    motifs: row.motifs && row.motifs.length > 0 ? row.motifs : undefined,
+    relational_dynamics: row.relational_dynamics && row.relational_dynamics.length > 0 ? row.relational_dynamics : undefined,
+    core_mode: row.core_mode && row.core_mode.trim() ? row.core_mode : undefined,
+    amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
     summary: row.summary ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -97,6 +107,11 @@ function mapInterpretationToRow(
     symbols: interpretation.symbols,
     archetypes: interpretation.archetypes,
     landscapes: interpretation.landscapes,
+    affects: interpretation.affects,
+    motifs: interpretation.motifs,
+    relational_dynamics: interpretation.relational_dynamics,
+    core_mode: interpretation.core_mode ?? null,
+    amplifications: interpretation.amplifications,
     summary: interpretation.summary ?? null,
     messages: interpretation.messages as any[],
   };

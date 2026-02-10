@@ -56,4 +56,5 @@ export type InsightsSectionId =
   | 'symbol-details'     // deep dive: recurring symbols, clusters, all symbols
   | 'recurring-archetypes'
   | 'space-landscapes'   // recurring settings/places (e.g. forest, beach)
+  | 'pattern-recognition' // AI-generated monthly/quarterly pattern insights
   | 'collective';

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,12 +25,29 @@ import {
   symbolHasAssociations,
   getAssociationsForSymbol,
 } from '../services/insightsService';
+import { generateMonthlyInsights } from '../services/patternInsightsService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
 
 const TOP_THEMES_LIMIT = 5;
+
+/** Parse AI pattern insight into sections by ## headings (report-style) */
+function parsePatternInsightSections(raw: string): { title: string; body: string }[] {
+  const sections: { title: string; body: string }[] = [];
+  const re = /##\s*(.+?)\s*\n([\s\S]*?)(?=\n##\s|$)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(raw)) !== null) {
+    const title = m[1].trim();
+    const body = m[2].trim();
+    if (title && body) sections.push({ title, body });
+  }
+  if (sections.length === 0 && raw.trim()) {
+    sections.push({ title: 'Insight', body: raw.trim() });
+  }
+  return sections;
+}
 
 export const InsightsSectionScreen: React.FC = () => {
   const route = useRoute<Route>();
@@ -51,6 +71,11 @@ export const InsightsSectionScreen: React.FC = () => {
   const [clustersExpanded, setClustersExpanded] = useState(false);
   /** When set, show associations only for this symbol (Explore symbol data). */
   const [selectedSymbolForAssociations, setSelectedSymbolForAssociations] = useState<string | null>(null);
+  /** Pattern recognition: generated insight text and loading state */
+  const [patternInsightText, setPatternInsightText] = useState<string | null>(null);
+  const [patternInsightGenerating, setPatternInsightGenerating] = useState(false);
+  const patternReportOpacity = useRef(new Animated.Value(0)).current;
+  const patternSkeletonShimmer = useRef(new Animated.Value(0)).current;
 
   const load = useCallback(async () => {
     const currentSectionId = route.params?.sectionId ?? 'recurring-symbols';
@@ -74,6 +99,8 @@ export const InsightsSectionScreen: React.FC = () => {
       } else if (currentSectionId === 'collective') {
         const data = await getCollectiveInsights();
         setCollective(data);
+      } else if (currentSectionId === 'pattern-recognition') {
+        setPatternInsightText(null);
       }
     } finally {
       setLoading(false);
@@ -88,6 +115,42 @@ export const InsightsSectionScreen: React.FC = () => {
       load();
     }, [load])
   );
+
+  // Pattern report: smooth fade-in when content is set
+  useEffect(() => {
+    if (patternInsightText !== null) {
+      patternReportOpacity.setValue(0);
+      Animated.timing(patternReportOpacity, {
+        toValue: 1,
+        duration: 420,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [patternInsightText]);
+
+  // Pattern skeleton: shimmer while generating
+  useEffect(() => {
+    if (!patternInsightGenerating) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(patternSkeletonShimmer, {
+          toValue: 1,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(patternSkeletonShimmer, {
+          toValue: 0,
+          duration: 1800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [patternInsightGenerating]);
 
   // When showing space-landscapes with empty list after load, refetch once (fixes wrong sectionId on nav)
   useEffect(() => {
@@ -349,6 +412,100 @@ export const InsightsSectionScreen: React.FC = () => {
           </View>
         )}
 
+        {sectionId === 'pattern-recognition' && (
+          <Card style={styles.card}>
+            <Text style={styles.patternOverviewTitle}>Dream Activity Overview</Text>
+
+            <TouchableOpacity
+              style={[styles.overviewRow, styles.overviewRowLast]}
+              onPress={async () => {
+                if (patternInsightGenerating) return;
+                setPatternInsightGenerating(true);
+                setPatternInsightText(null);
+                try {
+                  const periodFilter = period
+                    ? { startDate: period.startDate, endDate: period.endDate }
+                    : undefined;
+                  const result = await generateMonthlyInsights('monthly', periodFilter);
+                  setPatternInsightText(result);
+                } catch (e: any) {
+                  const msg = e?.message || 'Something went wrong. Please try again.';
+                  Alert.alert('Error', msg);
+                } finally {
+                  setPatternInsightGenerating(false);
+                }
+              }}
+              disabled={patternInsightGenerating}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.overviewLabel}>Monthly insight</Text>
+              <Text style={styles.overviewValue}>
+                {patternInsightGenerating ? '…' : 'Generate'}
+              </Text>
+            </TouchableOpacity>
+
+            {patternInsightGenerating && (
+              <View style={styles.patternSkeleton}>
+                {[1, 2, 3].map((i) => (
+                  <View key={i} style={styles.patternSkeletonBlock}>
+                    <Animated.View
+                      style={[
+                        styles.patternSkeletonLine,
+                        styles.patternSkeletonTitle,
+                        {
+                          opacity: patternSkeletonShimmer.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.35, 0.6],
+                          }),
+                          backgroundColor: 'rgba(58, 47, 42, 0.12)',
+                        },
+                      ]}
+                    />
+                    <Animated.View
+                      style={[
+                        styles.patternSkeletonLine,
+                        { backgroundColor: 'rgba(58, 47, 42, 0.08)' },
+                        {
+                          opacity: patternSkeletonShimmer.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.3, 0.5],
+                          }),
+                        },
+                      ]}
+                    />
+                    <Animated.View
+                      style={[
+                        styles.patternSkeletonLine,
+                        styles.patternSkeletonLineShort,
+                        { backgroundColor: 'rgba(58, 47, 42, 0.08)' },
+                        {
+                          opacity: patternSkeletonShimmer.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.25, 0.45],
+                          }),
+                        },
+                      ]}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {patternInsightText !== null && !patternInsightGenerating && (
+              <Animated.View style={[styles.patternReport, { opacity: patternReportOpacity }]}>
+                {parsePatternInsightSections(patternInsightText).map((sec, i) => (
+                  <View key={i} style={styles.dominantInsightBlock}>
+                    <Text style={styles.dominantInsightLabel}>{sec.title}</Text>
+                    <Text style={styles.patternReportBody} selectable>
+                      {sec.body}
+                    </Text>
+                  </View>
+                ))}
+              </Animated.View>
+            )}
+          </Card>
+        )}
+
         {sectionId === 'collective' && (
           <Card style={styles.card}>
             <Text style={styles.body}>
@@ -605,6 +762,67 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
   },
   card: { marginBottom: spacing.lg },
+  patternOverviewTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
+  },
+  overviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  overviewRowLast: {
+    borderBottomWidth: 0,
+  },
+  overviewLabel: {
+    flex: 1,
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  overviewValue: {
+    fontSize: typography.sizes.md,
+    color: text.secondary,
+    fontWeight: typography.weights.medium,
+  },
+  patternSkeleton: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  patternSkeletonBlock: {
+    marginBottom: spacing.xl,
+  },
+  patternSkeletonLine: {
+    height: 14,
+    borderRadius: 2,
+    marginBottom: spacing.sm,
+    width: '100%',
+  },
+  patternSkeletonTitle: {
+    width: '45%',
+    height: 12,
+    marginBottom: spacing.md,
+  },
+  patternSkeletonLineShort: {
+    width: '88%',
+  },
+  patternReport: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  patternReportBody: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
+    fontWeight: typography.weights.normal,
+  },
   body: {
     fontSize: typography.sizes.sm,
     color: text.secondary,

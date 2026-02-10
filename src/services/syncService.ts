@@ -212,9 +212,12 @@ export class SyncService {
           const localI = mergedById.get(remoteI.id);
           const merged: Interpretation = {
             ...remoteI,
-            landscapes: (remoteI.landscapes && remoteI.landscapes.length > 0)
-              ? remoteI.landscapes
-              : localI?.landscapes,
+            landscapes: (remoteI.landscapes && remoteI.landscapes.length > 0) ? remoteI.landscapes : localI?.landscapes,
+            affects: (remoteI.affects && remoteI.affects.length > 0) ? remoteI.affects : localI?.affects,
+            motifs: (remoteI.motifs && remoteI.motifs.length > 0) ? remoteI.motifs : localI?.motifs,
+            relational_dynamics: (remoteI.relational_dynamics && remoteI.relational_dynamics.length > 0) ? remoteI.relational_dynamics : localI?.relational_dynamics,
+            core_mode: remoteI.core_mode && remoteI.core_mode.trim() ? remoteI.core_mode : localI?.core_mode,
+            amplifications: (remoteI.amplifications && remoteI.amplifications.length > 0) ? remoteI.amplifications : localI?.amplifications,
           };
           mergedById.set(remoteI.id, merged);
         });

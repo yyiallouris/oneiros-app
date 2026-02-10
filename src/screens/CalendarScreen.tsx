@@ -146,27 +146,35 @@ const CalendarScreen: React.FC = () => {
                 <BreathingLine width={120} height={2} color={colors.accent} />
               </View>
             ) : dreamsForSelectedDate.length > 0 ? (
-              <View style={styles.dreamsList}>
-                {dreamsForSelectedDate.map(dream => (
-                  <TouchableOpacity
-                    key={dream.id}
-                    onPress={() => handleDreamPress(dream.id)}
-                    activeOpacity={0.7}
-                  >
-                    <Card style={styles.dreamCard}>
-                      <View style={styles.dreamCardContent}>
-                        <View style={styles.dreamInfo}>
-                          <Text style={styles.dreamTitle} numberOfLines={1}>
-                            {dream.title || 'Dream'}
-                          </Text>
-                          <Text style={styles.dreamPreview} numberOfLines={2}>
-                            {dream.content}
-                          </Text>
+              <View>
+                <View style={styles.dreamsList}>
+                  {dreamsForSelectedDate.map(dream => (
+                    <TouchableOpacity
+                      key={dream.id}
+                      onPress={() => handleDreamPress(dream.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Card style={styles.dreamCard}>
+                        <View style={styles.dreamCardContent}>
+                          <View style={styles.dreamInfo}>
+                            <Text style={styles.dreamTitle} numberOfLines={1}>
+                              {dream.title || 'Dream'}
+                            </Text>
+                            <Text style={styles.dreamPreview} numberOfLines={2}>
+                              {dream.content}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                    </Card>
-                  </TouchableOpacity>
-                ))}
+                      </Card>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Button
+                  title="Add another dream"
+                  onPress={handleWriteForDate}
+                  variant="secondary"
+                  style={[styles.writeButton, styles.addAnotherButton]}
+                />
               </View>
             ) : (
               <View style={styles.noDreamsContainer}>
@@ -254,6 +262,9 @@ const styles = StyleSheet.create({
   },
   writeButton: {
     minWidth: 200,
+  },
+  addAnotherButton: {
+    marginTop: spacing.lg,
   },
   loadingContainer: {
     alignItems: 'center',

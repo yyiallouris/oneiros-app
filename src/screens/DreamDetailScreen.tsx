@@ -472,11 +472,14 @@ const DreamDetailScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Symbols: prose extraction first; fallback to structured if very few (≤2)
-      // Archetypes: always from structured extraction (AI JSON) — not prose
       let symbols: string[] = [];
       let archetypes: string[] = [];
       let landscapes: string[] = [];
+      let affects: string[] = [];
+      let motifs: string[] = [];
+      let relational_dynamics: string[] = [];
+      let core_mode: string | undefined;
+      let amplifications: string[] = [];
       const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
       symbols = proseExtracted.symbols;
       landscapes = proseExtracted.landscapes ?? [];
@@ -490,6 +493,11 @@ const DreamDetailScreen: React.FC = () => {
         } else if (structured.landscapes && structured.landscapes.length > 0) {
           landscapes = structured.landscapes;
         }
+        affects = structured.affects ?? [];
+        motifs = structured.motifs ?? [];
+        relational_dynamics = structured.relational_dynamics ?? [];
+        core_mode = structured.core_mode?.trim() || undefined;
+        amplifications = structured.amplifications ?? [];
       } catch {
         archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
@@ -497,9 +505,10 @@ const DreamDetailScreen: React.FC = () => {
       if (__DEV__) {
         console.log('[DreamInterpretation] Extracted (new):', {
           symbolsCount: symbols.length,
-          symbols: symbols.slice(0, 10),
           landscapesCount: landscapes.length,
-          landscapes: landscapes,
+          affectsCount: affects.length,
+          motifsCount: motifs.length,
+          core_mode,
         });
       }
       const newInterpretation: Interpretation = {
@@ -509,6 +518,11 @@ const DreamDetailScreen: React.FC = () => {
         symbols,
         archetypes,
         landscapes: landscapes.length > 0 ? landscapes : undefined,
+        affects: affects.length > 0 ? affects : undefined,
+        motifs: motifs.length > 0 ? motifs : undefined,
+        relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
+        core_mode,
+        amplifications: amplifications.length > 0 ? amplifications : undefined,
         summary: extractSummary(aiResponse, 250),
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),
@@ -577,11 +591,14 @@ const DreamDetailScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Symbols: prose extraction first; fallback to structured if very few (≤2)
-      // Archetypes: always from structured extraction (AI JSON) — not prose
       let symbols: string[] = [];
       let archetypes: string[] = [];
       let landscapes: string[] = [];
+      let affects: string[] = [];
+      let motifs: string[] = [];
+      let relational_dynamics: string[] = [];
+      let core_mode: string | undefined;
+      let amplifications: string[] = [];
       const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
       symbols = proseExtracted.symbols;
       landscapes = proseExtracted.landscapes ?? [];
@@ -595,6 +612,11 @@ const DreamDetailScreen: React.FC = () => {
         } else if (structured.landscapes && structured.landscapes.length > 0) {
           landscapes = structured.landscapes;
         }
+        affects = structured.affects ?? [];
+        motifs = structured.motifs ?? [];
+        relational_dynamics = structured.relational_dynamics ?? [];
+        core_mode = structured.core_mode?.trim() || undefined;
+        amplifications = structured.amplifications ?? [];
       } catch {
         archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
@@ -602,9 +624,10 @@ const DreamDetailScreen: React.FC = () => {
       if (__DEV__) {
         console.log('[DreamInterpretation] Extracted (update):', {
           symbolsCount: symbols.length,
-          symbols: symbols.slice(0, 10),
           landscapesCount: landscapes.length,
-          landscapes: landscapes,
+          affectsCount: affects.length,
+          motifsCount: motifs.length,
+          core_mode,
         });
       }
       const updatedInterpretation: Interpretation = {
@@ -613,6 +636,11 @@ const DreamDetailScreen: React.FC = () => {
         symbols,
         archetypes,
         landscapes: landscapes.length > 0 ? landscapes : undefined,
+        affects: affects.length > 0 ? affects : undefined,
+        motifs: motifs.length > 0 ? motifs : undefined,
+        relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
+        core_mode,
+        amplifications: amplifications.length > 0 ? amplifications : undefined,
         summary: extractSummary(aiResponse, 250),
         dreamContentAtCreation: dream.content, // Update stored content
         updatedAt: new Date().toISOString(),

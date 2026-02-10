@@ -78,6 +78,13 @@ const LandscapeIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: s
   </Svg>
 );
 
+const PatternIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M4 8h4v2H4V8zM10 8h4v2h-4V8zM16 8h4v2h-4V8z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M4 14h4v2H4v-2zM10 14h4v2h-4v-2zM16 14h4v2h-4v-2z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
+);
+
 type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
 
 function periodFromPresetSync(preset: PeriodPreset): InsightsPeriod | null {
@@ -288,7 +295,7 @@ const InsightsScreen: React.FC = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.overviewRow, styles.overviewRowLast]}
+            style={styles.overviewRow}
             onPress={() => goToSection('space-landscapes')}
             activeOpacity={0.7}
           >
@@ -297,6 +304,18 @@ const InsightsScreen: React.FC = () => {
             </View>
             <Text style={styles.overviewLabel}>Space landscapes</Text>
             <Text style={styles.overviewValue}>{landscapes.length}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.overviewRow, styles.overviewRowLast]}
+            onPress={() => goToSection('pattern-recognition')}
+            activeOpacity={0.7}
+          >
+            <View style={styles.overviewIconWrap}>
+              <PatternIcon color={text.secondary} />
+            </View>
+            <Text style={styles.overviewLabel}>Pattern recognition</Text>
+            <Text style={styles.overviewValue}>→</Text>
           </TouchableOpacity>
         </Card>
       </ScrollView>

@@ -21,6 +21,16 @@ export interface Interpretation {
   symbols: string[];
   archetypes: string[];
   landscapes?: string[]; // Settings/places where the dream takes place
+  /** Dominant emotional/bodily energies (felt-sense language) for pattern tracking */
+  affects?: string[];
+  /** Recurring action patterns with verbs of psychic action for pattern tracking */
+  motifs?: string[];
+  /** How figures regulate pace, permission, urgency, etc. for pattern tracking */
+  relational_dynamics?: string[];
+  /** One of: Core Tension, Core State, Core Shift, Core Restoration */
+  core_mode?: string;
+  /** Brief echoes/resonances for 1–2 key symbols (pattern/amplification) */
+  amplifications?: string[];
   summary?: string;
   createdAt: string;
   updatedAt: string;
