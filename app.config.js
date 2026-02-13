@@ -46,6 +46,11 @@ export default {
   ...appJson.expo,
   projectId,
   scheme,
+  android: {
+    ...appJson.expo?.android,
+    // Resize window when keyboard opens so KeyboardAvoidingView can keep focused input visible
+    softwareKeyboardLayoutMode: 'resize',
+  },
   extra: {
     ...extraFromEnv,
     eas: { projectId },

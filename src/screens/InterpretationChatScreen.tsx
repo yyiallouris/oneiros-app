@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
   ActivityIndicator,
   Alert,
   Clipboard,
@@ -24,6 +25,7 @@ import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
 import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
+import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
@@ -371,8 +373,8 @@ const InterpretationChatScreen: React.FC = () => {
     setIsGeneratingInitial(true);
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
-      // Use real API call
-      const aiResponse = await generateInitialInterpretation(dreamData);
+      const depth = await getInterpretationDepth();
+      const aiResponse = await generateInitialInterpretation(dreamData, { depth });
       console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
       
       const aiMessage: ChatMessage = {
@@ -579,11 +581,14 @@ const InterpretationChatScreen: React.FC = () => {
     ? dream.content.slice(0, 150) + '...'
     : dream.content;
 
+  const keyboardVerticalOffset =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 56 : 90;
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      style={[styles.container, { paddingBottom: insets.bottom }]}
+      behavior="padding"
+      keyboardVerticalOffset={keyboardVerticalOffset}
     >
       {/* Dream Summary Card */}
       <Card style={styles.summaryCard} elevation={false}>
@@ -613,16 +618,14 @@ const InterpretationChatScreen: React.FC = () => {
         contentContainerStyle={styles.chatContent}
         showsVerticalScrollIndicator={false}
         onScroll={(event) => {
-          // Detect if user scrolled up manually
+          // Detect if user scrolled up manually (for future "scroll to bottom" button, etc.)
           const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
           const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 20;
           setIsUserScrolledUp(!isAtBottom);
         }}
         onContentSizeChange={() => {
-          // Only auto-scroll if user hasn't manually scrolled up
-          if (!isUserScrolledUp) {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }
+          // ChatGPT/Grok-style: do NOT auto-scroll during live typing.
+          // Content stays where it is; user scrolls manually to continue reading.
         }}
       />
 

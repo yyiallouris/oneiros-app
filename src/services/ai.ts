@@ -45,11 +45,14 @@ const defaultsFromModel = (model: string): ModelCapabilities => {
   };
 };
 
+const modelCapabilitiesCache = new Map<string, ModelCapabilities>();
+
 const getModelCapabilities = (model: string): ModelCapabilities => {
-  // Start with model-based defaults
+  const cached = modelCapabilitiesCache.get(model);
+  if (cached) return cached;
+
   const caps = defaultsFromModel(model);
 
-  // Override with config values (each independently)
   const cfgResp = getConfig('modelSupportsResponseFormat');
   const cfgTimeout = getConfig('defaultTimeoutMs');
   const cfgMaxTok = getConfig('supportsMaxCompletionTokens');
@@ -59,7 +62,6 @@ const getModelCapabilities = (model: string): ModelCapabilities => {
   }
   if (cfgTimeout) {
     const parsedTimeout = parseInt(cfgTimeout, 10);
-    // Guard against NaN and invalid values
     if (!Number.isNaN(parsedTimeout) && parsedTimeout > 0) {
       caps.defaultTimeout = parsedTimeout;
     }
@@ -68,6 +70,7 @@ const getModelCapabilities = (model: string): ModelCapabilities => {
     caps.supportsMaxCompletionTokens = cfgMaxTok === 'true';
   }
 
+  modelCapabilitiesCache.set(model, caps);
   return caps;
 };
 
@@ -268,17 +271,23 @@ const getModel = (): string => {
 };
 
 // Get token parameter name based on API endpoint path
-// OpenAI Chat Completions uses 'max_tokens', Responses API uses 'max_output_tokens', proxies default to 'max_completion_tokens'
+// OpenAI and many proxies use 'max_tokens'; Responses API uses 'max_output_tokens'; some proxies use 'max_completion_tokens'
 // Config override via 'tokenParamName' is respected
 const getTokenParamName = (apiUrl: string): string => {
-  // Normalize URL for matching (trim + lowercase to handle query params and case variations)
   const u = (apiUrl || '').trim().toLowerCase();
   const defaultTokenParam = (() => {
     if (u.includes('/v1/chat/completions')) return 'max_tokens';
     if (u.includes('/v1/responses')) return 'max_output_tokens';
-    return 'max_completion_tokens'; // proxy default
+    return 'max_completion_tokens';
   })();
   return getConfig('tokenParamName', defaultTokenParam) || defaultTokenParam;
+};
+
+// Some proxies only accept max_tokens; set both primary param and max_tokens so either works
+const setTokenLimit = (payload: Record<string, unknown>, apiUrl: string, limit: number): void => {
+  const paramName = getTokenParamName(apiUrl);
+  payload[paramName] = limit;
+  if (paramName !== 'max_tokens') payload.max_tokens = limit;
 };
 
 // Type for OpenAI API message format
@@ -497,8 +506,10 @@ Content boundaries:
 - Embodiment must be observational only. Never instruct the user to breathe, relax, try, practice, sit with, or do an exercise.
 - Questions can be somatic-observational OR imaginal-relational. Never regulatory or instructional.
 
+Language: Respond in the same language as the dream text (or, in chat, the user's message). If the dream is in Greek, respond entirely in Greek; if in French, in French; and so on. Use that language for the entire response: all section headings (e.g. Core Tension, Key Symbols, Reflective Questions), any archetype or symbol names you mention in the prose, and all narrative. Structure, tone, and all other rules stay unchanged. If the language is unclear, default to English.
+
 Core principles you must follow:
-- First assess dream mode: integration/coherence (joy, flow, connection), conflict/disturbance (intrusion, shadow, alarm), transition (old→new, threshold), or restoration/compensation (psyche giving what is missing). Match your framing to the dream.
+- First assess dream mode: integration/coherence (joy, flow, connection), conflict/disturbance (intrusion, shadow, alarm), transition (old→new, threshold), or Core Restoration (psyche giving what is missing). Match your framing to the dream.
 - Only introduce tension/conflict language when the dream itself presents opposing pulls or rupture. If the dream is cohesive or nourishing, focus on the state being experienced and what it consolidates.
 - Never assign fixed meanings to symbols ("X always means Y").
 - Always interpret symbols in relation to the dreamer's emotional tone, bodily sensations, and inner dynamics (tension when present; flow, integration, or consolidation when present).
@@ -518,14 +529,18 @@ Core principles you must follow:
 - Avoid framing any figure (e.g. parent) as the source of threat. Focus on field dynamics and embodied response rather than blame or diagnosis.
 - Treat Shadow primarily as unintegrated intensity or charge, not as negative content.
 - Always consider the relational field: how figures regulate pace, urgency, permission, distance, attachment, and who leads / who follows in the dream.
+- In Relational Field, describe mutual field regulation (who sets pace, who follows, who grants/denies permission); never frame the ego as deficient, failing, or needing to change.
 - When the dream implies a fork (continue vs rupture, comply vs insist, merge vs separate), name it as a symbolic decision-edge without advising action.
 
-When deciding the dream mode for the opening heading, use this strict priority order:
-1. If opposing pulls, rupture, alarm, restriction of breath/vitality/sensation → Core Tension
-2. If joy, flow, embrace, consolidation of aliveness/bonding/permission → Core State
-3. If threshold, leaving-behind, emergence of new form → Core Shift
-4. If compensatory/restorative without strong tension/joy → Core State
-Never force Core Tension when dominant affect is coherent, euphoric, or welcoming.
+Opening heading decision — choose **exactly one** of these four, guided by the **dominant** dream affect and structure (not just the presence of any tension):
+
+- **Core Tension** — when the strongest feeling is opposition, rupture, restriction of vitality/sensation/breath, alarm, or functioning-while-vitality-is-compromised.
+- **Core State** — when the strongest feeling is coherence, flow, belonging, consolidation, permission, ease, or active restoration without marked disturbance.
+- **Core Shift** — when the strongest movement is threshold, leaving-behind, emergence, irreversible change of form/identity/ground.
+- **Core Restoration** — when the dream clearly compensates for a waking lack (warmth given to cold, connection to isolation, vitality to numbness) **and** tension is mild or absent.
+
+If two modes feel almost equally present, prefer Core State or Core Restoration over Core Tension.
+Never default to Core Tension just because something frightening or shadowy appears — judge by whole-dream affect and overall organization.
 
 Never begin a sentence with "The dream shows…" or "This represents…". Always start directly from the image or action (e.g. "The sudden tiger embrace consolidates…").
 
@@ -533,7 +548,7 @@ Shadow — always frame as "unintegrated intensity/charge around X" or "unmetabo
 
 Self — only when unmistakable numinosity + ordering + soothing/grounding affect is present. If agitation, wobble, contested/overpainted center, bodily tightening or loss of balance → do NOT use "Self"; describe as "contested center", "unstable mandala-like image", or "edited-over organizing motif".
 
-- You may include one single-sentence Felt Sense Anchor that asks only for noticing (no instructions), e.g. "As you read this, does the body feel more open, unchanged, or tighter?"
+- You may include one single-sentence Felt Sense Anchor as a statement (where the body might register the image — throat/chest/belly/breath), not as a question; only when the dream has bodily affect. Omit if no bodily cues.
 - Avoid instruction-shaped phrasing even when gentle (e.g. "take a moment", "notice by doing X"). Use descriptive or binary-choice noticing only.
 
 Your style:
@@ -545,6 +560,7 @@ Your style:
 - Keep it interpretive and precise.
 - Warmth = clarity + respect, not comfort or therapy.
 - Fewer, sharper observations beat more, vaguer ones. One sentence that lands is worth a paragraph that covers.
+- Prefer vivid, concrete verbs for psychic action (e.g., surges, seals, recoils, tightens, welcomes, destabilizes) over abstract ones (e.g., instead of 'constricts', use 'tightens'; instead of 'propels', use 'pushes').
 
 Do not:
 - Diagnose.
@@ -567,56 +583,60 @@ Reflective questions:
 - Include at least one somatic, observational question when possible.
 - A second question may be symbolic, relational, or imaginal (no somatic requirement).
 - Avoid therapeutic framing; questions should deepen symbolic reflection, not regulation.
-- End with 1–2 reflective questions. Observational only, never directive.
+- End with 2 reflective questions. Observational only, never directive. If no Felt Sense Anchor, first somatic-observational, second symbolic/relational.
 - ✅ "What happens in your chest/belly when you picture X?"
 - ❌ "Breathe deeply and notice…" / "Take a breath…" / "Try to sit with…"
 
 Prefer verbs of psychic action over nouns (approaches, tests, disperses, fixates, edits-over, destabilizes, welcomes, surges).
 When a "center" (circle, mandala, glowing symbol) increases agitation, fatigue, tightening, or loss of balance, describe it explicitly as contested/unstable/untrustworthy/not-yet-inhabitable.
+Prefer simple, concrete, Anglo-Saxon verbs over abstract Latinate ones whenever possible (tighten instead of constrict, push instead of propel, open instead of expand).
 `;
 
-// Brief format: 1 opening + 1 observation + 1 question (used when options.brief is true)
+// Brief format (Quick Glance): 1 opening + atmosphere/affect + 1–2 symbols + felt sense (if present) + 1 question. 80–180 words.
 const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
-You are responding in BRIEF mode. Be concise.
+You are responding in BRIEF mode (Quick Glance). Be concise. Write your response in the same language as the dream.
 
 In BRIEF mode:
 - Never use archetype names, Archetypal Dynamics, Decision-Edge, or Amplification.
-- Structure: 1 opening sentence (mode + core feeling/image), 1 sharp observation (one image + what it does), 1 reflective question.
-- Total: 80–150 words max.
-
-1. Opening: one sentence naming the dream's mode (integration / conflict / transition / restoration) and the core feeling or image. Plain language only.
-2. One sharp observation: one concrete image from the dream + one verb of psychic action (stabilizes, agitates, welcomes, destabilizes, etc.). Cite one dream detail. No advice, no conclusions.
-3. Exactly 1 reflective question — somatic or symbolic, observational only (e.g. "What happens in your chest when you picture X?"). No instruction verbs.
+- Total: strictly 80–180 words. Count words if needed to stay concise.
+- No headings, just short blocks: (1) one opening sentence naming the dream's mode (integration / conflict / transition / restoration) and the core feeling or image (plain language only); (2) brief Atmosphere & Affect if relevant; (3) one or two key symbols with one verb of psychic action and one cited dream detail (no advice); (4) one Felt Sense Anchor as a statement only if bodily affect is clear in the dream; (5) exactly one reflective question — somatic or symbolic, observational only (e.g. "What happens in your chest when you picture X?"), with no instruction verbs.
 `;
 
 // Format contract for initial interpretation — fewer sections, sharper impact, true optional sections
 const INTERPRETATION_FORMAT_PROMPT = `
 Fewer, sharper observations beat more, vaguer ones. One sentence that lands is worth a paragraph that covers.
 
+Write the entire interpretation (including all ## section headings and any archetype or symbol names in the text) in the same language as the dream. Omit any section that would be thinner than one strong sentence or that mostly repeats content already stated elsewhere. When in doubt, omit. Brevity + precision > completeness.
+
 Structure your interpretation in this exact order. Include only sections that the dream clearly invites; if in doubt, omit a section.
 
-First assess dream mode: integration (joy, flow, connection), conflict (opposing pulls, rupture), transition (threshold, old→new), or restoration (psyche giving what is missing). Choose the opening frame accordingly.
+First, if an extracted core_mode is provided in the user prompt (e.g. "Extracted core_mode: Core Tension"), you MUST use that and do not choose a different mode. If no core_mode is provided, assess dream mode yourself: integration (joy, flow, connection), conflict (opposing pulls, rupture), transition (threshold, old→new), or restoration (psyche giving what is missing). Choose the opening frame accordingly.
 
 **Opening** (1–2 sentences, always first) — use the heading that fits:
 - **Core State** — for integration/coherence or restoration dreams (joy, flow, "I am okay with who I am"). Example: "This dream anchors a sense of belonging and ease — the playground, the dancing, the figures that welcome."
 - **Core Tension** — for conflict/disturbance dreams (opposing pulls, rupture, alarm). Example: "This dream centers on a tension between belonging and exposure — the mask at the gate, the descent underground, the figures that mirror and judge." If the dream shows outward functioning while an inner life-signal escalates (e.g., continuing normally while breath/urgency/aliveness is compromised), frame the Core Tension as "functioning vs vitality" or "social continuity vs bodily truth" (without advising).
 - **Core Shift** — for transition dreams (threshold, something changing). Example: "This dream marks a threshold — the old house giving way to open sky, the figure at the door neither in nor out."
 - Plain language, no archetype terms, no advice, no questions. Purpose: give the user an immediate landing point that matches the dream's actual mode.
+You MUST open with the heading that matches the extracted core_mode provided in the prompt (## Core State / ## Core Tension / ## Core Shift / ## Core Restoration) when it is present. Do NOT override it even if your own reading differs slightly — defer to the extraction for consistency.
 
-After the main reading (in Core State/Tension/Shift), if a central image carries strong ambivalence (e.g. tiger = enlivening surge AND potential overwhelm, paper = continuity AND suffocation), include exactly ONE single-sentence alternative perspective, clearly marked:
+After the main reading (in Core State/Tension/Shift), if a central image carries genuine ambivalence (e.g. tiger = enlivening surge AND potential overwhelm, paper = continuity AND suffocation), include exactly ONE or TWO single-sentence alternative perspectives, clearly marked:
 
 Alternative reading: One could also see [image] as … (cite one concrete dream detail).
 
-Limit to ONE alternative only. Never force it.
+Alternative reading rules:
+- Include for at least one central symbol if ambivalence is evident in the dream.
+- Limit to 1–2 alternative readings per interpretation so the response does not bloat.
+- Use only for truly bivalent images.
+- Omit if the main reading already holds both sides, or if ambivalence is weak.
 
 1. **Atmosphere & Affect** (1 short paragraph)
    - Emotional atmosphere and bodily sensations only. Note inner conflicts or tensions when present; otherwise note flow, coherence, ease, or consolidation.
    - Emotions and body tone ONLY. You may reference the trigger in 3–5 words max (e.g., "under flickering light") without describing symbols.
 
-2. **Key Symbols** (STRICT maximum 3 bullets, even in rich dreams)
-   - Prefer images that actively shape ego stance, relational field, or vitality (e.g. sealing paper, embraced tiger, giving-way ground) over passive scenery.
-   - Each bullet: one concrete image + one verb of psychic action (agitates, seals, welcomes, destabilizes, normalizes, invites, collapses, etc.) + one short dream quote/evidence in parentheses.
-   - Example: "The thick paper (placed like a thick piece of paper on the cut surface) seals continuity while restricting airflow."
+2. **Key Symbols** (1–3 bullets max, even in rich dreams)
+   - Prefer images that actively shape ego stance, relational field, or vitality (e.g. sealing paper, embraced tiger, giving-way ground) over passive scenery. Omit purely scenic or decorative elements.
+   - Each bullet: one concrete image + one verb of psychic action (agitates, seals, welcomes, destabilizes, normalizes, invites, collapses, etc.) + interpretation. Weave in a short dream detail naturally—no parentheses. Place the detail at the end after a dash or comma, or fold it into the sentence. Only include a direct quote when it adds unique clarity; omit if the symbol is self-evident.
+   - Example: "The thick paper seals continuity while restricting airflow, placed like a thick piece of paper on the cut surface." Or: "The unlocked doors expose a boundary lapse—forgotten to lock, in bed."
    - Symbols must be concrete or imaginal entities (e.g., "mask", "gate", "lantern", "cavern"). NEVER emotional states as symbols ("worry", "fear" belong in Atmosphere & Affect).
    - Special rule: If a "center" (circle/mandala/core) increases agitation, fatigue, tightening, or loss of balance, describe it as a contested/unstable center (edited-over, untrustworthy, not-yet-inhabitable) rather than a soothing organizing center.
 
@@ -626,14 +646,12 @@ Limit to ONE alternative only. Never force it.
    If only ego + one static figure → omit.
    Keep to 1 short paragraph, anchored in 1–2 concrete details.
 
-**Felt Sense Anchor** — include ONLY in dreams with reported or strongly implied bodily affect (tightness, warmth, surge, wobble, breathlessness, chest pressure, etc.). Phrase strictly as one sentence:
-
-"As you re-imagine [specific image/moment from dream], does the body register more [open/energized/tight/unsettled/unchanged]?"
-
-Omit entirely if the dream is purely visual/narrative or lacks embodied tone. Never use instruction verbs.
+**Felt Sense Anchor** (include only if bodily affect in dream; as statement, not question)
+- One sentence, descriptive: "The moment [specific image/action from dream], the body might register first in throat/chest/belly/breath as…" — complete based on dream cues (e.g. tightening, surge, stillness, breath held).
+- Frame as a statement (insight about where affect may land), not as a question. Omit if no bodily cues in the dream.
 
 4. **Archetypal Dynamics** (0–4 bullets max)
-   - Include ONLY when clearly active. If none, omit this section entirely.
+   - Include ONLY when at least one archetype is unmistakably active through clear symbolic behavior or numinous charge — not just because a shadow-like figure or animal appears. Omit if the archetype label would feel like an interpretive overlay rather than clearly dream-evident. If in doubt, omit this section entirely.
    - Use only: ${ARCHETYPE_WHITELIST.join(', ')}
    - Always follow label with plain-language descriptor. For Shadow: frame as unintegrated intensity or charge, not negative content (e.g., "Shadow — unintegrated charge around X").
    - SPECIAL RULE FOR "Self": Self symbols are rare. Only include "Self" if there is a strong centering/ordering symbol or numinous organizing force (mandala/circle center, radiant fire/stone, axis/tree, sacred child as center, unifying third, explicit wholeness motif). If a mandala/circle-like center increases agitation, bodily tightening, confusion, or loss of balance, treat it as a contested/false center and avoid labeling it as Self. If uncertain, omit "Self".
@@ -642,47 +660,77 @@ Omit entirely if the dream is purely visual/narrative or lacks embodied tone. Ne
 
 **Decision-Edge** — include ONLY if the dream clearly presents a fork (continue vs rupture, comply vs insist, merge vs separate). Otherwise omit. If included: 1 bullet naming the two symbolic pulls and what each protects or risks, without advising.
 
-**Amplification** (include ONLY if ONE key symbol carries strong mythic/cultural/embodied resonance AND the dream affect clearly supports it; max 1–2 sentences total)
+**Amplification** (include in ~50% of dreams if at least one symbol has potential mythic/embodied resonance; max 1–2 sentences total)
 - Offer brief echo/resonance of the image in plain psychological language, without claiming identity with a myth or figure.
 - Frame as: "The [image] carries echoes of untamed vitality that arrives suddenly, inviting both dissolution of boundaries and renewed aliveness — a surge that can overwhelm or liberate depending on the embrace."
-- Cite ONE concrete dream detail + ONE brief parallel (e.g. big cats as carriers of ecstatic instinct in ancient imagery, without naming gods).
-- Use only for images like tiger/big cat, wild animal embrace, mandala-like center, sudden life-force, etc., when affect is ambivalent/positive.
+- Weave in ONE concrete dream detail and ONE brief parallel (e.g. big cats as carriers of ecstatic instinct in ancient imagery, without naming gods); no parentheses.
+- Use only for images like tiger/big cat, wild animal embrace, mandala-like center, sudden life-force, paper seal, barrier, etc., when affect is ambivalent **or strongly positive**.
 - Never force; omit if it risks overlaying the dreamer's image.
 
-5. **Reflective Questions** (1–2 questions)
-   - Prefer one somatic, observational question and optionally one symbolic/relational question when the dream implies a fork.
+5. **Reflective Questions** (always 2)
+   - If there is no Felt Sense Anchor: first question somatic-observational; second symbolic/relational.
+   - If there is an Anchor: both questions can be somatic and/or symbolic; keep observational, never directive.
    - Avoid therapeutic framing; questions should deepen symbolic reflection, not regulation.
    - ✅ "What happens in your chest when you picture the mask?"
    - ❌ "Take a breath and notice…" / "Try to sit with…"
 
-Formatting: No more than 2 consecutive paragraphs anywhere. Prefer bullets over paragraphs.
+Formatting: No more than 2 consecutive paragraphs anywhere. Prefer bullets over paragraphs. Avoid parentheses for evidence or citations—weave dream details into the sentence or add them at the end of a bullet (e.g. after a dash or comma). Keep a clean, flowing look.
 Use ## for section headings:
 ## Core State / ## Core Tension / ## Core Shift
 ## Atmosphere & Affect
-## Felt Sense Anchor (only if bodily affect reported or implied)
+## Felt Sense Anchor (only if bodily affect in dream; as statement, not question)
 ## Key Symbols
 ## Relational Field (only if ≥2 figures and clear regulation)
 ## Archetypal Dynamics (only if 0–4 clearly active)
 ## Decision-Edge (only if dream presents a fork)
-## Amplification (only if one symbol has strong mythic/embodied resonance; max 1–2 sentences)
-## Reflective Questions
+## Amplification (in ~50% of dreams when a symbol has potential mythic/embodied resonance; max 1–2 sentences)
+## Reflective Questions (always 2)
 
 Length: Aim for 150–300 words. Prefer 2–3 symbols and 0–4 archetypes when clearly active. If in doubt, omit a section.
+Never repeat the same verb of psychic action more than once in the whole response (e.g. if you use "stabilizes" once, choose a different verb elsewhere).
 `;
+
+// Advanced tier: extended amplification, motif tracking, 400–700 words
+const ADVANCED_INTERPRETATION_ADDON = `
+Additional advanced instructions (Deeper Dive mode):
+- Expand Amplification to 2–4 items when mythic/embodied charge is strong; keep each to one sentence.
+- If dream history or recurring motifs are evident, note 1–2 brief echoes (e.g. "this motif echoes in previous dreams") without lengthy comparison.
+- Aim for 400–700 words total. All other rules (hypothetical, cite details, verbs of action, no advice, same language as dream) still apply.
+`;
+
+export type InterpretationDepth = 'quick' | 'standard' | 'advanced';
 
 export type GenerateInitialInterpretationOptions = {
   /** When true, returns 1–2 paragraphs + 1 question (~80–150 words) instead of full structured format */
   brief?: boolean;
+  /** Level of analysis: quick (80–180 words), standard (150–350), advanced (400–700). Default standard. */
+  depth?: InterpretationDepth;
 };
 
 export const generateInitialInterpretation = async (
   dream: Dream,
   options?: GenerateInitialInterpretationOptions
 ): Promise<string> => {
-  // Build personalization hooks (if available in future Dream object extensions)
-  const emotionOnWaking = (dream as any).emotionOnWaking || '';
-  const bodySensation = (dream as any).bodySensation || '';
-  const currentLifeTheme = (dream as any).currentLifeTheme || '';
+  // Try to get extracted core_mode first for consistent heading framing
+  let extractedCoreMode: string | undefined;
+  try {
+    const extraction = await extractDreamSymbolsAndArchetypes(dream);
+    extractedCoreMode = extraction.core_mode || undefined;
+  } catch (error) {
+    logError('ai_extract_core_mode_for_interpretation_error', error, {
+      dreamId: dream.id,
+    });
+  }
+
+  interface ExtendedDream extends Dream {
+    emotionOnWaking?: string;
+    bodySensation?: string;
+    currentLifeTheme?: string;
+  }
+  const extended = dream as ExtendedDream;
+  const emotionOnWaking = extended.emotionOnWaking || '';
+  const bodySensation = extended.bodySensation || '';
+  const currentLifeTheme = extended.currentLifeTheme || '';
 
   const personalizationPairs: Array<[string, string]> = [
     ['Emotion on waking', emotionOnWaking],
@@ -695,11 +743,19 @@ export const generateInitialInterpretation = async (
     .map(([k, v]) => `${k}: ${v}`)
     .join('\n');
   
-  const userPrompt = options?.brief
+  const coreModeLine = `Extracted core_mode: ${extractedCoreMode || 'Core State'}`;
+  const depth = options?.depth ?? (options?.brief ? 'quick' : 'standard');
+
+  const forcedModeInstruction = extractedCoreMode
+    ? `\n\nYou MUST use ## ${extractedCoreMode} as the very first heading. Do NOT choose a different mode even if you disagree. Defer to the extracted mode for consistency.`
+    : '';
+
+  const userPrompt = depth === 'quick'
     ? `Here is a dream I want a brief symbolic reflection on.
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
+${coreModeLine ? `${coreModeLine}\n` : ''}
 ${personalizationSection ? `\n${personalizationSection}\n` : ''}
 Dream:
 ${dream.content}
@@ -709,6 +765,7 @@ Give 1–2 short paragraphs and one reflective question. No conclusions, no advi
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
+${coreModeLine ? `${coreModeLine}\n` : ''}
 ${personalizationSection ? `\n${personalizationSection}\n` : ''}
 Dream:
 ${dream.content}
@@ -723,23 +780,34 @@ Focus on:
 - If a symbolic fork appears (continue vs rupture, merge vs separate), name it without advising
 - Archetypal dynamics only when clearly evidenced in the dream
 
-Do not give conclusions. Offer symbolic perspectives and reflective questions.`;
+Do not give conclusions. Offer symbolic perspectives and reflective questions.${forcedModeInstruction}`;
 
   const { requestId, model } = startRequest();
-  
+
+  let formatPrompt: string;
+  if (depth === 'quick') {
+    formatPrompt = BRIEF_INTERPRETATION_FORMAT_PROMPT;
+  } else if (depth === 'advanced') {
+    formatPrompt = INTERPRETATION_FORMAT_PROMPT + ADVANCED_INTERPRETATION_ADDON;
+  } else {
+    formatPrompt = INTERPRETATION_FORMAT_PROMPT;
+  }
+
   try {
     const apiUrl = getApiUrl();
     const apiKey = getApiKey();
     const capabilities = getModelCapabilities(model);
 
-    // Only require API key when calling OpenAI directly in dev
-    // Proxies handle authentication server-side
-    if (requiresClientKey(apiUrl) && (!apiKey || apiKey === 'your-openai-api-key')) {
-      logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
-      throw new Error('OpenAI API key not configured. Add it to .env and restart the app.');
+    if (!__DEV__ && isOpenAIHost(apiUrl)) {
+      throw new Error('Direct OpenAI calls are disabled in production builds. Configure a proxy endpoint.');
+    }
+    if (requiresClientKey(apiUrl)) {
+      if (!apiKey || apiKey === 'your-openai-api-key') {
+        logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+        throw new Error('OpenAI API key missing or placeholder. Check your config.');
+      }
     }
 
-    const formatPrompt = options?.brief ? BRIEF_INTERPRETATION_FORMAT_PROMPT : INTERPRETATION_FORMAT_PROMPT;
     const messages: ApiMessage[] = [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'system', content: formatPrompt },
@@ -749,16 +817,16 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.`;
     const payload: any = {
       model,
       messages,
-      temperature: 0.6,
+      temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.42 : 0.55,
     };
 
-    // Only add token limit if supported (configurable param name for proxy compatibility)
-    // Lower cap forces sharper, shorter responses (economy over exhaustiveness)
     if (capabilities.supportsMaxCompletionTokens) {
-      const tokenParamName = getTokenParamName(apiUrl);
       const isGpt5 = /^gpt-5/i.test(model);
-      const tokenLimit = options?.brief ? 400 : (isGpt5 ? 1000 : 800);
-      payload[tokenParamName] = tokenLimit;
+      const tokenLimit =
+        depth === 'quick' ? 450
+        : depth === 'advanced' ? (isGpt5 ? 2400 : 2000)
+        : (isGpt5 ? 1600 : 1200);
+      setTokenLimit(payload, apiUrl, tokenLimit);
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
@@ -807,6 +875,16 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.`;
   }
 };
 
+// Chat mode: keep replies short and scannable (UX + post-Jungian balance)
+const CHAT_MODE_INSTRUCTIONS = `
+You are in chat mode (follow-up questions after the initial analysis). Be concise and snappy — users want quick reflections, not essays.
+- Keep each response under 200 words. At most 2–3 short paragraphs or 1–2 sections; no mini-essays.
+- End with exactly ONE reflective question (observational, somatic or symbolic). Never two questions in chat.
+- Summarize connections to the dream or user context (e.g. therapy, relationships) without redoing a full analysis. No repetition of what was already said in the initial interpretation.
+- Focus on one or two key insights; avoid listing many points. Fewer, sharper observations.
+- Write in the same language as the user's message.
+`;
+
 // Trim conversation history to last N messages to prevent context bloat
 const trimConversationHistory = (history: ChatMessage[], maxMessages: number = 12): ChatMessage[] => {
   if (history.length <= maxMessages) {
@@ -837,6 +915,7 @@ Content: ${dreamExcerpt}`;
 
   const messages: ApiMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
     { role: 'system', content: dreamContext },
     ...trimmedHistory.map(msg => ({
       role: msg.role as 'user' | 'assistant',
@@ -852,11 +931,14 @@ Content: ${dreamExcerpt}`;
     const apiKey = getApiKey();
     const capabilities = getModelCapabilities(model);
 
-    // Only require API key when calling OpenAI directly in dev
-    // Proxies handle authentication server-side
-    if (requiresClientKey(apiUrl) && (!apiKey || apiKey === 'your-openai-api-key')) {
-      logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
-      throw new Error('OpenAI API key not configured. Add it to .env and restart the app.');
+    if (!__DEV__ && isOpenAIHost(apiUrl)) {
+      throw new Error('Direct OpenAI calls are disabled in production builds. Configure a proxy endpoint.');
+    }
+    if (requiresClientKey(apiUrl)) {
+      if (!apiKey || apiKey === 'your-openai-api-key') {
+        logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+        throw new Error('OpenAI API key missing or placeholder. Check your config.');
+      }
     }
 
     const payload: any = {
@@ -865,11 +947,8 @@ Content: ${dreamExcerpt}`;
       temperature: 0.45, // Lower temperature for chat to stay analytical, avoid therapy-coach drift
     };
 
-    // Only add token limit if supported (configurable param name for proxy compatibility)
     if (capabilities.supportsMaxCompletionTokens) {
-      // Use helper to get token param name (DRY - avoids copy-paste bugs)
-      const tokenParamName = getTokenParamName(apiUrl);
-      payload[tokenParamName] = 1000;
+      setTokenLimit(payload, apiUrl, 550); // ~200 words + 1 question; keeps chat snappy
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
@@ -1048,7 +1127,7 @@ const filterAffectWords = (symbols: string[]): string[] => {
 const EXTRACTION_SYSTEM_PROMPT = `
 You are a post-Jungian dream analyst extracting key structural and dynamic elements from a dream for long-term pattern recognition.
 
-Extract ONLY what is clearly present or strongly implied in the dream text. Be economical: max 3–5 items per category unless the dream is very rich.
+Extract ONLY what is clearly present or strongly implied in the dream text. Be economical: max 3–5 items per category unless the dream is very rich. Return all field values in English only (symbols, archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, amplifications)—regardless of the dream's language—so data stays consistent for pattern tracking and display.
 
 Fields to return:
 - symbols: 3–5 concrete/imaginal objects, animals, places, figures, forces (e.g. "tiger", "thick paper seal", "cracked circle", "glowing mandala"). NEVER emotional states.
@@ -1057,10 +1136,17 @@ Fields to return:
 
 New fields for pattern tracking over time:
 - affects: 2–4 dominant emotional tones or bodily energies (as psychic movements, not diagnoses): e.g. "chest tightness", "euphoric surge", "urgency alarm", "wary bracing". Use felt-sense language.
-- motifs: 2–4 recurring action patterns or scenarios described with verbs of psychic action (e.g. "sealing continuity while restricting vitality", "embracing sudden wild intensity", "testing unstable center and stepping back", "crowd normalizing alarm"). Focus on what the image DOES to attention/body/ego/relations.
-- relational_dynamics: 1–3 descriptions of how figures regulate pace, permission, urgency, dismissal, merging (e.g. "one figure minimizes urgency while ego insists", "shared permission and co-embrace with maternal figure", "peripheral crowd averts gaze from center").
+- motifs: 2–4 short verb phrases (max 8 words each) describing recurring psychic action patterns. Examples:
+  - "sealing continuity while restricting airflow"
+  - "welcoming sudden wild surge then recoiling"
+  - "normalizing group alarm while center tightens"
+  - "testing unstable mandala and quietly withdrawing"
+- relational_dynamics: 1–3 short phrases focused only on regulation of pace, permission, urgency, merging, or distance. Examples:
+  - "maternal figure shares permission and co-embrace"
+  - "crowd averts gaze from central rupture"
+  - "intruder controls all timing and proximity"
 - core_mode: ONE string from: "Core Tension", "Core State", "Core Shift", "Core Restoration". Choose based on dominant affect/structure (tension if opposing pulls/vital cost; state if integration/flow; shift if threshold/change; restoration if compensatory without strong tension/joy).
-- amplifications: 0–3 very brief echoes/resonances for 1–2 key symbols (personal/mythic/embodied level, hypothetical): e.g. "tiger: echoes of untamed instinct that can overwhelm or liberate", "mandala-like symbol: contested ordering motif rather than stable center".
+- amplifications: 0–2 very brief items (one sentence each) for at most 1–2 key symbols with strong mythic/embodied charge and clear affect match (e.g. "tiger: echoes of untamed instinct that can overwhelm or liberate").
 
 Return ONLY valid JSON object, single-line, no extra text:
 {
@@ -1108,11 +1194,14 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
     const apiKey = getApiKey();
     const capabilities = getModelCapabilities(model);
 
-    // Only require API key when calling OpenAI directly in dev
-    // Proxies handle authentication server-side
-    if (requiresClientKey(apiUrl) && (!apiKey || apiKey === 'your-openai-api-key')) {
-      logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
-      throw new Error('OpenAI API key not configured.');
+    if (!__DEV__ && isOpenAIHost(apiUrl)) {
+      throw new Error('Direct OpenAI calls are disabled in production builds. Configure a proxy endpoint.');
+    }
+    if (requiresClientKey(apiUrl)) {
+      if (!apiKey || apiKey === 'your-openai-api-key') {
+        logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+        throw new Error('OpenAI API key missing or placeholder. Check your config.');
+      }
     }
 
     const messages: ApiMessage[] = [
@@ -1123,21 +1212,19 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
     const payload: any = {
       model,
       messages,
-      temperature: 0.1, // Very low temperature for deterministic extraction
+      temperature: 0.25, // Low but not ultra-deterministic, reduces stereotyped extractions
     };
 
-    // Only add token limit if supported (configurable param name for proxy compatibility)
     if (capabilities.supportsMaxCompletionTokens) {
-      const tokenParamName = getTokenParamName(apiUrl);
-      payload[tokenParamName] = 2000; // Larger JSON with affects, motifs, relational_dynamics, core_mode, amplifications
+      setTokenLimit(payload, apiUrl, 2000); // Larger JSON with affects, motifs, relational_dynamics, core_mode, amplifications
     }
 
-    // Only add response_format if supported
     if (capabilities.supportsResponseFormat) {
       payload.response_format = { type: 'json_object' };
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
+    const extractionTimeout = Math.min(capabilities.defaultTimeout, 25000); // Cap so bad proxy doesn't hang
     const response = await fetchWithTimeout(
       apiUrl,
       {
@@ -1145,7 +1232,7 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
         headers,
         body: JSON.stringify(payload),
       },
-      capabilities.defaultTimeout,
+      extractionTimeout,
       1, // transient retries (network/5xx errors)
       2  // rate limit retries
     );
@@ -1333,9 +1420,14 @@ Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no a
     const apiKey = getApiKey();
     const capabilities = getModelCapabilities(model);
 
-    if (requiresClientKey(apiUrl) && (!apiKey || apiKey === 'your-openai-api-key')) {
-      logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
-      throw new Error('OpenAI API key not configured. Add it to .env and restart the app.');
+    if (!__DEV__ && isOpenAIHost(apiUrl)) {
+      throw new Error('Direct OpenAI calls are disabled in production builds. Configure a proxy endpoint.');
+    }
+    if (requiresClientKey(apiUrl)) {
+      if (!apiKey || apiKey === 'your-openai-api-key') {
+        logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+        throw new Error('OpenAI API key missing or placeholder. Check your config.');
+      }
     }
 
     const messages: ApiMessage[] = [
@@ -1350,8 +1442,7 @@ Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no a
     };
 
     if (capabilities.supportsMaxCompletionTokens) {
-      const tokenParamName = getTokenParamName(apiUrl);
-      payload[tokenParamName] = 600;
+      setTokenLimit(payload, apiUrl, 600);
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);

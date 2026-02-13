@@ -70,3 +70,39 @@ export async function generateMonthlyInsights(
   const entries = await getPatternInsightEntries(periodFilter);
   return generatePatternInsights(entries, period);
 }
+
+/**
+ * Return InsightsPeriod for a given month (monthKey = YYYY-MM).
+ */
+export function getMonthPeriod(monthKey: string): InsightsPeriod {
+  const [y, m] = monthKey.split('-').map(Number);
+  const startDate = `${monthKey}-01`;
+  const lastDay = new Date(y, m, 0).getDate();
+  const endDate = `${monthKey}-${String(lastDay).padStart(2, '0')}`;
+  return { startDate, endDate };
+}
+
+/**
+ * Last 12 months as YYYY-MM (newest first), for month picker.
+ */
+export function getLast12MonthKeys(): string[] {
+  const keys: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    keys.push(`${y}-${m}`);
+  }
+  return keys;
+}
+
+/**
+ * Format month key for display (e.g. "2025-01" -> "January 2025").
+ */
+export function formatMonthKeyLabel(monthKey: string): string {
+  const [y, m] = monthKey.split('-').map(Number);
+  const months = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  return `${months[m - 1]} ${y}`;
+}

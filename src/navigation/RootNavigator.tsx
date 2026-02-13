@@ -12,6 +12,7 @@ import ContactScreen from '../screens/ContactScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import InsightsSectionScreen from '../screens/InsightsSectionScreen';
+import InsightsJourneyScreen from '../screens/InsightsJourneyScreen';
 import JournalFilterScreen from '../screens/JournalFilterScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId } from '../types/insights';
@@ -329,6 +330,11 @@ export const RootNavigator: React.FC = () => {
               headerTitle: title,
             };
           }}
+        />
+        <Stack.Screen
+          name="InsightsJourney"
+          component={InsightsJourneyScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="JournalFilter"

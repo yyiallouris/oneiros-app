@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -48,7 +49,7 @@ const WriteScreen: React.FC = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const autoSaveTimeout = useRef<NodeJS.Timeout>();
+  const autoSaveTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
 
   const today = getTodayDate();
@@ -185,11 +186,15 @@ const WriteScreen: React.FC = () => {
     navigation.navigate('Calendar');
   };
 
+  // Keyboard vertical offset: no header on this tab, use status bar on Android so padding is correct
+  const keyboardVerticalOffset =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { paddingBottom: insets.bottom }]}
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      keyboardVerticalOffset={keyboardVerticalOffset}
     >
       <MountainWaveBackground height={400} showSun={false} />
       
@@ -245,17 +250,10 @@ const WriteScreen: React.FC = () => {
               multiline
               textAlignVertical="top"
               autoFocus={!todaysDream} // Auto-focus if new dream
-              onFocus={() => {
-                // Scroll to show input when keyboard appears
-                setTimeout(() => {
-                  contentInputRef.current?.focus();
-                }, 100);
-              }}
             />
             <View style={styles.voiceButtonContainer}>
               <VoiceRecordButton
                 onTranscriptionComplete={(text) => {
-                  // Append transcribed text to content
                   setContent((prev) => (prev ? `${prev}\n${text}` : text));
                 }}
                 disabled={isSaving}
@@ -264,12 +262,12 @@ const WriteScreen: React.FC = () => {
           </View>
         </Card>
 
-        {/* Spacer for buttons */}
+        {/* Spacer for buttons and keyboard */}
         <View style={{ height: 120 }} />
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
+      <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Button
           title={todaysDream ? 'Update dream' : 'Save dream'}
           onPress={handleSaveDream}
@@ -434,10 +432,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: spacing.lg,
+    paddingBottom: undefined, // set inline with safe area insets
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.lg,
   },
   secondaryButton: {
     marginTop: spacing.sm,

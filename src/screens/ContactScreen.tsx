@@ -38,7 +38,8 @@ const ContactScreen: React.FC = () => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
+      keyboardVerticalOffset={0}
     >
       <WaveBackground />
       <View style={styles.content}>

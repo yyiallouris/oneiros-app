@@ -17,6 +17,12 @@ export type RootStackParamList = {
     periodEnd?: string;
     periodLabel?: string;
   };
+  InsightsJourney: {
+    initialSectionId?: InsightsSectionId;
+    periodStart?: string;
+    periodEnd?: string;
+    periodLabel?: string;
+  };
   JournalFilter: { filterSymbol?: string; filterLandscape?: string };
 };
 

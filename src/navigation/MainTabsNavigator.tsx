@@ -1,5 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabsParamList } from './types';
 import WriteScreen from '../screens/WriteScreen';
@@ -9,6 +10,10 @@ import { colors, typography } from '../theme';
 import Svg, { Path } from 'react-native-svg';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
+
+// Minimum bottom inset so tab bar stays above Android navigation bar when
+// system insets are 0 or small (edge-to-edge). Android nav bar is typically 48dp.
+const MIN_TAB_BAR_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
 
 // Simple pen icon
 const PenIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
@@ -58,7 +63,8 @@ const KeyIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
 
 export const MainTabsNavigator: React.FC = () => {
   const insets = useSafeAreaInsets();
-  
+  const bottomInset = Math.max(insets.bottom, MIN_TAB_BAR_BOTTOM_INSET);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -68,8 +74,10 @@ export const MainTabsNavigator: React.FC = () => {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           paddingTop: 8,
-          paddingBottom: Math.max(insets.bottom, 8),
-          height: 60 + Math.max(insets.bottom - 8, 0),
+          paddingBottom: 8,
+          height: 68,
+          // Push the whole tab bar up so it sits just above the system nav bar (no double padding)
+          marginBottom: bottomInset,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textSecondary,

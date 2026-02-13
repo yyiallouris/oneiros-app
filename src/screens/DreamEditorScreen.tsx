@@ -7,10 +7,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
@@ -26,7 +28,10 @@ type EditorRouteProp = RouteProp<RootStackParamList, 'DreamEditor'>;
 const DreamEditorScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<EditorRouteProp>();
+  const insets = useSafeAreaInsets();
   const { dreamId, date: presetDate } = route.params || {};
+  const keyboardVerticalOffset =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
 
   const [dream, setDream] = useState<Dream | null>(null);
   const [title, setTitle] = useState('');
@@ -130,8 +135,9 @@ const DreamEditorScreen: React.FC = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[styles.container, { paddingBottom: insets.bottom }]}
+      behavior="padding"
+      keyboardVerticalOffset={keyboardVerticalOffset}
     >
       <ScrollView
         style={styles.scrollView}
@@ -177,7 +183,7 @@ const DreamEditorScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={styles.bottomActions}>
+      <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
         <Button
           title={dream ? 'Save Changes' : 'Save Dream'}
           onPress={handleSave}
@@ -255,7 +261,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.lg,
   },
   deleteButton: {
     marginTop: spacing.sm,

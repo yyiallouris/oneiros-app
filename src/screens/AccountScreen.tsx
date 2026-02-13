@@ -6,20 +6,31 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders } from '../theme';
 import { WaveBackground, Card } from '../components/ui';
 import { UserService } from '../services/userService';
+import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
+
+const DEPTH_OPTIONS: { value: InterpretationDepth; label: string; hint: string }[] = [
+  { value: 'quick', label: 'Quick Glance', hint: '80–180 words, low cognitive load' },
+  { value: 'standard', label: 'Core Reflection', hint: '150–350 words, full post-Jungian' },
+  { value: 'advanced', label: 'Deeper Dive', hint: '400–700 words, extended & motif tracking' },
+];
 
 const AccountScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
   const [displayName, setDisplayName] = useState('');
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [interpretationDepth, setInterpretationDepthState] = useState<InterpretationDepth>('standard');
 
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
       UserService.getDisplayName().then((name) => {
         if (mounted) setDisplayName(name ?? '');
+      });
+      getInterpretationDepth().then((depth) => {
+        if (mounted) setInterpretationDepthState(depth);
       });
       return () => {
         mounted = false;
@@ -38,6 +49,11 @@ const AccountScreen: React.FC = () => {
       navigation.navigate('MainTabs', { screen: 'Write' });
     }, 800);
   }, [displayName, navigation]);
+
+  const handleDepthSelect = useCallback((depth: InterpretationDepth) => {
+    setInterpretationDepthState(depth);
+    setInterpretationDepth(depth);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -66,6 +82,27 @@ const AccountScreen: React.FC = () => {
           <TouchableOpacity style={styles.saveButton} onPress={handleSaveName} activeOpacity={0.7}>
             <Text style={styles.saveButtonText}>{savedHint ? 'Saved' : 'Save'}</Text>
           </TouchableOpacity>
+        </Card>
+
+        <Card style={styles.card}>
+          <Text style={styles.sectionLabel}>Dream analysis</Text>
+          <Text style={styles.fieldLabel}>Level of analysis (default: Core Reflection)</Text>
+          {DEPTH_OPTIONS.map((opt) => (
+            <TouchableOpacity
+              key={opt.value}
+              style={[styles.depthRow, interpretationDepth === opt.value && styles.depthRowActive]}
+              onPress={() => handleDepthSelect(opt.value)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.depthContent}>
+                <Text style={[styles.depthLabel, interpretationDepth === opt.value && styles.depthLabelActive]}>
+                  {opt.label}
+                </Text>
+                <Text style={styles.depthHint}>{opt.hint}</Text>
+              </View>
+              {interpretationDepth === opt.value && <Text style={styles.depthCheck}>✓</Text>}
+            </TouchableOpacity>
+          ))}
         </Card>
       </ScrollView>
     </View>
@@ -126,6 +163,41 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     color: colors.onAccent ?? colors.white,
+  },
+  depthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.xs,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  depthRowActive: {
+    backgroundColor: colors.accent + '14',
+    borderColor: colors.accent + '40',
+  },
+  depthContent: { flex: 1 },
+  depthLabel: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.textPrimary,
+  },
+  depthLabelActive: {
+    color: colors.accent,
+    fontWeight: typography.weights.semibold,
+  },
+  depthHint: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    marginTop: 2,
+  },
+  depthCheck: {
+    fontSize: typography.sizes.lg,
+    color: colors.accent,
+    marginLeft: spacing.sm,
   },
 });
 

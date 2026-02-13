@@ -13,7 +13,7 @@ import {
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text } from '../theme';
+import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
 import { WaveBackground, BreathingLine, Card } from '../components/ui';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
 import {
@@ -25,7 +25,19 @@ import {
   symbolHasAssociations,
   getAssociationsForSymbol,
 } from '../services/insightsService';
-import { generateMonthlyInsights } from '../services/patternInsightsService';
+import {
+  generateMonthlyInsights,
+  getMonthPeriod,
+  getLast12MonthKeys,
+  formatMonthKeyLabel,
+} from '../services/patternInsightsService';
+import { LocalStorage } from '../services/localStorage';
+import {
+  remoteGetPatternReports,
+  remoteSavePatternReport,
+  remoteDeletePatternReport,
+} from '../services/remoteStorage';
+import { UserService } from '../services/userService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
@@ -49,14 +61,24 @@ function parsePatternInsightSections(raw: string): { title: string; body: string
   return sections;
 }
 
-export const InsightsSectionScreen: React.FC = () => {
+export type InsightsSectionScreenProps = {
+  /** When true, use override* props instead of route params (e.g. when embedded in InsightsJourneyScreen). */
+  embedded?: boolean;
+  overrideSectionId?: InsightsSectionId;
+  overridePeriod?: InsightsPeriod;
+  overridePeriodLabel?: string;
+};
+
+export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (props) => {
+  const { embedded, overrideSectionId, overridePeriod } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
-  const sectionId = route.params?.sectionId ?? 'recurring-symbols';
-  const period: InsightsPeriod | undefined =
-    route.params?.periodStart != null && route.params?.periodEnd != null
-      ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
-      : undefined;
+  const sectionId = (embedded && overrideSectionId != null) ? overrideSectionId : (route.params?.sectionId ?? 'recurring-symbols');
+  const period: InsightsPeriod | undefined = (embedded && overridePeriod != null)
+    ? overridePeriod
+    : (route.params?.periodStart != null && route.params?.periodEnd != null
+        ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
+        : undefined);
   const [loading, setLoading] = useState(true);
   const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
@@ -71,14 +93,20 @@ export const InsightsSectionScreen: React.FC = () => {
   const [clustersExpanded, setClustersExpanded] = useState(false);
   /** When set, show associations only for this symbol (Explore symbol data). */
   const [selectedSymbolForAssociations, setSelectedSymbolForAssociations] = useState<string | null>(null);
-  /** Pattern recognition: generated insight text and loading state */
-  const [patternInsightText, setPatternInsightText] = useState<string | null>(null);
+  /** Pattern recognition: archive (monthKey -> { generatedAt, text }), selected month for generate, viewing which report */
+  const [patternReportsArchive, setPatternReportsArchive] = useState<Record<string, { generatedAt: string; text: string }>>({});
+  const [patternSelectedMonthKey, setPatternSelectedMonthKey] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [patternViewingMonthKey, setPatternViewingMonthKey] = useState<string | null>(null);
+  const [patternMonthPickerOpen, setPatternMonthPickerOpen] = useState(false);
   const [patternInsightGenerating, setPatternInsightGenerating] = useState(false);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const patternSkeletonShimmer = useRef(new Animated.Value(0)).current;
 
   const load = useCallback(async () => {
-    const currentSectionId = route.params?.sectionId ?? 'recurring-symbols';
+    const currentSectionId = sectionId;
     if (__DEV__ && currentSectionId === 'space-landscapes') {
       console.log('[InsightsSection] load() running for space-landscapes');
     }
@@ -100,25 +128,35 @@ export const InsightsSectionScreen: React.FC = () => {
         const data = await getCollectiveInsights();
         setCollective(data);
       } else if (currentSectionId === 'pattern-recognition') {
-        setPatternInsightText(null);
+        const userId = await UserService.getCurrentUserId();
+        let reports: Record<string, { generatedAt: string; text: string }>;
+        if (userId) {
+          const remote = await remoteGetPatternReports();
+          reports = remote ?? (await LocalStorage.getPatternReports());
+        } else {
+          reports = await LocalStorage.getPatternReports();
+        }
+        setPatternReportsArchive(reports);
+        setPatternViewingMonthKey(null);
       }
     } finally {
       setLoading(false);
     }
-  }, [route.params?.sectionId, period?.startDate, period?.endDate]);
+  }, [sectionId, period?.startDate, period?.endDate]);
 
   useFocusEffect(
     useCallback(() => {
-      if (__DEV__ && (route.params?.sectionId ?? 'recurring-symbols') === 'space-landscapes') {
-        console.log('[InsightsSection] Focus — loading space-landscapes, sectionId from route:', route.params?.sectionId);
+      if (__DEV__ && sectionId === 'space-landscapes') {
+        console.log('[InsightsSection] Focus — loading space-landscapes, sectionId:', sectionId);
       }
       load();
     }, [load])
   );
 
-  // Pattern report: smooth fade-in when content is set
+  // Pattern report: smooth fade-in when viewing a report
+  const displayedReportText = patternViewingMonthKey ? (patternReportsArchive[patternViewingMonthKey]?.text ?? null) : null;
   useEffect(() => {
-    if (patternInsightText !== null) {
+    if (displayedReportText !== null) {
       patternReportOpacity.setValue(0);
       Animated.timing(patternReportOpacity, {
         toValue: 1,
@@ -127,7 +165,7 @@ export const InsightsSectionScreen: React.FC = () => {
         useNativeDriver: true,
       }).start();
     }
-  }, [patternInsightText]);
+  }, [displayedReportText]);
 
   // Pattern skeleton: shimmer while generating
   useEffect(() => {
@@ -413,36 +451,88 @@ export const InsightsSectionScreen: React.FC = () => {
         )}
 
         {sectionId === 'pattern-recognition' && (
-          <Card style={styles.card}>
-            <Text style={styles.patternOverviewTitle}>Dream Activity Overview</Text>
+          <View style={styles.patternWrap}>
+            <Text style={styles.patternIntro}>
+              A reflective essay on emerging themes across your dreams for a chosen month.
+            </Text>
 
-            <TouchableOpacity
-              style={[styles.overviewRow, styles.overviewRowLast]}
-              onPress={async () => {
-                if (patternInsightGenerating) return;
-                setPatternInsightGenerating(true);
-                setPatternInsightText(null);
-                try {
-                  const periodFilter = period
-                    ? { startDate: period.startDate, endDate: period.endDate }
-                    : undefined;
-                  const result = await generateMonthlyInsights('monthly', periodFilter);
-                  setPatternInsightText(result);
-                } catch (e: any) {
-                  const msg = e?.message || 'Something went wrong. Please try again.';
-                  Alert.alert('Error', msg);
-                } finally {
-                  setPatternInsightGenerating(false);
-                }
-              }}
-              disabled={patternInsightGenerating}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.overviewLabel}>Monthly insight</Text>
-              <Text style={styles.overviewValue}>
-                {patternInsightGenerating ? '…' : 'Generate'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.patternCard}>
+              <TouchableOpacity
+                style={styles.patternMonthRow}
+                onPress={() => setPatternMonthPickerOpen((o) => !o)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.patternMonthLabel}>Reflection for</Text>
+                <Text style={styles.patternMonthValue} numberOfLines={1}>
+                  {formatMonthKeyLabel(patternSelectedMonthKey)}
+                </Text>
+                <Text style={[styles.patternMonthChevron, patternMonthPickerOpen && styles.patternMonthChevronUp]}>
+                  ▾
+                </Text>
+              </TouchableOpacity>
+
+              {patternMonthPickerOpen && (
+                <View style={styles.patternMonthDropdown}>
+                  {getLast12MonthKeys().map((monthKey) => (
+                    <TouchableOpacity
+                      key={monthKey}
+                      style={[
+                        styles.patternMonthOption,
+                        patternSelectedMonthKey === monthKey && styles.patternMonthOptionActive,
+                      ]}
+                      onPress={() => {
+                        setPatternSelectedMonthKey(monthKey);
+                        setPatternMonthPickerOpen(false);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.patternMonthOptionText,
+                          patternSelectedMonthKey === monthKey && styles.patternMonthOptionTextActive,
+                        ]}
+                      >
+                        {formatMonthKeyLabel(monthKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={styles.patternGenerateRow}
+                onPress={async () => {
+                  if (patternInsightGenerating) return;
+                  setPatternInsightGenerating(true);
+                  try {
+                    const periodFilter = getMonthPeriod(patternSelectedMonthKey);
+                    const result = await generateMonthlyInsights('monthly', periodFilter);
+                    const userId = await UserService.getCurrentUserId();
+                    if (userId) await remoteSavePatternReport(patternSelectedMonthKey, result);
+                    await LocalStorage.savePatternReport(patternSelectedMonthKey, result);
+                    const reports = userId
+                      ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
+                      : await LocalStorage.getPatternReports();
+                    setPatternReportsArchive(reports);
+                    setPatternViewingMonthKey(patternSelectedMonthKey);
+                  } catch (e: any) {
+                    const msg = e?.message || 'Something went wrong. Please try again.';
+                    Alert.alert('Error', msg);
+                  } finally {
+                    setPatternInsightGenerating(false);
+                  }
+                }}
+                disabled={patternInsightGenerating}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.patternGenerateLabel}>
+                  {patternInsightGenerating ? 'Generating…' : 'Generate reflection'}
+                </Text>
+                {!patternInsightGenerating && (
+                  <Text style={styles.patternGenerateArrow}>→</Text>
+                )}
+              </TouchableOpacity>
+            </View>
 
             {patternInsightGenerating && (
               <View style={styles.patternSkeleton}>
@@ -455,20 +545,20 @@ export const InsightsSectionScreen: React.FC = () => {
                         {
                           opacity: patternSkeletonShimmer.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [0.35, 0.6],
+                            outputRange: [0.28, 0.5],
                           }),
-                          backgroundColor: 'rgba(58, 47, 42, 0.12)',
+                          backgroundColor: colors.wave1,
                         },
                       ]}
                     />
                     <Animated.View
                       style={[
                         styles.patternSkeletonLine,
-                        { backgroundColor: 'rgba(58, 47, 42, 0.08)' },
                         {
+                          backgroundColor: colors.wave2,
                           opacity: patternSkeletonShimmer.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [0.3, 0.5],
+                            outputRange: [0.25, 0.45],
                           }),
                         },
                       ]}
@@ -477,11 +567,11 @@ export const InsightsSectionScreen: React.FC = () => {
                       style={[
                         styles.patternSkeletonLine,
                         styles.patternSkeletonLineShort,
-                        { backgroundColor: 'rgba(58, 47, 42, 0.08)' },
                         {
+                          backgroundColor: colors.wave2,
                           opacity: patternSkeletonShimmer.interpolate({
                             inputRange: [0, 1],
-                            outputRange: [0.25, 0.45],
+                            outputRange: [0.2, 0.4],
                           }),
                         },
                       ]}
@@ -491,19 +581,85 @@ export const InsightsSectionScreen: React.FC = () => {
               </View>
             )}
 
-            {patternInsightText !== null && !patternInsightGenerating && (
-              <Animated.View style={[styles.patternReport, { opacity: patternReportOpacity }]}>
-                {parsePatternInsightSections(patternInsightText).map((sec, i) => (
-                  <View key={i} style={styles.dominantInsightBlock}>
-                    <Text style={styles.dominantInsightLabel}>{sec.title}</Text>
-                    <Text style={styles.patternReportBody} selectable>
-                      {sec.body}
-                    </Text>
-                  </View>
-                ))}
+            {displayedReportText !== null && !patternInsightGenerating && (
+              <Animated.View style={[styles.patternReportWrap, { opacity: patternReportOpacity }]}>
+                <View style={styles.patternReportCard}>
+                  {patternViewingMonthKey && (
+                    <View style={styles.patternReportHeader}>
+                      <Text style={styles.patternReportMonth}>
+                        {formatMonthKeyLabel(patternViewingMonthKey)}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          Alert.alert(
+                            'Remove reflection',
+                            `Remove the reflection for ${formatMonthKeyLabel(patternViewingMonthKey)}?`,
+                            [
+                              { text: 'Cancel', style: 'cancel' },
+                              {
+                                text: 'Remove',
+                                style: 'destructive',
+                                onPress: async () => {
+                                  const userId = await UserService.getCurrentUserId();
+                                  if (userId) await remoteDeletePatternReport(patternViewingMonthKey);
+                                  await LocalStorage.deletePatternReport(patternViewingMonthKey);
+                                  const reports = userId
+                                    ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
+                                    : await LocalStorage.getPatternReports();
+                                  setPatternReportsArchive(reports);
+                                  setPatternViewingMonthKey(
+                                    Object.keys(reports).length > 0
+                                      ? Object.keys(reports).sort().reverse()[0]
+                                      : null
+                                  );
+                                },
+                              },
+                            ]
+                          );
+                        }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Text style={styles.patternRemoveLink}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {parsePatternInsightSections(displayedReportText).map((sec, i) => (
+                    <View key={i} style={styles.patternReportBlock}>
+                      <Text style={styles.patternReportBlockTitle}>{sec.title}</Text>
+                      <Text style={styles.patternReportBlockBody} selectable>
+                        {sec.body}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
               </Animated.View>
             )}
-          </Card>
+
+            {Object.keys(patternReportsArchive).length > 0 && (
+              <View style={styles.patternArchiveSection}>
+                <Text style={styles.patternArchiveTitle}>Past reflections</Text>
+                {Object.keys(patternReportsArchive)
+                  .sort()
+                  .reverse()
+                  .map((monthKey) => (
+                    <TouchableOpacity
+                      key={monthKey}
+                      style={[
+                        styles.patternArchiveRow,
+                        patternViewingMonthKey === monthKey && styles.patternArchiveRowActive,
+                      ]}
+                      onPress={() => setPatternViewingMonthKey(monthKey)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.patternArchiveRowLabel} numberOfLines={1}>
+                        {formatMonthKeyLabel(monthKey)}
+                      </Text>
+                      <Text style={styles.patternArchiveRowHint}>View</Text>
+                    </TouchableOpacity>
+                  ))}
+              </View>
+            )}
+          </View>
         )}
 
         {sectionId === 'collective' && (
@@ -762,11 +918,162 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
   },
   card: { marginBottom: spacing.lg },
-  patternOverviewTitle: {
+  patternWrap: {
+    marginBottom: spacing.xl,
+  },
+  patternIntro: {
     fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    color: text.secondary,
+    lineHeight: typography.sizes.md * 1.45,
     marginBottom: spacing.lg,
+    paddingHorizontal: 2,
+  },
+  patternCard: {
+    backgroundColor: colors.cardBackground,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  patternMonthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingRight: spacing.xs,
+  },
+  patternMonthLabel: {
+    fontSize: typography.sizes.md,
+    color: text.secondary,
+    marginRight: spacing.sm,
+  },
+  patternMonthValue: {
+    flex: 1,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.textPrimary,
+  },
+  patternMonthChevron: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+  },
+  patternMonthChevronUp: {
+    transform: [{ rotate: '180deg' }],
+  },
+  patternMonthDropdown: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.xs,
+  },
+  patternMonthOption: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  patternMonthOptionActive: {
+    backgroundColor: colors.accent + '14',
+  },
+  patternMonthOptionText: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  patternMonthOptionTextActive: {
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+  },
+  patternGenerateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  patternGenerateLabel: {
+    fontSize: typography.sizes.md,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+  },
+  patternGenerateArrow: {
+    fontSize: typography.sizes.lg,
+    color: colors.accent,
+  },
+  patternArchiveSection: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  patternArchiveTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  patternArchiveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 0,
+  },
+  patternArchiveRowActive: {
+    paddingHorizontal: spacing.sm,
+    marginHorizontal: -spacing.sm,
+    borderRadius: 8,
+    backgroundColor: colors.accent + '12',
+  },
+  patternArchiveRowLabel: {
+    flex: 1,
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  patternArchiveRowHint: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+  },
+  patternReportWrap: {
+    marginTop: spacing.md,
+  },
+  patternReportCard: {
+    backgroundColor: backgrounds.cardTransparent,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  patternReportHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  patternReportMonth: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: text.secondary,
+  },
+  patternRemoveLink: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+  },
+  patternReportBlock: {
+    marginBottom: spacing.lg,
+  },
+  patternReportBlockTitle: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: spacing.xs,
+  },
+  patternReportBlockBody: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
   },
   overviewRow: {
     flexDirection: 'row',
@@ -777,6 +1084,10 @@ const styles = StyleSheet.create({
   },
   overviewRowLast: {
     borderBottomWidth: 0,
+  },
+  overviewRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   overviewLabel: {
     flex: 1,
@@ -810,18 +1121,6 @@ const styles = StyleSheet.create({
   },
   patternSkeletonLineShort: {
     width: '88%',
-  },
-  patternReport: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-  },
-  patternReportBody: {
-    fontSize: typography.sizes.md,
-    color: colors.textPrimary,
-    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
-    fontWeight: typography.weights.normal,
   },
   body: {
     fontSize: typography.sizes.sm,

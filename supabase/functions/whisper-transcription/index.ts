@@ -61,7 +61,8 @@ serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const model = formData.get('model') || 'whisper-1';
-    const language = formData.get('language') || 'en';
+    const language = formData.get('language'); // no default — let Whisper auto-detect when omitted
+    const prompt = formData.get('prompt');
 
     if (!file) {
       return new Response(
@@ -70,13 +71,12 @@ serve(async (req) => {
       );
     }
 
-    // Create new form data for OpenAI
+    // Build request for OpenAI transcriptions (same-language output, not translations)
     const openaiFormData = new FormData();
     openaiFormData.append('file', file);
     openaiFormData.append('model', model as string);
-    if (language) {
-      openaiFormData.append('language', language as string);
-    }
+    if (language) openaiFormData.append('language', language as string);
+    if (prompt) openaiFormData.append('prompt', prompt as string);
 
     // Forward request to OpenAI Whisper API
     const openaiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {

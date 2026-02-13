@@ -279,4 +279,114 @@ export async function remoteDeleteInterpretation(id: string): Promise<void> {
   }
 }
 
+// --- Pattern reports (monthly reflection essays) ---
+// Shape: Record<monthKey, { generatedAt, text }>
+type PatternReportRow = {
+  month_key: string;
+  generated_at: string;
+  text: string;
+};
+
+export async function remoteGetPatternReports(): Promise<Record<string, { generatedAt: string; text: string }> | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('pattern_reports')
+    .select('month_key, generated_at, text')
+    .eq('user_id', userId)
+    .order('month_key', { ascending: false });
+
+  if (error) {
+    logError('remote_get_pattern_reports_error', error);
+    return null;
+  }
+  logEvent('remote_get_pattern_reports_success', { count: (data ?? []).length });
+  const out: Record<string, { generatedAt: string; text: string }> = {};
+  for (const row of (data as PatternReportRow[]) ?? []) {
+    out[row.month_key] = { generatedAt: row.generated_at, text: row.text };
+  }
+  return out;
+}
+
+export async function remoteSavePatternReport(monthKey: string, text: string): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supabase.from('pattern_reports').upsert(
+    {
+      user_id: userId,
+      month_key: monthKey,
+      generated_at: new Date().toISOString(),
+      text,
+    },
+    { onConflict: ['user_id', 'month_key'] }
+  );
+
+  if (error) {
+    logError('remote_save_pattern_report_error', error, { monthKey });
+  } else {
+    logEvent('remote_save_pattern_report_success', { monthKey });
+  }
+}
+
+export async function remoteDeletePatternReport(monthKey: string): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supabase
+    .from('pattern_reports')
+    .delete()
+    .eq('user_id', userId)
+    .eq('month_key', monthKey);
+
+  if (error) {
+    logError('remote_delete_pattern_report_error', error, { monthKey });
+  } else {
+    logEvent('remote_delete_pattern_report_success', { monthKey });
+  }
+}
+
+// --- User settings (interpretation depth) ---
+export type InterpretationDepth = 'quick' | 'standard' | 'advanced';
+
+export async function remoteGetInterpretationDepth(): Promise<InterpretationDepth | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('interpretation_depth')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    logError('remote_get_interpretation_depth_error', error);
+    return null;
+  }
+  const raw = (data as { interpretation_depth: string } | null)?.interpretation_depth;
+  if (raw === 'quick' || raw === 'standard' || raw === 'advanced') return raw;
+  return null;
+}
+
+export async function remoteSetInterpretationDepth(depth: InterpretationDepth): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supabase.from('user_settings').upsert(
+    {
+      user_id: userId,
+      interpretation_depth: depth,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (error) {
+    logError('remote_set_interpretation_depth_error', error, { depth });
+  } else {
+    logEvent('remote_set_interpretation_depth_success', { depth });
+  }
+}
+
 

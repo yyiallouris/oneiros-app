@@ -16,6 +16,8 @@ export class LocalStorage {
   private static readonly DRAFT_KEY = '@dream_draft';
   private static readonly UNSYNCED_DREAMS_KEY = '@unsynced_dreams';
   private static readonly UNSYNCED_INTERPRETATIONS_KEY = '@unsynced_interpretations';
+  private static readonly PATTERN_REPORTS_KEY = '@pattern_reports';
+  private static readonly INTERPRETATION_DEPTH_KEY = '@interpretation_depth';
 
   // Dreams
   static async getDreams(): Promise<Dream[]> {
@@ -191,6 +193,45 @@ export class LocalStorage {
     await AsyncStorage.removeItem(this.UNSYNCED_INTERPRETATIONS_KEY);
   }
 
+  // Pattern insight reports (monthKey YYYY-MM -> { generatedAt, text })
+  static async getPatternReports(): Promise<Record<string, { generatedAt: string; text: string }>> {
+    try {
+      const data = await AsyncStorage.getItem(this.PATTERN_REPORTS_KEY);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.warn('[LocalStorage] Failed to get pattern reports:', error);
+      return {};
+    }
+  }
+
+  static async savePatternReport(
+    monthKey: string,
+    text: string
+  ): Promise<void> {
+    const reports = await this.getPatternReports();
+    reports[monthKey] = { generatedAt: new Date().toISOString(), text };
+    await AsyncStorage.setItem(this.PATTERN_REPORTS_KEY, JSON.stringify(reports));
+  }
+
+  static async deletePatternReport(monthKey: string): Promise<void> {
+    const reports = await this.getPatternReports();
+    delete reports[monthKey];
+    await AsyncStorage.setItem(this.PATTERN_REPORTS_KEY, JSON.stringify(reports));
+  }
+
+  // Interpretation depth (quick | standard | advanced) — local cache
+  static async getInterpretationDepth(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(this.INTERPRETATION_DEPTH_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  static async setInterpretationDepth(depth: string): Promise<void> {
+    await AsyncStorage.setItem(this.INTERPRETATION_DEPTH_KEY, depth);
+  }
+
   /**
    * Clear ALL local storage (called when user logs out or changes)
    */
@@ -201,6 +242,8 @@ export class LocalStorage {
       this.DRAFT_KEY,
       this.UNSYNCED_DREAMS_KEY,
       this.UNSYNCED_INTERPRETATIONS_KEY,
+      this.PATTERN_REPORTS_KEY,
+      this.INTERPRETATION_DEPTH_KEY,
     ]);
     logEvent('local_storage_cleared');
   }

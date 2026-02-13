@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors, spacing, typography, borderRadius } from '../../theme';
+import { logEvent } from '../../services/logger';
 import { startRecording, stopRecording, getRecordingStatus, cleanupRecording } from '../../utils/voiceRecording';
 import { transcribeAudio } from '../../utils/voiceRecording';
 
@@ -37,6 +38,10 @@ const StopIcon = ({ size = 24, color = colors.white }) => (
   </Svg>
 );
 
+// Hard cap on recording length to avoid very large files / timeouts.
+// Allow up to ~3 minutes per clip; on very slow networks this might still hit timeouts.
+const MAX_RECORDING_MS = 3 * 60 * 1000; // 3 minutes
+
 export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   onTranscriptionComplete,
   disabled = false,
@@ -46,6 +51,28 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const [isTranscribing, setIsTranscribing] = useState(false);
   const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const transcribeFromUri = async (audioUri: string) => {
+    logEvent('voice_transcription_start', {
+      // duration here is the last polled duration in ms
+      durationMs: duration,
+      uriLength: audioUri.length,
+    });
+    setIsTranscribing(true);
+    try {
+      const transcript = await transcribeAudio(audioUri);
+      if (transcript) {
+        onTranscriptionComplete(transcript);
+      } else {
+        Alert.alert('Transcription failed', 'Could not transcribe audio. Please try again.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to transcribe audio. Please try again.');
+    } finally {
+      setIsTranscribing(false);
+      setDuration(0);
+    }
+  };
+
   // Poll recording status while recording
   useEffect(() => {
     if (isRecording) {
@@ -53,6 +80,14 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         const status = await getRecordingStatus();
         if (status.isRecording) {
           setDuration(status.duration);
+          // Auto-stop and transcribe when we hit the hard cap
+          if (status.duration >= MAX_RECORDING_MS && !isTranscribing) {
+            setIsRecording(false);
+            const audioUri = await stopRecording();
+            if (audioUri) {
+              await transcribeFromUri(audioUri);
+            }
+          }
         } else {
           setIsRecording(false);
         }
@@ -79,20 +114,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       
       if (audioUri) {
         // Start transcription
-        setIsTranscribing(true);
-        try {
-          const transcript = await transcribeAudio(audioUri);
-          if (transcript) {
-            onTranscriptionComplete(transcript);
-          } else {
-            Alert.alert('Transcription failed', 'Could not transcribe audio. Please try again.');
-          }
-        } catch (error) {
-          Alert.alert('Error', 'Failed to transcribe audio. Please try again.');
-        } finally {
-          setIsTranscribing(false);
-          setDuration(0);
-        }
+        await transcribeFromUri(audioUri);
       }
     } else {
       // Start recording

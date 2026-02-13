@@ -168,14 +168,40 @@ const InsightsScreen: React.FC = () => {
     }, [periodPreset])
   );
 
+  /** Linked sections: symbols, archetypes, space, pattern — open swipeable journey starting at tapped section */
+  const LINKED_SECTION_IDS: InsightsSectionId[] = [
+    'recurring-symbols',
+    'recurring-archetypes',
+    'space-landscapes',
+    'pattern-recognition',
+  ];
+
   const goToSection = (sectionId: InsightsSectionId) => {
-    navigation.navigate('InsightsSection', {
-      sectionId,
-      periodStart: currentPeriod.startDate,
-      periodEnd: currentPeriod.endDate,
-      periodLabel,
-    });
+    if (LINKED_SECTION_IDS.includes(sectionId)) {
+      navigation.navigate('InsightsJourney', {
+        initialSectionId: sectionId,
+        periodStart: currentPeriod.startDate,
+        periodEnd: currentPeriod.endDate,
+        periodLabel,
+      });
+    } else {
+      navigation.navigate('InsightsSection', {
+        sectionId,
+        periodStart: currentPeriod.startDate,
+        periodEnd: currentPeriod.endDate,
+        periodLabel,
+      });
+    }
   };
+
+  // Legacy: standalone Psychic journey entry (commented out for now — sections are linked via tap on Symbols/Archetypes/Space/Pattern)
+  // const goToJourney = () => {
+  //   navigation.navigate('InsightsJourney', {
+  //     periodStart: currentPeriod.startDate,
+  //     periodEnd: currentPeriod.endDate,
+  //     periodLabel,
+  //   });
+  // };
 
   const goToCalendar = () => {
     navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
@@ -261,6 +287,16 @@ const InsightsScreen: React.FC = () => {
 
         <Card style={styles.card}>
           <Text style={styles.overviewTitle}>Dream Activity Overview</Text>
+
+          {/* Legacy: Psychic journey as separate button — sections are now linked (swipe) when tapping Symbols / Archetypes / Space / Pattern
+          <TouchableOpacity style={[styles.overviewRow, styles.journeyRow]} onPress={goToJourney} activeOpacity={0.7}>
+            <View style={styles.overviewIconWrap}>
+              <PatternIcon color={colors.accent} />
+            </View>
+            <Text style={styles.journeyLabel}>Psychic journey</Text>
+            <Text style={styles.overviewValue}>Swipe →</Text>
+          </TouchableOpacity>
+          */}
 
           <TouchableOpacity style={styles.overviewRow} onPress={goToCalendar} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
@@ -432,6 +468,17 @@ const styles = StyleSheet.create({
   },
   overviewRowLast: {
     borderBottomWidth: 0,
+  },
+  journeyRow: {
+    backgroundColor: colors.accent + '12',
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+  },
+  journeyLabel: {
+    flex: 1,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.accent,
   },
   overviewIconWrap: {
     width: ICON_SIZE,

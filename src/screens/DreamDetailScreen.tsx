@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
   ActivityIndicator,
   Alert,
   Clipboard,
@@ -20,10 +21,12 @@ import { colors, spacing, typography, borderRadius } from '../theme';
 import { Card, Button, Chip, WaveBackground, MountainWaveBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard } from '../components/ui';
 import { Animated, Dimensions } from 'react-native';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
+import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
 import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
+import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -463,7 +466,8 @@ const DreamDetailScreen: React.FC = () => {
       // Ensure dream exists in Supabase (handles legacy local-only dreams)
       await saveDream(dreamData);
 
-      const aiResponse = await generateInitialInterpretation(dreamData);
+      const depth = await getInterpretationDepth();
+      const aiResponse = await generateInitialInterpretation(dreamData, { depth });
       
       const aiMessage: ChatMessage = {
         id: generateId(),
@@ -582,7 +586,8 @@ const DreamDetailScreen: React.FC = () => {
     setShowOfflineMessage(false);
     setIsGeneratingInitial(true);
     try {
-      const aiResponse = await generateInitialInterpretation(dream);
+      const depth = await getInterpretationDepth();
+      const aiResponse = await generateInitialInterpretation(dream, { depth });
 
       const aiMessage: ChatMessage = {
         id: generateId(),
@@ -786,11 +791,14 @@ const DreamDetailScreen: React.FC = () => {
     );
   }
 
+  const keyboardVerticalOffset =
+    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 56 : 90;
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior="padding"
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={keyboardVerticalOffset}
     >
       <MountainWaveBackground height={300} showSun={true} />
       
@@ -1088,13 +1096,9 @@ const DreamDetailScreen: React.FC = () => {
                 }
               }}
               scrollEventThrottle={16}
-              onContentSizeChange={(contentWidth, contentHeight) => {
-                // Only auto-scroll if user hasn't manually scrolled up
-                if (!isUserScrolledUp) {
-                  setTimeout(() => {
-                    flatListRef.current?.scrollToEnd({ animated: true });
-                  }, 100);
-                }
+              onContentSizeChange={() => {
+                // ChatGPT/Grok-style: do NOT auto-scroll during live typing.
+                // Content stays where it is; user scrolls manually to continue reading.
               }}
             >
               {messages.map((item) => (
@@ -1134,12 +1138,19 @@ const DreamDetailScreen: React.FC = () => {
                 multiline
                 maxLength={500}
                 onFocus={() => {
-                  // User focused input - they're ready to interact, scroll to show input clearly
                   setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
                   }, 100);
                 }}
               />
+              <View style={styles.inputActionSpacer}>
+                <VoiceRecordButton
+                  onTranscriptionComplete={(text) => {
+                    setInputText((prev) => (prev ? `${prev} ${text}` : text));
+                  }}
+                  disabled={isLoading}
+                />
+              </View>
               <TouchableOpacity
                 style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
                 onPress={handleSendMessage}
@@ -1408,6 +1419,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     minHeight: 60,
     maxHeight: 120,
+    marginRight: spacing.sm,
+  },
+  inputActionSpacer: {
     marginRight: spacing.sm,
   },
   sendButton: {

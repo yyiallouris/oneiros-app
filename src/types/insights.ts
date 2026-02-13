@@ -44,6 +44,13 @@ export interface MonthlyOverview {
   generatedAt: string;
 }
 
+/** Saved pattern insight report for one month (monthKey = YYYY-MM) */
+export interface PatternReportEntry {
+  monthKey: string;
+  generatedAt: string;
+  text: string;
+}
+
 /** Date range for insights filtering (YYYY-MM-DD) */
 export interface InsightsPeriod {
   startDate: string;
