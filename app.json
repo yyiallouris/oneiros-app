@@ -26,11 +26,11 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.dreamjournal.app"
     },
-    "scheme": "dreamjournal",
+    "scheme": "oneiros-dream-journal",
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-web-browser"],
+    "plugins": ["expo-web-browser",["expo-local-authentication",{"faceIDPermission":"Allow Oneiros to use Face ID to sign in."}],["expo-secure-store",{"faceIDPermission":"Allow Oneiros to use Face ID to sign in."}]],
     "extra": {}
   }
 }

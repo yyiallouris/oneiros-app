@@ -20,6 +20,7 @@ function interpretationToExtraction(i: Interpretation): DreamExtraction {
     relational_dynamics: i.relational_dynamics ?? [],
     core_mode: i.core_mode ?? '',
     amplifications: i.amplifications ?? [],
+    symbol_stances: i.symbol_stances ?? [],
   };
 }
 

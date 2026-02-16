@@ -30,6 +30,8 @@ type DreamRow = {
   updated_at: string;
 };
 
+type SymbolStanceRow = { symbol: string; stance: string };
+
 type InterpretationRow = {
   id: string;
   user_id: string;
@@ -42,6 +44,7 @@ type InterpretationRow = {
   relational_dynamics?: string[];
   core_mode?: string | null;
   amplifications?: string[];
+  symbol_stances?: SymbolStanceRow[];
   summary: string | null;
   messages: any[];
   created_at: string;
@@ -90,6 +93,7 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     relational_dynamics: row.relational_dynamics && row.relational_dynamics.length > 0 ? row.relational_dynamics : undefined,
     core_mode: row.core_mode && row.core_mode.trim() ? row.core_mode : undefined,
     amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
+    symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
     summary: row.summary ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -112,6 +116,7 @@ function mapInterpretationToRow(
     relational_dynamics: interpretation.relational_dynamics,
     core_mode: interpretation.core_mode ?? null,
     amplifications: interpretation.amplifications,
+    symbol_stances: interpretation.symbol_stances,
     summary: interpretation.summary ?? null,
     messages: interpretation.messages as any[],
   };
@@ -387,6 +392,60 @@ export async function remoteSetInterpretationDepth(depth: InterpretationDepth): 
   } else {
     logEvent('remote_set_interpretation_depth_success', { depth });
   }
+}
+
+// --- User settings: biometric_enabled ---
+
+export async function remoteGetBiometricEnabled(): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId) return false;
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('biometric_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    logError('remote_get_biometric_enabled_error', error);
+    return false;
+  }
+  return (data as { biometric_enabled: boolean } | null)?.biometric_enabled ?? false;
+}
+
+/**
+ * Set biometric_enabled for a specific user (e.g. on logout when current session is already null).
+ */
+export async function remoteSetBiometricEnabledForUser(userId: string, enabled: boolean): Promise<void> {
+  const { data: existing } = await supabase
+    .from('user_settings')
+    .select('interpretation_depth')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  const interpretationDepth = (existing as { interpretation_depth?: string } | null)?.interpretation_depth ?? 'standard';
+
+  const { error } = await supabase.from('user_settings').upsert(
+    {
+      user_id: userId,
+      interpretation_depth: interpretationDepth,
+      biometric_enabled: enabled,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (error) {
+    logError('remote_set_biometric_enabled_error', error, { enabled });
+  } else {
+    logEvent('remote_set_biometric_enabled_success', { enabled });
+  }
+}
+
+export async function remoteSetBiometricEnabled(enabled: boolean): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+  await remoteSetBiometricEnabledForUser(userId, enabled);
 }
 
 

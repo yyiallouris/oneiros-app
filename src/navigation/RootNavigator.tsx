@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { createContext, useEffect, useState, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
@@ -7,7 +9,12 @@ import DreamEditorScreen from '../screens/DreamEditorScreen';
 import InterpretationChatScreen from '../screens/InterpretationChatScreen';
 import DreamDetailScreen from '../screens/DreamDetailScreen';
 import AuthScreen from '../screens/AuthScreen';
+import LoginSupportScreen from '../screens/LoginSupportScreen';
+import SetPasswordScreen from '../screens/SetPasswordScreen';
+import BiometricLockScreen from '../screens/BiometricLockScreen';
+import { isBiometricEnabled, syncBiometricFromRemote } from '../services/biometricAuthService';
 import AccountScreen from '../screens/AccountScreen';
+import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
 import ContactScreen from '../screens/ContactScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
 import CalendarScreen from '../screens/CalendarScreen';
@@ -26,9 +33,18 @@ import { DevOfflineToggle } from '../components/DevOfflineToggle';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+/** Set to false when user completes "Set new password" after password-reset link. */
+export const PendingPasswordResetContext = createContext<((v: boolean) => void) | null>(null);
+
+/** Call when user passes biometric unlock (app lock). */
+export const BiometricUnlockContext = createContext<(() => void) | null>(null);
+
 export const RootNavigator: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingPasswordReset, setPendingPasswordReset] = useState(false);
+  const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
+  const [biometricUnlocked, setBiometricUnlocked] = useState(false);
   const previousSessionRef = useRef<Session | null>(null);
   const wasOfflineRef = useRef<boolean>(false);
 
@@ -43,6 +59,12 @@ export const RootNavigator: React.FC = () => {
       if (mounted) {
         setSession(data.session);
         previousSessionRef.current = data.session;
+        if (data.session) {
+          const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
+          setPendingPasswordReset(pending === 'true');
+          const lockEnabled = await syncBiometricFromRemote();
+          setBiometricLockEnabled(lockEnabled);
+        }
         setIsLoading(false);
       }
     };
@@ -59,7 +81,8 @@ export const RootNavigator: React.FC = () => {
       // Do this in background to avoid blocking the logout flow
       if (previousSession && !newSession) {
         console.log('[RootNavigator] User logged out, clearing local storage');
-        
+        setPendingPasswordReset(false);
+
         // Clear storage in background (non-blocking)
         // Don't await - let logout complete immediately
         (async () => {
@@ -79,11 +102,15 @@ export const RootNavigator: React.FC = () => {
               }
             }
             await StorageService.clearAll();
+            await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
+            // Do not clear biometric preference on logout: it is stored per-user in Supabase.
+            // On next login we sync from remote (syncBiometricFromRemote) and restore the toggle.
           } catch (error) {
             console.error('[RootNavigator] Error during logout cleanup:', error);
             // Try to clear anyway
             try {
               await StorageService.clearAll();
+              await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
             } catch (clearError) {
               console.error('[RootNavigator] Failed to clear storage:', clearError);
             }
@@ -95,7 +122,11 @@ export const RootNavigator: React.FC = () => {
       if (!previousSession && newSession) {
         console.log('[RootNavigator] User logged in, initializing storage and fetching data...');
         await StorageService.initialize();
-        
+        const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
+        setPendingPasswordReset(pending === 'true');
+        const lockEnabled = await syncBiometricFromRemote();
+        setBiometricLockEnabled(lockEnabled);
+
         // CRITICAL: Fetch dreams from database when logging in
         // This ensures dreams saved on other devices or previously synced are loaded
         SyncService.fetchAndMergeDreams()
@@ -129,6 +160,12 @@ export const RootNavigator: React.FC = () => {
       }
 
       setSession(newSession);
+      if (newSession) {
+        syncBiometricFromRemote().then(setBiometricLockEnabled);
+      } else {
+        setBiometricLockEnabled(false);
+        setBiometricUnlocked(false);
+      }
     });
 
     return () => {
@@ -224,20 +261,47 @@ export const RootNavigator: React.FC = () => {
     return unsubscribe;
   }, [session]);
 
+  // Re-lock when app goes to background; refresh lock preference when returning to foreground
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
+      if (nextState === 'background') {
+        setBiometricUnlocked(false);
+      } else if (nextState === 'active' && session) {
+        const enabled = await isBiometricEnabled();
+        setBiometricLockEnabled(enabled);
+      }
+    });
+    return () => sub.remove();
+  }, [session]);
+
+  const showBiometricLock = !!session && biometricLockEnabled && !biometricUnlocked;
+
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-          cardStyle: { backgroundColor: colors.background },
-          presentation: 'card',
-        }}
-      >
-        {!session ? (
-          <Stack.Screen name="Auth" component={AuthScreen} />
-        ) : (
-          <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
-        )}
+    <PendingPasswordResetContext.Provider value={setPendingPasswordReset}>
+      <BiometricUnlockContext.Provider value={() => setBiometricUnlocked(true)}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: colors.background },
+              presentation: 'card',
+            }}
+          >
+            {!session ? (
+              <>
+                <Stack.Screen name="Auth" component={AuthScreen} />
+                <Stack.Screen name="LoginSupport" component={LoginSupportScreen} />
+              </>
+            ) : pendingPasswordReset ? (
+              <Stack.Screen name="SetPassword" component={SetPasswordScreen} />
+            ) : showBiometricLock ? (
+              <>
+                <Stack.Screen name="BiometricLock" component={BiometricLockScreen} />
+                <Stack.Screen name="LoginSupport" component={LoginSupportScreen} />
+              </>
+            ) : (
+              <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
+            )}
         <Stack.Screen
           name="DreamEditor"
           component={DreamEditorScreen}
@@ -351,9 +415,11 @@ export const RootNavigator: React.FC = () => {
             };
           }}
         />
-      </Stack.Navigator>
-      <DevOfflineToggle />
-    </NavigationContainer>
+          </Stack.Navigator>
+          <DevOfflineToggle />
+        </NavigationContainer>
+      </BiometricUnlockContext.Provider>
+    </PendingPasswordResetContext.Provider>
   );
 };
 

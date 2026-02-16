@@ -374,9 +374,17 @@ const InterpretationChatScreen: React.FC = () => {
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
       const depth = await getInterpretationDepth();
-      const aiResponse = await generateInitialInterpretation(dreamData, { depth });
+      // Single extraction call: reuse for interpretation (core_mode) and saving
+      let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>> | null;
+      try {
+        structured = await extractDreamSymbolsAndArchetypes(dreamData);
+      } catch {
+        structured = null;
+      }
+
+      const aiResponse = await generateInitialInterpretation(dreamData, { depth, extraction: structured ?? undefined });
       console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
-      
+
       const aiMessage: ChatMessage = {
         id: generateId(),
         role: 'assistant',
@@ -384,28 +392,23 @@ const InterpretationChatScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      // Symbols: prose extraction first; fallback to structured if very few (≤2)
-      // Archetypes: always from structured extraction (AI JSON) — not prose
-      let symbols: string[] = [];
-      let archetypes: string[] = [];
-      let landscapes: string[] = [];
       const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
-      symbols = proseExtracted.symbols;
-      landscapes = proseExtracted.landscapes ?? [];
-
+      let symbols: string[] = proseExtracted.symbols;
+      let landscapes: string[] = proseExtracted.landscapes ?? [];
+      let archetypes: string[] = [];
       let affects: string[] = [];
       let motifs: string[] = [];
       let relational_dynamics: string[] = [];
       let core_mode: string | undefined;
       let amplifications: string[] = [];
+      let symbol_stances: { symbol: string; stance: string }[] = [];
 
-      try {
-        const structured = await extractDreamSymbolsAndArchetypes(dreamData);
+      if (structured) {
         archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-        if (proseExtracted.symbols.length <= 2 && structured.symbols && structured.symbols.length > symbols.length) {
+        if (proseExtracted.symbols.length <= 2 && structured.symbols?.length > symbols.length) {
           symbols = structured.symbols;
           landscapes = structured.landscapes ?? landscapes;
-        } else if (structured.landscapes && structured.landscapes.length > 0) {
+        } else if (structured.landscapes?.length) {
           landscapes = structured.landscapes;
         }
         affects = structured.affects ?? [];
@@ -413,7 +416,8 @@ const InterpretationChatScreen: React.FC = () => {
         relational_dynamics = structured.relational_dynamics ?? [];
         core_mode = structured.core_mode?.trim() || undefined;
         amplifications = structured.amplifications ?? [];
-      } catch {
+        symbol_stances = structured.symbol_stances ?? [];
+      } else {
         archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
       }
 
@@ -438,6 +442,7 @@ const InterpretationChatScreen: React.FC = () => {
         relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
         core_mode,
         amplifications: amplifications.length > 0 ? amplifications : undefined,
+        symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
         summary: aiResponse.slice(0, 200),
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),

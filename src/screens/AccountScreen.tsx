@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
@@ -7,6 +7,13 @@ import { colors, spacing, typography, text, borderRadius, borders } from '../the
 import { WaveBackground, Card } from '../components/ui';
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
+import {
+  getBiometricStatus,
+  isBiometricEnabled,
+  enableBiometric,
+  disableBiometric,
+  getBiometricLabel,
+} from '../services/biometricAuthService';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -22,6 +29,10 @@ const AccountScreen: React.FC = () => {
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [interpretationDepth, setInterpretationDepthState] = useState<InterpretationDepth>('standard');
+  const [biometricSupported, setBiometricSupported] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,6 +42,15 @@ const AccountScreen: React.FC = () => {
       });
       getInterpretationDepth().then((depth) => {
         if (mounted) setInterpretationDepthState(depth);
+      });
+      getBiometricStatus().then((status) => {
+        if (mounted) {
+          setBiometricSupported(status.canUse);
+          setBiometricLabel(getBiometricLabel(status.type));
+        }
+      });
+      isBiometricEnabled().then((enabled) => {
+        if (mounted) setBiometricEnabled(enabled);
       });
       return () => {
         mounted = false;
@@ -53,6 +73,25 @@ const AccountScreen: React.FC = () => {
   const handleDepthSelect = useCallback((depth: InterpretationDepth) => {
     setInterpretationDepthState(depth);
     setInterpretationDepth(depth);
+  }, []);
+
+  const handleBiometricToggle = useCallback(async (value: boolean) => {
+    setBiometricLoading(true);
+    try {
+      if (value) {
+        const result = await enableBiometric();
+        if (result.success) {
+          setBiometricEnabled(true);
+        } else {
+          Alert.alert('Could not enable', result.error ?? 'Try again.');
+        }
+      } else {
+        await disableBiometric();
+        setBiometricEnabled(false);
+      }
+    } finally {
+      setBiometricLoading(false);
+    }
   }, []);
 
   return (
@@ -104,6 +143,27 @@ const AccountScreen: React.FC = () => {
             </TouchableOpacity>
           ))}
         </Card>
+
+        {biometricSupported && (
+          <Card style={styles.card}>
+            <Text style={styles.sectionLabel}>Security</Text>
+            <View style={styles.biometricRow}>
+              <Text style={styles.biometricLabel}>Lock app with {biometricLabel}</Text>
+              <Text style={styles.biometricHint}>Require {biometricLabel} to open the app</Text>
+              {biometricLoading ? (
+                <ActivityIndicator size="small" color={colors.accent} style={styles.biometricSpinner} />
+              ) : (
+                <TouchableOpacity
+                  style={[styles.toggle, biometricEnabled && styles.toggleOn]}
+                  onPress={() => handleBiometricToggle(!biometricEnabled)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.toggleThumb, biometricEnabled && styles.toggleThumbOn]} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Card>
+        )}
       </ScrollView>
     </View>
   );
@@ -198,6 +258,48 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     color: colors.accent,
     marginLeft: spacing.sm,
+  },
+  biometricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  biometricLabel: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  biometricHint: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    width: '100%',
+    marginTop: 2,
+  },
+  biometricSpinner: {
+    marginLeft: 'auto',
+  },
+  toggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.inputBorder,
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  toggleOn: {
+    backgroundColor: colors.accent,
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    alignSelf: 'flex-start',
+  },
+  toggleThumbOn: {
+    alignSelf: 'flex-end',
   },
 });
 

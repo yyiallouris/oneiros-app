@@ -249,7 +249,7 @@ const WriteScreen: React.FC = () => {
               onChangeText={setContent}
               multiline
               textAlignVertical="top"
-              autoFocus={!todaysDream} // Auto-focus if new dream
+              autoFocus={false}
             />
             <View style={styles.voiceButtonContainer}>
               <VoiceRecordButton
@@ -262,8 +262,8 @@ const WriteScreen: React.FC = () => {
           </View>
         </Card>
 
-        {/* Spacer for buttons and keyboard */}
-        <View style={{ height: 120 }} />
+        {/* Spacer above Save dream button */}
+        <View style={{ height: spacing.lg }} />
       </ScrollView>
 
       {/* Bottom Actions */}
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.lg,
-    paddingBottom: 160, // Extra space for keyboard
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   },
   voiceButtonContainer: {
     position: 'absolute',
-    bottom: spacing.sm,
+    bottom: spacing.lg,
     right: spacing.sm,
   },
   bottomActions: {

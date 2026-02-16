@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
@@ -27,6 +28,7 @@ import {
 } from '../services/insightsService';
 import {
   generateMonthlyInsights,
+  getPatternInsightEntries,
   getMonthPeriod,
   getLast12MonthKeys,
   formatMonthKeyLabel,
@@ -44,6 +46,12 @@ type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
 
 const TOP_THEMES_LIMIT = 5;
+
+/** Format YYYY-MM-DD for pattern report subtitle (e.g. "5 Jan 2025"). */
+function formatPatternDate(isoDate: string): string {
+  const d = new Date(isoDate + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 /** Parse AI pattern insight into sections by ## headings (report-style) */
 function parsePatternInsightSections(raw: string): { title: string; body: string }[] {
@@ -102,6 +110,12 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
   const [patternViewingMonthKey, setPatternViewingMonthKey] = useState<string | null>(null);
   const [patternMonthPickerOpen, setPatternMonthPickerOpen] = useState(false);
   const [patternInsightGenerating, setPatternInsightGenerating] = useState(false);
+  /** After a generate attempt: meta for "Based on N dreams from X to Y" (set when report is generated). */
+  const [patternReportMeta, setPatternReportMeta] = useState<{ monthKey: string; dreamCount: number; startDate: string; endDate: string } | null>(null);
+  /** When user tapped Generate and there were 0 entries for this month, show empty state. */
+  const [patternEmptyForMonthKey, setPatternEmptyForMonthKey] = useState<string | null>(null);
+  /** First-time intro for pattern section (dismissible once). */
+  const [patternIntroDismissed, setPatternIntroDismissed] = useState(true);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const patternSkeletonShimmer = useRef(new Animated.Value(0)).current;
 
@@ -138,6 +152,8 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
         }
         setPatternReportsArchive(reports);
         setPatternViewingMonthKey(null);
+        const introSeen = await AsyncStorage.getItem('@pattern_recognition_intro_seen');
+        setPatternIntroDismissed(introSeen === 'true');
       }
     } finally {
       setLoading(false);
@@ -452,6 +468,23 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
 
         {sectionId === 'pattern-recognition' && (
           <View style={styles.patternWrap}>
+            {!patternIntroDismissed && (
+              <View style={styles.patternIntroCard}>
+                <Text style={styles.patternIntroCardBody}>
+                  Reflections are based on your dream interpretations (moods, motifs, relationships). They are hypothetical and not advice — use them as orientation.
+                </Text>
+                <TouchableOpacity
+                  style={styles.patternIntroCardButton}
+                  onPress={() => {
+                    AsyncStorage.setItem('@pattern_recognition_intro_seen', 'true');
+                    setPatternIntroDismissed(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.patternIntroCardButtonText}>Got it</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <Text style={styles.patternIntro}>
               A reflective essay on emerging themes across your dreams for a chosen month.
             </Text>
@@ -483,6 +516,7 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                       onPress={() => {
                         setPatternSelectedMonthKey(monthKey);
                         setPatternMonthPickerOpen(false);
+                        setPatternEmptyForMonthKey(null);
                       }}
                       activeOpacity={0.8}
                     >
@@ -503,9 +537,19 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                 style={styles.patternGenerateRow}
                 onPress={async () => {
                   if (patternInsightGenerating) return;
+                  const periodFilter = getMonthPeriod(patternSelectedMonthKey);
+                  const entries = await getPatternInsightEntries(periodFilter);
+                  if (entries.length === 0) {
+                    setPatternEmptyForMonthKey(patternSelectedMonthKey);
+                    setPatternReportMeta(null);
+                    setPatternViewingMonthKey(null);
+                    return;
+                  }
+                  setPatternEmptyForMonthKey(null);
                   setPatternInsightGenerating(true);
                   try {
-                    const periodFilter = getMonthPeriod(patternSelectedMonthKey);
+                    const startDate = entries[entries.length - 1].date;
+                    const endDate = entries[0].date;
                     const result = await generateMonthlyInsights('monthly', periodFilter);
                     const userId = await UserService.getCurrentUserId();
                     if (userId) await remoteSavePatternReport(patternSelectedMonthKey, result);
@@ -514,6 +558,12 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                       ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
                       : await LocalStorage.getPatternReports();
                     setPatternReportsArchive(reports);
+                    setPatternReportMeta({
+                      monthKey: patternSelectedMonthKey,
+                      dreamCount: entries.length,
+                      startDate,
+                      endDate,
+                    });
                     setPatternViewingMonthKey(patternSelectedMonthKey);
                   } catch (e: any) {
                     const msg = e?.message || 'Something went wrong. Please try again.';
@@ -533,6 +583,15 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                 )}
               </TouchableOpacity>
             </View>
+
+            {patternEmptyForMonthKey === patternSelectedMonthKey && !patternInsightGenerating && (
+              <View style={styles.patternEmptyCard}>
+                <Text style={styles.patternEmptyTitle}>No interpreted dreams in this period</Text>
+                <Text style={styles.patternEmptyBody}>
+                  Interpret 2–3 dreams this month to unlock a reflection on patterns.
+                </Text>
+              </View>
+            )}
 
             {patternInsightGenerating && (
               <View style={styles.patternSkeleton}>
@@ -586,11 +645,12 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                 <View style={styles.patternReportCard}>
                   {patternViewingMonthKey && (
                     <View style={styles.patternReportHeader}>
-                      <Text style={styles.patternReportMonth}>
-                        {formatMonthKeyLabel(patternViewingMonthKey)}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => {
+                      <View style={styles.patternReportHeaderRow}>
+                        <Text style={styles.patternReportMonth}>
+                          {formatMonthKeyLabel(patternViewingMonthKey)}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => {
                           Alert.alert(
                             'Remove reflection',
                             `Remove the reflection for ${formatMonthKeyLabel(patternViewingMonthKey)}?`,
@@ -620,7 +680,13 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
                         <Text style={styles.patternRemoveLink}>Remove</Text>
-                      </TouchableOpacity>
+                        </TouchableOpacity>
+                      </View>
+                      {patternReportMeta?.monthKey === patternViewingMonthKey && (
+                        <Text style={styles.patternReportBasedOn}>
+                          Based on {patternReportMeta.dreamCount} dream{patternReportMeta.dreamCount !== 1 ? 's' : ''} from {formatPatternDate(patternReportMeta.startDate)} to {formatPatternDate(patternReportMeta.endDate)}.
+                        </Text>
+                      )}
                     </View>
                   )}
                   {parsePatternInsightSections(displayedReportText).map((sec, i) => (
@@ -651,9 +717,16 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                       onPress={() => setPatternViewingMonthKey(monthKey)}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.patternArchiveRowLabel} numberOfLines={1}>
-                        {formatMonthKeyLabel(monthKey)}
-                      </Text>
+                      <View style={styles.patternArchiveRowLeft}>
+                        <Text style={styles.patternArchiveRowLabel} numberOfLines={1}>
+                          {formatMonthKeyLabel(monthKey)}
+                        </Text>
+                        {patternReportsArchive[monthKey]?.generatedAt && (
+                          <Text style={styles.patternArchiveRowGenerated} numberOfLines={1}>
+                            Generated {formatPatternDate(patternReportsArchive[monthKey].generatedAt.slice(0, 10))}
+                          </Text>
+                        )}
+                      </View>
                       <Text style={styles.patternArchiveRowHint}>View</Text>
                     </TouchableOpacity>
                   ))}
@@ -918,6 +991,30 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
   },
   card: { marginBottom: spacing.lg },
+  patternIntroCard: {
+    marginBottom: spacing.md,
+    padding: spacing.lg,
+    backgroundColor: colors.accent + '14',
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.accent + '30',
+  },
+  patternIntroCardBody: {
+    fontSize: typography.sizes.sm,
+    color: colors.textPrimary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.md,
+  },
+  patternIntroCardButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  patternIntroCardButtonText: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.accent,
+  },
   patternWrap: {
     marginBottom: spacing.xl,
   },
@@ -1023,10 +1120,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: colors.accent + '12',
   },
-  patternArchiveRowLabel: {
+  patternArchiveRowLeft: {
     flex: 1,
+    minWidth: 0,
+  },
+  patternArchiveRowLabel: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
+  },
+  patternArchiveRowGenerated: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    marginTop: 2,
   },
   patternArchiveRowHint: {
     fontSize: typography.sizes.sm,
@@ -1043,12 +1148,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   patternReportHeader: {
+    marginBottom: spacing.md,
+  },
+  patternReportHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
   patternReportMonth: {
     fontSize: typography.sizes.sm,
@@ -1058,6 +1164,11 @@ const styles = StyleSheet.create({
   patternRemoveLink: {
     fontSize: typography.sizes.sm,
     color: text.muted,
+  },
+  patternReportBasedOn: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    marginTop: spacing.xs,
   },
   patternReportBlock: {
     marginBottom: spacing.lg,
@@ -1098,6 +1209,25 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: text.secondary,
     fontWeight: typography.weights.medium,
+  },
+  patternEmptyCard: {
+    marginTop: spacing.md,
+    padding: spacing.lg,
+    backgroundColor: backgrounds.cardTransparent,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  patternEmptyTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  patternEmptyBody: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
   },
   patternSkeleton: {
     marginTop: spacing.lg,

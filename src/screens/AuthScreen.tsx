@@ -9,92 +9,167 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  ScrollView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/types';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - @expo/vector-icons resolved at runtime by Expo
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, Card, WaveBackground, FloatingSunMoon } from '../components/ui';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
+import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
 
 // Complete OAuth session in browser
 WebBrowser.maybeCompleteAuthSession();
 
 type Mode = 'login' | 'signup';
+type NavProp = StackNavigationProp<RootStackParamList>;
 
 const AuthScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NavProp>();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verifyPassword, setVerifyPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  /** After signup with email confirmation required, show OTP input. */
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  /** Seconds left before Resend can be used again (Supabase rate limit ~60s). */
+  const [resendCooldown, setResendCooldown] = useState(0);
+  /** Forgot password: show email form to request reset link. */
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
 
-  // Handle deep links from OAuth redirect
+  // Handle deep links: OAuth callback and email confirmation magic link
   useEffect(() => {
+    const runDeepLink = (url: string | null) => {
+      if (url) handleDeepLink(url);
+    };
+
     const handleDeepLink = async (url: string) => {
       console.log('[Auth] Deep link received:', url);
-      
-      // Handle any dreamjournal:// URL (simpler - no specific path required)
-      if (url.startsWith('dreamjournal://')) {
-        console.log('[Auth] Processing OAuth callback...');
-        
-        // Extract tokens from URL
-        let accessToken: string | null = null;
-        let refreshToken: string | null = null;
 
-        // Try hash fragments first
-        if (url.includes('#')) {
-          const hashPart = url.split('#')[1];
-          const hashParams = new URLSearchParams(hashPart);
-          accessToken = hashParams.get('access_token');
-          refreshToken = hashParams.get('refresh_token');
+      if (!url || !url.startsWith('oneiros-dream-journal://')) return;
+
+      // Parse query and hash (Supabase may put token_hash/type in either; some platforms use hash)
+      const hasQuery = url.includes('?');
+      const hasHash = url.includes('#');
+      const queryPart = hasQuery ? (url.split('?')[1]?.split('#')[0] ?? '') : '';
+      const hashPart = hasHash ? (url.split('#')[1] ?? '') : '';
+      const getParam = (key: string, fromQuery: boolean) => {
+        const s = fromQuery ? queryPart : hashPart;
+        if (!s) return null;
+        try {
+          return new URLSearchParams(s).get(key);
+        } catch {
+          return null;
         }
+      };
+      const tokenHash = getParam('token_hash', true) ?? getParam('token_hash', false);
+      const typeParam = getParam('type', true) ?? getParam('type', false);
+      logEvent('auth_deeplink_received', { hasTokenHash: !!tokenHash, linkType: typeParam ?? 'url_tokens' });
 
-        // Try query params
-        if (!accessToken && url.includes('?')) {
-          const queryPart = url.split('?')[1].split('#')[0];
-          const queryParams = new URLSearchParams(queryPart);
-          accessToken = queryParams.get('access_token');
-          refreshToken = queryParams.get('refresh_token');
+      // 1) Email confirmation / recovery magic link: token_hash + type
+      if (tokenHash && typeParam) {
+        logEvent('auth_deeplink_verify_start', { linkType: typeParam });
+        try {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: typeParam as 'email' | 'signup' | 'recovery' | 'invite' | 'magiclink' | 'email_change',
+          });
+          if (error) {
+            console.error('[Auth] verifyOtp (magic link) error:', error);
+            Alert.alert('Verification failed', error.message || 'Link may have expired. Try the code from your email.');
+            return;
+          }
+          console.log('[Auth] Magic link verification success');
+          if (typeParam === 'recovery') {
+            await AsyncStorage.setItem(PENDING_PASSWORD_RESET_KEY, 'true');
+            logEvent('auth_password_reset_link_verified', {});
+          } else {
+            logEvent('auth_email_verified', { method: 'magic_link' });
+          }
+          setPendingVerificationEmail(null);
+          setVerificationCode('');
+          // Session is now set; RootNavigator will switch to MainTabs. Brief feedback:
+          Alert.alert('You\'re all set!', 'Your email is verified. Welcome!');
+        } catch (e: any) {
+          console.error('[Auth] Magic link verification failed', e);
+          Alert.alert('Verification failed', e?.message || 'Something went wrong. Try the code from your email.');
         }
+        return;
+      }
 
-        // Regex fallback
-        if (!accessToken) {
-          const tokenMatch = url.match(/access_token=([^&]+)/);
-          const refreshMatch = url.match(/refresh_token=([^&]+)/);
-          accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
-          refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1]) : null;
-        }
+      // 2) Session in URL: access_token + refresh_token (OAuth or post-verify redirect)
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+      if (url.includes('#')) {
+        const hashPartOnly = url.split('#')[1];
+        const hp = new URLSearchParams(hashPartOnly);
+        accessToken = hp.get('access_token');
+        refreshToken = hp.get('refresh_token');
+      }
+      if (!accessToken && (url.includes('?') || url.includes('#'))) {
+        const q = queryPart || hashPart;
+        const qp = new URLSearchParams(q);
+        accessToken = qp.get('access_token');
+        refreshToken = qp.get('refresh_token');
+      }
+      if (!accessToken) {
+        const tokenMatch = url.match(/access_token=([^&#]+)/);
+        const refreshMatch = url.match(/refresh_token=([^&#]+)/);
+        accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1].replace(/\+/g, ' ')) : null;
+        refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1].replace(/\+/g, ' ')) : null;
+      }
 
-        if (accessToken && refreshToken) {
-          console.log('[Auth] Setting session from deep link...');
+      if (accessToken && refreshToken) {
+        console.log('[Auth] Setting session from deep link (tokens in URL)...');
+        try {
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
-
           if (error) {
             console.error('[Auth] Deep link session error:', error);
+            Alert.alert('Sign-in failed', error.message || 'Link may have expired.');
           } else {
             console.log('[Auth] Deep link session set successfully');
             logEvent('auth_google_success', { mode, source: 'deeplink' });
+            setPendingVerificationEmail(null);
+            Alert.alert('You\'re all set!', 'Welcome back!');
           }
+        } catch (e: any) {
+          console.error('[Auth] setSession failed', e);
+          Alert.alert('Sign-in failed', e?.message || 'Something went wrong.');
         }
       }
     };
 
-    // Check if app was opened via deep link
-    Linking.getInitialURL().then((url) => {
-      if (url) handleDeepLink(url);
-    });
+    // Cold start: getInitialURL can be delayed on some platforms; run once and once delayed
+    Linking.getInitialURL().then(runDeepLink);
+    const coldStartTimer = setTimeout(() => {
+      Linking.getInitialURL().then(runDeepLink);
+    }, 800);
 
-    // Listen for deep links while app is running
     const subscription = Linking.addEventListener('url', (event) => {
       handleDeepLink(event.url);
     });
 
     return () => {
+      clearTimeout(coldStartTimer);
       subscription.remove();
     };
   }, [mode]);
@@ -103,6 +178,16 @@ const AuthScreen: React.FC = () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Missing fields', 'Please enter an email and password.');
       return;
+    }
+    if (mode === 'signup') {
+      if (password !== verifyPassword) {
+        Alert.alert('Passwords don\'t match', 'Please enter the same password in both fields.');
+        return;
+      }
+      if (!verifyPassword.trim()) {
+        Alert.alert('Verify password', 'Please confirm your password in the second field.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -115,25 +200,51 @@ const AuthScreen: React.FC = () => {
         });
         if (error) {
           console.error('[Auth] signIn error details', error);
-          throw error;
+          // Unverified email: show verification screen so they can enter code or use magic link
+          const msg = error.message ?? '';
+          const isUnverified =
+            /email not confirmed|confirm your email|verify your email|not confirmed|user is not confirmed|email_not_confirmed/i.test(msg);
+          if (isUnverified) {
+            logEvent('auth_unverified_login', {});
+            setPendingVerificationEmail(email.trim().toLowerCase());
+            setResendCooldown(0);
+            Alert.alert(
+              'Verify your email',
+              'Please confirm your email first. Check your inbox for the verification link or enter the code below.'
+            );
+          } else {
+            throw error;
+          }
+          return;
         }
         console.log('[Auth] signIn success', { user: data?.user?.id });
         logEvent('auth_login_success', { email: email.trim().toLowerCase() });
       } else {
+        const normalizedEmail = email.trim().toLowerCase();
         const { data, error } = await supabase.auth.signUp({
-          email: email.trim().toLowerCase(),
+          email: normalizedEmail,
           password,
+          options: {
+            emailRedirectTo: 'oneiros-dream-journal://auth/confirm',
+          },
         });
         if (error) {
           console.error('[Auth] signUp error details', error);
           throw error;
         }
         console.log('[Auth] signUp success', { user: data?.user?.id });
-        logEvent('auth_signup_success', { email: email.trim().toLowerCase() });
-        Alert.alert(
-          'Check your email',
-          'We sent you a confirmation link. Please confirm your email to continue.'
-        );
+        logEvent('auth_signup_success', { email: normalizedEmail });
+        // When email confirmation is enabled, Supabase returns user but no session until verified
+        if (data?.user && !data?.session) {
+          logEvent('auth_verification_screen_shown', {});
+          setPendingVerificationEmail(normalizedEmail);
+          setResendCooldown(60); // Rate limit: don't allow resend until 60s after first email
+        } else {
+          Alert.alert(
+            'Check your email',
+            'We sent you a confirmation link. Please confirm your email to continue.'
+          );
+        }
       }
     } catch (error: any) {
       logError('auth_error', error, { mode });
@@ -143,8 +254,106 @@ const AuthScreen: React.FC = () => {
     }
   };
 
-  const toggleMode = () => {
-    setMode((prev) => (prev === 'login' ? 'signup' : 'login'));
+  const handleVerifyCode = async () => {
+    const code = verificationCode.replace(/\s/g, '');
+    const validLength = code.length >= 6 && code.length <= 8;
+    if (!pendingVerificationEmail || !validLength) {
+      logEvent('auth_verify_otp_invalid', {});
+      Alert.alert('Invalid code', 'Please enter the 6–8 digit code from your email.');
+      return;
+    }
+    setIsVerifying(true);
+    logEvent('auth_verify_otp_start', {});
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: pendingVerificationEmail,
+        token: code,
+        type: 'email',
+      });
+      if (error) throw error;
+      logEvent('auth_email_verified', { method: 'otp' });
+      setPendingVerificationEmail(null);
+      setVerificationCode('');
+    } catch (err: any) {
+      logError('auth_verify_otp_error', err, { email: pendingVerificationEmail });
+      Alert.alert('Verification failed', err.message || 'Invalid or expired code. Try again or use the link in your email.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Count down resend cooldown every second (Supabase rate limit)
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const handleResendCode = async () => {
+    if (!pendingVerificationEmail || resendCooldown > 0) return;
+    setIsResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: pendingVerificationEmail,
+        options: { emailRedirectTo: 'oneiros-dream-journal://auth/confirm' },
+      });
+      if (error) throw error;
+      logEvent('auth_resend_code_sent', {});
+      setResendCooldown(60);
+      Alert.alert('Email sent', 'A new verification email was sent. Check your inbox and spam folder.');
+    } catch (err: any) {
+      logError('auth_resend_error', err, { email: pendingVerificationEmail });
+      const msg = err?.message ?? '';
+      const isRateLimit = /rate limit|wait|60|seconds|minute/i.test(msg);
+      if (isRateLimit) {
+        setResendCooldown(60);
+        Alert.alert(
+          'Please wait',
+          'You can request another email in about 60 seconds. Check your inbox for the first email.'
+        );
+      } else {
+        Alert.alert('Could not resend', msg || 'Please try again later.');
+      }
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const exitVerification = () => {
+    logEvent('auth_verification_exit', {});
+    setPendingVerificationEmail(null);
+    setVerificationCode('');
+    setResendCooldown(0);
+  };
+
+  const openForgotPassword = () => {
+    logEvent('auth_forgot_password_open', {});
+    setShowForgotPassword(true);
+  };
+
+  const handleForgotPassword = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      logEvent('auth_forgot_password_skip', { reason: 'no_email' });
+      Alert.alert('Enter your email', 'We need your email to send a reset link.');
+      return;
+    }
+    setIsLoading(true);
+    logEvent('auth_forgot_password_submit', {});
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: 'oneiros-dream-journal://auth/confirm',
+      });
+      if (error) throw error;
+      setForgotPasswordSent(true);
+      logEvent('auth_forgot_password_sent', { email: normalizedEmail });
+    } catch (err: any) {
+      logError('auth_forgot_password_error', err, { email: normalizedEmail });
+      Alert.alert('Could not send', err.message || 'Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleAuth = async () => {
@@ -155,7 +364,7 @@ const AuthScreen: React.FC = () => {
     try {
       // Build redirect URL that works in Expo Go (proxy) and in standalone (scheme)
       const redirectUrl = AuthSession.makeRedirectUri({
-        scheme: 'dreamjournal',
+        scheme: 'oneiros-dream-journal',
         path: 'auth/callback',
         useProxy: true, // Expo Go/dev client: use proxy to get back into the app
       });
@@ -255,7 +464,7 @@ const AuthScreen: React.FC = () => {
           }
         }
       } else if (authResult.type === 'dismiss' || authResult.type === 'cancel') {
-        console.log('[Auth] OAuth cancelled by user');
+        logEvent('auth_google_cancel', { mode });
         Alert.alert('Sign-in cancelled', 'Google sign-in was cancelled.');
       } else {
         console.error('[Auth] Unexpected auth session result:', authResult.type);
@@ -269,6 +478,124 @@ const AuthScreen: React.FC = () => {
     }
   };
 
+  // Forgot password step
+  if (showForgotPassword) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
+        <WaveBackground />
+        <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+          <View style={styles.header}>
+            <FloatingSunMoon size={100} style={styles.floatingOrb} />
+            <Text style={styles.title}>Reset password</Text>
+            <Text style={styles.subtitle}>
+              {forgotPasswordSent
+                ? `We sent a reset link to ${email.trim().toLowerCase()}. Tap the link in the email to set a new password.`
+                : 'Enter your email and we’ll send you a link to reset your password.'}
+            </Text>
+          </View>
+          <Card style={styles.card}>
+            {!forgotPasswordSent ? (
+              <>
+                <View style={styles.field}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="you@example.com"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                    editable={!isLoading}
+                  />
+                </View>
+                <Button
+                  title="Send reset link"
+                  onPress={handleForgotPassword}
+                  loading={isLoading}
+                  style={styles.primaryButton}
+                />
+              </>
+            ) : null}
+            <TouchableOpacity
+              onPress={() => {
+                setShowForgotPassword(false);
+                setForgotPasswordSent(false);
+              }}
+              style={styles.backLink}
+            >
+              <Text style={styles.switchModeText}>Back to sign in</Text>
+            </TouchableOpacity>
+          </Card>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  // Email verification step (after signup when confirmation is required)
+  if (pendingVerificationEmail) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
+        <WaveBackground />
+        <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+          <View style={styles.header}>
+            <FloatingSunMoon size={100} style={styles.floatingOrb} />
+            <Text style={styles.title}>Verify your email</Text>
+            <Text style={styles.subtitle}>
+              We sent a verification code and a magic link to {pendingVerificationEmail}. Enter the code below or tap the link in the email.
+            </Text>
+          </View>
+
+          <Card style={styles.card}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Verification code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="00000000"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="number-pad"
+                maxLength={8}
+                value={verificationCode}
+                onChangeText={(t) => setVerificationCode(t.replace(/\D/g, '').slice(0, 8))}
+                editable={!isVerifying}
+              />
+            </View>
+            <Button
+              title="Verify"
+              onPress={handleVerifyCode}
+              loading={isVerifying}
+              style={styles.primaryButton}
+            />
+            <TouchableOpacity
+              onPress={handleResendCode}
+              disabled={isResending || resendCooldown > 0}
+              style={styles.resendButton}
+            >
+              <Text style={styles.resendText}>
+                {isResending
+                  ? 'Sending…'
+                  : resendCooldown > 0
+                    ? `Resend code (${resendCooldown}s)`
+                    : 'Resend code'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={exitVerification} style={styles.backLink}>
+              <Text style={styles.switchModeText}>Back to sign up</Text>
+            </TouchableOpacity>
+          </Card>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -276,10 +603,22 @@ const AuthScreen: React.FC = () => {
       keyboardVerticalOffset={0}
     >
       <WaveBackground />
-      <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + spacing.lg,
+            paddingBottom: insets.bottom + spacing.lg,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
-          <FloatingSunMoon size={100} style={styles.floatingOrb} />
-          <Text style={styles.title}>Dream Journal</Text>
+          <FloatingSunMoon size={88} style={styles.floatingOrb} />
+          <Text style={styles.titleMain}>Oneiros</Text>
+          <Text style={styles.titleSub}>Dream Journal</Text>
           <Text style={styles.subtitle}>
             Sign in to sync your dreams securely across devices.
           </Text>
@@ -339,23 +678,74 @@ const AuthScreen: React.FC = () => {
           {/* Password */}
           <View style={styles.field}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry
-              autoCapitalize="none"
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={styles.inputWithIcon}
+                placeholder="••••••••"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry={!passwordVisible}
+                autoCapitalize="none"
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setPasswordVisible((v) => !v)}
+                style={styles.eyeButton}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Ionicons
+                  name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
+                  size={22}
+                  color={colors.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {mode === 'signup' && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Verify password</Text>
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={styles.inputWithIcon}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.textMuted}
+                  secureTextEntry={!passwordVisible}
+                  autoCapitalize="none"
+                  value={verifyPassword}
+                  onChangeText={setVerifyPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setPasswordVisible((v) => !v)}
+                  style={styles.eyeButton}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  <Ionicons
+                    name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
+                    size={22}
+                    color={colors.textMuted}
+                  />
+                </TouchableOpacity>
+              </View>
+              {verifyPassword.length > 0 && password !== verifyPassword && (
+                <Text style={styles.passwordMismatch}>Passwords don't match</Text>
+              )}
+            </View>
+          )}
 
           <Button
             title={mode === 'login' ? 'Sign in' : 'Create account'}
             onPress={handleAuth}
             loading={isLoading}
+            disabled={mode === 'signup' && (password !== verifyPassword || !verifyPassword.trim())}
             style={styles.primaryButton}
           />
+
+          {mode === 'login' && (
+            <TouchableOpacity onPress={openForgotPassword} style={styles.forgotPasswordLink}>
+              <Text style={styles.resendText}>Forgot password?</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Google OAuth */}
           <View style={styles.dividerRow}>
@@ -372,14 +762,14 @@ const AuthScreen: React.FC = () => {
           />
         </Card>
 
-        <TouchableOpacity onPress={toggleMode} style={styles.switchMode}>
-          <Text style={styles.switchModeText}>
-            {mode === 'login'
-              ? "Don't have an account? Create one"
-              : 'Already have an account? Sign in'}
-          </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('LoginSupport')}
+          style={styles.supportLink}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.supportLinkText}>Having issues? Contact us!</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -389,37 +779,66 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  inner: {
+  scroll: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing.lg,
     justifyContent: 'center',
   },
+  inner: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+    justifyContent: 'flex-start',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: typography.weights.bold,
+    fontFamily: typography.bold,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
   header: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     alignItems: 'center',
     position: 'relative',
   },
   floatingOrb: {
-    top: -20,
+    top: -12,
     zIndex: 0,
   },
-  title: {
-    fontSize: typography.sizes.xxxl,
+  titleMain: {
+    fontSize: 28,
     fontWeight: typography.weights.bold,
     fontFamily: typography.bold,
     color: colors.textPrimary,
     zIndex: 1,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
+    letterSpacing: 0.5,
+  },
+  titleSub: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.medium,
+    fontFamily: typography.bold,
+    color: colors.textSecondary,
+    zIndex: 1,
+    marginTop: 2,
+    letterSpacing: 0.3,
   },
   subtitle: {
     marginTop: spacing.sm,
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.sm,
     color: colors.textSecondary,
-    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    textAlign: 'center',
+    paddingHorizontal: spacing.sm,
   },
   card: {
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
   },
   modeToggle: {
     flexDirection: 'row',
@@ -463,14 +882,41 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     backgroundColor: colors.cardBackground,
   },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.cardBackground,
+  },
+  inputWithIcon: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingRight: spacing.xs,
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  eyeButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  passwordMismatch: {
+    marginTop: spacing.xs,
+    fontSize: typography.sizes.xs,
+    color: colors.error,
+  },
   primaryButton: {
-    marginTop: spacing.md,
-    marginBottom: spacing.md,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.md,
+    marginVertical: spacing.sm,
   },
   divider: {
     flex: 1,
@@ -482,13 +928,37 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.textMuted,
   },
-  switchMode: {
-    marginTop: spacing.lg,
-    alignItems: 'center',
-  },
   switchModeText: {
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
+  },
+  supportLink: {
+    marginTop: spacing.lg,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  supportLinkText: {
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+  },
+  forgotPasswordLink: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  resendButton: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  resendText: {
+    fontSize: typography.sizes.sm,
+    color: colors.accent,
+    fontWeight: typography.weights.medium,
+  },
+  backLink: {
+    alignSelf: 'center',
+    paddingVertical: spacing.xs,
   },
 });
 

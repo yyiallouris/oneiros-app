@@ -31,6 +31,8 @@ export interface Interpretation {
   core_mode?: string;
   /** Brief echoes/resonances for 1–2 key symbols (pattern/amplification) */
   amplifications?: string[];
+  /** How each key symbol was experienced in the dream (e.g. playful, painful, stressful). */
+  symbol_stances?: { symbol: string; stance: string }[];
   summary?: string;
   createdAt: string;
   updatedAt: string;

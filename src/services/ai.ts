@@ -705,21 +705,26 @@ export type GenerateInitialInterpretationOptions = {
   brief?: boolean;
   /** Level of analysis: quick (80–180 words), standard (150–350), advanced (400–700). Default standard. */
   depth?: InterpretationDepth;
+  /** If provided, used for core_mode heading and no extraction API call is made inside (avoids duplicate call). Caller reuses this same extraction for saving symbols/archetypes/etc. — no data loss. */
+  extraction?: DreamExtraction;
 };
 
 export const generateInitialInterpretation = async (
   dream: Dream,
   options?: GenerateInitialInterpretationOptions
 ): Promise<string> => {
-  // Try to get extracted core_mode first for consistent heading framing
   let extractedCoreMode: string | undefined;
-  try {
-    const extraction = await extractDreamSymbolsAndArchetypes(dream);
-    extractedCoreMode = extraction.core_mode || undefined;
-  } catch (error) {
-    logError('ai_extract_core_mode_for_interpretation_error', error, {
-      dreamId: dream.id,
-    });
+  if (options?.extraction?.core_mode) {
+    extractedCoreMode = options.extraction.core_mode.trim() || undefined;
+  } else {
+    try {
+      const extraction = await extractDreamSymbolsAndArchetypes(dream);
+      extractedCoreMode = extraction.core_mode || undefined;
+    } catch (error) {
+      logError('ai_extract_core_mode_for_interpretation_error', error, {
+        dreamId: dream.id,
+      });
+    }
   }
 
   interface ExtendedDream extends Dream {
@@ -1148,9 +1153,18 @@ New fields for pattern tracking over time:
 - core_mode: ONE string from: "Core Tension", "Core State", "Core Shift", "Core Restoration". Choose based on dominant affect/structure (tension if opposing pulls/vital cost; state if integration/flow; shift if threshold/change; restoration if compensatory without strong tension/joy).
 - amplifications: 0–2 very brief items (one sentence each) for at most 1–2 key symbols with strong mythic/embodied charge and clear affect match (e.g. "tiger: echoes of untamed instinct that can overwhelm or liberate").
 
-Return ONLY valid JSON object, single-line, no extra text:
+CRITICAL — symbol_stances: The same image can be experienced very differently (playful, painful, stressful, reassuring, ambiguous, etc.). For each key symbol you list, capture HOW it was experienced in this dream.
+- symbol_stances: 3–5 items, each { "symbol": "exact phrase from symbols", "stance": "2–8 words" }.
+- Stance = the dreamer's affective relation to the symbol in this dream. Examples:
+  - fogging a mirror → "playful" vs "stressful attempt to prove something" vs "intimate, tender"
+  - a gate → "blocking, alarming" vs "inviting threshold" vs "ambiguous, neither open nor closed"
+  - a crowd → "reassuring presence" vs "judging, exposing" vs "neutral backdrop"
+- Never assume a fixed meaning; infer stance from context, tone, and what the dreamer does with the image.
+
+Return ONLY valid JSON object, single-line, no extra text. Put symbol_stances immediately after symbols so it is not cut off:
 {
   "symbols": [...],
+  "symbol_stances": [{"symbol": "mirror (fogging)", "stance": "stressful attempt to prove"}, {"symbol": "thick paper seal", "stance": "barrier that blocks vital exchange"}, ...],
   "archetypes": [...],
   "landscapes": [...],
   "affects": [...],
@@ -1161,9 +1175,12 @@ Return ONLY valid JSON object, single-line, no extra text:
 }
 
 If nothing fits a field → empty array []. If unsure → omit or empty. core_mode must be exactly one of the four strings above.
+- symbol_stances is REQUIRED: include 3–5 items (one per key symbol). Do not omit or return empty [].
 
 CRITICAL: Return ONLY the JSON object. Do NOT wrap in markdown code fences. No explanatory text before or after.
 `;
+
+export type SymbolStance = { symbol: string; stance: string };
 
 export type DreamExtraction = {
   symbols: string[];
@@ -1174,6 +1191,8 @@ export type DreamExtraction = {
   relational_dynamics: string[];
   core_mode: string;
   amplifications: string[];
+  /** How each key symbol was experienced in the dream (playful, painful, stressful, etc.). */
+  symbol_stances: SymbolStance[];
 };
 
 export const extractDreamSymbolsAndArchetypes = async (dream: Dream): Promise<DreamExtraction> => {
@@ -1185,7 +1204,7 @@ Date: ${dream.date}
 Dream:
 ${dream.content}
 
-Return a JSON object with all fields (symbols, archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, amplifications). Include every symbol and archetype clearly present. If unsure for a field, use empty array [] or for core_mode use "Core State".`;
+Return a JSON object with all fields. Put symbol_stances immediately after symbols (required): symbols, then symbol_stances (3–5 items: { "symbol": "...", "stance": "2–8 words" }), then archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, amplifications. For symbol_stances you MUST add one entry per key symbol with how it was experienced (e.g. "stressful attempt to prove", "playful", "reassuring"). If unsure for other fields use empty array [] or for core_mode use "Core State".`;
 
   const { requestId, model } = startRequest();
 
@@ -1216,7 +1235,7 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
     };
 
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 2000); // Larger JSON with affects, motifs, relational_dynamics, core_mode, amplifications
+      setTokenLimit(payload, apiUrl, 2400); // JSON includes affects, motifs, relational_dynamics, core_mode, amplifications, symbol_stances
     }
 
     if (capabilities.supportsResponseFormat) {
@@ -1310,6 +1329,21 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
         ? parsed.amplifications.map((s: unknown) => String(s)).slice(0, 3)
         : [];
 
+      const rawSymbolStances = parsed.symbol_stances ?? parsed.symbolStances;
+      const symbol_stances: SymbolStance[] = Array.isArray(rawSymbolStances)
+        ? (rawSymbolStances as any[]).slice(0, 6).map((item: any) => ({
+            symbol: typeof item?.symbol === 'string' ? item.symbol.trim() : String(item?.symbol ?? ''),
+            stance: typeof item?.stance === 'string' ? item.stance.trim() : String(item?.stance ?? ''),
+          })).filter((s) => s.symbol.length > 0)
+        : [];
+
+      if (__DEV__ && symbol_stances.length === 0 && parsed && typeof parsed === 'object') {
+        console.warn('[AI] symbol_stances empty; parsed keys:', Object.keys(parsed));
+        if (rawSymbolStances != null) {
+          console.warn('[AI] rawSymbolStances type:', typeof rawSymbolStances, Array.isArray(rawSymbolStances) ? 'length=' + (rawSymbolStances as any[]).length : '', rawSymbolStances);
+        }
+      }
+
       if (__DEV__) {
         console.log('[AI] Extracted:', {
           symbolsCount: symbols.length,
@@ -1317,6 +1351,7 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
           landscapesCount: landscapes.length,
           affectsCount: affects.length,
           motifsCount: motifs.length,
+          symbol_stancesCount: symbol_stances.length,
           core_mode,
         });
       }
@@ -1330,6 +1365,7 @@ Return a JSON object with all fields (symbols, archetypes, landscapes, affects, 
         relational_dynamics,
         core_mode,
         amplifications,
+        symbol_stances,
       };
     } catch (parseError) {
       if (__DEV__) {
@@ -1355,6 +1391,7 @@ function emptyDreamExtraction(): DreamExtraction {
     relational_dynamics: [],
     core_mode: '',
     amplifications: [],
+    symbol_stances: [],
   };
 }
 
@@ -1365,11 +1402,14 @@ function emptyDreamExtraction(): DreamExtraction {
 const PATTERN_INSIGHTS_SYSTEM_PROMPT = `
 You are a post-Jungian companion reviewing dream patterns over time.
 
-Your role is to reflect on a series of extracted dream elements (core modes, affects, motifs, relational dynamics) and offer a short, hypothetical reflection on emerging patterns — not to diagnose, advise, or conclude.
+Your role is to reflect on a series of extracted dream elements (core modes, affects, motifs, relational dynamics, amplifications) and offer a short, hypothetical reflection on emerging patterns — not to diagnose, advise, or conclude.
 
 Rules:
 - Use hypothetical language only ("could suggest", "might indicate", "one possible reading").
 - Focus on recurring motifs/affects/relational dynamics and possible evolutions (e.g. from tension to state, from minimization to co-regulation).
+- When amplifications are present, they carry mythic/embodied echoes — note 1–2 if they recur or contrast across dreams.
+- Use "Symbol stances" to see how each symbol was experienced (playful, painful, stressful, etc.). The same image can carry different meanings in different dreams — reflect on contrasts or recurrences when present.
+- Treat sparse data or flat affect as meaningful: name it (e.g. "a period of little emotional differentiation", "the psyche holding distance") rather than filling with generic reflection.
 - Note how the psyche might be organizing attention or vitality over time.
 - No conclusions, no advice — only orientations and 1–2 reflective questions.
 - Structure your response with: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
@@ -1387,19 +1427,26 @@ export const generatePatternInsights = async (
   period: 'monthly' | 'quarterly' = 'monthly'
 ): Promise<string> => {
   if (dreamAnalyses.length === 0) {
-    return 'No dream data for this period. Log and interpret more dreams to see pattern insights here.';
+    return 'No interpreted dreams in this period. Interpret 2–3 dreams this month to unlock a reflection on patterns.';
   }
 
   const context = dreamAnalyses
     .map(
-      (d) => `
+      (d) => {
+        const stances = (d.extracted.symbol_stances ?? [])
+          .map((s) => `${s.symbol}: ${s.stance}`)
+          .join('; ');
+        return `
 Date: ${d.date}
 Core Mode: ${d.extracted.core_mode || '(not set)'}
 Affects: ${(d.extracted.affects ?? []).join(', ') || '(none)'}
 Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
 Relational: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
 Symbols: ${(d.extracted.symbols ?? []).slice(0, 3).join(', ') || '(none)'}
-`
+Symbol stances (how each symbol was experienced): ${stances || '(none)'}
+Amplifications: ${(d.extracted.amplifications ?? []).join('; ') || '(none)'}
+`;
+      }
     )
     .join('\n');
 

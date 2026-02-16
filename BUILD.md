@@ -8,11 +8,11 @@ You can build an **installable app** so you don’t need to run `npx expo start`
 - **Local dev:** Copy `.env.example` to `.env`, fill in values, and run the app. `.env` is gitignored.
 - **Pre-commit guard (optional):** To block commits that contain secret-like strings (e.g. `sk-proj-...`), enable the repo hook:  
   `git config core.hooksPath .githooks` (run once from repo root).
-- **EAS builds:** Set secrets in EAS so builds get the right config:
+- **EAS builds:** Set secrets in EAS so builds get the right config (Supabase project: **oneiros-dream-journal**; project ref from Dashboard → Settings → API):
   ```bash
-  eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://your-project.supabase.co"
+  eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR_PROJECT_REF.supabase.co"
   eas secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "your-anon-key"
-  eas secret:create --name EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT --value "https://your-project.supabase.co/functions/v1/openai-proxy"
+  eas secret:create --name EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT --value "https://YOUR_PROJECT_REF.supabase.co/functions/v1/openai-proxy"
   eas secret:create --name EXPO_PUBLIC_GPT_MODEL --value "gpt-4o"
   ```
   For production, use a Supabase Edge Function as the OpenAI proxy and do **not** put an OpenAI API key in the app.
@@ -67,9 +67,9 @@ eas build --profile preview --platform all
 For preview/production builds, set secrets in EAS so they’re baked into the app (or use a server/proxy and only put the proxy URL in the app):
 
 ```bash
-eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://your-project.supabase.co"
+eas secret:create --name EXPO_PUBLIC_SUPABASE_URL --value "https://YOUR_PROJECT_REF.supabase.co"
 eas secret:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "your-anon-key"
-# etc.
+# etc. (project oneiros-dream-journal; ref from Dashboard → Settings → API)
 ```
 
 Or use a `.env` file and run:

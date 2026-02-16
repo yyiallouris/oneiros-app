@@ -3,6 +3,9 @@ import type { InsightsSectionId } from '../types/insights';
 
 export type RootStackParamList = {
   Auth: undefined;
+  LoginSupport: undefined;
+  SetPassword: undefined;
+  BiometricLock: undefined;
   MainTabs: NavigatorScreenParams<MainTabsParamList>;
   DreamEditor: { dreamId?: string; date?: string };
   InterpretationChat: { dreamId: string };

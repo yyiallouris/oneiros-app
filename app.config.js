@@ -20,7 +20,7 @@ const getEnv = (keys, fallback = '') => {
   return fallback;
 };
 
-const scheme = getEnv(['APP_SCHEME'], appJson.expo?.scheme || 'dreamjournal');
+const scheme = getEnv(['APP_SCHEME'], appJson.expo?.scheme || 'oneiros-dream-journal');
 
 const extraFromEnv = {
   openaiApiKey: getEnv(['EXPO_PUBLIC_OPENAI_API_KEY', 'OPENAI_API_KEY'], ''),

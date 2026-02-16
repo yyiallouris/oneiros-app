@@ -13,6 +13,8 @@ supabase functions deploy contact-email
 ```
 
 ### SQL trigger (already provided)
+Replace `YOUR_PROJECT_REF` with your project ref (Supabase Dashboard → Project Settings → API → Project URL, e.g. `https://abcdefgh.supabase.co` → ref is `abcdefgh`). Project display name is **oneiros-dream-journal**; the ref does not change when you rename the project.
+
 If not created yet, run in Supabase SQL editor:
 ```sql
 create extension if not exists http;
@@ -25,7 +27,7 @@ as $$
 begin
   perform
     net.http_post(
-      url := 'https://xacdawttvtfrdbcwhcqn.functions.supabase.co/contact-email',
+      url := 'https://YOUR_PROJECT_REF.functions.supabase.co/contact-email',
       headers := jsonb_build_object('Content-Type', 'application/json'),
       body := jsonb_build_object('record', row_to_json(NEW))
     );

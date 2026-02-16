@@ -10,10 +10,11 @@ We now load config via `app.config.js` and environment variables. Create a `.env
 EXPO_PUBLIC_OPENAI_API_KEY=sk-your-actual-api-key-here
 EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT=
 EXPO_PUBLIC_GPT_MODEL="gpt-5.2"
-EXPO_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-# Optional: override scheme (defaults to dreamjournal)
-# APP_SCHEME=dreamjournal
+# Project name in dashboard: oneiros-dream-journal; ref from Settings → API
+# Optional: override scheme (defaults to oneiros-dream-journal)
+# APP_SCHEME=oneiros-dream-journal
 ```
 
 Then restart Expo (`expo start -c`) so the config is rebuilt.
