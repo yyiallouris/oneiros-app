@@ -49,7 +49,7 @@ const BiometricLockScreen: React.FC = () => {
       <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
           <FloatingSunMoon size={100} style={styles.floatingOrb} />
-          <Text style={styles.title}>🔒 App locked</Text>
+          <Text style={styles.title}>🔒 Dream Journal locked</Text>
           <Text style={styles.subtitle}>
             Use {label} to open your journal.
           </Text>

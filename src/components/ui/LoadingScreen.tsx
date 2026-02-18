@@ -1,38 +1,40 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Image, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, typography, spacing } from '../../theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { typography, text } from '../../theme';
 
 interface LoadingScreenProps {
   onComplete?: () => void;
 }
 
+const BRUSH_WIDTH = 100;
+const BRUSH_DURATION_MS = 1500;
+const IMAGE_SCALE = 0.88; // Slightly smaller than full screen
+
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
   const { height: screenH, width: screenW } = useWindowDimensions();
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const brushAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Responsive image sizing (clamped) so small screens don't push title/bar down.
-  const imgH = useMemo(() => Math.min(560, Math.max(420, screenH * 0.58)), [screenH]);
-  const imgW = useMemo(() => Math.min(320, Math.max(260, screenW * 0.88)), [screenW]);
+  const contentH = screenH - insets.top - insets.bottom;
+  const imgW = Math.round(screenW * IMAGE_SCALE);
+  const imgH = Math.round(contentH * IMAGE_SCALE);
 
   useEffect(() => {
-    // Fade in animation
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
 
-    // Progress bar animation - fill from 0% to 100%
-    Animated.timing(progressAnim, {
+    Animated.timing(brushAnim, {
       toValue: 1,
-      duration: 1500,
+      duration: BRUSH_DURATION_MS,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: false, // width animation needs useNativeDriver: false
+      useNativeDriver: true,
     }).start(() => {
-      // Fade out animation
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
@@ -41,11 +43,11 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         onComplete?.();
       });
     });
-  }, [progressAnim, fadeAnim]);
+  }, [brushAnim, fadeAnim]);
 
-  const progressWidth = progressAnim.interpolate({
+  const brushTranslateX = brushAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
+    outputRange: [-BRUSH_WIDTH, imgW + BRUSH_WIDTH],
   });
 
   return (
@@ -59,30 +61,37 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         },
       ]}
     >
-      <View style={styles.topSpacer} />
-      <View style={styles.content}>
-        <Image 
-          source={require('../../../assets/loading_image.png')} 
-          style={[styles.logo, { width: imgW, height: imgH }]}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Oneiros Dream Journal</Text>
-        
-        {/* Progress bar */}
-        <View style={styles.progressContainer}>
-          <View style={styles.progressTrack}>
-            <Animated.View
-              style={[
-                styles.progressFill,
-                {
-                  width: progressWidth,
-                },
-              ]}
+      <View style={styles.centerBox}>
+        <View style={[styles.imageWrap, { width: imgW, height: imgH }]}>
+          <Image
+          source={require('../../../assets/loading_image.png')}
+          style={{ width: imgW, height: imgH }}
+          resizeMode="cover"
+          />
+          <Animated.View
+            style={[
+              styles.brush,
+              {
+                width: BRUSH_WIDTH,
+                height: imgH,
+                transform: [{ translateX: brushTranslateX }],
+              },
+            ]}
+            pointerEvents="none"
+          >
+            <LinearGradient
+              colors={['transparent', 'rgba(255, 255, 255, 0.55)', 'transparent']}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
             />
-          </View>
+          </Animated.View>
+        </View>
+        <View style={styles.titleWrap}>
+          <Text style={styles.titleMain}>Oneiros</Text>
+          <Text style={styles.titleSub}>Dream Journal</Text>
         </View>
       </View>
-      <View style={styles.bottomSpacer} />
     </Animated.View>
   );
 };
@@ -90,44 +99,42 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4EFE8', // Warm paper tone
-    alignItems: 'center',
+    backgroundColor: '#F4EFE8',
   },
-  topSpacer: {
+  centerBox: {
     flex: 1,
-  },
-  bottomSpacer: {
-    flex: 0.6,
-  },
-  content: {
+    width: '100%',
     alignItems: 'center',
-    transform: [{ translateY: -70 }], // Move entire group (image+title+bar) up
+    justifyContent: 'center',
   },
-  logo: {
-    marginBottom: 8, // Small gap - image and title should feel unified
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '300', // Light weight
-    letterSpacing: 0.8,
-    color: 'rgba(40, 35, 30, 0.8)', // Warm gray
-    marginTop: 4, // Very small gap from image - unified group
-    marginBottom: 12, // Breathing room to bar
-  },
-  progressContainer: {
-    marginTop: 0, // Gap handled by title marginBottom
-  },
-  progressTrack: {
-    width: 220,
-    height: 3,
-    borderRadius: 999, // Pill shape
-    backgroundColor: 'rgba(30, 95, 90, 0.15)', // Muted turquoise track
+  imageWrap: {
     overflow: 'hidden',
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: 'rgba(30, 95, 90, 0.45)', // Dusty turquoise fill
+  titleWrap: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  titleMain: {
+    fontFamily: typography.bold,
+    fontSize: 28,
+    fontWeight: typography.weights.bold,
+    color: text.primary,
+    letterSpacing: 1.2,
+  },
+  titleSub: {
+    fontFamily: typography.regular,
+    fontSize: 15,
+    fontWeight: typography.weights.regular,
+    color: text.secondary,
+    letterSpacing: 3,
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
+  brush: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    overflow: 'hidden',
   },
 });
 

@@ -25,13 +25,16 @@ import { Button, Card, WaveBackground, FloatingSunMoon } from '../components/ui'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
-import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
+import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
+import { processAuthDeepLink, isNewGoogleUser } from '../utils/authDeepLink';
 
 // Complete OAuth session in browser
 WebBrowser.maybeCompleteAuthSession();
 
 type Mode = 'login' | 'signup';
 type NavProp = StackNavigationProp<RootStackParamList>;
+
+const AUTH_REQUEST_TIMEOUT_MS = 25_000;
 
 const AuthScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -52,127 +55,59 @@ const AuthScreen: React.FC = () => {
   /** Forgot password: show email form to request reset link. */
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
+  /** Cooldown after sending reset link (Supabase rate limit ~60s). */
+  const [forgotPasswordCooldown, setForgotPasswordCooldown] = useState(0);
 
-  // Handle deep links: OAuth callback and email confirmation magic link
+  const lastProcessedUrlRef = React.useRef<string | null>(null);
   useEffect(() => {
-    const runDeepLink = (url: string | null) => {
-      if (url) handleDeepLink(url);
-    };
-
     const handleDeepLink = async (url: string) => {
-      console.log('[Auth] Deep link received:', url);
+      if (!url?.startsWith('oneiros-dream-journal://')) return;
+      if (lastProcessedUrlRef.current === url) return;
+      lastProcessedUrlRef.current = url;
 
-      if (!url || !url.startsWith('oneiros-dream-journal://')) return;
-
-      // Parse query and hash (Supabase may put token_hash/type in either; some platforms use hash)
-      const hasQuery = url.includes('?');
-      const hasHash = url.includes('#');
-      const queryPart = hasQuery ? (url.split('?')[1]?.split('#')[0] ?? '') : '';
-      const hashPart = hasHash ? (url.split('#')[1] ?? '') : '';
-      const getParam = (key: string, fromQuery: boolean) => {
-        const s = fromQuery ? queryPart : hashPart;
-        if (!s) return null;
-        try {
-          return new URLSearchParams(s).get(key);
-        } catch {
-          return null;
-        }
-      };
-      const tokenHash = getParam('token_hash', true) ?? getParam('token_hash', false);
-      const typeParam = getParam('type', true) ?? getParam('type', false);
-      logEvent('auth_deeplink_received', { hasTokenHash: !!tokenHash, linkType: typeParam ?? 'url_tokens' });
-
-      // 1) Email confirmation / recovery magic link: token_hash + type
-      if (tokenHash && typeParam) {
-        logEvent('auth_deeplink_verify_start', { linkType: typeParam });
-        try {
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: typeParam as 'email' | 'signup' | 'recovery' | 'invite' | 'magiclink' | 'email_change',
-          });
-          if (error) {
-            console.error('[Auth] verifyOtp (magic link) error:', error);
-            Alert.alert('Verification failed', error.message || 'Link may have expired. Try the code from your email.');
-            return;
-          }
-          console.log('[Auth] Magic link verification success');
-          if (typeParam === 'recovery') {
-            await AsyncStorage.setItem(PENDING_PASSWORD_RESET_KEY, 'true');
-            logEvent('auth_password_reset_link_verified', {});
+      const result = await processAuthDeepLink(url);
+      if (result.handled) {
+        setPendingVerificationEmail(null);
+        setVerificationCode('');
+        setShowForgotPassword(false);
+        setForgotPasswordSent(false);
+        setIsLoading(false);
+        setIsVerifying(false);
+        if (result.isRecovery) {
+          Alert.alert('Reset link verified', 'Set your new password on the next screen.');
+        } else if (result.isOAuth) {
+          if (result.isNewUser) {
+            Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
           } else {
-            logEvent('auth_email_verified', { method: 'magic_link' });
+            Alert.alert('Welcome back!', "You're signed in with Google.");
           }
-          setPendingVerificationEmail(null);
-          setVerificationCode('');
-          // Session is now set; RootNavigator will switch to MainTabs. Brief feedback:
-          Alert.alert('You\'re all set!', 'Your email is verified. Welcome!');
-        } catch (e: any) {
-          console.error('[Auth] Magic link verification failed', e);
-          Alert.alert('Verification failed', e?.message || 'Something went wrong. Try the code from your email.');
+        } else {
+          Alert.alert("You're all set!", 'Your email is verified. Welcome!');
         }
-        return;
-      }
-
-      // 2) Session in URL: access_token + refresh_token (OAuth or post-verify redirect)
-      let accessToken: string | null = null;
-      let refreshToken: string | null = null;
-      if (url.includes('#')) {
-        const hashPartOnly = url.split('#')[1];
-        const hp = new URLSearchParams(hashPartOnly);
-        accessToken = hp.get('access_token');
-        refreshToken = hp.get('refresh_token');
-      }
-      if (!accessToken && (url.includes('?') || url.includes('#'))) {
-        const q = queryPart || hashPart;
-        const qp = new URLSearchParams(q);
-        accessToken = qp.get('access_token');
-        refreshToken = qp.get('refresh_token');
-      }
-      if (!accessToken) {
-        const tokenMatch = url.match(/access_token=([^&#]+)/);
-        const refreshMatch = url.match(/refresh_token=([^&#]+)/);
-        accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1].replace(/\+/g, ' ')) : null;
-        refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1].replace(/\+/g, ' ')) : null;
-      }
-
-      if (accessToken && refreshToken) {
-        console.log('[Auth] Setting session from deep link (tokens in URL)...');
-        try {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) {
-            console.error('[Auth] Deep link session error:', error);
-            Alert.alert('Sign-in failed', error.message || 'Link may have expired.');
-          } else {
-            console.log('[Auth] Deep link session set successfully');
-            logEvent('auth_google_success', { mode, source: 'deeplink' });
-            setPendingVerificationEmail(null);
-            Alert.alert('You\'re all set!', 'Welcome back!');
-          }
-        } catch (e: any) {
-          console.error('[Auth] setSession failed', e);
-          Alert.alert('Sign-in failed', e?.message || 'Something went wrong.');
-        }
+        // Navigation happens via RootNavigator (session set)
+      } else if (result.isErrorUrl) {
+        // OAuth error URL (cancelled, etc.) – no alert; Supabase auto-links when possible
+      } else if (result.error) {
+        Alert.alert('Verification failed', result.error || 'Link may have expired. Try the code from your email.');
       }
     };
 
-    // Cold start: getInitialURL can be delayed on some platforms; run once and once delayed
-    Linking.getInitialURL().then(runDeepLink);
-    const coldStartTimer = setTimeout(() => {
-      Linking.getInitialURL().then(runDeepLink);
-    }, 800);
+    const runInitialUrl = async () => {
+      const url = await Linking.getInitialURL();
+      if (url?.startsWith('oneiros-dream-journal://')) handleDeepLink(url);
+    };
+    runInitialUrl();
+    const t1 = setTimeout(runInitialUrl, 800);
+    const t2 = setTimeout(runInitialUrl, 2000);
 
-    const subscription = Linking.addEventListener('url', (event) => {
-      handleDeepLink(event.url);
-    });
+    const subscription = Linking.addEventListener('url', (e) => handleDeepLink(e.url));
 
     return () => {
-      clearTimeout(coldStartTimer);
+      clearTimeout(t1);
+      clearTimeout(t2);
       subscription.remove();
     };
-  }, [mode]);
+  }, []);
 
   const handleAuth = async () => {
     if (!email.trim() || !password.trim()) {
@@ -180,6 +115,10 @@ const AuthScreen: React.FC = () => {
       return;
     }
     if (mode === 'signup') {
+      if (password.length < MIN_PASSWORD_LENGTH) {
+        Alert.alert('Password too short', `Use at least ${MIN_PASSWORD_LENGTH} characters.`);
+        return;
+      }
       if (password !== verifyPassword) {
         Alert.alert('Passwords don\'t match', 'Please enter the same password in both fields.');
         return;
@@ -193,11 +132,15 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     logEvent('auth_submit', { mode, email: email.trim().toLowerCase() });
     try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out. Please check your connection and try again.')), AUTH_REQUEST_TIMEOUT_MS)
+      );
       if (mode === 'login') {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const signInPromise = supabase.auth.signInWithPassword({
           email: email.trim().toLowerCase(),
           password,
         });
+        const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
         if (error) {
           console.error('[Auth] signIn error details', error);
           // Unverified email: show verification screen so they can enter code or use magic link
@@ -221,13 +164,14 @@ const AuthScreen: React.FC = () => {
         logEvent('auth_login_success', { email: email.trim().toLowerCase() });
       } else {
         const normalizedEmail = email.trim().toLowerCase();
-        const { data, error } = await supabase.auth.signUp({
+        const signUpPromise = supabase.auth.signUp({
           email: normalizedEmail,
           password,
           options: {
             emailRedirectTo: 'oneiros-dream-journal://auth/confirm',
           },
         });
+        const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
         if (error) {
           console.error('[Auth] signUp error details', error);
           throw error;
@@ -248,7 +192,16 @@ const AuthScreen: React.FC = () => {
       }
     } catch (error: any) {
       logError('auth_error', error, { mode });
-      Alert.alert('Auth error', error.message || 'Something went wrong. Please try again.');
+      const msg = error?.message ?? '';
+      const isInvalidCreds = /invalid login credentials|invalid email or password/i.test(msg);
+      const isNetwork = /fetch|network|timeout|econnrefused|enotfound|failed to fetch/i.test(msg);
+      const title = isNetwork ? 'Connection issue' : 'Auth error';
+      const body = isInvalidCreds
+        ? 'Invalid email or password. Please try again.'
+        : isNetwork
+          ? msg.includes('timed out') ? msg : 'Please check your internet connection and try again.'
+          : msg || 'Something went wrong. Please try again.';
+      Alert.alert(title, body);
     } finally {
       setIsLoading(false);
     }
@@ -265,13 +218,18 @@ const AuthScreen: React.FC = () => {
     setIsVerifying(true);
     logEvent('auth_verify_otp_start', {});
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
+      const verifyPromise = supabase.auth.verifyOtp({
         email: pendingVerificationEmail,
         token: code,
         type: 'email',
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Verification timed out. Please try again.')), AUTH_REQUEST_TIMEOUT_MS)
+      );
+      const { error } = await Promise.race([verifyPromise, timeoutPromise]);
       if (error) throw error;
       logEvent('auth_email_verified', { method: 'otp' });
+      Alert.alert("You're all set!", 'Your email is verified. Welcome!');
       setPendingVerificationEmail(null);
       setVerificationCode('');
     } catch (err: any) {
@@ -288,6 +246,13 @@ const AuthScreen: React.FC = () => {
     const t = setInterval(() => setResendCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
     return () => clearInterval(t);
   }, [resendCooldown]);
+
+  // Count down forgot-password resend cooldown
+  useEffect(() => {
+    if (forgotPasswordCooldown <= 0) return;
+    const t = setInterval(() => setForgotPasswordCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [forgotPasswordCooldown]);
 
   const handleResendCode = async () => {
     if (!pendingVerificationEmail || resendCooldown > 0) return;
@@ -342,15 +307,45 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     logEvent('auth_forgot_password_submit', {});
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      const resetPromise = supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: 'oneiros-dream-journal://auth/confirm',
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out. Please check your connection and try again.')), AUTH_REQUEST_TIMEOUT_MS)
+      );
+      const { error } = await Promise.race([resetPromise, timeoutPromise]);
       if (error) throw error;
       setForgotPasswordSent(true);
+      setForgotPasswordCooldown(60);
       logEvent('auth_forgot_password_sent', { email: normalizedEmail });
     } catch (err: any) {
       logError('auth_forgot_password_error', err, { email: normalizedEmail });
       Alert.alert('Could not send', err.message || 'Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendForgotPassword = async () => {
+    if (!email.trim().toLowerCase() || forgotPasswordCooldown > 0) return;
+    setIsLoading(true);
+    try {
+      const resetPromise = supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: 'oneiros-dream-journal://auth/confirm',
+      });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out.')), AUTH_REQUEST_TIMEOUT_MS)
+      );
+      const { error } = await Promise.race([resetPromise, timeoutPromise]);
+      if (error) throw error;
+      setForgotPasswordCooldown(60);
+      logEvent('auth_forgot_password_resend', {});
+      Alert.alert('Email sent', 'A new reset link was sent. Check your inbox and spam folder.');
+    } catch (err: any) {
+      logError('auth_forgot_password_resend_error', err, {});
+      const isRateLimit = /rate limit|wait|60|seconds|minute/i.test(err?.message ?? '');
+      if (isRateLimit) setForgotPasswordCooldown(60);
+      Alert.alert('Could not resend', err?.message || 'Please try again in a minute.');
     } finally {
       setIsLoading(false);
     }
@@ -446,6 +441,13 @@ const AuthScreen: React.FC = () => {
 
           console.log('[Auth] Session set successfully');
           logEvent('auth_google_success', { mode, source: 'auth_session_url' });
+          const { data: userData } = await supabase.auth.getUser();
+          const isNewUser = isNewGoogleUser(userData.user);
+          if (isNewUser) {
+            Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
+          } else {
+            Alert.alert('Welcome back!', "You're signed in with Google.");
+          }
           setIsLoading(false);
         } else {
           console.log('[Auth] No tokens in URL, checking session fallback...');
@@ -458,17 +460,35 @@ const AuthScreen: React.FC = () => {
           if (sessionData?.session) {
             console.log('[Auth] Session found via fallback session check');
             logEvent('auth_google_success', { mode, source: 'session_fallback' });
+            const { data: userData } = await supabase.auth.getUser();
+            const isNewUser = isNewGoogleUser(userData.user);
+            if (isNewUser) {
+              Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
+            } else {
+              Alert.alert('Welcome back!', "You're signed in with Google.");
+            }
             setIsLoading(false);
           } else {
             throw new Error('No session created from Google sign-in.');
           }
         }
       } else if (authResult.type === 'dismiss' || authResult.type === 'cancel') {
-        logEvent('auth_google_cancel', { mode });
-        Alert.alert('Sign-in cancelled', 'Google sign-in was cancelled.');
+        // Browser may close before we get the redirect URL; deep link often delivers session.
+        // Wait and check for session before showing "cancelled".
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData?.session) {
+          logEvent('auth_google_success', { mode, source: 'dismiss_then_session' });
+          // Deep link handler shows the success alert; no duplicate here
+        } else {
+          logEvent('auth_google_cancel', { mode });
+          Alert.alert('Sign-in cancelled', 'Google sign-in was cancelled.');
+        }
+        setIsLoading(false);
       } else {
         console.error('[Auth] Unexpected auth session result:', authResult.type);
         Alert.alert('Sign-in error', 'Google sign-in did not complete. Please try again.');
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error('[Auth] Google OAuth error:', error);
@@ -520,11 +540,22 @@ const AuthScreen: React.FC = () => {
                   style={styles.primaryButton}
                 />
               </>
-            ) : null}
+            ) : (
+              <>
+                <Button
+                  title={forgotPasswordCooldown > 0 ? `Resend link (${forgotPasswordCooldown}s)` : 'Resend link'}
+                  onPress={handleResendForgotPassword}
+                  loading={isLoading}
+                  disabled={forgotPasswordCooldown > 0}
+                  style={styles.primaryButton}
+                />
+              </>
+            )}
             <TouchableOpacity
               onPress={() => {
                 setShowForgotPassword(false);
                 setForgotPasswordSent(false);
+                setForgotPasswordCooldown(0);
               }}
               style={styles.backLink}
             >

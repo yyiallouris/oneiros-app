@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -30,6 +30,7 @@ import { StorageService } from '../services/storageService';
 import { SyncService } from '../services/syncService';
 import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
+import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -54,7 +55,24 @@ export const RootNavigator: React.FC = () => {
     const init = async () => {
       // Initialize storage service (checks for user changes, clears data if needed)
       await StorageService.initialize();
-      
+
+      // Process auth deep link on cold start (magic link / reset password open the app;
+      // getInitialURL() is often null or delayed on Android, so retry several times)
+      for (const delayMs of [0, 300, 800, 1500]) {
+        if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+        const initialUrl = await Linking.getInitialURL();
+        console.log('[RootNavigator] getInitialURL (attempt, delay=' + delayMs + 'ms):', redactAuthUrl(initialUrl));
+        if (initialUrl?.startsWith('oneiros-dream-journal://')) {
+          console.log('[RootNavigator] Processing initial auth URL on cold start');
+          const result = await processAuthDeepLink(initialUrl);
+          if (result.handled) {
+            console.log('[RootNavigator] Auth URL handled successfully', result.isRecovery ? '(recovery)' : '');
+            break;
+          }
+          console.warn('[RootNavigator] Auth URL not handled (wrong format or error)');
+        }
+      }
+
       const { data } = await supabase.auth.getSession();
       if (mounted) {
         setSession(data.session);
@@ -73,9 +91,22 @@ export const RootNavigator: React.FC = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    } =     supabase.auth.onAuthStateChange(async (event, newSession) => {
       const previousSession = previousSessionRef.current;
       previousSessionRef.current = newSession;
+
+      // CRITICAL: Update UI state immediately so user sees correct screen (SetPassword/MainTabs)
+      // Only await the quick AsyncStorage read; StorageService.initialize() etc. run in background
+      if (newSession) {
+        const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
+        setPendingPasswordReset(pending === 'true');
+        syncBiometricFromRemote().then(setBiometricLockEnabled);
+      } else {
+        setPendingPasswordReset(false);
+        setBiometricLockEnabled(false);
+        setBiometricUnlocked(false);
+      }
+      setSession(newSession);
 
       // If user logged out, clear all local storage
       // Do this in background to avoid blocking the logout flow
@@ -118,16 +149,12 @@ export const RootNavigator: React.FC = () => {
         })();
       }
 
-      // If user logged in (new session), initialize storage and fetch from database
+      // If user logged in (new session), initialize storage and fetch from database (in background)
       if (!previousSession && newSession) {
         console.log('[RootNavigator] User logged in, initializing storage and fetching data...');
-        await StorageService.initialize();
-        const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
-        setPendingPasswordReset(pending === 'true');
-        const lockEnabled = await syncBiometricFromRemote();
-        setBiometricLockEnabled(lockEnabled);
-
-        // CRITICAL: Fetch dreams from database when logging in
+        (async () => {
+          await StorageService.initialize();
+          // CRITICAL: Fetch dreams from database when logging in
         // This ensures dreams saved on other devices or previously synced are loaded
         SyncService.fetchAndMergeDreams()
           .then((dreams) => {
@@ -151,20 +178,13 @@ export const RootNavigator: React.FC = () => {
         SyncService.syncAll().catch((error) => {
           console.error('[RootNavigator] Sync failed on login:', error);
         });
+        })().catch((err) => console.error('[RootNavigator] Login init failed:', err));
       }
 
       // If session changed (user might have changed), re-initialize
       if (previousSession && newSession && previousSession.user.id !== newSession.user.id) {
         console.log('[RootNavigator] User changed, re-initializing storage');
-        await StorageService.initialize();
-      }
-
-      setSession(newSession);
-      if (newSession) {
-        syncBiometricFromRemote().then(setBiometricLockEnabled);
-      } else {
-        setBiometricLockEnabled(false);
-        setBiometricUnlocked(false);
+        StorageService.initialize().catch((err) => console.error('[RootNavigator] Re-init failed:', err));
       }
     });
 
@@ -262,16 +282,33 @@ export const RootNavigator: React.FC = () => {
   }, [session]);
 
   // Re-lock when app goes to background; refresh lock preference when returning to foreground
+  // Use debounce to avoid resetting lock during brief transitions (e.g. permission dialogs)
   useEffect(() => {
+    let backgroundTimeout: NodeJS.Timeout | null = null;
+    
     const sub = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
       if (nextState === 'background') {
-        setBiometricUnlocked(false);
-      } else if (nextState === 'active' && session) {
-        const enabled = await isBiometricEnabled();
-        setBiometricLockEnabled(enabled);
+        // Debounce: only reset lock if app stays in background for at least 300ms
+        // This prevents permission dialogs from triggering the lock screen
+        backgroundTimeout = setTimeout(() => {
+          setBiometricUnlocked(false);
+        }, 300);
+      } else if (nextState === 'active' || nextState === 'inactive') {
+        // Cancel the debounce if app comes back to foreground/inactive before timeout
+        if (backgroundTimeout) {
+          clearTimeout(backgroundTimeout);
+          backgroundTimeout = null;
+        }
+        if (nextState === 'active' && session) {
+          const enabled = await isBiometricEnabled();
+          setBiometricLockEnabled(enabled);
+        }
       }
     });
-    return () => sub.remove();
+    return () => {
+      if (backgroundTimeout) clearTimeout(backgroundTimeout);
+      sub.remove();
+    };
   }, [session]);
 
   const showBiometricLock = !!session && biometricLockEnabled && !biometricUnlocked;

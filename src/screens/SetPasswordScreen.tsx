@@ -6,6 +6,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,10 +14,10 @@ import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, Card, WaveBackground, FloatingSunMoon } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
-import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
+import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
 import { PendingPasswordResetContext } from '../navigation/RootNavigator';
 
-const MIN_PASSWORD_LENGTH = 6;
+const SET_PASSWORD_TIMEOUT_MS = 15_000;
 
 const SetPasswordScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -38,11 +39,16 @@ const SetPasswordScreen: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: p });
+      const updatePromise = supabase.auth.updateUser({ password: p });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out. Please try again.')), SET_PASSWORD_TIMEOUT_MS)
+      );
+      const { error } = await Promise.race([updatePromise, timeoutPromise]);
       if (error) throw error;
       await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
       setPendingPasswordReset?.(false);
       logEvent('auth_password_updated', {});
+      Alert.alert('Password updated', 'Your password has been changed successfully.');
     } catch (err: any) {
       logError('auth_set_password_error', err, {});
       Alert.alert('Could not set password', err.message || 'Please try again.');
@@ -78,6 +84,8 @@ const SetPasswordScreen: React.FC = () => {
               value={password}
               onChangeText={setPassword}
               editable={!isLoading}
+              accessibilityLabel="New password"
+              accessibilityHint="Enter your new password, at least 8 characters"
             />
           </View>
           <View style={styles.field}>
@@ -91,6 +99,8 @@ const SetPasswordScreen: React.FC = () => {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               editable={!isLoading}
+              accessibilityLabel="Confirm password"
+              accessibilityHint="Re-enter your new password to confirm"
             />
           </View>
           <Button

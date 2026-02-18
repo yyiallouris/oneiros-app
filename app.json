@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "oneiros-app",
+    "name": "Oneiros",
     "slug": "oneiros-app",
     "version": "1.0.0",
     "projectId": "b81471aa-9f89-4729-8bf3-5ec9e8ec62e9",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/loading_image.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -30,7 +30,21 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-web-browser",["expo-local-authentication",{"faceIDPermission":"Allow Oneiros to use Face ID to sign in."}],["expo-secure-store",{"faceIDPermission":"Allow Oneiros to use Face ID to sign in."}]],
+    "plugins": [
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Oneiros to use Face ID to sign in."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow Oneiros to use Face ID to sign in."
+        }
+      ]
+    ],
     "extra": {}
   }
 }
