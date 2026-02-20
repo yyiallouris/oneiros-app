@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+// @ts-ignore - @expo/vector-icons resolved at runtime by Expo
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
 import { Button, WaveBackground, FloatingSunMoon } from '../components/ui';
@@ -49,7 +51,10 @@ const BiometricLockScreen: React.FC = () => {
       <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
           <FloatingSunMoon size={100} style={styles.floatingOrb} />
-          <Text style={styles.title}>🔒 Dream Journal locked</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Dream Journal is locked</Text>
+            <Ionicons name="lock-closed" size={28} color={colors.textPrimary} style={styles.lockIcon} />
+          </View>
           <Text style={styles.subtitle}>
             Use {label} to open your journal.
           </Text>
@@ -85,19 +90,31 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: spacing.xl,
     alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative',
   },
   floatingOrb: {
     top: -20,
     zIndex: 0,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginTop: spacing.sm,
+    zIndex: 1,
+    gap: spacing.sm,
+  },
   title: {
     fontSize: typography.sizes.xxxl,
     fontWeight: typography.weights.bold,
     fontFamily: typography.bold,
     color: colors.textPrimary,
-    zIndex: 1,
-    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  lockIcon: {
+    marginLeft: spacing.xs,
   },
   subtitle: {
     marginTop: spacing.sm,
