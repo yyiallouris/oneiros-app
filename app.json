@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "projectId": "b81471aa-9f89-4729-8bf3-5ec9e8ec62e9",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_1024.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/icon_1024.png",
         "backgroundColor": "#EDE8F5"
       },
       "edgeToEdgeEnabled": true,
