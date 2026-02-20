@@ -303,7 +303,6 @@ const InsightsScreen: React.FC = () => {
               <DreamLogIcon color={text.secondary} />
             </View>
             <Text style={styles.overviewLabel}>Dreams logged</Text>
-            <Text style={styles.overviewValue}>{dreamsCount}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -314,8 +313,7 @@ const InsightsScreen: React.FC = () => {
             <View style={styles.overviewIconWrap}>
               <SymbolsIcon color={text.secondary} />
             </View>
-            <Text style={styles.overviewLabel}>Symbols occurred</Text>
-            <Text style={styles.overviewValue}>{symbols.length}</Text>
+            <Text style={styles.overviewLabel}>Symbols</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -326,8 +324,7 @@ const InsightsScreen: React.FC = () => {
             <View style={styles.overviewIconWrap}>
               <ArchetypesIcon color={text.secondary} />
             </View>
-            <Text style={styles.overviewLabel}>Archetypes occurred</Text>
-            <Text style={styles.overviewValue}>{archetypes.length}</Text>
+            <Text style={styles.overviewLabel}>Archetypes</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -338,8 +335,7 @@ const InsightsScreen: React.FC = () => {
             <View style={styles.overviewIconWrap}>
               <LandscapeIcon color={text.secondary} />
             </View>
-            <Text style={styles.overviewLabel}>Space landscapes</Text>
-            <Text style={styles.overviewValue}>{landscapes.length}</Text>
+            <Text style={styles.overviewLabel}>Places</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

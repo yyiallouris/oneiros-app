@@ -15,16 +15,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dreamjournal.app"
+      "bundleIdentifier": "com.oneirosdreamjournal.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#EDE8F5"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.dreamjournal.app"
+      "package": "com.oneirosdreamjournal.app"
     },
     "scheme": "oneiros-dream-journal",
     "web": {

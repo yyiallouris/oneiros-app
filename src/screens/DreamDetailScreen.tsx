@@ -34,6 +34,14 @@ import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg'
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
 
+// Post-Jungian split: core architecture vs archetypal states (same as Insights)
+const CORE_ARCHETYPES = ['self', 'ego', 'shadow', 'persona', 'anima', 'animus'];
+function splitArchetypes(archetypes: string[]) {
+  const core = archetypes.filter((a) => CORE_ARCHETYPES.includes(a.toLowerCase()));
+  const dynamic = archetypes.filter((a) => !CORE_ARCHETYPES.includes(a.toLowerCase()));
+  return { core, dynamic };
+}
+
 // Edit icon
 const EditIcon = ({ size = 24, color = colors.accent }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -390,8 +398,10 @@ const DreamDetailScreen: React.FC = () => {
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
   const [showDreamSecondarySymbols, setShowDreamSecondarySymbols] = useState(false);
   const [showInterpretationSecondarySymbols, setShowInterpretationSecondarySymbols] = useState(false);
-  const [showDreamSecondaryArchetypes, setShowDreamSecondaryArchetypes] = useState(false);
-  const [showInterpretationSecondaryArchetypes, setShowInterpretationSecondaryArchetypes] = useState(false);
+  const [showDreamSecondaryCore, setShowDreamSecondaryCore] = useState(false);
+  const [showDreamSecondaryDynamic, setShowDreamSecondaryDynamic] = useState(false);
+  const [showInterpretationSecondaryCore, setShowInterpretationSecondaryCore] = useState(false);
+  const [showInterpretationSecondaryDynamic, setShowInterpretationSecondaryDynamic] = useState(false);
 
   const flatListRef = useRef<ScrollView>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -401,8 +411,10 @@ const DreamDetailScreen: React.FC = () => {
       loadDreamData();
       setShowDreamSecondarySymbols(false);
       setShowInterpretationSecondarySymbols(false);
-      setShowDreamSecondaryArchetypes(false);
-      setShowInterpretationSecondaryArchetypes(false);
+      setShowDreamSecondaryCore(false);
+      setShowDreamSecondaryDynamic(false);
+      setShowInterpretationSecondaryCore(false);
+      setShowInterpretationSecondaryDynamic(false);
       // Clear typing state when screen gains focus
       return () => {
         setTypingMessageId(null);
@@ -879,36 +891,67 @@ const DreamDetailScreen: React.FC = () => {
               </View>
             )}
 
-            {dream.archetypes && dream.archetypes.length > 0 && (
-              <View style={styles.chipsSection}>
-                <Text style={styles.chipsSectionTitle}>Archetypes</Text>
-                <View style={styles.chipsContainer}>
-                  {dream.archetypes.slice(0, 4).map((archetype, index) => (
-                    <Chip key={index} label={archetype} variant="default" />
-                  ))}
-                </View>
-                {dream.archetypes.length > 4 && (
-                  <TouchableOpacity
-                    style={styles.viewMoreButton}
-                    onPress={() => setShowDreamSecondaryArchetypes((v) => !v)}
-                  >
-                    <Text style={styles.viewMoreText}>
-                      {showDreamSecondaryArchetypes ? 'Show less' : `View more (${dream.archetypes.length - 4} archetypes)`}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                {showDreamSecondaryArchetypes && dream.archetypes.length > 4 && (
-                  <View style={styles.chipsSection}>
-                    <Text style={styles.chipsSectionTitle}>Secondary archetypes</Text>
-                    <View style={styles.chipsContainer}>
-                      {dream.archetypes.slice(4).map((archetype, index) => (
-                        <Chip key={index + 4} label={archetype} variant="default" />
-                      ))}
+            {dream.archetypes && dream.archetypes.length > 0 && (() => {
+              const { core: dreamCore, dynamic: dreamDynamic } = splitArchetypes(dream.archetypes);
+              return (
+                <>
+                  {dreamCore.length > 0 && (
+                    <View style={styles.chipsSection}>
+                      <Text style={styles.chipsSectionTitle}>Core architecture</Text>
+                      <View style={styles.chipsContainer}>
+                        {dreamCore.slice(0, 4).map((archetype, index) => (
+                          <Chip key={`core-${index}`} label={archetype} variant="default" />
+                        ))}
+                      </View>
+                      {dreamCore.length > 4 && (
+                        <TouchableOpacity
+                          style={styles.viewMoreButton}
+                          onPress={() => setShowDreamSecondaryCore((v) => !v)}
+                        >
+                          <Text style={styles.viewMoreText}>
+                            {showDreamSecondaryCore ? 'Show less' : `View more (${dreamCore.length - 4})`}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {showDreamSecondaryCore && dreamCore.length > 4 && (
+                        <View style={styles.chipsContainer}>
+                          {dreamCore.slice(4).map((archetype, index) => (
+                            <Chip key={`core-${index + 4}`} label={archetype} variant="default" />
+                          ))}
+                        </View>
+                      )}
                     </View>
-                  </View>
-                )}
-              </View>
-            )}
+                  )}
+                  {dreamDynamic.length > 0 && (
+                    <View style={styles.chipsSection}>
+                      <Text style={styles.chipsSectionTitle}>Archetypal states / Dynamic patterns</Text>
+                      <View style={styles.chipsContainer}>
+                        {dreamDynamic.slice(0, 4).map((archetype, index) => (
+                          <Chip key={`dyn-${index}`} label={archetype} variant="default" />
+                        ))}
+                      </View>
+                      {dreamDynamic.length > 4 && (
+                        <TouchableOpacity
+                          style={styles.viewMoreButton}
+                          onPress={() => setShowDreamSecondaryDynamic((v) => !v)}
+                        >
+                          <Text style={styles.viewMoreText}>
+                            {showDreamSecondaryDynamic ? 'Show less' : `View more (${dreamDynamic.length - 4})`}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {showDreamSecondaryDynamic && dreamDynamic.length > 4 && (
+                        <View style={styles.chipsContainer}>
+                          {dreamDynamic.slice(4).map((archetype, index) => (
+                            <Chip key={`dyn-${index + 4}`} label={archetype} variant="default" />
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </>
+              );
+            })()}
           </Card>
         )}
 
@@ -953,36 +996,67 @@ const DreamDetailScreen: React.FC = () => {
                   </View>
                 )}
 
-                {interpretation.archetypes.length > 0 && (
-                  <View style={styles.chipsSection}>
-                    <Text style={styles.chipsSectionTitle}>Archetypes</Text>
-                    <View style={styles.chipsContainer}>
-                      {interpretation.archetypes.slice(0, 4).map((archetype, index) => (
-                        <Chip key={index} label={archetype} variant="default" />
-                      ))}
-                    </View>
-                    {interpretation.archetypes.length > 4 && (
-                      <TouchableOpacity
-                        style={styles.viewMoreButton}
-                        onPress={() => setShowInterpretationSecondaryArchetypes((v) => !v)}
-                      >
-                        <Text style={styles.viewMoreText}>
-                          {showInterpretationSecondaryArchetypes ? 'Show less' : `View more (${interpretation.archetypes.length - 4} archetypes)`}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                    {showInterpretationSecondaryArchetypes && interpretation.archetypes.length > 4 && (
-                      <View style={styles.chipsSection}>
-                        <Text style={styles.chipsSectionTitle}>Secondary archetypes</Text>
-                        <View style={styles.chipsContainer}>
-                          {interpretation.archetypes.slice(4).map((archetype, index) => (
-                            <Chip key={index + 4} label={archetype} variant="default" />
-                          ))}
+                {interpretation.archetypes.length > 0 && (() => {
+                  const { core: interpCore, dynamic: interpDynamic } = splitArchetypes(interpretation.archetypes);
+                  return (
+                    <>
+                      {interpCore.length > 0 && (
+                        <View style={styles.chipsSection}>
+                          <Text style={styles.chipsSectionTitle}>Core architecture</Text>
+                          <View style={styles.chipsContainer}>
+                            {interpCore.slice(0, 4).map((archetype, index) => (
+                              <Chip key={`core-${index}`} label={archetype} variant="default" />
+                            ))}
+                          </View>
+                          {interpCore.length > 4 && (
+                            <TouchableOpacity
+                              style={styles.viewMoreButton}
+                              onPress={() => setShowInterpretationSecondaryCore((v) => !v)}
+                            >
+                              <Text style={styles.viewMoreText}>
+                                {showInterpretationSecondaryCore ? 'Show less' : `View more (${interpCore.length - 4})`}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                          {showInterpretationSecondaryCore && interpCore.length > 4 && (
+                            <View style={styles.chipsContainer}>
+                              {interpCore.slice(4).map((archetype, index) => (
+                                <Chip key={`core-${index + 4}`} label={archetype} variant="default" />
+                              ))}
+                            </View>
+                          )}
                         </View>
-                      </View>
-                    )}
-                  </View>
-                )}
+                      )}
+                      {interpDynamic.length > 0 && (
+                        <View style={styles.chipsSection}>
+                          <Text style={styles.chipsSectionTitle}>Archetypal states / Dynamic patterns</Text>
+                          <View style={styles.chipsContainer}>
+                            {interpDynamic.slice(0, 4).map((archetype, index) => (
+                              <Chip key={`dyn-${index}`} label={archetype} variant="default" />
+                            ))}
+                          </View>
+                          {interpDynamic.length > 4 && (
+                            <TouchableOpacity
+                              style={styles.viewMoreButton}
+                              onPress={() => setShowInterpretationSecondaryDynamic((v) => !v)}
+                            >
+                              <Text style={styles.viewMoreText}>
+                                {showInterpretationSecondaryDynamic ? 'Show less' : `View more (${interpDynamic.length - 4})`}
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                          {showInterpretationSecondaryDynamic && interpDynamic.length > 4 && (
+                            <View style={styles.chipsContainer}>
+                              {interpDynamic.slice(4).map((archetype, index) => (
+                                <Chip key={`dyn-${index + 4}`} label={archetype} variant="default" />
+                              ))}
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {interpretation.summary && (
                   <Text 
@@ -1057,7 +1131,7 @@ const DreamDetailScreen: React.FC = () => {
                   />
                 )}
                 <Button
-                  title="Ask Jungian AI"
+                  title="Reflect"
                   onPress={handleAskAI}
                   style={styles.askButton}
                 />

@@ -16,40 +16,18 @@ import { WaveBackground } from '../components/ui';
 import { InsightsSectionScreen } from './InsightsSectionScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
-import { Audio } from 'expo-av';
-
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsJourney'>;
 type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/** Section order for "psychic journey" flow: symbols → archetypes → landscapes → pattern recognition */
+/** Section order for the insights journey flow: symbols → archetypes → landscapes → pattern recognition */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
   'recurring-symbols',
   'recurring-archetypes',
   'space-landscapes',
   'pattern-recognition',
 ];
-
-/** Soft chime URL (short, ambient) – plays when swiping to a new section if ambient is on */
-const CHIME_URI = 'https://assets.mixkit.co/active_storage/sfx/2566-ping-notification-2669.mp3';
-
-async function playChime(): Promise<void> {
-  try {
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: CHIME_URI },
-      { shouldPlay: true, volume: 0.4 }
-    );
-    await sound.playAsync();
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (status.isLoaded && status.didJustFinishAndNotJustLoop) {
-        sound.unloadAsync();
-      }
-    });
-  } catch {
-    // No-op if sound fails (e.g. no network, asset missing)
-  }
-}
 
 const InsightsJourneyScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
@@ -65,7 +43,6 @@ const InsightsJourneyScreen: React.FC = () => {
     : 0;
   const safeInitialIndex = initialIndex >= 0 ? initialIndex : 0;
 
-  const [ambientOn, setAmbientOn] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(safeInitialIndex);
   const flatListRef = useRef<FlatList>(null);
 
@@ -81,23 +58,13 @@ const InsightsJourneyScreen: React.FC = () => {
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       const item = viewableItems[0];
       if (item?.index == null) return;
-      setCurrentIndex((prev) => {
-        if (ambientOn && prev !== item.index) playChime();
-        return item.index;
-      });
+      setCurrentIndex(item.index);
     },
-    [ambientOn]
+    []
   );
 
   const viewabilityConfig = { viewAreaCoveragePercentThreshold: 80 };
 
-  useEffect(() => {
-    Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-    });
-  }, []);
 
   const renderPage = useCallback(
     ({ item }: { item: InsightsSectionId }) => (
@@ -122,14 +89,8 @@ const InsightsJourneyScreen: React.FC = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Text style={styles.headerBackLabel}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Psychic journey</Text>
-        <TouchableOpacity
-          onPress={() => setAmbientOn((v) => !v)}
-          style={[styles.ambientToggle, ambientOn && styles.ambientToggleOn]}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Text style={styles.ambientLabel}>{ambientOn ? '♪ On' : '♪ Off'}</Text>
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Dream patterns</Text>
+        <View style={styles.ambientToggle} />
       </View>
       <View style={styles.dots}>
         {JOURNEY_SECTIONS.map((id, i) => (

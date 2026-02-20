@@ -240,29 +240,58 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Recurring symbols: list with count (x N), tap → Journal filtered by symbol */}
-        {sectionId === 'recurring-symbols' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Recurring symbols</Text>
-            {symbols.length === 0 ? (
-              <Text style={styles.empty}>No symbols yet. Get interpretations to see patterns.</Text>
-            ) : (
-              symbols.map((s) => (
-                <TouchableOpacity
-                  key={s.normalizedKey}
-                  style={styles.symbolLandscapeRow}
-                  onPress={() => navigation.navigate('JournalFilter', { filterSymbol: s.name })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.symbolLandscapeName} numberOfLines={1}>
-                    {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
-                  </Text>
-                  <Text style={styles.symbolLandscapeCount}>×{s.count}</Text>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
+        {/* Recurring symbols: split into recurring (count ≥ 2) and visited once */}
+        {sectionId === 'recurring-symbols' && (() => {
+          const recurring = symbols.filter((s) => s.count >= 2);
+          const visitedOnce = symbols.filter((s) => s.count < 2);
+          return (
+            <View style={styles.section}>
+              {symbols.length === 0 ? (
+                <Text style={styles.empty}>No symbols yet. Get interpretations to see patterns.</Text>
+              ) : (
+                <>
+                  {recurring.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionFraming}>Some images seem to insist on returning</Text>
+                      {recurring.map((s) => (
+                        <TouchableOpacity
+                          key={s.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterSymbol: s.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>
+                            {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
+                          </Text>
+                          <Text style={styles.archetypeCount}>×{s.count}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring symbols this period.</Text>
+                  )}
+                  {visitedOnce.length > 0 && (
+                    <>
+                      <Text style={styles.subSectionLabel}>Other symbols</Text>
+                      {visitedOnce.map((s) => (
+                        <TouchableOpacity
+                          key={s.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterSymbol: s.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>
+                            {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
 
         {/* Explore symbol data (deep dive): only when user taps View symbol details */}
         {sectionId === 'symbol-details' && (
@@ -290,7 +319,7 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                         <Text style={styles.themeName}>
                           {toSafeSymbolLabel(s.name, s.normalizedKey, showExplicitTerms)}
                         </Text>
-                        <Text style={styles.themeHint}>came up repeatedly</Text>
+                        <Text style={styles.themeHint}>appears more than once</Text>
                       </View>
                       {symbolHasAssociations(s.name, clusters) ? (
                         <TouchableOpacity
@@ -411,60 +440,101 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
           </>
         )}
 
-        {/* Recurring landscapes: list with count (x N), tap → Journal filtered by landscape */}
-        {sectionId === 'space-landscapes' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Recurring landscapes</Text>
-            {landscapes.length === 0 ? (
-              <Text style={styles.empty}>No landscapes yet. Get interpretations to see recurring settings and places.</Text>
-            ) : (
-              landscapes.map((l) => (
-                <TouchableOpacity
-                  key={l.normalizedKey}
-                  style={styles.symbolLandscapeRow}
-                  onPress={() => navigation.navigate('JournalFilter', { filterLandscape: l.name })}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.symbolLandscapeName} numberOfLines={1}>{l.name}</Text>
-                  <Text style={styles.symbolLandscapeCount}>×{l.count}</Text>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
+        {/* Dream Landscapes: split recurring (2+) vs visited once */}
+        {sectionId === 'space-landscapes' && (() => {
+          const recurringPlaces = landscapes.filter((l) => l.count >= 2);
+          const visitedOnce = landscapes.filter((l) => l.count < 2);
+          return (
+            <View style={styles.section}>
+              {landscapes.length === 0 ? (
+                <Text style={styles.empty}>No places yet. Get interpretations to see recurring settings and places.</Text>
+              ) : (
+                <>
+                  {recurringPlaces.length > 0 && (
+                    <>
+                      <Text style={styles.sectionFraming}>Places you often return to</Text>
+                      {recurringPlaces.map((l) => (
+                        <TouchableOpacity
+                          key={l.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterLandscape: l.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>{l.name}</Text>
+                          <Text style={styles.archetypeCount}>×{l.count}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                  {visitedOnce.length > 0 && (
+                    <>
+                      <Text style={styles.subSectionLabel}>Other places you've visited</Text>
+                      {visitedOnce.map((l) => (
+                        <TouchableOpacity
+                          key={l.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterLandscape: l.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>{l.name}</Text>
+                          <Text style={styles.archetypeCount}>×{l.count}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
 
-        {sectionId === 'recurring-archetypes' && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Archetypal distribution (last 30 days)</Text>
-            {archetypes.length === 0 ? (
-              <Text style={styles.empty}>No archetypes yet. Get interpretations to see distribution.</Text>
-            ) : (
-              <>
-                {(() => {
-                  const maxCount = Math.max(1, ...archetypes.map((a) => a.count));
-                  return archetypes.map((a) => (
-                    <View key={a.name} style={styles.barRow}>
-                      <Text style={styles.barLabel}>{a.name}</Text>
-                      <View style={styles.barTrack}>
-                        <View
-                          style={[
-                            styles.barFill,
-                            { width: `${Math.max(8, (a.count / maxCount) * 100)}%` },
-                          ]}
-                        />
-                      </View>
+        {sectionId === 'recurring-archetypes' && (() => {
+          // Post-Jungian distinction: core architecture (structural) vs archetypal states (dynamic)
+          const CORE_ARCHETYPES = ['self', 'ego', 'shadow', 'persona', 'anima', 'animus'];
+          const coreList = archetypes.filter((a) => CORE_ARCHETYPES.includes(a.name.toLowerCase()));
+          const dynamicList = archetypes.filter((a) => !CORE_ARCHETYPES.includes(a.name.toLowerCase()));
+          return (
+            <View style={[styles.section, styles.sectionNoTopPadding]}>
+              {archetypes.length === 0 ? (
+                <Text style={styles.empty}>No archetypes yet. Get interpretations to see patterns.</Text>
+              ) : (
+                <>
+                  {/* Core architecture — the skeleton, always present */}
+                  {coreList.length > 0 && (
+                    <View style={[styles.archetypeCategoryBlock, styles.archetypeCategoryBlockFirst]}>
+                      <Text style={styles.archetypeCategoryLabel}>Core architecture</Text>
+                      <Text style={styles.archetypeCategoryNote}>
+                        The skeleton of the psyche. These are not roles — they are always present. They organise how you relate to yourself and the world; they don't come and go.
+                      </Text>
+                      {coreList.map((a) => (
+                        <View key={a.name} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName}>{a.name}</Text>
+                          <Text style={styles.archetypeCount}>×{a.count}</Text>
+                        </View>
+                      ))}
                     </View>
-                  ));
-                })()}
-                {archetypes[0] && (
-                  <Text style={styles.observedLine}>
-                    Archetypes tend to rotate over time. This period shows increased {archetypes[0].name} activity.
-                  </Text>
-                )}
-              </>
-            )}
-          </View>
-        )}
+                  )}
+
+                  {/* Archetypal states / Dynamic patterns — what's running now */}
+                  {dynamicList.length > 0 && (
+                    <View style={styles.archetypeCategoryBlock}>
+                      <Text style={styles.archetypeCategoryLabel}>Archetypal states / Dynamic patterns</Text>
+                      <Text style={styles.archetypeCategoryNote}>
+                        What's running now. Phases or currents — they move through you; they don't define you. Making them identity is where the trouble starts.
+                      </Text>
+                      {dynamicList.map((a) => (
+                        <View key={a.name} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName}>{a.name}</Text>
+                          <Text style={styles.archetypeCount}>×{a.count}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
 
         {sectionId === 'pattern-recognition' && (
           <View style={styles.patternWrap}>
@@ -789,6 +859,9 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: spacing.xxl,
     paddingTop: spacing.lg,
+  },
+  sectionNoTopPadding: {
+    paddingTop: 0,
   },
   sectionLabel: {
     fontSize: typography.sizes.sm,
@@ -1267,6 +1340,76 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: text.muted,
     marginTop: spacing.sm,
+  },
+  sectionFraming: {
+    fontSize: typography.sizes.md,
+    color: text.secondary,
+    fontStyle: 'italic',
+    marginBottom: spacing.lg,
+    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
+  },
+  subSectionLabel: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    color: text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginTop: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  mutedNote: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    fontStyle: 'italic',
+    marginBottom: spacing.lg,
+  },
+  symbolLandscapeNameMuted: {
+    color: text.muted,
+  },
+  archetypeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  archetypeName: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  archetypeCount: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+  },
+  foundationalNote: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  archetypeCategoryBlock: {
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  archetypeCategoryBlockFirst: {
+    marginTop: 0,
+    paddingTop: 0,
+    borderTopWidth: 0,
+  },
+  archetypeCategoryLabel: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    color: text.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: spacing.sm,
+  },
+  archetypeCategoryNote: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.md,
   },
 });
 

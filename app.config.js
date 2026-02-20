@@ -46,6 +46,13 @@ export default {
   ...appJson.expo,
   projectId,
   scheme,
+  ios: {
+    ...appJson.expo?.ios,
+    infoPlist: {
+      ...appJson.expo?.ios?.infoPlist,
+      ITSAppUsesNonExemptEncryption: false,
+    },
+  },
   android: {
     ...appJson.expo?.android,
     // Resize window when keyboard opens so KeyboardAvoidingView can keep focused input visible
