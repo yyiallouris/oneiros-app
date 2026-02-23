@@ -15,7 +15,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
-import { WaveBackground, BreathingLine, Card } from '../components/ui';
+import { MountainWaveBackground, BreathingLine, Card } from '../components/ui';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
 import {
   getRecurringSymbols,
@@ -224,9 +224,9 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
   if (loading) {
     return (
       <View style={styles.container}>
-        <WaveBackground />
+        <MountainWaveBackground height={260} />
         <View style={styles.centered}>
-          <BreathingLine width={120} height={2} color={colors.accent} />
+          <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
         </View>
       </View>
     );
@@ -234,7 +234,7 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <MountainWaveBackground height={260} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -422,8 +422,8 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                       <Switch
                         value={showExplicitTerms}
                         onValueChange={setShowExplicitTerms}
-                        trackColor={{ false: colors.border, true: colors.accentLight }}
-                        thumbColor={colors.accent}
+                        trackColor={{ false: colors.border, true: colors.buttonPrimaryLight }}
+                        thumbColor={colors.buttonPrimary}
                       />
                     </View>
                     <View style={styles.allList}>
@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
   symbolLandscapeCount: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   viewAssociationsCta: {
     paddingVertical: spacing.xs,
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
   },
   viewAssociationsLabel: {
     fontSize: typography.sizes.xs,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   associationsNote: {
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(237, 230, 223, 0.5)',
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
+    borderLeftColor: colors.buttonPrimary,
   },
   singleSymbolAssociationsTitle: {
     fontSize: typography.sizes.sm,
@@ -951,7 +951,7 @@ const styles = StyleSheet.create({
   },
   singleSymbolClusterName: {
     fontSize: typography.sizes.sm,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
     marginBottom: spacing.xs,
   },
@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
   barFill: {
     height: '100%',
     minWidth: 4,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
     opacity: 0.7,
     borderRadius: 4,
   },
@@ -1067,10 +1067,10 @@ const styles = StyleSheet.create({
   patternIntroCard: {
     marginBottom: spacing.md,
     padding: spacing.lg,
-    backgroundColor: colors.accent + '14',
+    backgroundColor: colors.buttonPrimaryLight12,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.accent + '30',
+    borderColor: colors.buttonPrimary40,
   },
   patternIntroCardBody: {
     fontSize: typography.sizes.sm,
@@ -1086,7 +1086,7 @@ const styles = StyleSheet.create({
   patternIntroCardButtonText: {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   patternWrap: {
     marginBottom: spacing.xl,
@@ -1141,14 +1141,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   patternMonthOptionActive: {
-    backgroundColor: colors.accent + '14',
+    backgroundColor: colors.buttonPrimaryLight12,
   },
   patternMonthOptionText: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
   },
   patternMonthOptionTextActive: {
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   patternGenerateRow: {
@@ -1161,12 +1161,12 @@ const styles = StyleSheet.create({
   },
   patternGenerateLabel: {
     fontSize: typography.sizes.md,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   patternGenerateArrow: {
     fontSize: typography.sizes.lg,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   patternArchiveSection: {
     marginTop: spacing.lg,
@@ -1191,7 +1191,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     marginHorizontal: -spacing.sm,
     borderRadius: 8,
-    backgroundColor: colors.accent + '12',
+    backgroundColor: colors.buttonPrimaryLight12,
   },
   patternArchiveRowLeft: {
     flex: 1,

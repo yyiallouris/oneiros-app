@@ -30,7 +30,7 @@ const SearchIcon = ({ size = 20, color = colors.textSecondary }) => (
 );
 
 // Calendar icon for header
-const CalendarIcon = ({ size = 24, color = colors.accent }) => (
+const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
@@ -210,7 +210,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} showSun={true} />
+      <MountainWaveBackground height={300} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -251,7 +251,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
         {/* Breathing line below search bar */}
         {isLoading && (
           <View style={styles.headerLoader}>
-            <BreathingLine width={120} height={2} color={colors.accent} />
+            <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
           </View>
         )}
       </View>
@@ -273,7 +273,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyStateContainer}>
-              <MountainWaveBackground height={300} showSun={true} />
+              <MountainWaveBackground height={300} />
               {renderEmptyState()}
             </View>
           }
@@ -342,19 +342,19 @@ const styles = StyleSheet.create({
   },
   filterHint: {
     fontSize: typography.sizes.xs,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   filterClearButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.accent + '20',
+    backgroundColor: colors.buttonPrimaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   filterClearText: {
     fontSize: typography.sizes.xl,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
     lineHeight: typography.sizes.xl,
   },

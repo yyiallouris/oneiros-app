@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, WaveBackground, FloatingSunMoon } from '../components/ui';
+import { Button, Card, WaveBackground } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
@@ -66,7 +66,6 @@ const SetPasswordScreen: React.FC = () => {
       <WaveBackground />
       <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
-          <FloatingSunMoon size={100} style={styles.floatingOrb} />
           <Text style={styles.title}>Set new password</Text>
           <Text style={styles.subtitle}>
             Enter your new password below. You’ll stay signed in.
@@ -128,11 +127,6 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: spacing.xl,
     alignItems: 'center',
-    position: 'relative',
-  },
-  floatingOrb: {
-    top: -20,
-    zIndex: 0,
   },
   title: {
     fontSize: typography.sizes.xxxl,

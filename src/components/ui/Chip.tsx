@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   accentChip: {
-    backgroundColor: colors.accentLight,
-    borderColor: colors.accent,
+    backgroundColor: colors.buttonPrimaryLight,
+    borderColor: colors.buttonPrimary,
   },
   labelChip: {
     backgroundColor: 'rgba(237, 230, 223, 0.5)',

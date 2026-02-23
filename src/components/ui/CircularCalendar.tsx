@@ -45,9 +45,9 @@ const getDayColor = (dreamCount: number): string => {
   // dreamCount 1 = purple, dreamCount 10 = orange
   const ratio = Math.min(dreamCount / 10, 1);
   
-  // Purple: rgb(168, 156, 207) = colors.accent
+  // Purple end of gradient: buttonPrimary (dream count 0)
   // Orange: rgb(220, 150, 100) - warm orange
-  const purple = { r: 168, g: 156, b: 207 };
+  const purple = { r: 182, g: 0, b: 113 };
   const orange = { r: 220, g: 150, b: 100 };
   
   const r = Math.round(purple.r + (orange.r - purple.r) * ratio);
@@ -187,9 +187,9 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
                 style={[
                   styles.dayCircle,
                   {
-                    backgroundColor: isSelected ? colors.accent : dayColor,
+                    backgroundColor: isSelected ? colors.buttonPrimary : dayColor,
                     borderWidth: day.isToday ? 2 : (day.dreamCount > 0 ? 1.5 : 0),
-                    borderColor: day.isToday ? colors.accent : (day.dreamCount > 0 ? dayColor : 'transparent'),
+                    borderColor: day.isToday ? colors.buttonPrimary : (day.dreamCount > 0 ? dayColor : 'transparent'),
                     opacity: day.dreamCount > 0 ? 0.85 : 0.4,
                   },
                 ]}
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   navButtonText: {
     fontSize: 24,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.bold,
   },
   navButtonDisabled: {

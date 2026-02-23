@@ -1,12 +1,13 @@
 import React from 'react';
 import Svg, { Path, Circle } from 'react-native-svg';
+import { colors } from '../../theme';
 
 interface EyeIconProps {
   size?: number;
   color?: string;
 }
 
-export const EyeIcon: React.FC<EyeIconProps> = ({ size = 24, color = '#8E7BBF' }) => {
+export const EyeIcon: React.FC<EyeIconProps> = ({ size = 24, color = colors.buttonPrimary }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

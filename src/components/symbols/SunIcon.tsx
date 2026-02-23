@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../../theme';
 import Svg, { Circle, Line } from 'react-native-svg';
 
 interface SunIconProps {
@@ -6,7 +7,7 @@ interface SunIconProps {
   color?: string;
 }
 
-export const SunIcon: React.FC<SunIconProps> = ({ size = 24, color = '#8E7BBF' }) => {
+export const SunIcon: React.FC<SunIconProps> = ({ size = 24, color = colors.buttonPrimary }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="5" stroke={color} strokeWidth={2} />

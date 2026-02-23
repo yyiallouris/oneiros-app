@@ -151,7 +151,7 @@ const AccountScreen: React.FC = () => {
               <Text style={styles.biometricLabel}>Lock app with {biometricLabel}</Text>
               <Text style={styles.biometricHint}>Require {biometricLabel} to open the app</Text>
               {biometricLoading ? (
-                <ActivityIndicator size="small" color={colors.accent} style={styles.biometricSpinner} />
+                <ActivityIndicator size="small" color={colors.buttonPrimary} style={styles.biometricSpinner} />
               ) : (
                 <TouchableOpacity
                   style={[styles.toggle, biometricEnabled && styles.toggleOn]}
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: spacing.lg,
     alignSelf: 'flex-start',
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
@@ -236,8 +236,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   depthRowActive: {
-    backgroundColor: colors.accent + '14',
-    borderColor: colors.accent + '40',
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderColor: colors.buttonPrimary40,
   },
   depthContent: { flex: 1 },
   depthLabel: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   depthLabelActive: {
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.semibold,
   },
   depthHint: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   depthCheck: {
     fontSize: typography.sizes.lg,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     marginLeft: spacing.sm,
   },
   biometricRow: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   toggleOn: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
   },
   toggleThumb: {
     width: 24,

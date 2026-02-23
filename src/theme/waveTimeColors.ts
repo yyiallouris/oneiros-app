@@ -4,7 +4,7 @@
  * Used by WaveBackground for smooth, gradual shift as the hour passes.
  */
 
-// Palette: μωβ → βιολετί → ματζέντα → ρόζ → βαθύ κόκκινο → απαλό τερρακότ (smooth stages)
+// Palette: mauve → violet → magenta → pink → deep red → soft terracotta (smooth stages)
 const WAVE_TIME_PALETTE = [
   '#9B8BB5', // Deep lavender
   '#A89CCF', // Accent purple
@@ -12,7 +12,7 @@ const WAVE_TIME_PALETTE = [
   '#C4A4B8', // Violet-magenta
   '#CE9FA8', // Blush
   '#D49A9A', // Dusty rose
-  '#B85A54', // Deep warm red (διακριτικό πέρασμα)
+  '#B85A54', // Deep warm red (subtle transition)
   '#C99B8B', // Soft terracotta
 ] as const;
 
@@ -51,11 +51,14 @@ function getTimeOfDayPhase(): number {
   return totalMinutes / (24 * 60);
 }
 
+const TOP_WAVE_RED = '#B85A54'; // Deep warm red — blended into top wave for contrast vs middle/front
+
 /**
  * Get wave colors for current time. wave1 and wave2 are slightly offset
  * for depth (wave2 a bit "ahead" in the palette so they don't match exactly).
+ * topWave: wave1 blended with red for the top (back) wave so it has warm contrast.
  */
-export function getWaveColorsForTime(): { wave1: string; wave2: string } {
+export function getWaveColorsForTime(): { wave1: string; wave2: string; topWave: string } {
   const phase = getTimeOfDayPhase();
   const eased = easeInOutCubic(phase);
   const n = WAVE_TIME_PALETTE.length - 1;
@@ -73,5 +76,8 @@ export function getWaveColorsForTime(): { wave1: string; wave2: string } {
   const t2 = index2 - Math.floor(index2);
   const wave2 = lerpHex(WAVE_TIME_PALETTE[j0], WAVE_TIME_PALETTE[j1], t2);
 
-  return { wave1, wave2 };
+  // Top wave: blend with red so the top hill always has warm contrast vs middle/sand
+  const topWave = lerpHex(wave1, TOP_WAVE_RED, 0.22);
+
+  return { wave1, wave2, topWave };
 }

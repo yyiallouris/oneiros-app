@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../../theme';
 import Svg, { Path, Circle } from 'react-native-svg';
 
 interface LabyrinthIconProps {
@@ -6,7 +7,7 @@ interface LabyrinthIconProps {
   color?: string;
 }
 
-export const LabyrinthIcon: React.FC<LabyrinthIconProps> = ({ size = 24, color = '#8E7BBF' }) => {
+export const LabyrinthIcon: React.FC<LabyrinthIconProps> = ({ size = 24, color = colors.buttonPrimary }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

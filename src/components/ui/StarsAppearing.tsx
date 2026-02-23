@@ -17,7 +17,7 @@ interface StarsAppearingProps {
 export const StarsAppearing: React.FC<StarsAppearingProps> = ({
   count = 5,
   size = 4,
-  color = colors.accent,
+  color = colors.buttonPrimary,
   style,
 }) => {
   // Randomize sizes and positions per render (2-5px)

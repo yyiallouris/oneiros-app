@@ -7,7 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
-import { Button, WaveBackground, FloatingSunMoon } from '../components/ui';
+import { Button, WaveBackground } from '../components/ui';
 import { requireBiometricUnlock, getBiometricStatus, getBiometricLabel } from '../services/biometricAuthService';
 import { BiometricUnlockContext } from '../navigation/RootNavigator';
 
@@ -50,10 +50,9 @@ const BiometricLockScreen: React.FC = () => {
       <WaveBackground />
       <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
-          <FloatingSunMoon size={100} style={styles.floatingOrb} />
           <View style={styles.titleRow}>
             <Text style={styles.title}>Dream Journal is locked</Text>
-            <Ionicons name="lock-closed" size={28} color={colors.textPrimary} style={styles.lockIcon} />
+            <Ionicons name="lock-closed" size={28} color={colors.textMuted} style={styles.lockIcon} />
           </View>
           <Text style={styles.subtitle}>
             Use {label} to open your journal.
@@ -91,11 +90,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-  },
-  floatingOrb: {
-    top: -20,
-    zIndex: 0,
   },
   titleRow: {
     flexDirection: 'row',

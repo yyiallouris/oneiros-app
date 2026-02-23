@@ -1,12 +1,13 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { colors } from '../../theme';
 
 interface MoonIconProps {
   size?: number;
   color?: string;
 }
 
-export const MoonIcon: React.FC<MoonIconProps> = ({ size = 24, color = '#8E7BBF' }) => {
+export const MoonIcon: React.FC<MoonIconProps> = ({ size = 24, color = colors.buttonPrimary }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

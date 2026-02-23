@@ -12,7 +12,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text } from '../theme';
-import { WaveBackground } from '../components/ui';
+import { MountainWaveBackground } from '../components/ui';
 import { InsightsSectionScreen } from './InsightsSectionScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
@@ -84,7 +84,7 @@ const InsightsJourneyScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <MountainWaveBackground height={260} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
           <Text style={styles.headerBackLabel}>←</Text>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   headerBackLabel: {
     fontSize: typography.sizes.lg,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.semibold,
   },
   headerTitle: {
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   ambientToggleOn: {
-    backgroundColor: colors.accent + '22',
-    borderColor: colors.accent,
+    backgroundColor: colors.buttonPrimaryLight,
+    borderColor: colors.buttonPrimary,
   },
   ambientLabel: {
     fontSize: typography.sizes.sm,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dotActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
     width: 8,
     height: 8,
     borderRadius: 4,

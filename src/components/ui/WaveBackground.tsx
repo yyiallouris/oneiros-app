@@ -1,19 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Dimensions, Animated } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { getWaveColorsForTime } from '../../theme/waveTimeColors';
+import { colors } from '../../theme';
 
 const { width } = Dimensions.get('window');
-const W = width + 60;
-
-// Front wave: solid sand (no blending so it stays warm). Warmer than theme wave1 so it doesn’t read grey.
-const FRONT_WAVE_SAND = '#E6DDCF';
 
 export const WaveBackground: React.FC = () => {
   const waveAnim1 = useRef(new Animated.Value(0)).current;
   const waveAnim2 = useRef(new Animated.Value(0)).current;
-  const waveAnim3 = useRef(new Animated.Value(0)).current;
-  const [backWaveColor, setBackWaveColor] = useState(() => getWaveColorsForTime().wave2);
 
   useEffect(() => {
     // Create slow, dreamlike horizontal translation for waves
@@ -22,7 +16,7 @@ export const WaveBackground: React.FC = () => {
         Animated.sequence([
           Animated.timing(animValue, {
             toValue: 1,
-            duration: 8000 + delay * 2000, // Slow, organic motion
+            duration: 8000 + delay * 2000,
             useNativeDriver: true,
           }),
           Animated.timing(animValue, {
@@ -36,24 +30,14 @@ export const WaveBackground: React.FC = () => {
 
     const anim1 = createWaveAnimation(waveAnim1, 0);
     const anim2 = createWaveAnimation(waveAnim2, 1);
-    const anim3 = createWaveAnimation(waveAnim3, 2);
 
     anim1.start();
     anim2.start();
-    anim3.start();
 
     return () => {
       anim1.stop();
       anim2.stop();
-      anim3.stop();
     };
-  }, []);
-
-  // Only the back wave: update colour as time passes (purple → red through the day)
-  useEffect(() => {
-    setBackWaveColor(getWaveColorsForTime().wave2);
-    const interval = setInterval(() => setBackWaveColor(getWaveColorsForTime().wave2), 60 * 1000);
-    return () => clearInterval(interval);
   }, []);
 
   const translateX1 = waveAnim1.interpolate({
@@ -63,55 +47,52 @@ export const WaveBackground: React.FC = () => {
 
   const translateX2 = waveAnim2.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -20],
-  });
-
-  const translateX3 = waveAnim3.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 25],
+    outputRange: [0, -20], // Opposite direction for depth
   });
 
   return (
-      <View style={styles.container}>
-        {/* Back wave — πιο χαμηλά (Y=130), time-based (so if this renders on top it’s the default front) */}
-        <Animated.View
-          style={[styles.waveContainer, styles.waveBack, { transform: [{ translateX: translateX1 }] }]}
+    <View style={styles.container}>
+      <Animated.View
+        style={[
+          styles.waveContainer,
+          { transform: [{ translateX: translateX1 }] },
+        ]}
+      >
+        <Svg
+          width={width + 60}
+          height={200}
+          viewBox={`0 0 ${width + 60} 200`}
+          style={styles.wave}
         >
-          <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
-            <Path
-              d={`M0,75 Q${W * 0.25},55 ${W * 0.5},75 T${W},75 L${W},200 L0,200 Z`}
-              fill={backWaveColor}
-              opacity={0.5}
-            />
-          </Svg>
-        </Animated.View>
-        {/* Middle wave — band 0.5 × front */}
-        <Animated.View
-          style={[styles.waveContainer, styles.waveBack, { transform: [{ translateX: translateX2 }] }]}
+          <Path
+            d={`M0,100 Q${(width + 60) * 0.25},80 ${(width + 60) * 0.5},100 T${width + 60},100 L${width + 60},200 L0,200 Z`}
+            fill={colors.wave1}
+            opacity={0.3}
+          />
+        </Svg>
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.waveContainer,
+          { transform: [{ translateX: translateX2 }] },
+        ]}
+      >
+        <Svg
+          width={width + 60}
+          height={200}
+          viewBox={`0 0 ${width + 60} 200`}
+          style={styles.wave}
         >
-          <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
-            <Path
-              d={`M0,115 Q${W * 0.25},75 ${W * 0.5},115 T${W},115 L${W},200 L0,200 Z`}
-              fill={backWaveColor}
-              opacity={0.55}
-            />
-          </Svg>
-        </Animated.View>
-        {/* Front wave — band 1 (full), sand solid */}
-        <Animated.View
-          style={[styles.waveContainer, styles.waveFront, { transform: [{ translateX: translateX3 }] }]}
-        >
-          <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
-            <Path
-              d={`M0,200 Q${W * 0.25},115 ${W * 0.5},200 T${W},200 L${W},200 L0,200 Z`}
-              fill={FRONT_WAVE_SAND}
-              opacity={1}
-            />
-          </Svg>
-        </Animated.View>
-      </View>
-    );
-  };
+          <Path
+            d={`M0,140 Q${(width + 60) * 0.25},118 ${(width + 60) * 0.5},140 T${width + 60},140 L${width + 60},200 L0,200 Z`}
+            fill={colors.wave2}
+            opacity={0.2}
+          />
+        </Svg>
+      </Animated.View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -126,17 +107,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
   },
-  waveBack: {
-    zIndex: 0,
-    elevation: 0,
-  },
-  waveFront: {
-    zIndex: 1,
-    elevation: 2,
-  },
   wave: {
     position: 'absolute',
     bottom: 0,
   },
 });
-

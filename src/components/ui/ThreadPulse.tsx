@@ -15,7 +15,7 @@ interface ThreadPulseProps {
  */
 export const ThreadPulse: React.FC<ThreadPulseProps> = ({
   size = 40,
-  color = colors.accent,
+  color = colors.buttonPrimary,
   style,
 }) => {
   const pulse1 = useRef(new Animated.Value(0)).current;

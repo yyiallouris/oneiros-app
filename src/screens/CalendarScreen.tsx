@@ -118,7 +118,7 @@ const CalendarScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} showSun={false} />
+      <MountainWaveBackground height={300} />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Circular Calendar */}
@@ -143,7 +143,7 @@ const CalendarScreen: React.FC = () => {
 
             {isLoadingDayDreams ? (
               <View style={styles.loadingContainer}>
-                <BreathingLine width={120} height={2} color={colors.accent} />
+                <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
               </View>
             ) : dreamsForSelectedDate.length > 0 ? (
               <View>

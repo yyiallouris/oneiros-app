@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '../../theme';
 import Svg, { Circle, Path } from 'react-native-svg';
 
 interface KeyIconProps {
@@ -6,7 +7,7 @@ interface KeyIconProps {
   color?: string;
 }
 
-export const KeyIcon: React.FC<KeyIconProps> = ({ size = 24, color = '#8E7BBF' }) => {
+export const KeyIcon: React.FC<KeyIconProps> = ({ size = 24, color = colors.buttonPrimary }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="7" cy="7" r="4" stroke={color} strokeWidth={2} />

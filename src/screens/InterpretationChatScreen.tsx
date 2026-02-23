@@ -34,7 +34,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationCha
 type ChatRouteProp = RouteProp<RootStackParamList, 'InterpretationChat'>;
 
 // Send icon
-const SendIcon = ({ size = 24, color = colors.accent }) => (
+const SendIcon = ({ size = 24, color = colors.buttonPrimary }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
@@ -556,7 +556,7 @@ const InterpretationChatScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <BreathingLine width={120} height={2} color={colors.accent} />
+          <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
           <Text style={styles.loadingText}>Loading dream...</Text>
         </View>
       </View>
@@ -576,7 +576,7 @@ const InterpretationChatScreen: React.FC = () => {
   if (isGeneratingInitial) {
     return (
       <View style={styles.loadingContainer}>
-        <ThreadDrift size={60} color={colors.accent} />
+        <ThreadDrift size={60} color={colors.buttonPrimary} />
         <Text style={styles.loadingText}>Analyzing your dream...</Text>
       </View>
     );
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     margin: spacing.md,
-    backgroundColor: colors.accentLight,
+    backgroundColor: colors.buttonPrimaryLight,
     opacity: 0.9,
   },
   summaryTitle: {
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   userBubble: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
     marginLeft: 'auto',
   },
   messageText: {
@@ -800,7 +800,7 @@ const styles = StyleSheet.create({
   },
   quickButtonText: {
     fontSize: typography.sizes.sm,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   offlineMessageContainer: {
@@ -834,7 +834,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
     alignItems: 'center',
     justifyContent: 'center',
   },

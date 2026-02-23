@@ -1,44 +1,44 @@
-# App icon – spec για designer
+# App icon – spec for designer
 
-Για να πιάνει το icon **όλο τον χωρο** στο τηλέφωνο (χωρίς λευκό περίγραμμα / background).
-
----
-
-## Αν το αρχείο είναι ήδη full-bleed αλλά φαίνεται λευκό κενό
-
-Το κενό μπορεί να προέρχεται από **rendering** (Expo/Android), όχι από το αρχείο:
-
-1. **Android adaptive icon** κλαπάρει το icon σε **κύκλο ή squircle**. Τα **γωνία** του τετραγώνου (π.χ. τα 4 corners) μπορεί να φαίνονται ως κενά αν είναι **διαφανή** στο PNG. Λύση: **όλο το 1024×1024 (ή 1200×1200) να είναι γεμάτο χρώμα** — ακόμα και τις γωνίες να τις καλύπτει το χρώμα του ουρανού/lavender, **χωρίς διαφάνεια**.
-2. **Expo prebuild** μπορεί να έχει παλιά assets. Δοκίμασε: `npx expo prebuild --clean` και μετά νέο build, ώστε να ξαναγεννηθούν τα Android icon assets από το τρέχον `icon.png`.
+For the icon to **fill the entire space** on the phone (no white border / background).
 
 ---
 
-## Διαστάσεις
+## If the file is already full-bleed but a white gap appears
 
-- **1024 × 1024 px** ή **1200 × 1200 px** (τετράγωνο) — και τα δύο OK, το build θα κάνει resize
-- Μορφή: **PNG**, 32-bit (RGB + alpha αν χρειάζεται)
-- **Σημαντικό:** Το μέγεθος σε pixels δεν φτιάχνει μόνο του το λευκό κενό. Πρέπει το **graphic να γεμίζει όλο το πλαίσιο** (δείτε παρακάτω).
+The gap may come from **rendering** (Expo/Android), not from the file:
 
-## Πώς να γεμίζει το πλαίσιο
+1. **Android adaptive icon** clips the icon into a **circle or squircle**. The **corners** of the square (e.g. the 4 corners) may appear as gaps if they are **transparent** in the PNG. Solution: **the entire 1024×1024 (or 1200×1200) should be filled with color** — even the corners should be covered by the sky/lavender color, **no transparency**.
+2. **Expo prebuild** may have stale assets. Try: `npx expo prebuild --clean` and then a new build, so that Android icon assets are regenerated from the current `icon.png`.
+
+---
+
+## Dimensions
+
+- **1024 × 1024 px** or **1200 × 1200 px** (square) — both OK, the build will resize
+- Format: **PNG**, 32-bit (RGB + alpha if needed)
+- **Important:** Pixel dimensions alone will not fix the white gap. The **graphic must fill the entire frame** (see below).
+
+## How to fill the frame
 
 1. **Full bleed**  
-   Το graphic (κύματα, sun/moon, χρώματα) πρέπει να φτάνει **μέχρι τις άκρες** του 1024×1024.  
-   **Όχι** λευκό margin, **όχι** transparent padding γύρω από το σχέδιο.
+   The graphic (waves, sun/moon, colors) must extend **to the edges** of the 1024×1024.  
+   **No** white margin, **no** transparent padding around the design.
 
 2. **Safe zone (Android)**  
-   Τα κύρια στοιχεία (π.χ. sun/moon, κεντρικό logo) καλύτερα να μένουν **μέσα σε κεντρικό κύκλο ~66%** της πλευράς (περίπου 672px διάμετρος στο 1024px).  
-   Έτσι σε round/squircle masks δεν θα κοπούν. Τα χρώματα/κύματα μπορούν να πηγαίνουν μέχρι τις γωνίες.
+   Key elements (e.g. sun/moon, central logo) are best kept **inside a central circle ~66%** of the side (approx. 672px diameter at 1024px).  
+   This way they won’t be cut off on round/squircle masks. Colors/waves can extend to the corners.
 
 3. **Background**  
-   Αν το icon έχει δικό του “ουρανό” ή χρώμα μέχρι τις άκρες, **μην αφήνετε διαφάνεια** στα άκρα.  
-   Γεμίστε όλο το τετράγωνο (π.χ. με το απαλό lavender ή το χρώμα του ουρανού σας) ώστε να μην φαίνεται ποτέ λευκό περίγραμμα.
+   If the icon has its own “sky” or color to the edges, **don’t leave transparency** at the edges.  
+   Fill the entire square (e.g. with soft lavender or your sky color) so a white border never appears.
 
-## Σύνοψη
+## Summary
 
-| Σωστό                         | Λάθος                    |
-|------------------------------|---------------------------|
-| 1024×1024, graphic μέχρι τις άκρες | Padding / margin γύρω    |
-| Όλο το πλαίσιο γεμάτο χρώμα  | Διαφάνεια στα άκρα       |
-| Κρίσιμα στοιχεία στο κεντρικό 66% | Logo πολύ κοντά στις γωνίες |
+| Correct                         | Wrong                    |
+|---------------------------------|---------------------------|
+| 1024×1024, graphic to the edges | Padding / margin around  |
+| Entire frame filled with color  | Transparency at edges     |
+| Key elements in central 66%     | Logo too close to corners |
 
-Μετά το export, αντικαταστήστε το `assets/icon.png` και κάντε νέο build ώστε να εφαρμοστεί.
+After export, replace `assets/icon.png` and run a new build for changes to apply.

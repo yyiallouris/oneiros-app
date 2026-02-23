@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: typography.sizes.md,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   title: {

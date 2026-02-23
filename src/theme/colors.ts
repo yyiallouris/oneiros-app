@@ -1,10 +1,8 @@
 /**
- * Centralized Color System
- * 
- * All colors used throughout the app should be defined here.
- * No hardcoded colors should exist in components - always import from here.
- * 
- * Colors are grouped by semantic meaning for easy maintenance.
+ * Centralized Color System — single source of truth for the app palette.
+ *
+ * Edit this file to try new palettes. Sandy/cream backgrounds stay fixed.
+ * All colors used in the app should be defined here; no hardcoded colors in components.
  */
 
 // ==================== BASE COLORS ====================
@@ -34,6 +32,13 @@ export const backgrounds = {
   backdrop: 'rgba(0, 0, 0, 0.2)', // Backdrop for modals/menus
 } as const;
 
+// ==================== WAVES (MYSTICAL TINTS) ====================
+export const waveTints = {
+  A: '#4B4266', // deep mystic indigo
+  B: '#6E5160', // dusky mauve-brown
+  accentMist: 'rgba(106, 79, 179, 0.12)', // ultra-subtle tie-in with primary accent
+} as const;
+
 // ==================== TEXT COLORS ====================
 export const text = {
   primary: '#3A2F2A',      // Deep brown-gray - main text
@@ -45,12 +50,20 @@ export const text = {
 } as const;
 
 // ==================== ACCENT COLORS ====================
+// Primary action color: buttons, tabs, microphone, calendar icon, sidebar, toggles, chips.
+// Change buttonPrimary here to update all of them.
 export const accent = {
-  // Main accent (lavender/purple)
-  primary: '#A89CCF',      // Dreamy lavender - main accent
-  light: '#C3B8E0',        // Misty violet - light accent
-  dark: '#7E70A8',         // Deep indigo - dark accent
-  symbol: '#8E7BBF',       // Symbol icon color
+  buttonPrimary: '#6A4FB3',           // Primary actions (buttons, tabs, mic, calendar, etc.)
+  buttonPrimaryLight: 'rgba(106, 79, 179, 0.2)',   // Light bg for chips, toggles
+  buttonPrimaryLight12: 'rgba(106, 79, 179, 0.12)', // Subtle bg
+  buttonPrimary40: 'rgba(106, 79, 179, 0.4)',       // Borders, toggle track
+  buttonPrimary90: 'rgba(106, 79, 179, 0.9)',      // Solid-ish (e.g. user chat bubble)
+
+  // Legacy lavender (non-UI: e.g. calendar hasDreams dot, decorative only)
+  primary: '#A89CCF',
+  light: '#C3B8E0',
+  dark: '#7E70A8',
+  symbol: '#6A4FB3',                 // Same as buttonPrimary - icons, symbols, nav
   
   // Accent with opacity
   primary90: 'rgba(168, 156, 207, 0.9)', // Semi-transparent accent
@@ -104,6 +117,11 @@ export const shadows = {
   overlay: 'rgba(0, 0, 0, 0.25)',     // Overlay shadow
 } as const;
 
+// ==================== SUN CYCLE (moving sun gradient) ====================
+// Sun color varies from FC2947 → FE6244. See useSunCycleColor().
+export const sunCyclePalette = ['#FC2947', '#FE6244'] as const;
+export const SUN_CYCLE_DURATION_MS = 60 * 1000; // 1 minute per step
+
 // ==================== GRADIENT COLORS ====================
 export const gradients = {
   // Mountain wave gradients
@@ -150,16 +168,24 @@ export const colors = {
   backgroundTertiary: backgrounds.tertiary,
   wave1: backgrounds.wave1,
   wave2: backgrounds.wave2,
+  waveTintA: waveTints.A,
+  waveTintB: waveTints.B,
+  waveAccentMist: waveTints.accentMist,
   
   // Text
   textPrimary: text.primary,
   textSecondary: text.secondary,
   textMuted: text.muted,
   
-  // Accent
+  // Accent & Buttons (primary action = buttonPrimary everywhere)
   accent: accent.primary,
   accentLight: accent.light,
   accentDark: accent.dark,
+  buttonPrimary: accent.buttonPrimary,
+  buttonPrimaryLight: accent.buttonPrimaryLight,
+  buttonPrimaryLight12: accent.buttonPrimaryLight12,
+  buttonPrimary40: accent.buttonPrimary40,
+  buttonPrimary90: accent.buttonPrimary90,
   
   // Semantic
   success: semantic.success,

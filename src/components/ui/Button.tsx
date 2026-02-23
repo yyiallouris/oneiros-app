@@ -76,7 +76,7 @@ export const Button: React.FC<ButtonProps> = ({
             StyleSheet.absoluteFill,
             styles.glow,
             {
-              shadowColor: colors.accentLight,
+              shadowColor: colors.buttonPrimary,
               shadowOpacity: glowOpacity,
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 2 },
@@ -88,7 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
       )}
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.white : colors.accent}
+          color={variant === 'primary' ? colors.white : colors.buttonPrimary}
         />
       ) : (
         <Text
@@ -119,12 +119,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
   },
   secondaryButton: {
     backgroundColor: colors.cardBackground,
     borderWidth: 1.5,
-    borderColor: colors.accent,
+    borderColor: colors.buttonPrimary,
   },
   ghostButton: {
     backgroundColor: 'transparent',
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   glow: {
     borderRadius: borderRadius.md,
-    backgroundColor: colors.accentLight,
+    backgroundColor: colors.buttonPrimary,
   },
   buttonText: {
     fontSize: typography.sizes.md,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   secondaryButtonText: {
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   ghostButtonText: {
     color: colors.textSecondary,

@@ -79,7 +79,7 @@ export const MainTabsNavigator: React.FC = () => {
           // Push the whole tab bar up so it sits just above the system nav bar (no double padding)
           marginBottom: bottomInset,
         },
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: colors.buttonPrimary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: typography.sizes.xs,

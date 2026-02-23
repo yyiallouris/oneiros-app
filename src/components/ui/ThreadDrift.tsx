@@ -16,7 +16,7 @@ interface ThreadDriftProps {
  */
 export const ThreadDrift: React.FC<ThreadDriftProps> = ({
   size = 60,
-  color = colors.accent,
+  color = colors.buttonPrimary,
   style,
 }) => {
   const driftX = useRef(new Animated.Value(0)).current;

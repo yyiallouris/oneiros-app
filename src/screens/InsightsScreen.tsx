@@ -13,7 +13,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text } from '../theme';
-import { WaveBackground, BreathingLine, Card } from '../components/ui';
+import { MountainWaveBackground, BreathingLine, Card } from '../components/ui';
 import {
   getRecurringSymbols,
   getRecurringArchetypes,
@@ -228,7 +228,7 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <WaveBackground />
+        <MountainWaveBackground height={180} />
         <View style={styles.header}>
           <View style={styles.headerLeft} />
           <Text style={styles.headerTitle}>Dream patterns</Text>
@@ -243,7 +243,7 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <MountainWaveBackground height={260} />
 
       <View style={styles.header}>
         <View style={styles.headerLeft} />
@@ -291,7 +291,7 @@ const InsightsScreen: React.FC = () => {
           {/* Legacy: Psychic journey as separate button — sections are now linked (swipe) when tapping Symbols / Archetypes / Space / Pattern
           <TouchableOpacity style={[styles.overviewRow, styles.journeyRow]} onPress={goToJourney} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <PatternIcon color={colors.accent} />
+              <PatternIcon color={colors.buttonPrimary} />
             </View>
             <Text style={styles.journeyLabel}>Psychic journey</Text>
             <Text style={styles.overviewValue}>Swipe →</Text>
@@ -436,18 +436,19 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   periodOptionActive: {
-    backgroundColor: colors.accent + '18',
+    backgroundColor: colors.buttonPrimaryLight,
   },
   periodOptionText: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
   },
   periodOptionTextActive: {
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   card: {
     marginBottom: spacing.xl,
+    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent so sun remains visible behind
   },
   overviewTitle: {
     fontSize: typography.sizes.md,
@@ -466,7 +467,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   journeyRow: {
-    backgroundColor: colors.accent + '12',
+    backgroundColor: colors.buttonPrimaryLight12,
     borderRadius: 8,
     marginBottom: spacing.sm,
   },
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   overviewIconWrap: {
     width: ICON_SIZE,

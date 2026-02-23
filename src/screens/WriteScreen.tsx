@@ -28,7 +28,7 @@ import Svg, { Path } from 'react-native-svg';
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 // Calendar icon for header
-const CalendarIcon = ({ size = 24, color = colors.accent }) => (
+const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
@@ -196,7 +196,7 @@ const WriteScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      <MountainWaveBackground height={400} showSun={false} />
+      <MountainWaveBackground height={400} />
       
       <ScrollView
         style={styles.scrollView}
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     fontSize: 28,
-    color: colors.accent,
+    color: colors.buttonPrimary,
   },
   headerTitle: {
     flex: 1,

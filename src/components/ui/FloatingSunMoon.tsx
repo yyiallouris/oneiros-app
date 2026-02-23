@@ -1,22 +1,22 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { StyleSheet, Animated } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import { colors } from '../../theme';
+import { useSunCycleColor } from '../../theme/sunCycleColor';
 
 interface FloatingSunMoonProps {
   size?: number;
-  style?: any;
+  style?: object;
 }
 
-export const FloatingSunMoon: React.FC<FloatingSunMoonProps> = ({ 
+export const FloatingSunMoon: React.FC<FloatingSunMoonProps> = ({
   size = 120,
-  style 
+  style,
 }) => {
+  const cycleColor = useSunCycleColor();
   const opacityAnim = useRef(new Animated.Value(0.8)).current;
   const translateYAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Slow breathing oscillation
     const opacityAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacityAnim, {
@@ -32,7 +32,6 @@ export const FloatingSunMoon: React.FC<FloatingSunMoonProps> = ({
       ])
     );
 
-    // Gentle vertical floating motion
     const floatAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(translateYAnim, {
@@ -55,7 +54,7 @@ export const FloatingSunMoon: React.FC<FloatingSunMoonProps> = ({
       opacityAnimation.stop();
       floatAnimation.stop();
     };
-  }, []);
+  }, [opacityAnim, translateYAnim]);
 
   return (
     <Animated.View
@@ -70,18 +69,13 @@ export const FloatingSunMoon: React.FC<FloatingSunMoonProps> = ({
     >
       <Svg width={size} height={size} viewBox="0 0 120 120">
         <Defs>
-          <RadialGradient id="sunMoonGradient" cx="50%" cy="50%">
-            <Stop offset="0%" stopColor="#C3B8E0" stopOpacity="0.6" />
-            <Stop offset="50%" stopColor="#E8D5B7" stopOpacity="0.4" />
-            <Stop offset="100%" stopColor="#C3B8E0" stopOpacity="0.2" />
+          <RadialGradient id="sunMoonGradient" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={cycleColor} stopOpacity="0.6" />
+            <Stop offset="50%" stopColor={cycleColor} stopOpacity="0.4" />
+            <Stop offset="100%" stopColor={cycleColor} stopOpacity="0.2" />
           </RadialGradient>
         </Defs>
-        <Circle
-          cx="60"
-          cy="60"
-          r="50"
-          fill="url(#sunMoonGradient)"
-        />
+        <Circle cx="60" cy="60" r="50" fill="url(#sunMoonGradient)" />
       </Svg>
     </Animated.View>
   );
@@ -94,4 +88,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-

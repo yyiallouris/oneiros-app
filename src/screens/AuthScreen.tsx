@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, WaveBackground, FloatingSunMoon } from '../components/ui';
+import { Button, Card, WaveBackground } from '../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
@@ -509,7 +509,6 @@ const AuthScreen: React.FC = () => {
         <WaveBackground />
         <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
-            <FloatingSunMoon size={100} style={styles.floatingOrb} />
             <Text style={styles.title}>Reset password</Text>
             <Text style={styles.subtitle}>
               {forgotPasswordSent
@@ -578,7 +577,6 @@ const AuthScreen: React.FC = () => {
         <WaveBackground />
         <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
-            <FloatingSunMoon size={100} style={styles.floatingOrb} />
             <Text style={styles.title}>Verify your email</Text>
             <Text style={styles.subtitle}>
               We sent a verification code and a magic link to {pendingVerificationEmail}. Enter the code below or tap the link in the email.
@@ -647,7 +645,6 @@ const AuthScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <FloatingSunMoon size={88} style={styles.floatingOrb} />
           <Text style={styles.titleMain}>Oneiros</Text>
           <Text style={styles.titleSub}>Dream Journal</Text>
           <Text style={styles.subtitle}>
@@ -834,11 +831,6 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: spacing.lg,
     alignItems: 'center',
-    position: 'relative',
-  },
-  floatingOrb: {
-    top: -12,
-    zIndex: 0,
   },
   titleMain: {
     fontSize: 28,
@@ -885,7 +877,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modeButtonActive: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.buttonPrimary,
   },
   modeButtonText: {
     fontSize: typography.sizes.sm,
@@ -984,7 +976,7 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: typography.sizes.sm,
-    color: colors.accent,
+    color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
   backLink: {
