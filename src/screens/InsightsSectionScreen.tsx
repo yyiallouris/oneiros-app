@@ -9,13 +9,14 @@ import {
   Alert,
   Animated,
   Easing,
+  InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
-import { MountainWaveBackground, BreathingLine, Card } from '../components/ui';
+import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
 import {
   getRecurringSymbols,
@@ -30,8 +31,9 @@ import {
   generateMonthlyInsights,
   getPatternInsightEntries,
   getMonthPeriod,
-  getLast12MonthKeys,
+  getFinishedMonthKeys,
   formatMonthKeyLabel,
+  isMonthFinished,
 } from '../services/patternInsightsService';
 import { LocalStorage } from '../services/localStorage';
 import {
@@ -41,6 +43,14 @@ import {
 } from '../services/remoteStorage';
 import { UserService } from '../services/userService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
+import {
+  PATTERN_INSIGHT_LANGUAGES,
+  DEFAULT_PATTERN_INSIGHT_LANGUAGE,
+  PATTERN_INSIGHT_LANGUAGE_KEY,
+} from '../constants/patternInsightLanguages';
+import { getInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
+import { getArchetypeInfoKey, type InfoModalKey } from '../constants/symbolArchetypeInfo';
+import { isOnline } from '../utils/network';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
@@ -77,7 +87,7 @@ export type InsightsSectionScreenProps = {
   overridePeriodLabel?: string;
 };
 
-export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (props) => {
+const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props) => {
   const { embedded, overrideSectionId, overridePeriod } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
@@ -104,8 +114,11 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
   /** Pattern recognition: archive (monthKey -> { generatedAt, text }), selected month for generate, viewing which report */
   const [patternReportsArchive, setPatternReportsArchive] = useState<Record<string, { generatedAt: string; text: string }>>({});
   const [patternSelectedMonthKey, setPatternSelectedMonthKey] = useState<string>(() => {
+    const finished = getFinishedMonthKeys();
+    if (finished[0]) return finished[0];
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const lastMonth = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+    return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
   });
   const [patternViewingMonthKey, setPatternViewingMonthKey] = useState<string | null>(null);
   const [patternMonthPickerOpen, setPatternMonthPickerOpen] = useState(false);
@@ -116,8 +129,12 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
   const [patternEmptyForMonthKey, setPatternEmptyForMonthKey] = useState<string | null>(null);
   /** First-time intro for pattern section (dismissible once). */
   const [patternIntroDismissed, setPatternIntroDismissed] = useState(true);
+  const [patternLanguage, setPatternLanguage] = useState(DEFAULT_PATTERN_INSIGHT_LANGUAGE);
+  const [patternLanguagePickerOpen, setPatternLanguagePickerOpen] = useState(false);
+  const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const patternSkeletonShimmer = useRef(new Animated.Value(0)).current;
+  const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
 
   const load = useCallback(async () => {
     const currentSectionId = sectionId;
@@ -142,6 +159,15 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
         const data = await getCollectiveInsights();
         setCollective(data);
       } else if (currentSectionId === 'pattern-recognition') {
+        const storedLang = await AsyncStorage.getItem(PATTERN_INSIGHT_LANGUAGE_KEY);
+        if (storedLang) setPatternLanguage(storedLang);
+        setPatternSelectedMonthKey((prev) => {
+          if (!isMonthFinished(prev)) {
+            const finished = getFinishedMonthKeys();
+            return finished[0] ?? prev;
+          }
+          return prev;
+        });
         const userId = await UserService.getCurrentUserId();
         let reports: Record<string, { generatedAt: string; text: string }>;
         if (userId) {
@@ -162,11 +188,14 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
 
   useFocusEffect(
     useCallback(() => {
+      getInterpretationDepth().then(setInterpretationDepth);
       if (__DEV__ && sectionId === 'space-landscapes') {
         console.log('[InsightsSection] Focus — loading space-landscapes, sectionId:', sectionId);
       }
-      load();
-    }, [load])
+      // Defer load to avoid blocking UI (embedded in FlatList or standalone)
+      const task = InteractionManager.runAfterInteractions(() => load());
+      return () => task.cancel();
+    }, [load, embedded])
   );
 
   // Pattern report: smooth fade-in when viewing a report
@@ -223,8 +252,8 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <MountainWaveBackground height={260} />
+      <View style={[styles.container, embedded && styles.containerTransparent]}>
+        {!embedded && <MountainWaveBackground height={260} lite />}
         <View style={styles.centered}>
           <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
         </View>
@@ -233,8 +262,8 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
   }
 
   return (
-    <View style={styles.container}>
-      <MountainWaveBackground height={260} />
+    <View style={[styles.container, embedded && styles.containerTransparent]}>
+      {!embedded && <MountainWaveBackground height={260} lite />}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -502,15 +531,20 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                   {/* Core architecture — the skeleton, always present */}
                   {coreList.length > 0 && (
                     <View style={[styles.archetypeCategoryBlock, styles.archetypeCategoryBlockFirst]}>
-                      <Text style={styles.archetypeCategoryLabel}>Core architecture</Text>
+                      <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="archetype" showInfo={interpretationDepth === 'advanced'} />
                       <Text style={styles.archetypeCategoryNote}>
                         The skeleton of the psyche. These are not roles — they are always present. They organise how you relate to yourself and the world; they don't come and go.
                       </Text>
                       {coreList.map((a) => (
-                        <View key={a.name} style={styles.archetypeRow}>
+                        <TouchableOpacity
+                          key={a.name}
+                          style={styles.archetypeRow}
+                          onPress={() => setArchetypeModalKey(getArchetypeInfoKey(a.name))}
+                          activeOpacity={0.7}
+                        >
                           <Text style={styles.archetypeName}>{a.name}</Text>
                           <Text style={styles.archetypeCount}>×{a.count}</Text>
-                        </View>
+                        </TouchableOpacity>
                       ))}
                     </View>
                   )}
@@ -518,15 +552,20 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                   {/* Archetypal states / Dynamic patterns — what's running now */}
                   {dynamicList.length > 0 && (
                     <View style={styles.archetypeCategoryBlock}>
-                      <Text style={styles.archetypeCategoryLabel}>Archetypal states / Dynamic patterns</Text>
+                      <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="archetype" showInfo={interpretationDepth === 'advanced'} />
                       <Text style={styles.archetypeCategoryNote}>
                         What's running now. Phases or currents — they move through you; they don't define you. Making them identity is where the trouble starts.
                       </Text>
                       {dynamicList.map((a) => (
-                        <View key={a.name} style={styles.archetypeRow}>
+                        <TouchableOpacity
+                          key={a.name}
+                          style={styles.archetypeRow}
+                          onPress={() => setArchetypeModalKey(getArchetypeInfoKey(a.name))}
+                          activeOpacity={0.7}
+                        >
                           <Text style={styles.archetypeName}>{a.name}</Text>
                           <Text style={styles.archetypeCount}>×{a.count}</Text>
-                        </View>
+                        </TouchableOpacity>
                       ))}
                     </View>
                   )}
@@ -562,7 +601,10 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
             <View style={styles.patternCard}>
               <TouchableOpacity
                 style={styles.patternMonthRow}
-                onPress={() => setPatternMonthPickerOpen((o) => !o)}
+                onPress={() => {
+                  setPatternLanguagePickerOpen(false);
+                  setPatternMonthPickerOpen((o) => !o);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.patternMonthLabel}>Reflection for</Text>
@@ -576,7 +618,7 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
 
               {patternMonthPickerOpen && (
                 <View style={styles.patternMonthDropdown}>
-                  {getLast12MonthKeys().map((monthKey) => (
+                  {getFinishedMonthKeys().map((monthKey) => (
                     <TouchableOpacity
                       key={monthKey}
                       style={[
@@ -604,9 +646,29 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
               )}
 
               <TouchableOpacity
-                style={styles.patternGenerateRow}
+                style={[
+                  styles.patternGenerateRow,
+                  (patternInsightGenerating || !!patternReportsArchive[patternSelectedMonthKey]) && styles.patternGenerateRowDisabled,
+                ]}
                 onPress={async () => {
                   if (patternInsightGenerating) return;
+                  const online = await isOnline();
+                  if (!online) {
+                    Alert.alert(
+                      "You're Offline",
+                      'Generating reflection requires an internet connection. Please check your connection and try again.',
+                      [{ text: 'OK' }]
+                    );
+                    return;
+                  }
+                  if (patternReportsArchive[patternSelectedMonthKey]) {
+                    Alert.alert(
+                      'One per month',
+                      'You can only generate one reflection per month. Remove the existing one to generate a new one.',
+                      [{ text: 'OK' }]
+                    );
+                    return;
+                  }
                   const periodFilter = getMonthPeriod(patternSelectedMonthKey);
                   const entries = await getPatternInsightEntries(periodFilter);
                   if (entries.length === 0) {
@@ -620,7 +682,7 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                   try {
                     const startDate = entries[entries.length - 1].date;
                     const endDate = entries[0].date;
-                    const result = await generateMonthlyInsights('monthly', periodFilter);
+                    const result = await generateMonthlyInsights('monthly', periodFilter, patternLanguage);
                     const userId = await UserService.getCurrentUserId();
                     if (userId) await remoteSavePatternReport(patternSelectedMonthKey, result);
                     await LocalStorage.savePatternReport(patternSelectedMonthKey, result);
@@ -649,9 +711,52 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
                   {patternInsightGenerating ? 'Generating…' : 'Generate reflection'}
                 </Text>
                 {!patternInsightGenerating && (
-                  <Text style={styles.patternGenerateArrow}>→</Text>
+                  <TouchableOpacity
+                    style={styles.patternLanguageChip}
+                    onPress={() => {
+                      setPatternMonthPickerOpen(false);
+                      setPatternLanguagePickerOpen((o) => !o);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.patternLanguageChipText}>
+                      {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === patternLanguage)?.display ?? 'EN'}
+                    </Text>
+                    <Text style={[styles.patternMonthChevron, patternLanguagePickerOpen && styles.patternMonthChevronUp]}>
+                      ▾
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </TouchableOpacity>
+
+              {patternLanguagePickerOpen && (
+                <ScrollView style={styles.patternLanguageDropdown} nestedScrollEnabled>
+                  {PATTERN_INSIGHT_LANGUAGES.map((lang) => (
+                    <TouchableOpacity
+                      key={lang.code}
+                      style={[
+                        styles.patternMonthOption,
+                        patternLanguage === lang.code && styles.patternMonthOptionActive,
+                      ]}
+                      onPress={async () => {
+                        setPatternLanguage(lang.code);
+                        setPatternLanguagePickerOpen(false);
+                        await AsyncStorage.setItem(PATTERN_INSIGHT_LANGUAGE_KEY, lang.code);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.patternMonthOptionText,
+                          patternLanguage === lang.code && styles.patternMonthOptionTextActive,
+                        ]}
+                      >
+                        {lang.name} ({lang.display})
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
             </View>
 
             {patternEmptyForMonthKey === patternSelectedMonthKey && !patternInsightGenerating && (
@@ -840,6 +945,14 @@ export const InsightsSectionScreen: React.FC<InsightsSectionScreenProps> = (prop
           </Card>
         )}
       </ScrollView>
+
+      {archetypeModalKey && (
+        <SymbolInfoModal
+          visible={!!archetypeModalKey}
+          onClose={() => setArchetypeModalKey(null)}
+          contentKey={archetypeModalKey}
+        />
+      )}
     </View>
   );
 };
@@ -848,6 +961,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  containerTransparent: {
+    backgroundColor: 'transparent',
   },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxxl },
@@ -1159,14 +1275,35 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
+  patternGenerateRowDisabled: {
+    opacity: 0.45,
+  },
   patternGenerateLabel: {
     fontSize: typography.sizes.md,
     color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
   },
-  patternGenerateArrow: {
-    fontSize: typography.sizes.lg,
+  patternLanguageChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.buttonPrimary40,
+  },
+  patternLanguageChipText: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
     color: colors.buttonPrimary,
+    marginRight: spacing.xs,
+  },
+  patternLanguageDropdown: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingVertical: spacing.xs,
+    maxHeight: 220,
   },
   patternArchiveSection: {
     marginTop: spacing.lg,
@@ -1413,4 +1550,5 @@ const styles = StyleSheet.create({
   },
 });
 
+export const InsightsSectionScreen = React.memo(InsightsSectionScreenInner);
 export default InsightsSectionScreen;

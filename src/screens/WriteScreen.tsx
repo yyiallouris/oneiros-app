@@ -196,7 +196,7 @@ const WriteScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      <MountainWaveBackground height={400} />
+      <MountainWaveBackground height={400} lite />
       
       <ScrollView
         style={styles.scrollView}

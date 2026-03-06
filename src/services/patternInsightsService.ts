@@ -63,13 +63,15 @@ export async function getPatternInsightEntries(
 /**
  * Generate monthly or quarterly pattern insights from recent interpreted dreams.
  * Returns AI-generated reflective text (hypothetical, no advice).
+ * @param language ISO 639-1 code (e.g. 'en', 'el') for essay output language.
  */
 export async function generateMonthlyInsights(
   period: 'monthly' | 'quarterly' = 'monthly',
-  periodFilter?: InsightsPeriod | null
+  periodFilter?: InsightsPeriod | null,
+  language: string = 'en'
 ): Promise<string> {
   const entries = await getPatternInsightEntries(periodFilter);
-  return generatePatternInsights(entries, period);
+  return generatePatternInsights(entries, period, language);
 }
 
 /**
@@ -96,6 +98,22 @@ export function getLast12MonthKeys(): string[] {
     keys.push(`${y}-${m}`);
   }
   return keys;
+}
+
+/**
+ * A month is finished when we've passed its last day (i.e. we're in a later month).
+ */
+export function isMonthFinished(monthKey: string): boolean {
+  const [y, m] = monthKey.split('-').map(Number);
+  const firstOfNextMonth = new Date(y, m, 1);
+  return new Date() >= firstOfNextMonth;
+}
+
+/**
+ * Last 12 finished months only (excludes current month until it ends).
+ */
+export function getFinishedMonthKeys(): string[] {
+  return getLast12MonthKeys().filter(isMonthFinished);
 }
 
 /**

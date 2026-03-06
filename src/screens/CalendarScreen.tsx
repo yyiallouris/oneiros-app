@@ -66,9 +66,6 @@ const CalendarScreen: React.FC = () => {
       const date = new Date(currentYear, currentMonth, day);
       const dateStr = toISODate(date);
       
-      // Skip future dates
-      if (dateStr > today) continue;
-      
       const dreamsForDay = allDreams.filter(d => d.date === dateStr);
       
       days.push({
@@ -118,7 +115,7 @@ const CalendarScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} />
+      <MountainWaveBackground height={300} lite />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Circular Calendar */}

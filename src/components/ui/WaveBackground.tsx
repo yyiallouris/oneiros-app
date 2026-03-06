@@ -1,18 +1,18 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Dimensions, Animated } from 'react-native';
+import React, { useEffect, useRef, useMemo } from 'react';
+import { View, StyleSheet, useWindowDimensions, Animated, Platform } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors } from '../../theme';
 
-const { width } = Dimensions.get('window');
+const WaveBackgroundInner: React.FC = () => {
+  const { width } = useWindowDimensions();
+  const W = width + 60;
 
-export const WaveBackground: React.FC = () => {
   const waveAnim1 = useRef(new Animated.Value(0)).current;
   const waveAnim2 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Create slow, dreamlike horizontal translation for waves
-    const createWaveAnimation = (animValue: Animated.Value, delay: number) => {
-      return Animated.loop(
+    const createWaveAnimation = (animValue: Animated.Value, delay: number) =>
+      Animated.loop(
         Animated.sequence([
           Animated.timing(animValue, {
             toValue: 1,
@@ -26,73 +26,46 @@ export const WaveBackground: React.FC = () => {
           }),
         ])
       );
-    };
 
     const anim1 = createWaveAnimation(waveAnim1, 0);
     const anim2 = createWaveAnimation(waveAnim2, 1);
-
     anim1.start();
     anim2.start();
-
     return () => {
       anim1.stop();
       anim2.stop();
     };
-  }, []);
+  }, [waveAnim1, waveAnim2]);
 
-  const translateX1 = waveAnim1.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 30], // Subtle horizontal drift
-  });
+  const translateX1 = waveAnim1.interpolate({ inputRange: [0, 1], outputRange: [0, 30] });
+  const translateX2 = waveAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, -20] });
 
-  const translateX2 = waveAnim2.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -20], // Opposite direction for depth
-  });
+  const path1 = useMemo(
+    () => `M0,100 Q${W * 0.25},80 ${W * 0.5},100 T${W},100 L${W},200 L0,200 Z`,
+    [W]
+  );
+  const path2 = useMemo(
+    () => `M0,140 Q${W * 0.25},118 ${W * 0.5},140 T${W},140 L${W},200 L0,200 Z`,
+    [W]
+  );
 
   return (
-    <View style={styles.container}>
-      <Animated.View
-        style={[
-          styles.waveContainer,
-          { transform: [{ translateX: translateX1 }] },
-        ]}
-      >
-        <Svg
-          width={width + 60}
-          height={200}
-          viewBox={`0 0 ${width + 60} 200`}
-          style={styles.wave}
-        >
-          <Path
-            d={`M0,100 Q${(width + 60) * 0.25},80 ${(width + 60) * 0.5},100 T${width + 60},100 L${width + 60},200 L0,200 Z`}
-            fill={colors.wave1}
-            opacity={0.3}
-          />
+    <View style={styles.container} renderToHardwareTextureAndroid={Platform.OS === 'android'}>
+      <Animated.View style={[styles.waveContainer, { transform: [{ translateX: translateX1 }] }]}>
+        <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
+          <Path d={path1} fill={colors.wave1} opacity={0.3} />
         </Svg>
       </Animated.View>
-      <Animated.View
-        style={[
-          styles.waveContainer,
-          { transform: [{ translateX: translateX2 }] },
-        ]}
-      >
-        <Svg
-          width={width + 60}
-          height={200}
-          viewBox={`0 0 ${width + 60} 200`}
-          style={styles.wave}
-        >
-          <Path
-            d={`M0,140 Q${(width + 60) * 0.25},118 ${(width + 60) * 0.5},140 T${width + 60},140 L${width + 60},200 L0,200 Z`}
-            fill={colors.wave2}
-            opacity={0.2}
-          />
+      <Animated.View style={[styles.waveContainer, { transform: [{ translateX: translateX2 }] }]}>
+        <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
+          <Path d={path2} fill={colors.wave2} opacity={0.2} />
         </Svg>
       </Animated.View>
     </View>
   );
 };
+
+export const WaveBackground = React.memo(WaveBackgroundInner);
 
 const styles = StyleSheet.create({
   container: {

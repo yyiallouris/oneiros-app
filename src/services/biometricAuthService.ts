@@ -2,6 +2,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { remoteSetBiometricEnabled, remoteGetBiometricEnabled } from './remoteStorage';
 import { BIOMETRIC_ENABLED_KEY } from '../constants/auth';
+import { isOnline } from '../utils/network';
 
 export type BiometricType = 'fingerprint' | 'face' | 'none';
 
@@ -14,6 +15,7 @@ export interface BiometricStatus {
 
 /**
  * Check if the device supports biometrics and has enrolled data.
+ * On iOS: Face ID may require permission; if denied, hasHardware/isEnrolled can return false.
  */
 export async function getBiometricStatus(): Promise<BiometricStatus> {
   try {
@@ -22,6 +24,7 @@ export async function getBiometricStatus(): Promise<BiometricStatus> {
       LocalAuthentication.isEnrolledAsync(),
       LocalAuthentication.supportedAuthenticationTypesAsync(),
     ]);
+    // iOS: FACIAL_RECOGNITION for Face ID; Android: FINGERPRINT and/or FACIAL_RECOGNITION
     const hasFingerprint = types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT);
     const hasFace = types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION);
     const type: BiometricType = hasFace ? 'face' : hasFingerprint ? 'fingerprint' : 'none';
@@ -48,8 +51,13 @@ export async function isBiometricEnabled(): Promise<boolean> {
 /**
  * Load biometric_enabled from Supabase (user_settings) and write to AsyncStorage.
  * Call when the user has a session (e.g. on login) so the preference persists across logout/login.
+ * When offline: falls back to local AsyncStorage so the biometric lock still appears.
  */
 export async function syncBiometricFromRemote(): Promise<boolean> {
+  const online = await isOnline();
+  if (!online) {
+    return isBiometricEnabled();
+  }
   try {
     const enabled = await remoteGetBiometricEnabled();
     if (enabled) {
@@ -59,7 +67,7 @@ export async function syncBiometricFromRemote(): Promise<boolean> {
     }
     return enabled;
   } catch {
-    return false;
+    return isBiometricEnabled();
   }
 }
 
@@ -71,7 +79,10 @@ export async function enableBiometric(): Promise<{ success: boolean; error?: str
   try {
     const status = await getBiometricStatus();
     if (!status.canUse) {
-      return { success: false, error: 'Biometrics not available or not enrolled on this device.' };
+      const hint = status.hasHardware
+        ? ' Enable Face ID in Settings and allow Oneiros to use it.'
+        : '';
+      return { success: false, error: `Biometrics not available or not enrolled on this device.${hint}` };
     }
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: 'Authenticate to lock the app with ' + getBiometricLabel(status.type),
@@ -82,7 +93,7 @@ export async function enableBiometric(): Promise<{ success: boolean; error?: str
       return { success: false, error: msg };
     }
     await AsyncStorage.setItem(BIOMETRIC_ENABLED_KEY, 'true');
-    await remoteSetBiometricEnabled(true);
+    remoteSetBiometricEnabled(true).catch(() => {});
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e?.message ?? 'Failed to enable app lock' };
@@ -95,7 +106,7 @@ export async function enableBiometric(): Promise<{ success: boolean; error?: str
 export async function disableBiometric(): Promise<void> {
   try {
     await AsyncStorage.removeItem(BIOMETRIC_ENABLED_KEY);
-    await remoteSetBiometricEnabled(false);
+    remoteSetBiometricEnabled(false).catch(() => {});
   } catch {
     // best effort
   }

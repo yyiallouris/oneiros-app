@@ -228,10 +228,10 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <MountainWaveBackground height={180} />
+        <MountainWaveBackground height={180} lite />
         <View style={styles.header}>
           <View style={styles.headerLeft} />
-          <Text style={styles.headerTitle}>Dream patterns</Text>
+          <Text style={styles.headerTitle}>Insights</Text>
           <View style={styles.headerRight} />
         </View>
         <View style={styles.loadingPlaceholder}>
@@ -243,11 +243,11 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} />
+      <MountainWaveBackground height={260} lite />
 
       <View style={styles.header}>
         <View style={styles.headerLeft} />
-        <Text style={styles.headerTitle}>Dream patterns</Text>
+        <Text style={styles.headerTitle}>Insights</Text>
         <View style={styles.headerRight} />
       </View>
 
@@ -347,7 +347,6 @@ const InsightsScreen: React.FC = () => {
               <PatternIcon color={text.secondary} />
             </View>
             <Text style={styles.overviewLabel}>Pattern recognition</Text>
-            <Text style={styles.overviewValue}>→</Text>
           </TouchableOpacity>
         </Card>
       </ScrollView>

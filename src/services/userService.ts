@@ -107,10 +107,12 @@ export class UserService {
   /**
    * Get display name (name or nickname) for the current user.
    * Returns null if not set or user not logged in.
+   * Uses getStoredUserId as fallback when getSession returns null (e.g. offline on iOS).
    */
   static async getDisplayName(): Promise<string | null> {
     try {
-      const userId = await this.getCurrentUserId();
+      let userId = await this.getCurrentUserId();
+      if (!userId) userId = await this.getStoredUserId();
       if (!userId) return null;
       return await AsyncStorage.getItem(this.displayNameKey(userId));
     } catch {
@@ -120,16 +122,29 @@ export class UserService {
 
   /**
    * Set display name (name or nickname) for the current user.
+   * Uses getStoredUserId as fallback when getSession returns null (e.g. offline on iOS).
+   * Retries once on failure (iOS AsyncStorage can occasionally fail on first write).
    */
   static async setDisplayName(value: string): Promise<void> {
+    let userId: string | null = null;
     try {
-      const userId = await this.getCurrentUserId();
+      userId = await this.getCurrentUserId();
+      if (!userId) userId = await this.getStoredUserId();
       if (!userId) return;
       const trimmed = value.trim();
-      if (trimmed) {
-        await AsyncStorage.setItem(this.displayNameKey(userId), trimmed);
-      } else {
-        await AsyncStorage.removeItem(this.displayNameKey(userId));
+      const key = this.displayNameKey(userId);
+      const write = async () => {
+        if (trimmed) {
+          await AsyncStorage.setItem(key, trimmed);
+        } else {
+          await AsyncStorage.removeItem(key);
+        }
+      };
+      try {
+        await write();
+      } catch (firstError) {
+        logError('user_set_display_name_error', firstError as Error);
+        await write();
       }
     } catch (error) {
       logError('user_set_display_name_error', error as Error);

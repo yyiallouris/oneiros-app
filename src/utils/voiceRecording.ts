@@ -1,5 +1,5 @@
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { logError, logEvent } from '../services/logger';
 
 export interface RecordingStatus {
@@ -89,8 +89,8 @@ export async function stopRecording(): Promise<string | null> {
         const rawInfo = await FileSystem.getInfoAsync(uri);
         logEvent('voice_recording_raw_info', {
           exists: rawInfo.exists,
-          size: rawInfo.size ?? null,
-          isDirectory: rawInfo.isDirectory ?? null,
+          size: (rawInfo as { size?: number }).size ?? null,
+          isDirectory: (rawInfo as { isDirectory?: boolean }).isDirectory ?? null,
         });
       } catch (rawInfoError) {
         logError('voice_recording_raw_info_error', rawInfoError, { uriLength: uri.length });
@@ -108,8 +108,8 @@ export async function stopRecording(): Promise<string | null> {
           logEvent('voice_recording_copied_info', {
             targetPath,
             exists: copiedInfo.exists,
-            size: copiedInfo.size ?? null,
-            isDirectory: copiedInfo.isDirectory ?? null,
+            size: (copiedInfo as { size?: number }).size ?? null,
+            isDirectory: (copiedInfo as { isDirectory?: boolean }).isDirectory ?? null,
           });
         } catch (copiedInfoError) {
           logError('voice_recording_copied_info_error', copiedInfoError, {
@@ -254,8 +254,8 @@ export async function transcribeAudio(audioUri: string): Promise<string | null> 
       const fileInfo = await FileSystem.getInfoAsync(audioUri);
       logEvent('voice_transcription_file_info', {
         exists: fileInfo.exists,
-        size: fileInfo.size ?? null,
-        isDirectory: fileInfo.isDirectory ?? null,
+        size: (fileInfo as { size?: number }).size ?? null,
+        isDirectory: (fileInfo as { isDirectory?: boolean }).isDirectory ?? null,
         uriLength: audioUri.length,
       });
     } catch (infoError) {

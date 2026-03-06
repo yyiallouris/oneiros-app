@@ -1,4 +1,4 @@
-  import React, { useState, useCallback, useRef, useEffect } from 'react';
+  import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
   import {
     View,
     Text,
@@ -18,15 +18,17 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Card, Button, Chip, WaveBackground, MountainWaveBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard } from '../components/ui';
+  import { Card, Button, Chip, WaveBackground, MountainWaveBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
   import { Animated, Dimensions } from 'react-native';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
   import { Dream, Interpretation, ChatMessage } from '../types/dream';
   import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
   import { formatDateShort, generateId } from '../utils/date';
-  import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
-  import { getInterpretationDepth } from '../services/userSettingsService';
+  import { generateInitialInterpretation, sendChatMessage, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
+  import { getInterpretationDepth, getMythicResonance, type InterpretationDepth } from '../services/userSettingsService';
+import { MAX_AI_RESPONSES } from '../constants/interpretation';
+  import { getArchetypeInfoKey, type InfoModalKey } from '../constants/symbolArchetypeInfo';
   import { isOnline } from '../utils/network';
   import { OfflineMessage } from '../components/OfflineMessage';
   import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -103,6 +105,7 @@
     isTyping?: boolean;
     onTypingComplete?: () => void;
     onCopy?: (text: string) => void;
+    showSettleFooter?: boolean;
   }
 
   // Helper function to extract a better summary from the AI response
@@ -249,7 +252,7 @@
 
   // Component to render text with italic styling for "Evidence" phrases
   // This component handles both markdown formatting AND italic styling for evidence phrases
-  const FormattedMessageText: React.FC<{ text: string; isUser: boolean }> = ({ text, isUser }) => {
+  const FormattedMessageText = React.memo<{ text: string; isUser: boolean }>(({ text, isUser }) => {
     if (isUser) {
       const displayText = formatMarkdownText(text);
       return <Text style={[styles.messageText, styles.userMessageText]}>{displayText}</Text>;
@@ -332,9 +335,13 @@
         })}
       </Text>
     );
-  };
+  });
 
-  const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete, onCopy }) => {
+  FormattedMessageText.displayName = 'FormattedMessageText';
+
+  const SETTLE_FOOTER = 'This feels like a good point to pause and let the dream settle.\nYou can return tomorrow, or begin a new reflection.';
+
+  const ChatBubble = React.memo<ChatBubbleProps>(({ message, isUser, isTyping = false, onTypingComplete, onCopy, showSettleFooter = false }) => {
     const handleCopy = () => {
       try {
         if (onCopy) {
@@ -360,7 +367,12 @@
               style={[styles.messageText, isUser && styles.userMessageText]}
             />
           ) : (
-            <FormattedMessageText text={message.content || ''} isUser={isUser} />
+            <>
+              <FormattedMessageText text={message.content || ''} isUser={isUser} />
+              {showSettleFooter && (
+                <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
+              )}
+            </>
           )}
           {!isUser && !isTyping && (
             <TouchableOpacity 
@@ -374,7 +386,9 @@
         </View>
       </View>
     );
-  };
+  });
+
+  ChatBubble.displayName = 'ChatBubble';
 
   const DreamDetailScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
@@ -393,6 +407,7 @@
     const [showChat, setShowChat] = useState(false);
     const [isInterpretationExpanded, setIsInterpretationExpanded] = useState(false);
     const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+    const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
     const [chatScrollHeight, setChatScrollHeight] = useState(0);
     const [chatScrollOffset, setChatScrollOffset] = useState(0);
     const [showOfflineMessage, setShowOfflineMessage] = useState(false);
@@ -402,7 +417,9 @@
     const [showDreamSecondaryDynamic, setShowDreamSecondaryDynamic] = useState(false);
     const [showInterpretationSecondaryCore, setShowInterpretationSecondaryCore] = useState(false);
     const [showInterpretationSecondaryDynamic, setShowInterpretationSecondaryDynamic] = useState(false);
+    const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
     const [reflectTrigger, setReflectTrigger] = useState(0);
+    const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
 
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
@@ -411,6 +428,7 @@
 
     useFocusEffect(
       useCallback(() => {
+        getInterpretationDepth().then(setInterpretationDepth);
         loadDreamData();
         setShowDreamSecondarySymbols(false);
         setShowInterpretationSecondarySymbols(false);
@@ -481,17 +499,20 @@
         await saveDream(dreamData);
 
         const depth = await getInterpretationDepth();
-        // Single extraction call: reuse for both interpretation (core_mode) and saving (symbols, archetypes, etc.)
-        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>> | null;
+        // Extraction required — no fallback; on failure show error and stop
+        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
         try {
           structured = await extractDreamSymbolsAndArchetypes(dreamData);
         } catch {
-          structured = null;
+          Alert.alert('Network error', 'Please check your connection and try again.');
+          return;
         }
 
+        const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
         const aiResponse = await generateInitialInterpretation(dreamData, {
           depth,
-          extraction: structured ?? undefined,
+          mythicResonance,
+          extraction: structured,
         });
 
         const aiMessage: ChatMessage = {
@@ -501,34 +522,15 @@
           timestamp: new Date().toISOString(),
         };
 
-        const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
-        let symbols: string[] = proseExtracted.symbols;
-        let landscapes: string[] = proseExtracted.landscapes ?? [];
-        let archetypes: string[] = [];
-        let affects: string[] = [];
-        let motifs: string[] = [];
-        let relational_dynamics: string[] = [];
-        let core_mode: string | undefined;
-        let amplifications: string[] = [];
-        let symbol_stances: { symbol: string; stance: string }[] = [];
-
-        if (structured) {
-          archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-          if (proseExtracted.symbols.length <= 2 && structured.symbols?.length > symbols.length) {
-            symbols = structured.symbols;
-            landscapes = structured.landscapes ?? landscapes;
-          } else if (structured.landscapes?.length) {
-            landscapes = structured.landscapes;
-          }
-          affects = structured.affects ?? [];
-          motifs = structured.motifs ?? [];
-          relational_dynamics = structured.relational_dynamics ?? [];
-          core_mode = structured.core_mode?.trim() || undefined;
-          amplifications = structured.amplifications ?? [];
-          symbol_stances = structured.symbol_stances ?? [];
-        } else {
-          archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
-        }
+        const symbols = structured.symbols ?? [];
+        const landscapes = structured.landscapes ?? [];
+        const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+        const affects = structured.affects ?? [];
+        const motifs = structured.motifs ?? [];
+        const relational_dynamics = structured.relational_dynamics ?? [];
+        const core_mode = structured.core_mode?.trim() || undefined;
+        const amplifications = structured.amplifications ?? [];
+        const symbol_stances = structured.symbol_stances ?? [];
 
         if (__DEV__) {
           console.log('[DreamInterpretation] Extracted (new):', {
@@ -612,15 +614,17 @@
       setIsGeneratingInitial(true);
       try {
         const depth = await getInterpretationDepth();
-        // Single extraction call: reuse for interpretation (core_mode) and saving
-        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>> | null;
+        // Extraction required — no fallback; on failure show error and stop
+        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
         try {
           structured = await extractDreamSymbolsAndArchetypes(dream);
         } catch {
-          structured = null;
+          Alert.alert('Network error', 'Please check your connection and try again.');
+          return;
         }
 
-        const aiResponse = await generateInitialInterpretation(dream, { depth, extraction: structured ?? undefined });
+        const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
+        const aiResponse = await generateInitialInterpretation(dream, { depth, mythicResonance, extraction: structured });
 
         const aiMessage: ChatMessage = {
           id: generateId(),
@@ -629,34 +633,15 @@
           timestamp: new Date().toISOString(),
         };
 
-        const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
-        let symbols: string[] = proseExtracted.symbols;
-        let landscapes: string[] = proseExtracted.landscapes ?? [];
-        let archetypes: string[] = [];
-        let affects: string[] = [];
-        let motifs: string[] = [];
-        let relational_dynamics: string[] = [];
-        let core_mode: string | undefined;
-        let amplifications: string[] = [];
-        let symbol_stances: { symbol: string; stance: string }[] = [];
-
-        if (structured) {
-          archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-          if (proseExtracted.symbols.length <= 2 && structured.symbols?.length > symbols.length) {
-            symbols = structured.symbols;
-            landscapes = structured.landscapes ?? landscapes;
-          } else if (structured.landscapes?.length) {
-            landscapes = structured.landscapes;
-          }
-          affects = structured.affects ?? [];
-          motifs = structured.motifs ?? [];
-          relational_dynamics = structured.relational_dynamics ?? [];
-          core_mode = structured.core_mode?.trim() || undefined;
-          amplifications = structured.amplifications ?? [];
-          symbol_stances = structured.symbol_stances ?? [];
-        } else {
-          archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
-        }
+        const symbols = structured.symbols ?? [];
+        const landscapes = structured.landscapes ?? [];
+        const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+        const affects = structured.affects ?? [];
+        const motifs = structured.motifs ?? [];
+        const relational_dynamics = structured.relational_dynamics ?? [];
+        const core_mode = structured.core_mode?.trim() || undefined;
+        const amplifications = structured.amplifications ?? [];
+        const symbol_stances = structured.symbol_stances ?? [];
 
         if (__DEV__) {
           console.log('[DreamInterpretation] Extracted (update):', {
@@ -703,8 +688,22 @@
       }
     };
 
+    const assistantMessages = useMemo(() => messages.filter((m) => m.role === 'assistant'), [messages]);
+    const assistantCount = assistantMessages.length;
+    const lastAssistant = assistantMessages[assistantMessages.length - 1] ?? null;
+    const reflectionLimitReached = assistantCount >= MAX_AI_RESPONSES;
+
     const handleSendMessage = async () => {
       if (!inputText.trim() || !dream || !interpretation || isLoading) return;
+      if (reflectionLimitReached) return;
+
+      const online = await isOnline();
+      if (!online) {
+        setShowOfflineMessage(true);
+        setTimeout(() => setShowOfflineMessage(false), 5000);
+        return;
+      }
+      setShowOfflineMessage(false);
 
       const messageContent = inputText.trim();
       const userMessage: ChatMessage = {
@@ -794,7 +793,7 @@
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={240} />
+            <MountainWaveBackground height={240} lite />
             <ScrollView
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
@@ -819,7 +818,7 @@
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={240} />
+            <MountainWaveBackground height={240} lite />
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>Dream not found</Text>
             </View>
@@ -838,7 +837,7 @@
           behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
-          <MountainWaveBackground height={240} />
+          <MountainWaveBackground height={240} lite />
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
@@ -869,7 +868,7 @@
             <Card style={styles.symbolsCard}>
               {dream.symbols && dream.symbols.length > 0 && (
                 <View style={styles.chipsSection}>
-                  <Text style={styles.chipsSectionTitle}>Symbols</Text>
+                  <SectionTitleWithInfo title="Symbols" infoKey="main-symbols" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                   <View style={styles.chipsContainer}>
                     {dream.symbols.slice(0, 4).map((symbol, index) => (
                       <Chip key={index} label={symbol} variant="accent" />
@@ -904,10 +903,15 @@
                   <>
                     {dreamCore.length > 0 && (
                       <View style={styles.chipsSection}>
-                        <Text style={styles.chipsSectionTitle}>Core architecture</Text>
+                        <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                         <View style={styles.chipsContainer}>
                           {dreamCore.slice(0, 4).map((archetype, index) => (
-                            <Chip key={`core-${index}`} label={archetype} variant="default" />
+                            <Chip
+                              key={`core-${index}`}
+                              label={archetype}
+                              variant="default"
+                              onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                            />
                           ))}
                         </View>
                         {dreamCore.length > 4 && (
@@ -923,7 +927,12 @@
                         {showDreamSecondaryCore && dreamCore.length > 4 && (
                           <View style={styles.chipsContainer}>
                             {dreamCore.slice(4).map((archetype, index) => (
-                              <Chip key={`core-${index + 4}`} label={archetype} variant="default" />
+                              <Chip
+                                key={`core-${index + 4}`}
+                                label={archetype}
+                                variant="default"
+                                onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                              />
                             ))}
                           </View>
                         )}
@@ -931,10 +940,15 @@
                     )}
                     {dreamDynamic.length > 0 && (
                       <View style={styles.chipsSection}>
-                        <Text style={styles.chipsSectionTitle}>Archetypal states / Dynamic patterns</Text>
+                        <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                         <View style={styles.chipsContainer}>
                           {dreamDynamic.slice(0, 4).map((archetype, index) => (
-                            <Chip key={`dyn-${index}`} label={archetype} variant="default" />
+                            <Chip
+                              key={`dyn-${index}`}
+                              label={archetype}
+                              variant="default"
+                              onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                            />
                           ))}
                         </View>
                         {dreamDynamic.length > 4 && (
@@ -950,7 +964,12 @@
                         {showDreamSecondaryDynamic && dreamDynamic.length > 4 && (
                           <View style={styles.chipsContainer}>
                             {dreamDynamic.slice(4).map((archetype, index) => (
-                              <Chip key={`dyn-${index + 4}`} label={archetype} variant="default" />
+                              <Chip
+                                key={`dyn-${index + 4}`}
+                                label={archetype}
+                                variant="default"
+                                onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                              />
                             ))}
                           </View>
                         )}
@@ -974,7 +993,7 @@
                   {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
                   {interpretation.symbols.length > 0 && (
                     <View style={styles.chipsSection}>
-                      <Text style={styles.chipsSectionTitle}>Main symbols</Text>
+                      <SectionTitleWithInfo title="Main symbols" infoKey="main-symbols" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                       <View style={styles.chipsContainer}>
                         {interpretation.symbols.slice(0, 4).map((symbol, index) => (
                           <Chip key={index} label={symbol} variant="accent" />
@@ -1009,10 +1028,15 @@
                       <>
                         {interpCore.length > 0 && (
                           <View style={styles.chipsSection}>
-                            <Text style={styles.chipsSectionTitle}>Core architecture</Text>
+                            <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                             <View style={styles.chipsContainer}>
                               {interpCore.slice(0, 4).map((archetype, index) => (
-                                <Chip key={`core-${index}`} label={archetype} variant="default" />
+                                <Chip
+                                  key={`core-${index}`}
+                                  label={archetype}
+                                  variant="default"
+                                  onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                                />
                               ))}
                             </View>
                             {interpCore.length > 4 && (
@@ -1028,7 +1052,12 @@
                             {showInterpretationSecondaryCore && interpCore.length > 4 && (
                               <View style={styles.chipsContainer}>
                                 {interpCore.slice(4).map((archetype, index) => (
-                                  <Chip key={`core-${index + 4}`} label={archetype} variant="default" />
+                                  <Chip
+                                    key={`core-${index + 4}`}
+                                    label={archetype}
+                                    variant="default"
+                                    onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                                  />
                                 ))}
                               </View>
                             )}
@@ -1036,10 +1065,15 @@
                         )}
                         {interpDynamic.length > 0 && (
                           <View style={styles.chipsSection}>
-                            <Text style={styles.chipsSectionTitle}>Archetypal states / Dynamic patterns</Text>
+                            <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="chips" showInfo={interpretationDepth === 'advanced'} />
                             <View style={styles.chipsContainer}>
                               {interpDynamic.slice(0, 4).map((archetype, index) => (
-                                <Chip key={`dyn-${index}`} label={archetype} variant="default" />
+                                <Chip
+                                  key={`dyn-${index}`}
+                                  label={archetype}
+                                  variant="default"
+                                  onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                                />
                               ))}
                             </View>
                             {interpDynamic.length > 4 && (
@@ -1055,7 +1089,12 @@
                             {showInterpretationSecondaryDynamic && interpDynamic.length > 4 && (
                               <View style={styles.chipsContainer}>
                                 {interpDynamic.slice(4).map((archetype, index) => (
-                                  <Chip key={`dyn-${index + 4}`} label={archetype} variant="default" />
+                                  <Chip
+                                    key={`dyn-${index + 4}`}
+                                    label={archetype}
+                                    variant="default"
+                                    onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
+                                  />
                                 ))}
                               </View>
                             )}
@@ -1203,17 +1242,20 @@
                   // Content stays where it is; user scrolls manually to continue reading.
                 }}
               >
-                {messages.map((item) => (
-                  <ChatBubble 
+                {messages.map((item) => {
+                  const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
+                  return (
+                  <ChatBubble
                     key={item.id}
-                    message={item} 
-                    isUser={item.role === 'user'} 
+                    message={item}
+                    isUser={item.role === 'user'}
                     isTyping={typingMessageId === item.id}
                     onTypingComplete={() => {
                       if (typingMessageId === item.id) {
                         setTypingMessageId(null);
                       }
                     }}
+                    showSettleFooter={!!isLastAssistantAtLimit}
                     onCopy={(text) => {
                       try {
                         if (Clipboard && Clipboard.setString) {
@@ -1227,10 +1269,40 @@
                       }
                     }}
                   />
-                ))}
+                  );
+                })}
               </ScrollView>
 
-              <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+              {/* Limit message — appears when user taps the disabled input to try to write */}
+              {reflectionLimitReached && showLimitMessageOnTap && (
+                <View style={styles.limitReachedContainer}>
+                  <Text style={styles.limitReachedText}>
+                    This reflection has reached its natural depth.
+                    You can continue tomorrow or start a new dream.
+                  </Text>
+                </View>
+              )}
+
+              {/* Offline message — when user tries to send while offline */}
+              {showChat && showOfflineMessage && (
+                <View style={styles.offlineMessageContainer}>
+                  <OfflineMessage
+                    featureName="Jungian AI chat"
+                    icon="🧠"
+                  />
+                </View>
+              )}
+
+              {/* Input — always visible; when at limit: disabled, greyed out, tappable to show message */}
+              <TouchableOpacity
+                style={[
+                  styles.inputContainer,
+                  { paddingBottom: Math.max(insets.bottom, spacing.lg) },
+                  reflectionLimitReached && styles.inputContainerDisabled,
+                ]}
+                activeOpacity={reflectionLimitReached ? 0.9 : 1}
+                onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : undefined}
+              >
                 <TextInput
                   style={styles.input}
                   placeholder="Ask a question..."
@@ -1239,10 +1311,14 @@
                   onChangeText={setInputText}
                   multiline
                   maxLength={500}
+                  editable={!reflectionLimitReached}
+                  pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
                   onFocus={() => {
-                    setTimeout(() => {
-                      scrollViewRef.current?.scrollToEnd({ animated: true });
-                    }, 100);
+                    if (!reflectionLimitReached) {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 100);
+                    }
                   }}
                 />
                 <View style={styles.inputActionSpacer}>
@@ -1250,13 +1326,13 @@
                     onTranscriptionComplete={(text) => {
                       setInputText((prev) => (prev ? `${prev} ${text}` : text));
                     }}
-                    disabled={isLoading}
+                    disabled={isLoading || reflectionLimitReached}
                   />
                 </View>
                 <TouchableOpacity
-                  style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
-                  onPress={handleSendMessage}
-                  disabled={!inputText.trim() || isLoading}
+                  style={[styles.sendButton, (!inputText.trim() || isLoading || reflectionLimitReached) && styles.sendButtonDisabled]}
+                  onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
+                  disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
                 >
                   {isLoading ? (
                     <ActivityIndicator size="small" color={colors.white} />
@@ -1264,11 +1340,19 @@
                     <SendIcon size={20} color={colors.white} />
                   )}
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </View>
           )}
         </ScrollView>
         </KeyboardAvoidingView>
+
+        {archetypeModalKey && (
+          <SymbolInfoModal
+            visible={!!archetypeModalKey}
+            onClose={() => setArchetypeModalKey(null)}
+            contentKey={archetypeModalKey}
+          />
+        )}
       </View>
     );
   };
@@ -1511,6 +1595,33 @@
       fontSize: typography.sizes.md, // Same size as regular text
       color: colors.textPrimary, // Inherit color from parent
       lineHeight: typography.sizes.md * typography.lineHeights.relaxed, // Same line height
+    },
+    settleFooter: {
+      marginTop: spacing.md,
+      fontSize: typography.sizes.sm,
+      fontStyle: 'italic',
+      color: colors.textMuted,
+      lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    },
+    limitReachedContainer: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    limitReachedText: {
+      fontSize: typography.sizes.sm,
+      fontStyle: 'italic',
+      color: colors.textMuted,
+      lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    },
+    offlineMessageContainer: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+    },
+    inputContainerDisabled: {
+      opacity: 0.5,
     },
     userMessageText: {
       color: colors.white,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -47,7 +47,7 @@ interface DreamCardProps {
   onPress: () => void;
 }
 
-const DreamCard: React.FC<DreamCardProps> = ({ dream, onPress }) => {
+const DreamCard = React.memo<DreamCardProps>(({ dream, onPress }) => {
   const preview = dream.content.length > 120
     ? dream.content.slice(0, 120) + '...'
     : dream.content;
@@ -72,7 +72,9 @@ const DreamCard: React.FC<DreamCardProps> = ({ dream, onPress }) => {
       </Card>
     </TouchableOpacity>
   );
-};
+});
+
+DreamCard.displayName = 'DreamCard';
 
 const sortDreams = (list: Dream[]) =>
   [...list].sort((a, b) => {
@@ -100,6 +102,9 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const baseDreamsRef = useRef<Dream[]>([]);
+  baseDreamsRef.current = baseDreams;
 
   const clearFilter = useCallback(() => {
     setSearchQuery('');
@@ -107,20 +112,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
     navigation.setParams({ filterSymbol: undefined, filterLandscape: undefined });
   }, [navigation]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadDreams();
-      return () => {
-        // Only clear tab params when leaving Journal tab (not when used as stack JournalFilter)
-        if (!isStackScreen) {
-          setSearchQuery('');
-          navigation.setParams({ filterSymbol: undefined, filterLandscape: undefined });
-        }
-      };
-    }, [filterSymbol, filterLandscape, isStackScreen])
-  );
-
-  const loadDreams = async () => {
+  const loadDreams = useCallback(async () => {
     setIsLoading(true);
     try {
       const allDreams = await getDreams();
@@ -162,15 +154,39 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filterSymbol, filterLandscape]);
 
-  const handleSearch = (query: string) => {
+  useFocusEffect(
+    useCallback(() => {
+      loadDreams();
+      return () => {
+        if (searchDebounceRef.current) {
+          clearTimeout(searchDebounceRef.current);
+          searchDebounceRef.current = null;
+        }
+        if (!isStackScreen) {
+          setSearchQuery('');
+          navigation.setParams({ filterSymbol: undefined, filterLandscape: undefined });
+        }
+      };
+    }, [loadDreams, isStackScreen, navigation])
+  );
+
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
     const trimmed = query.trim().toLowerCase();
-
-    if (trimmed) {
-      setIsSearching(true);
-      const results = baseDreams.filter((d) => {
+    if (!trimmed) {
+      setFilteredDreams(baseDreams);
+      return;
+    }
+    setIsSearching(true);
+    searchDebounceRef.current = setTimeout(() => {
+      searchDebounceRef.current = null;
+      const dreams = baseDreamsRef.current;
+      const results = dreams.filter((d) => {
         const content = d.content.toLowerCase();
         const title = d.title?.toLowerCase() || '';
         const inContent = content.includes(trimmed) || title.includes(trimmed);
@@ -179,18 +195,22 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
       });
       setFilteredDreams(sortDreams(results));
       setIsSearching(false);
-    } else {
-      setFilteredDreams(baseDreams);
-    }
-  };
+    }, 200);
+  }, []);
 
-  const handleDreamPress = (dreamId: string) => {
+  const handleDreamPress = useCallback((dreamId: string) => {
     navigation.navigate('DreamDetail', { dreamId });
-  };
+  }, [navigation]);
 
-  const handleCalendarPress = () => {
+  const handleCalendarPress = useCallback(() => {
     navigation.navigate('Calendar');
-  };
+  }, [navigation]);
+
+  const renderItem = useCallback(({ item }: { item: Dream }) => (
+    <DreamCard dream={item} onPress={() => handleDreamPress(item.id)} />
+  ), [handleDreamPress]);
+
+  const keyExtractor = useCallback((item: Dream) => item.id, []);
 
   const renderEmptyState = () => {
     const isFiltered = !!(filterSymbol || filterLandscape);
@@ -210,7 +230,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} />
+      <MountainWaveBackground height={300} lite />
 
       {/* Header */}
       <View style={styles.header}>
@@ -266,14 +286,15 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
       ) : (
         <FlatList
           data={filteredDreams}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <DreamCard dream={item} onPress={() => handleDreamPress(item.id)} />
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.emptyStateContainer}>
-              <MountainWaveBackground height={300} />
               {renderEmptyState()}
             </View>
           }

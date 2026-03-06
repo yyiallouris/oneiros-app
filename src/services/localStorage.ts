@@ -18,6 +18,7 @@ export class LocalStorage {
   private static readonly UNSYNCED_INTERPRETATIONS_KEY = '@unsynced_interpretations';
   private static readonly PATTERN_REPORTS_KEY = '@pattern_reports';
   private static readonly INTERPRETATION_DEPTH_KEY = '@interpretation_depth';
+  private static readonly MYTHIC_RESONANCE_KEY = '@mythic_resonance';
 
   // Dreams
   static async getDreams(): Promise<Dream[]> {
@@ -232,6 +233,26 @@ export class LocalStorage {
     await AsyncStorage.setItem(this.INTERPRETATION_DEPTH_KEY, depth);
   }
 
+  // Mythic resonance (advanced only) — local cache with updatedAt for sync comparison
+  static async getMythicResonance(): Promise<{ value: boolean; updatedAt: string }> {
+    try {
+      const raw = await AsyncStorage.getItem(this.MYTHIC_RESONANCE_KEY);
+      if (!raw) return { value: false, updatedAt: '' };
+      // Backward compat: legacy 'true'/'false' string
+      if (raw === 'true') return { value: true, updatedAt: '0' };
+      if (raw === 'false') return { value: false, updatedAt: '0' };
+      const parsed = JSON.parse(raw) as { value?: boolean; updatedAt?: string };
+      return { value: parsed.value ?? false, updatedAt: parsed.updatedAt ?? '' };
+    } catch {
+      return { value: false, updatedAt: '' };
+    }
+  }
+
+  static async setMythicResonance(enabled: boolean, updatedAt?: string): Promise<void> {
+    const ts = updatedAt ?? new Date().toISOString();
+    await AsyncStorage.setItem(this.MYTHIC_RESONANCE_KEY, JSON.stringify({ value: enabled, updatedAt: ts }));
+  }
+
   /**
    * Clear ALL local storage (called when user logs out or changes)
    */
@@ -244,6 +265,7 @@ export class LocalStorage {
       this.UNSYNCED_INTERPRETATIONS_KEY,
       this.PATTERN_REPORTS_KEY,
       this.INTERPRETATION_DEPTH_KEY,
+      this.MYTHIC_RESONANCE_KEY,
     ]);
     logEvent('local_storage_cleared');
   }

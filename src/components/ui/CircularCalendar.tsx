@@ -37,24 +37,12 @@ const calculateGlowIntensity = (dreamCount: number): number => {
   return Math.min(0.7 + (dreamCount - 4) * 0.1, 1.0);
 };
 
-// Calculate color from purple to orange based on dream count (1-10)
+// Color for days with dreams (single accent color)
+const HAS_DREAMS_COLOR = 'rgb(156, 79, 179)'; // #9c4fb3
+
 const getDayColor = (dreamCount: number): string => {
   if (dreamCount === 0) return 'rgba(240, 229, 223, 0.4)'; // No dreams - light beige
-  
-  // Interpolate from purple (accent) to orange
-  // dreamCount 1 = purple, dreamCount 10 = orange
-  const ratio = Math.min(dreamCount / 10, 1);
-  
-  // Purple end of gradient: buttonPrimary (dream count 0)
-  // Orange: rgb(220, 150, 100) - warm orange
-  const purple = { r: 182, g: 0, b: 113 };
-  const orange = { r: 220, g: 150, b: 100 };
-  
-  const r = Math.round(purple.r + (orange.r - purple.r) * ratio);
-  const g = Math.round(purple.g + (orange.g - purple.g) * ratio);
-  const b = Math.round(purple.b + (orange.b - purple.b) * ratio);
-  
-  return `rgb(${r}, ${g}, ${b})`;
+  return HAS_DREAMS_COLOR;
 };
 
 // Get day number from date string (e.g., "2024-01-15" -> 15)
@@ -169,12 +157,15 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
           const isSelected = day.date === selectedDate;
           const dayNumber = getDayNumber(day.date);
           const dayColor = getDayColor(day.dreamCount);
+          const isFuture = today ? day.date > today : false;
           
           return (
             <TouchableOpacity
               key={day.date}
               activeOpacity={0.7}
-              onPress={() => onDayPress(day.date)}
+              disabled={isFuture}
+              onPress={() => !isFuture && onDayPress(day.date)}
+              pointerEvents={isFuture ? 'none' : 'auto'}
               style={[
                 styles.dayTouchable,
                 {
@@ -190,7 +181,7 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
                     backgroundColor: isSelected ? colors.buttonPrimary : dayColor,
                     borderWidth: day.isToday ? 2 : (day.dreamCount > 0 ? 1.5 : 0),
                     borderColor: day.isToday ? colors.buttonPrimary : (day.dreamCount > 0 ? dayColor : 'transparent'),
-                    opacity: day.dreamCount > 0 ? 0.85 : 0.4,
+                    opacity: isFuture ? 0.4 : (day.dreamCount > 0 ? 0.85 : 0.4),
                   },
                 ]}
               >

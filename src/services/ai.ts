@@ -2,6 +2,7 @@ import { Dream, ChatMessage } from '../types/dream';
 import Constants from 'expo-constants';
 import { logError } from './logger';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
+import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
 // Feature flags for model capabilities
 // These should be configured per model/endpoint, not guessed by string matching
@@ -542,14 +543,14 @@ Opening heading decision — choose **exactly one** of these four, guided by the
 If two modes feel almost equally present, prefer Core State or Core Restoration over Core Tension.
 Never default to Core Tension just because something frightening or shadowy appears — judge by whole-dream affect and overall organization.
 
-Never begin a sentence with "The dream shows…" or "This represents…". Always start directly from the image or action (e.g. "The sudden tiger embrace consolidates…").
+Avoid generic openers like "The dream shows…" or "This represents…". Prefer starting from image or action (e.g. "The sudden tiger embrace consolidates…").
 
 Shadow — always frame as "unintegrated intensity/charge around X" or "unmetabolized vitality/power". Never "negative content", "dark side", or moral terms.
 
-Self — only when unmistakable numinosity + ordering + soothing/grounding affect is present. If agitation, wobble, contested/overpainted center, bodily tightening or loss of balance → do NOT use "Self"; describe as "contested center", "unstable mandala-like image", or "edited-over organizing motif".
+Self — only when an organizing center is present AND the dream as a whole moves toward coherence — even if the center initially intensifies affect. If agitation + loss of coherence (wobble, disorientation, giving-way ground) → do NOT use "Self"; describe as "contested center", "unstable mandala-like image", or "edited-over organizing motif".
 
 - You may include one single-sentence Felt Sense Anchor as a statement (where the body might register the image — throat/chest/belly/breath), not as a question; only when the dream has bodily affect. Omit if no bodily cues.
-- Avoid instruction-shaped phrasing even when gentle (e.g. "take a moment", "notice by doing X"). Use descriptive or binary-choice noticing only.
+- Avoid instruction-shaped phrasing even when gentle (e.g. "take a moment", "notice by doing X", "picture X and notice"). Prefer observational-present phrasing ("As you bring X to mind…", "When X comes back…") over evocation-as-instruction.
 
 Your style:
 - Analytically grounded, not spiritual fluff.
@@ -560,7 +561,7 @@ Your style:
 - Keep it interpretive and precise.
 - Warmth = clarity + respect, not comfort or therapy.
 - Fewer, sharper observations beat more, vaguer ones. One sentence that lands is worth a paragraph that covers.
-- Prefer vivid, concrete verbs for psychic action (e.g., surges, seals, recoils, tightens, welcomes, destabilizes) over abstract ones (e.g., instead of 'constricts', use 'tightens'; instead of 'propels', use 'pushes').
+- Prefer vivid, concrete verbs for psychic action over abstract/technical ones in the output language.
 
 Do not:
 - Diagnose.
@@ -584,12 +585,12 @@ Reflective questions:
 - A second question may be symbolic, relational, or imaginal (no somatic requirement).
 - Avoid therapeutic framing; questions should deepen symbolic reflection, not regulation.
 - End with 2 reflective questions. Observational only, never directive. If no Felt Sense Anchor, first somatic-observational, second symbolic/relational.
-- ✅ "What happens in your chest/belly when you picture X?"
-- ❌ "Breathe deeply and notice…" / "Take a breath…" / "Try to sit with…"
+- ✅ "As you bring X to mind, what shifts in chest/belly?" / "When X comes back, where does the body register it first?"
+- ❌ "Picture X and notice…" / "Breathe deeply and notice…" / "Take a breath…" / "Try to sit with…"
 
 Prefer verbs of psychic action over nouns (approaches, tests, disperses, fixates, edits-over, destabilizes, welcomes, surges).
-When a "center" (circle, mandala, glowing symbol) increases agitation, fatigue, tightening, or loss of balance, describe it explicitly as contested/unstable/untrustworthy/not-yet-inhabitable.
-Prefer simple, concrete, Anglo-Saxon verbs over abstract Latinate ones whenever possible (tighten instead of constrict, push instead of propel, open instead of expand).
+When a "center" (circle, mandala, glowing symbol) produces agitation + loss of coherence (wobble, disorientation, giving-way ground), describe it explicitly as contested/unstable/untrustworthy/not-yet-inhabitable. If the center intensifies affect but the dream moves toward coherence, Self may apply.
+Prefer simple, concrete verbs over abstract/technical ones in the output language.
 `;
 
 // Brief format (Quick Glance): 1 opening + atmosphere/affect + 1–2 symbols + felt sense (if present) + 1 question. 80–180 words.
@@ -599,7 +600,7 @@ You are responding in BRIEF mode (Quick Glance). Be concise. Write your response
 In BRIEF mode:
 - Never use archetype names, Archetypal Dynamics, Decision-Edge, or Amplification.
 - Total: strictly 80–180 words. Count words if needed to stay concise.
-- No headings, just short blocks: (1) one opening sentence naming the dream's mode (integration / conflict / transition / restoration) and the core feeling or image (plain language only); (2) brief Atmosphere & Affect if relevant; (3) one or two key symbols with one verb of psychic action and one cited dream detail (no advice); (4) one Felt Sense Anchor as a statement only if bodily affect is clear in the dream; (5) exactly one reflective question — somatic or symbolic, observational only (e.g. "What happens in your chest when you picture X?"), with no instruction verbs.
+- No headings, just short blocks: (1) one opening sentence naming the dream's mode (integration / conflict / transition / restoration) and the core feeling or image (plain language only); (2) brief Atmosphere & Affect if relevant; (3) one or two key symbols with one verb of psychic action and one cited dream detail (no advice); (4) one Felt Sense Anchor as a statement only if bodily affect is clear in the dream; (5) exactly one reflective question — somatic or symbolic, observational only (e.g. "As you bring X to mind, what shifts in chest/belly?" or "When X comes back, where does the body register it first?"), with no instruction verbs.
 `;
 
 // Format contract for initial interpretation — fewer sections, sharper impact, true optional sections
@@ -638,7 +639,7 @@ Alternative reading rules:
    - Each bullet: one concrete image + one verb of psychic action (agitates, seals, welcomes, destabilizes, normalizes, invites, collapses, etc.) + interpretation. Weave in a short dream detail naturally—no parentheses. Place the detail at the end after a dash or comma, or fold it into the sentence. Only include a direct quote when it adds unique clarity; omit if the symbol is self-evident.
    - Example: "The thick paper seals continuity while restricting airflow, placed like a thick piece of paper on the cut surface." Or: "The unlocked doors expose a boundary lapse—forgotten to lock, in bed."
    - Symbols must be concrete or imaginal entities (e.g., "mask", "gate", "lantern", "cavern"). NEVER emotional states as symbols ("worry", "fear" belong in Atmosphere & Affect).
-   - Special rule: If a "center" (circle/mandala/core) increases agitation, fatigue, tightening, or loss of balance, describe it as a contested/unstable center (edited-over, untrustworthy, not-yet-inhabitable) rather than a soothing organizing center.
+   - Special rule: If a "center" (circle/mandala/core) produces agitation + loss of coherence (wobble, disorientation, giving-way ground), describe it as a contested/unstable center (edited-over, untrustworthy, not-yet-inhabitable). If the center intensifies affect but the dream moves toward coherence, Self may apply.
 
 3. **Relational Field** — include ONLY if:
    - There are at least two figures (human/animal/presence), AND
@@ -654,13 +655,13 @@ Alternative reading rules:
    - Include ONLY when at least one archetype is unmistakably active through clear symbolic behavior or numinous charge — not just because a shadow-like figure or animal appears. Omit if the archetype label would feel like an interpretive overlay rather than clearly dream-evident. If in doubt, omit this section entirely.
    - Use only: ${ARCHETYPE_WHITELIST.join(', ')}
    - Always follow label with plain-language descriptor. For Shadow: frame as unintegrated intensity or charge, not negative content (e.g., "Shadow — unintegrated charge around X").
-   - SPECIAL RULE FOR "Self": Self symbols are rare. Only include "Self" if there is a strong centering/ordering symbol or numinous organizing force (mandala/circle center, radiant fire/stone, axis/tree, sacred child as center, unifying third, explicit wholeness motif). If a mandala/circle-like center increases agitation, bodily tightening, confusion, or loss of balance, treat it as a contested/false center and avoid labeling it as Self. If uncertain, omit "Self".
+   - SPECIAL RULE FOR "Self": Self symbols are rare. Only include "Self" if there is a strong centering/ordering symbol or numinous organizing force (mandala/circle center, radiant fire/stone, axis/tree, sacred child as center, unifying third, explicit wholeness motif) AND the dream as a whole moves toward coherence — even if the center initially intensifies affect. If agitation + loss of coherence (wobble, disorientation, giving-way ground), treat it as a contested/false center and avoid labeling it as Self. If uncertain, omit "Self".
    - Do NOT introduce Anima/Animus unless evidenced by a clear figure or a distinct inner judging/commentary dynamic in the dream.
    - Do NOT include modern system archetypes (Explorer, Sage, Warrior, etc.) unless there is explicit behavior in the dream showing that function in action.
 
 **Decision-Edge** — include ONLY if the dream clearly presents a fork (continue vs rupture, comply vs insist, merge vs separate). Otherwise omit. If included: 1 bullet naming the two symbolic pulls and what each protects or risks, without advising.
 
-**Amplification** (include in ~50% of dreams if at least one symbol has potential mythic/embodied resonance; max 1–2 sentences total)
+**Amplification** (include in ~50% of dreams if at least one symbol has potential mythic/embodied resonance; max 1 sentence)
 - Offer brief echo/resonance of the image in plain psychological language, without claiming identity with a myth or figure.
 - Frame as: "The [image] carries echoes of untamed vitality that arrives suddenly, inviting both dissolution of boundaries and renewed aliveness — a surge that can overwhelm or liberate depending on the embrace."
 - Weave in ONE concrete dream detail and ONE brief parallel (e.g. big cats as carriers of ecstatic instinct in ancient imagery, without naming gods); no parentheses.
@@ -671,7 +672,7 @@ Alternative reading rules:
    - If there is no Felt Sense Anchor: first question somatic-observational; second symbolic/relational.
    - If there is an Anchor: both questions can be somatic and/or symbolic; keep observational, never directive.
    - Avoid therapeutic framing; questions should deepen symbolic reflection, not regulation.
-   - ✅ "What happens in your chest when you picture the mask?"
+   - ✅ "As you bring the mask to mind, what shifts in chest/belly?" / "When the mask comes back, where does the body register it first?"
    - ❌ "Take a breath and notice…" / "Try to sit with…"
 
 Formatting: No more than 2 consecutive paragraphs anywhere. Prefer bullets over paragraphs. Avoid parentheses for evidence or citations—weave dream details into the sentence or add them at the end of a bullet (e.g. after a dash or comma). Keep a clean, flowing look.
@@ -683,17 +684,72 @@ Use ## for section headings:
 ## Relational Field (only if ≥2 figures and clear regulation)
 ## Archetypal Dynamics (only if 0–4 clearly active)
 ## Decision-Edge (only if dream presents a fork)
-## Amplification (in ~50% of dreams when a symbol has potential mythic/embodied resonance; max 1–2 sentences)
+## Amplification (in ~50% of dreams when a symbol has potential mythic/embodied resonance; max 1 sentence)
 ## Reflective Questions (always 2)
 
 Length: Aim for 150–300 words. Prefer 2–3 symbols and 0–4 archetypes when clearly active. If in doubt, omit a section.
 Never repeat the same verb of psychic action more than once in the whole response (e.g. if you use "stabilizes" once, choose a different verb elsewhere).
 `;
 
-// Advanced tier: extended amplification, motif tracking, 400–700 words
-const ADVANCED_INTERPRETATION_ADDON = `
-Additional advanced instructions (Deeper Dive mode):
-- Expand Amplification to 2–4 items when mythic/embodied charge is strong; keep each to one sentence.
+// Advanced tier — Myth OFF: functional amplification only (no mythic language)
+const ADVANCED_ADDON_MYTH_OFF = `
+Additional advanced instructions (Deeper Dive mode — functional amplification only):
+
+## Amplification (Advanced only — Non-mythic)
+- Functional / psychological amplification only. Explain what a symbol DOES to psychic organization (tension, containment, permission, inhibition, vitality).
+- RARE / OPTIONAL. Include only when a symbol has strong embodied charge — 0–1 sentence max.
+- Keep it psychological and concrete. No folklore, ritual, cosmic, or mythic framing.
+- Hypothetical language only. Anchor to one concrete dream detail.
+- Omit entirely if it would be thin or repetitive. When in doubt, omit.
+
+- If dream history or recurring motifs are evident, note 1–2 brief echoes (e.g. "this motif echoes in previous dreams") without lengthy comparison.
+- Aim for 400–700 words total. All other rules (hypothetical, cite details, verbs of action, no advice, same language as dream) still apply.
+`;
+
+// Advanced tier — Myth ON: mythic resonance (strict gating — myth is revealed, not added)
+const ADVANCED_ADDON_MYTH_ON = `
+Additional advanced instructions (Deeper Dive mode — mythic resonance):
+
+Mythic Resonance Rule (Advanced mode only):
+
+Mythic language is NOT a feature to be added. It is a phenomenon that may appear ONLY when clearly evoked by the dream itself.
+
+You must distinguish strictly between:
+1) Functional / psychological amplification — explains what a symbol DOES to psychic organization (tension, containment, permission, inhibition, vitality). This is the baseline. Include it when a symbol has embodied charge.
+2) Mythic resonance — archetypal, ritual, or timeless echoes that arise spontaneously from the dream image itself. Add ONLY when the dream clearly carries it.
+
+CRITICAL RULES:
+
+- Do NOT introduce mythic, ritual, cosmic, or symbolic universals unless the dream image already carries:
+  • strong numinosity
+  • threshold or ordeal structure
+  • silence, gaze, stillness, or ritualized encounter
+  • non-personal intensity (not just emotional tension)
+  • an image that feels timeless rather than situational
+
+- If such mythic charge is NOT clearly present in the dream:
+  → write amplification ONLY in functional, psychological language
+  → the output must be identical to what you would write with Mythic Resonance OFF
+
+- If mythic resonance IS present:
+  → include at most 1–2 sentences
+  → frame it as an echo, not a claim
+  → never name gods, myths, or spiritual systems
+  → never imply destiny, awakening, or higher truth
+
+- If uncertain whether mythic resonance applies:
+  → OMIT mythic language entirely
+
+ABSOLUTE PROHIBITIONS:
+- No forced symbolism
+- No ritual language unless earned by the image
+- No elevation of ordinary tension into myth
+- No spiritual framing of containment, avoidance, or inhibition
+
+Principle: Myth is revealed, not added. When myth is absent, the analysis must remain identical whether Mythic Resonance is ON or OFF.
+
+If mythic language appears in a dream without clear mythic evidence, this is considered an error of interpretation.
+
 - If dream history or recurring motifs are evident, note 1–2 brief echoes (e.g. "this motif echoes in previous dreams") without lengthy comparison.
 - Aim for 400–700 words total. All other rules (hypothetical, cite details, verbs of action, no advice, same language as dream) still apply.
 `;
@@ -705,6 +761,8 @@ export type GenerateInitialInterpretationOptions = {
   brief?: boolean;
   /** Level of analysis: quick (80–180 words), standard (150–350), advanced (400–700). Default standard. */
   depth?: InterpretationDepth;
+  /** When depth is advanced: if true, use mythic resonance in amplification; if false, use psychological (non-mythic). Ignored for quick/standard. */
+  mythicResonance?: boolean;
   /** If provided, used for core_mode heading and no extraction API call is made inside (avoids duplicate call). Caller reuses this same extraction for saving symbols/archetypes/etc. — no data loss. */
   extraction?: DreamExtraction;
 };
@@ -750,6 +808,7 @@ export const generateInitialInterpretation = async (
   
   const coreModeLine = `Extracted core_mode: ${extractedCoreMode || 'Core State'}`;
   const depth = options?.depth ?? (options?.brief ? 'quick' : 'standard');
+  const mythicResonance = options?.mythicResonance ?? false;
 
   const forcedModeInstruction = extractedCoreMode
     ? `\n\nYou MUST use ## ${extractedCoreMode} as the very first heading. Do NOT choose a different mode even if you disagree. Defer to the extracted mode for consistency.`
@@ -793,7 +852,8 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
   if (depth === 'quick') {
     formatPrompt = BRIEF_INTERPRETATION_FORMAT_PROMPT;
   } else if (depth === 'advanced') {
-    formatPrompt = INTERPRETATION_FORMAT_PROMPT + ADVANCED_INTERPRETATION_ADDON;
+    const advancedAddon = mythicResonance ? ADVANCED_ADDON_MYTH_ON : ADVANCED_ADDON_MYTH_OFF;
+    formatPrompt = INTERPRETATION_FORMAT_PROMPT + advancedAddon;
   } else {
     formatPrompt = INTERPRETATION_FORMAT_PROMPT;
   }
@@ -917,10 +977,17 @@ Content: ${dreamExcerpt}`;
 
   // Trim conversation history to prevent context bloat
   const trimmedHistory = trimConversationHistory(conversationHistory);
+  const assistantCount = trimmedHistory.filter(m => m.role === 'assistant').length;
+  const isFinalResponse = assistantCount === MAX_AI_RESPONSES - 1;
+
+  const finalResponseInstruction = isFinalResponse
+    ? `Important: No more follow-ups. This is your final response. Conclude the reflection without inviting further questions. Do not end with a question or prompts like "Do you have any questions?" or "What would you like to explore?". Wrap up with a closing insight or affirmation instead.`
+    : null;
 
   const messages: ApiMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
     { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
+    ...(finalResponseInstruction ? [{ role: 'system' as const, content: finalResponseInstruction }] : []),
     { role: 'system', content: dreamContext },
     ...trimmedHistory.map(msg => ({
       role: msg.role as 'user' | 'assistant',
@@ -1424,7 +1491,8 @@ export type PatternInsightDreamEntry = {
 
 export const generatePatternInsights = async (
   dreamAnalyses: PatternInsightDreamEntry[],
-  period: 'monthly' | 'quarterly' = 'monthly'
+  period: 'monthly' | 'quarterly' = 'monthly',
+  language: string = 'en'
 ): Promise<string> => {
   if (dreamAnalyses.length === 0) {
     return 'No interpreted dreams in this period. Interpret 2–3 dreams this month to unlock a reflection on patterns.';
@@ -1450,6 +1518,14 @@ Amplifications: ${(d.extracted.amplifications ?? []).join('; ') || '(none)'}
     )
     .join('\n');
 
+  const langNames: Record<string, string> = {
+    el: 'Greek (Ελληνικά)', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
+    pt: 'Portuguese', nl: 'Dutch', pl: 'Polish', ru: 'Russian', ja: 'Japanese', zh: 'Chinese',
+  };
+  const langInstruction = language === 'en'
+    ? ''
+    : `\n\nIMPORTANT: Write the entire reflection in ${langNames[language] ?? `the language with ISO 639-1 code "${language}"`}. All section headings and body text must be in that language.`;
+
   const userPrompt = `You are reviewing dream patterns over a ${period} period.
 
 Here are extracted elements from recent dreams:
@@ -1458,7 +1534,7 @@ ${context}
 
 Provide a short, hypothetical reflection (150–250 words) on emerging patterns.
 Use the structure: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
-Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no advice.`;
+Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no advice.${langInstruction}`;
 
   const { requestId, model } = startRequest();
 

@@ -448,4 +448,56 @@ export async function remoteSetBiometricEnabled(enabled: boolean): Promise<void>
   await remoteSetBiometricEnabledForUser(userId, enabled);
 }
 
+// --- User settings: mythic_resonance (Advanced/Deeper Dive only) ---
 
+export async function remoteGetMythicResonance(): Promise<{ value: boolean; updated_at: string } | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('mythic_resonance, updated_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) {
+    logError('remote_get_mythic_resonance_error', error);
+    return null;
+  }
+  const row = data as { mythic_resonance: boolean; updated_at: string } | null;
+  if (!row) return null;
+  return { value: row.mythic_resonance ?? false, updated_at: row.updated_at ?? '' };
+}
+
+/**
+ * Set mythic_resonance. Returns canonical updated_at from server (re-read after upsert)
+ * so local can store the real server time — avoids edge cases if server overrides our timestamp.
+ */
+export async function remoteSetMythicResonance(enabled: boolean): Promise<string | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { error } = await supabase.from('user_settings').upsert(
+    {
+      user_id: userId,
+      mythic_resonance: enabled,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (error) {
+    logError('remote_set_mythic_resonance_error', error, { enabled });
+    return null;
+  }
+  logEvent('remote_set_mythic_resonance_success', { enabled });
+
+  // Re-read to get canonical server updated_at (handles triggers, server-generated timestamps)
+  const { data } = await supabase
+    .from('user_settings')
+    .select('updated_at')
+    .eq('user_id', userId)
+    .single();
+
+  return (data as { updated_at: string } | null)?.updated_at ?? null;
+}

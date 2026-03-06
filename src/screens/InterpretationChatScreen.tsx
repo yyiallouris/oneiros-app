@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -24,9 +24,10 @@ import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import { generateInitialInterpretation, sendChatMessage, extractSymbolsAndArchetypes, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
-import { getInterpretationDepth } from '../services/userSettingsService';
+import { generateInitialInterpretation, sendChatMessage, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
+import { getInterpretationDepth, getMythicResonance } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
+import { MAX_AI_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 
@@ -65,6 +66,7 @@ interface ChatBubbleProps {
   isUser: boolean;
   isTyping?: boolean;
   onTypingComplete?: () => void;
+  showSettleFooter?: boolean;
 }
 
 // Helper function to format markdown text for better display
@@ -247,7 +249,9 @@ const FormattedMessageText: React.FC<{ text: string; isUser: boolean }> = ({ tex
   );
 };
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete }) => {
+const SETTLE_FOOTER = 'This feels like a good point to pause and let the dream settle.\nYou can return tomorrow, or begin a new reflection.';
+
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete, showSettleFooter = false }) => {
   const handleCopy = () => {
     try {
       if (Clipboard && Clipboard.setString) {
@@ -271,7 +275,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
             style={[styles.messageText, isUser && styles.userMessageText]}
           />
         ) : (
-          <FormattedMessageText text={message.content} isUser={isUser} />
+          <>
+            <FormattedMessageText text={message.content} isUser={isUser} />
+            {showSettleFooter && (
+              <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
+            )}
+          </>
         )}
         {!isUser && !isTyping && (
           <TouchableOpacity 
@@ -303,6 +312,7 @@ const InterpretationChatScreen: React.FC = () => {
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+  const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -374,15 +384,17 @@ const InterpretationChatScreen: React.FC = () => {
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
       const depth = await getInterpretationDepth();
-      // Single extraction call: reuse for interpretation (core_mode) and saving
-      let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>> | null;
+      // Extraction required — no fallback; on failure show error and stop
+      let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
       try {
         structured = await extractDreamSymbolsAndArchetypes(dreamData);
       } catch {
-        structured = null;
+        Alert.alert('Network error', 'Please check your connection and try again.');
+        return;
       }
 
-      const aiResponse = await generateInitialInterpretation(dreamData, { depth, extraction: structured ?? undefined });
+      const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
+      const aiResponse = await generateInitialInterpretation(dreamData, { depth, mythicResonance, extraction: structured });
       console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
 
       const aiMessage: ChatMessage = {
@@ -392,34 +404,15 @@ const InterpretationChatScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      const proseExtracted = extractSymbolsAndArchetypes(aiResponse);
-      let symbols: string[] = proseExtracted.symbols;
-      let landscapes: string[] = proseExtracted.landscapes ?? [];
-      let archetypes: string[] = [];
-      let affects: string[] = [];
-      let motifs: string[] = [];
-      let relational_dynamics: string[] = [];
-      let core_mode: string | undefined;
-      let amplifications: string[] = [];
-      let symbol_stances: { symbol: string; stance: string }[] = [];
-
-      if (structured) {
-        archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-        if (proseExtracted.symbols.length <= 2 && structured.symbols?.length > symbols.length) {
-          symbols = structured.symbols;
-          landscapes = structured.landscapes ?? landscapes;
-        } else if (structured.landscapes?.length) {
-          landscapes = structured.landscapes;
-        }
-        affects = structured.affects ?? [];
-        motifs = structured.motifs ?? [];
-        relational_dynamics = structured.relational_dynamics ?? [];
-        core_mode = structured.core_mode?.trim() || undefined;
-        amplifications = structured.amplifications ?? [];
-        symbol_stances = structured.symbol_stances ?? [];
-      } else {
-        archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse);
-      }
+      const symbols = structured.symbols ?? [];
+      const landscapes = structured.landscapes ?? [];
+      const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
+      const affects = structured.affects ?? [];
+      const motifs = structured.motifs ?? [];
+      const relational_dynamics = structured.relational_dynamics ?? [];
+      const core_mode = structured.core_mode?.trim() || undefined;
+      const amplifications = structured.amplifications ?? [];
+      const symbol_stances = structured.symbol_stances ?? [];
 
       if (__DEV__) {
         console.log('[DreamInterpretation] Extracted (chat):', {
@@ -464,8 +457,14 @@ const InterpretationChatScreen: React.FC = () => {
     }
   };
 
+  const assistantMessages = useMemo(() => messages.filter((m) => m.role === 'assistant'), [messages]);
+  const assistantCount = assistantMessages.length;
+  const lastAssistant = assistantMessages[assistantMessages.length - 1] ?? null;
+  const reflectionLimitReached = assistantCount >= MAX_AI_RESPONSES;
+
   const handleSendMessage = async () => {
     if (!inputText.trim() || !dream || !interpretation || isLoading) return;
+    if (reflectionLimitReached) return;
 
     // Check if online before proceeding
     const online = await isOnline();
@@ -608,18 +607,25 @@ const InterpretationChatScreen: React.FC = () => {
         ref={flatListRef}
         data={messages}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ChatBubble 
-            message={item} 
-            isUser={item.role === 'user'} 
-            isTyping={typingMessageId === item.id}
-            onTypingComplete={() => {
-              if (typingMessageId === item.id) {
-                setTypingMessageId(null);
-              }
-            }}
-          />
-        )}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        renderItem={({ item }) => {
+          const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
+          return (
+            <ChatBubble
+              message={item}
+              isUser={item.role === 'user'}
+              isTyping={typingMessageId === item.id}
+              onTypingComplete={() => {
+                if (typingMessageId === item.id) {
+                  setTypingMessageId(null);
+                }
+              }}
+              showSettleFooter={!!isLastAssistantAtLimit}
+            />
+          );
+        }}
         contentContainerStyle={styles.chatContent}
         showsVerticalScrollIndicator={false}
         onScroll={(event) => {
@@ -668,8 +674,26 @@ const InterpretationChatScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Input Bar */}
-      <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
+      {/* Limit message — appears when user taps the disabled input to try to write */}
+      {reflectionLimitReached && showLimitMessageOnTap && (
+        <View style={styles.limitReachedContainer}>
+          <Text style={styles.limitReachedText}>
+            This reflection has reached its natural depth.
+            You can continue tomorrow or start a new dream.
+          </Text>
+        </View>
+      )}
+
+      {/* Input Bar — always visible; when at limit: disabled, greyed out, tappable to show message */}
+      <TouchableOpacity
+        style={[
+          styles.inputContainer,
+          { paddingBottom: Math.max(insets.bottom, spacing.md) },
+          reflectionLimitReached && styles.inputContainerDisabled,
+        ]}
+        activeOpacity={reflectionLimitReached ? 0.9 : 1}
+        onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : undefined}
+      >
         <TextInput
           style={styles.input}
           placeholder="Ask a question..."
@@ -678,18 +702,20 @@ const InterpretationChatScreen: React.FC = () => {
           onChangeText={setInputText}
           multiline
           maxLength={500}
+          editable={!reflectionLimitReached}
+          pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
         />
         <View style={styles.inputActions}>
           <VoiceRecordButton
             onTranscriptionComplete={(text) => {
               setInputText((prev) => (prev ? `${prev} ${text}` : text));
             }}
-            disabled={isLoading}
+            disabled={isLoading || reflectionLimitReached}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
-            onPress={handleSendMessage}
-            disabled={!inputText.trim() || isLoading}
+            style={[styles.sendButton, (!inputText.trim() || isLoading || reflectionLimitReached) && styles.sendButtonDisabled]}
+            onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
+            disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
           >
             {isLoading ? (
               <ActivityIndicator size="small" color={colors.white} />
@@ -698,7 +724,7 @@ const InterpretationChatScreen: React.FC = () => {
             )}
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 };
@@ -779,6 +805,29 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md, // Same size as regular text
     color: colors.textPrimary, // Inherit color from parent
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed, // Same line height
+  },
+  settleFooter: {
+    marginTop: spacing.md,
+    fontSize: typography.sizes.sm,
+    fontStyle: 'italic',
+    color: colors.textMuted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  limitReachedContainer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.cardBackground,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  limitReachedText: {
+    fontSize: typography.sizes.sm,
+    fontStyle: 'italic',
+    color: colors.textMuted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  inputContainerDisabled: {
+    opacity: 0.5,
   },
   userMessageText: {
     color: colors.white,

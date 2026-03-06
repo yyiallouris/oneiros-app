@@ -15,4 +15,6 @@ export { StarsAppearing } from './StarsAppearing';
 export { OracleGlyph } from './OracleGlyph';
 export { PrintPatchLoader } from './AbstractPrintTexture';
 export { LinoSkeletonCard } from './LinoSkeletonCard';
+export { SectionTitleWithInfo } from './SectionTitleWithInfo';
+export { SymbolInfoModal } from './SymbolInfoModal';
 

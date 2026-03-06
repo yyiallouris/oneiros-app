@@ -1,10 +1,9 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Dimensions,
   ViewToken,
 } from 'react-native';
@@ -32,10 +31,13 @@ const JOURNEY_SECTIONS: InsightsSectionId[] = [
 const InsightsJourneyScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
   const route = useRoute<JourneyRoute>();
-  const period: InsightsPeriod | undefined =
-    route.params?.periodStart != null && route.params?.periodEnd != null
-      ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
-      : undefined;
+  const period: InsightsPeriod | undefined = useMemo(
+    () =>
+      route.params?.periodStart != null && route.params?.periodEnd != null
+        ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
+        : undefined,
+    [route.params?.periodStart, route.params?.periodEnd]
+  );
   const periodLabel = route.params?.periodLabel ?? '';
   const initialSectionId = route.params?.initialSectionId;
   const initialIndex = initialSectionId != null
@@ -46,14 +48,6 @@ const InsightsJourneyScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(safeInitialIndex);
   const flatListRef = useRef<FlatList>(null);
 
-  useEffect(() => {
-    if (flatListRef.current == null) return;
-    flatListRef.current.scrollToOffset({
-      offset: SCREEN_WIDTH * safeInitialIndex,
-      animated: false,
-    });
-  }, [safeInitialIndex]);
-
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       const item = viewableItems[0];
@@ -63,7 +57,7 @@ const InsightsJourneyScreen: React.FC = () => {
     []
   );
 
-  const viewabilityConfig = { viewAreaCoveragePercentThreshold: 80 };
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 80 }).current;
 
 
   const renderPage = useCallback(
@@ -84,14 +78,7 @@ const InsightsJourneyScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Text style={styles.headerBackLabel}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Dream patterns</Text>
-        <View style={styles.ambientToggle} />
-      </View>
+      <MountainWaveBackground height={260} lite />
       <View style={styles.dots}>
         {JOURNEY_SECTIONS.map((id, i) => (
           <View
@@ -118,6 +105,12 @@ const InsightsJourneyScreen: React.FC = () => {
           offset: SCREEN_WIDTH * index,
           index,
         })}
+        initialScrollIndex={safeInitialIndex}
+        initialNumToRender={Math.max(1, safeInitialIndex + 1)}
+        maxToRenderPerBatch={1}
+        windowSize={2}
+        removeClippedSubviews={false}
+        decelerationRate="fast"
       />
       <View style={styles.caption}>
         <Text style={styles.captionText} numberOfLines={1}>
@@ -132,42 +125,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  headerBack: {
-    padding: spacing.xs,
-  },
-  headerBackLabel: {
-    fontSize: typography.sizes.lg,
-    color: colors.buttonPrimary,
-    fontWeight: typography.weights.semibold,
-  },
-  headerTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.textPrimary,
-  },
-  ambientToggle: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  ambientToggleOn: {
-    backgroundColor: colors.buttonPrimaryLight,
-    borderColor: colors.buttonPrimary,
-  },
-  ambientLabel: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
   },
   dots: {
     flexDirection: 'row',

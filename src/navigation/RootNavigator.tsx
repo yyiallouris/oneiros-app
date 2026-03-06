@@ -53,25 +53,25 @@ export const RootNavigator: React.FC = () => {
     let mounted = true;
 
     const init = async () => {
-      // Initialize storage service (checks for user changes, clears data if needed)
-      await StorageService.initialize();
-
-      // Process auth deep link on cold start (magic link / reset password open the app;
-      // getInitialURL() is often null or delayed on Android, so retry several times)
-      for (const delayMs of [0, 300, 800, 1500]) {
-        if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
-        const initialUrl = await Linking.getInitialURL();
-        console.log('[RootNavigator] getInitialURL (attempt, delay=' + delayMs + 'ms):', redactAuthUrl(initialUrl));
-        if (initialUrl?.startsWith('oneiros-dream-journal://')) {
-          console.log('[RootNavigator] Processing initial auth URL on cold start');
-          const result = await processAuthDeepLink(initialUrl);
-          if (result.handled) {
-            console.log('[RootNavigator] Auth URL handled successfully', result.isRecovery ? '(recovery)' : '');
-            break;
+      // Run storage init and deep link processing in parallel for faster first paint
+      const processDeepLink = async () => {
+        for (const delayMs of [0, 300, 800, 1500]) {
+          if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+          const initialUrl = await Linking.getInitialURL();
+          console.log('[RootNavigator] getInitialURL (attempt, delay=' + delayMs + 'ms):', redactAuthUrl(initialUrl));
+          if (initialUrl?.startsWith('oneiros-dream-journal://')) {
+            console.log('[RootNavigator] Processing initial auth URL on cold start');
+            const result = await processAuthDeepLink(initialUrl);
+            if (result.handled) {
+              console.log('[RootNavigator] Auth URL handled successfully', result.isRecovery ? '(recovery)' : '');
+              break;
+            }
+            console.warn('[RootNavigator] Auth URL not handled (wrong format or error)');
           }
-          console.warn('[RootNavigator] Auth URL not handled (wrong format or error)');
         }
-      }
+      };
+
+      await Promise.all([StorageService.initialize(), processDeepLink()]);
 
       const { data } = await supabase.auth.getSession();
       if (mounted) {
@@ -93,6 +93,18 @@ export const RootNavigator: React.FC = () => {
       data: { subscription },
     } =     supabase.auth.onAuthStateChange(async (event, newSession) => {
       const previousSession = previousSessionRef.current;
+
+      // CRITICAL: Preserve session when offline - Supabase clears session on token refresh failure
+      // when network is unavailable (known issue: supabase/auth-js#141). Don't kick user to login.
+      if (!newSession && previousSession) {
+        const online = await isOnline();
+        if (!online) {
+          console.log('[RootNavigator] Session null but offline - preserving session to avoid login redirect');
+          previousSessionRef.current = previousSession;
+          return;
+        }
+      }
+
       previousSessionRef.current = newSession;
 
       // CRITICAL: Update UI state immediately so user sees correct screen (SetPassword/MainTabs)
@@ -435,7 +447,14 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen
           name="InsightsJourney"
           component={InsightsJourneyScreen}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: true,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.buttonPrimary,
+            headerTitle: 'Insights',
+            headerBackTitle: 'Back',
+          }}
         />
         <Stack.Screen
           name="JournalFilter"
