@@ -125,3 +125,68 @@ export function formatMonthKeyLabel(monthKey: string): string {
     'July', 'August', 'September', 'October', 'November', 'December'];
   return `${months[m - 1]} ${y}`;
 }
+
+/**
+ * Week number (1–5) for a given day of month. Week 1 = days 1–7, Week 2 = 8–14, etc.
+ */
+export function getWeekNumOfMonth(dayOfMonth: number): number {
+  return Math.ceil(dayOfMonth / 7);
+}
+
+/**
+ * Current month as YYYY-MM.
+ */
+export function getCurrentMonthKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Whether the first week of the current month is finished (day 8 or later).
+ * Used to block pattern generation for current month until at least 7 days have passed.
+ */
+export function isFirstWeekOfMonthFinished(monthKey: string): boolean {
+  if (monthKey !== getCurrentMonthKey()) return true; // Past months: always "finished"
+  return new Date().getDate() >= 8;
+}
+
+/**
+ * Report key for generation: for current month use week key (YYYY-MM-Wk), for past months use month key (YYYY-MM).
+ */
+export function getReportKeyForGeneration(monthKey: string): string {
+  if (monthKey !== getCurrentMonthKey()) return monthKey;
+  const weekNum = getWeekNumOfMonth(new Date().getDate());
+  return `${monthKey}-W${weekNum}`;
+}
+
+/**
+ * Period for a specific week of a month. Week 1 = days 1–7, Week 2 = 8–14, etc.
+ */
+export function getWeekPeriod(monthKey: string, weekNum: number): InsightsPeriod {
+  const [y, m] = monthKey.split('-').map(Number);
+  const startDay = (weekNum - 1) * 7 + 1;
+  const endDay = Math.min(weekNum * 7, new Date(y, m, 0).getDate());
+  const startDate = `${monthKey}-${String(startDay).padStart(2, '0')}`;
+  const endDate = `${monthKey}-${String(endDay).padStart(2, '0')}`;
+  return { startDate, endDate };
+}
+
+/**
+ * Format report key for display. "2025-03-W2" -> "March 2025 (Week 2)", "2025-02" -> "February 2025".
+ */
+export function formatReportKeyLabel(reportKey: string): string {
+  const weekMatch = reportKey.match(/^(\d{4}-\d{2})-W(\d)$/);
+  if (weekMatch) {
+    const [, monthKey, weekNum] = weekMatch;
+    return `${formatMonthKeyLabel(monthKey)} (Week ${weekNum})`;
+  }
+  return formatMonthKeyLabel(reportKey);
+}
+
+/**
+ * Format report key for essay title (month only, no week). "2025-03-W3" -> "March 2025".
+ */
+export function formatReportKeyLabelForEssay(reportKey: string): string {
+  const monthKey = reportKey.replace(/-W\d$/, '') || reportKey;
+  return formatMonthKeyLabel(monthKey);
+}

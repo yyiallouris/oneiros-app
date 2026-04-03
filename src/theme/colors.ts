@@ -49,6 +49,12 @@ export const text = {
   onAccent: baseColors.white, // Text on accent backgrounds
 } as const;
 
+// ==================== TAB BAR COLORS ====================
+export const tabBar = {
+  iconActive: '#6F52C8',   // Active tab icon
+  iconInactive: '#5F5753', // Inactive tab icon
+} as const;
+
 // ==================== ACCENT COLORS ====================
 // Primary action color: buttons, tabs, microphone, calendar icon, sidebar, toggles, chips.
 // Change buttonPrimary here to update all of them.
@@ -177,6 +183,10 @@ export const colors = {
   textSecondary: text.secondary,
   textMuted: text.muted,
   
+  // Tab bar icon colors
+  tabIconActive: tabBar.iconActive,
+  tabIconInactive: tabBar.iconInactive,
+
   // Accent & Buttons (primary action = buttonPrimary everywhere)
   accent: accent.primary,
   accentLight: accent.light,

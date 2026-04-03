@@ -37,6 +37,12 @@ export interface LandscapeCount {
   count: number;
 }
 
+export interface MotifCount {
+  name: string;
+  normalizedKey: string;
+  count: number;
+}
+
 /** Monthly symbolic overview – short reflective text (no advice) */
 export interface MonthlyOverview {
   month: string;
@@ -62,6 +68,7 @@ export type InsightsSectionId =
   | 'recurring-symbols'   // overview: bars + 1 line + View symbol details
   | 'symbol-details'     // deep dive: recurring symbols, clusters, all symbols
   | 'recurring-archetypes'
+  | 'symbolic-motifs'    // recurring structural/spatial patterns from dreams
   | 'space-landscapes'   // recurring settings/places (e.g. forest, beach)
   | 'pattern-recognition' // AI-generated monthly/quarterly pattern insights
   | 'collective';

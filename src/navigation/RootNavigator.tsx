@@ -14,6 +14,8 @@ import SetPasswordScreen from '../screens/SetPasswordScreen';
 import BiometricLockScreen from '../screens/BiometricLockScreen';
 import { isBiometricEnabled, syncBiometricFromRemote } from '../services/biometricAuthService';
 import AccountScreen from '../screens/AccountScreen';
+import OnboardingNavigator from './OnboardingNavigator';
+import { hasCompletedOnboarding } from '../services/onboardingService';
 import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
 import ContactScreen from '../screens/ContactScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
@@ -46,6 +48,7 @@ export const RootNavigator: React.FC = () => {
   const [pendingPasswordReset, setPendingPasswordReset] = useState(false);
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
   const [biometricUnlocked, setBiometricUnlocked] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const previousSessionRef = useRef<Session | null>(null);
   const wasOfflineRef = useRef<boolean>(false);
 
@@ -82,6 +85,10 @@ export const RootNavigator: React.FC = () => {
           setPendingPasswordReset(pending === 'true');
           const lockEnabled = await syncBiometricFromRemote();
           setBiometricLockEnabled(lockEnabled);
+          const completed = await hasCompletedOnboarding();
+          setOnboardingCompleted(completed);
+        } else {
+          setOnboardingCompleted(null);
         }
         setIsLoading(false);
       }
@@ -113,10 +120,12 @@ export const RootNavigator: React.FC = () => {
         const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
         setPendingPasswordReset(pending === 'true');
         syncBiometricFromRemote().then(setBiometricLockEnabled);
+        hasCompletedOnboarding().then(setOnboardingCompleted);
       } else {
         setPendingPasswordReset(false);
         setBiometricLockEnabled(false);
         setBiometricUnlocked(false);
+        setOnboardingCompleted(null);
       }
       setSession(newSession);
 
@@ -197,6 +206,7 @@ export const RootNavigator: React.FC = () => {
       if (previousSession && newSession && previousSession.user.id !== newSession.user.id) {
         console.log('[RootNavigator] User changed, re-initializing storage');
         StorageService.initialize().catch((err) => console.error('[RootNavigator] Re-init failed:', err));
+        hasCompletedOnboarding().then(setOnboardingCompleted);
       }
     });
 
@@ -348,6 +358,14 @@ export const RootNavigator: React.FC = () => {
                 <Stack.Screen name="BiometricLock" component={BiometricLockScreen} />
                 <Stack.Screen name="LoginSupport" component={LoginSupportScreen} />
               </>
+            ) : onboardingCompleted === false ? (
+              <Stack.Screen name="Onboarding">
+                {() => (
+                  <OnboardingNavigator
+                    onComplete={() => setOnboardingCompleted(true)}
+                  />
+                )}
+              </Stack.Screen>
             ) : (
               <Stack.Screen name="MainTabs" component={MainTabsNavigator} />
             )}
@@ -433,13 +451,19 @@ export const RootNavigator: React.FC = () => {
           component={InsightsSectionScreen}
           options={({ route }) => {
             const p = route.params as { sectionId?: InsightsSectionId; periodLabel?: string };
-            const baseTitle = p?.sectionId ? (INSIGHTS_SECTION_TITLES[p.sectionId] ?? 'Insights') : 'Insights';
-            const title = p?.periodLabel ? `${baseTitle} (${p.periodLabel})` : baseTitle;
+            // Pattern recognition opens standalone; use "Insights" for consistency with carousel (no period in header)
+            const baseTitle = p?.sectionId === 'pattern-recognition'
+              ? 'Insights'
+              : (p?.sectionId ? (INSIGHTS_SECTION_TITLES[p.sectionId] ?? 'Insights') : 'Insights');
+            const title = (p?.sectionId === 'pattern-recognition' || !p?.periodLabel)
+              ? baseTitle
+              : `${baseTitle} (${p.periodLabel})`;
             return {
               headerShown: true,
               headerStyle: { backgroundColor: colors.background },
               headerShadowVisible: false,
               headerTintColor: colors.textPrimary,
+              headerTitleAlign: 'center',
               headerTitle: title,
             };
           }}
@@ -451,7 +475,8 @@ export const RootNavigator: React.FC = () => {
             headerShown: true,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
-            headerTintColor: colors.buttonPrimary,
+            headerTintColor: colors.textPrimary,
+            headerTitleAlign: 'center',
             headerTitle: 'Insights',
             headerBackTitle: 'Back',
           }}
@@ -460,8 +485,8 @@ export const RootNavigator: React.FC = () => {
           name="JournalFilter"
           component={JournalFilterScreen}
           options={({ route }) => {
-            const p = route.params as { filterSymbol?: string; filterLandscape?: string };
-            const title = p?.filterSymbol ? `Symbol: ${p.filterSymbol}` : p?.filterLandscape ? `Landscape: ${p.filterLandscape}` : 'Journal';
+            const p = route.params as { filterSymbol?: string; filterLandscape?: string; filterMotif?: string };
+            const title = p?.filterSymbol ? `Symbol: ${p.filterSymbol}` : p?.filterLandscape ? `Landscape: ${p.filterLandscape}` : p?.filterMotif ? `Motif: ${p.filterMotif}` : 'Journal';
             return {
               headerShown: true,
               headerStyle: { backgroundColor: colors.background },

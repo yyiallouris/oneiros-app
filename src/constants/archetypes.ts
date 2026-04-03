@@ -33,6 +33,7 @@ export const ARCHETYPE_WHITELIST = [
   'Queen',
   'Warrior',
   'Caregiver',
+  'Protector',
   'Innocent',
   'Explorer',
   'Creator',

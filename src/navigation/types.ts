@@ -1,11 +1,18 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 import type { InsightsSectionId } from '../types/insights';
 
+export type OnboardingStackParamList = {
+  OnboardingName: undefined;
+  OnboardingDepth: undefined;
+  OnboardingSecure: undefined;
+};
+
 export type RootStackParamList = {
   Auth: undefined;
   LoginSupport: undefined;
   SetPassword: undefined;
   BiometricLock: undefined;
+  Onboarding: undefined;
   MainTabs: NavigatorScreenParams<MainTabsParamList>;
   DreamEditor: { dreamId?: string; date?: string };
   InterpretationChat: { dreamId: string };
@@ -26,12 +33,12 @@ export type RootStackParamList = {
     periodEnd?: string;
     periodLabel?: string;
   };
-  JournalFilter: { filterSymbol?: string; filterLandscape?: string };
+  JournalFilter: { filterSymbol?: string; filterLandscape?: string; filterMotif?: string };
 };
 
 export type MainTabsParamList = {
   Write: undefined;
-  Journal: { filterSymbol?: string; filterLandscape?: string } | undefined;
+  Journal: { filterSymbol?: string; filterLandscape?: string; filterMotif?: string } | undefined;
   Insights: undefined;
 };
 

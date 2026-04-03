@@ -3,24 +3,127 @@
  * No meaning synthesis; frequency + reference to dreams only.
  */
 
+import pluralize from 'pluralize';
 import { StorageService } from './storageService';
 import { ARCHETYPE_WHITELIST, normalizeArchetype } from '../constants/archetypes';
 import { isExplicitSymbol, toSafeSymbolLabel } from '../constants/safeLabels';
+import { getSymbolGroupMap, getLandscapeGroupMap, getMotifGroupMap, applyGroupMap } from './symbolGroupingService';
 import type {
   SymbolCount,
   ArchetypeCount,
   LandscapeCount,
+  MotifCount,
   SymbolMonthCount,
   ArchetypeMonthCount,
   InsightsPeriod,
 } from '../types/insights';
 
-/** Normalize symbol for grouping: lowercase, trim, collapse spaces */
+const LEADING_ARTICLE_RE = /^(the|a|an)\s+/;
+
+/**
+ * Merge entries where all words of a shorter key appear in a longer key.
+ * Requires ≥2 words in the shorter key to avoid false positives on single-word symbols.
+ * Mutates the map in place.
+ */
+function mergeSubsetKeys(
+  byKey: Map<string, { count: number; displayName: string }>
+): void {
+  const entries = Array.from(byKey.entries()).map(([key, val]) => ({
+    key,
+    val,
+    words: key.split(/\s+/),
+  }));
+  entries.sort((a, b) => a.words.length - b.words.length);
+
+  const absorbed = new Set<string>();
+
+  for (let i = 0; i < entries.length; i++) {
+    const shorter = entries[i];
+    if (absorbed.has(shorter.key) || shorter.words.length < 2) continue;
+
+    for (let j = i + 1; j < entries.length; j++) {
+      const longer = entries[j];
+      if (absorbed.has(longer.key)) continue;
+
+      const allMatch = shorter.words.every((w) => longer.words.includes(w));
+      if (!allMatch) continue;
+
+      const target = byKey.get(shorter.key)!;
+      const source = byKey.get(longer.key)!;
+      if (source.count > target.count) {
+        target.displayName = source.displayName;
+      }
+      target.count += source.count;
+      byKey.delete(longer.key);
+      absorbed.add(longer.key);
+    }
+  }
+}
+
+/** Normalize symbol for grouping: lowercase, trim, strip leading articles, singularize */
 export function normalizeSymbolKey(raw: string): string {
-  return raw
+  const base = raw
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, ' ');
+    .replace(/\s+/g, ' ')
+    .replace(LEADING_ARTICLE_RE, '');
+  return pluralize.singular(base);
+}
+
+/** Normalize landscape for filtering (same pipeline as normalizeSymbolKey) */
+export function normalizeLandscapeKey(raw: string): string {
+  const base = raw
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(LEADING_ARTICLE_RE, '');
+  return pluralize.singular(base);
+}
+
+/**
+ * Returns true if a raw symbol string matches a filter key,
+ * using exact match OR word-set subset (same rule as mergeSubsetKeys).
+ */
+export function symbolKeyMatches(candidateRaw: string, filterKey: string): boolean {
+  const candidateKey = normalizeSymbolKey(candidateRaw);
+  if (candidateKey === filterKey) return true;
+
+  const candidateWords = candidateKey.split(/\s+/);
+  const filterWords = filterKey.split(/\s+/);
+  const [shorter, longer] =
+    candidateWords.length <= filterWords.length
+      ? [candidateWords, filterWords]
+      : [filterWords, candidateWords];
+
+  if (shorter.length < 2) return false;
+  return shorter.every((w) => longer.includes(w));
+}
+
+/**
+ * Returns true if a raw motif string matches a filter key,
+ * using exact match OR word-set subset (same pipeline as symbols).
+ */
+export function motifKeyMatches(candidateRaw: string, filterKey: string): boolean {
+  return symbolKeyMatches(candidateRaw, filterKey);
+}
+
+/**
+ * Returns true if a raw landscape string matches a filter key,
+ * using exact match OR word-set subset.
+ */
+export function landscapeKeyMatches(candidateRaw: string, filterKey: string): boolean {
+  const candidateKey = normalizeLandscapeKey(candidateRaw);
+  if (candidateKey === filterKey) return true;
+
+  const candidateWords = candidateKey.split(/\s+/);
+  const filterWords = filterKey.split(/\s+/);
+  const [shorter, longer] =
+    candidateWords.length <= filterWords.length
+      ? [candidateWords, filterWords]
+      : [filterWords, candidateWords];
+
+  if (shorter.length < 2) return false;
+  return shorter.every((w) => longer.includes(w));
 }
 
 /** Pick display name (first occurrence wins; we keep original casing from dreams) */
@@ -48,12 +151,24 @@ function dreamsInPeriod<T extends { date: string }>(dreams: T[], period: Insight
 /**
  * Recurring symbols (personal): aggregate across dreams/interpretations in optional period.
  * Count by normalized key, sort by frequency desc.
+ * AI groupings are computed from the GLOBAL symbol set so the cache is period-independent.
  */
 export async function getRecurringSymbols(period?: InsightsPeriod): Promise<SymbolCount[]> {
   const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+
+  // Collect global unique keys (all dreams) for stable AI grouping cache
+  const globalSymbolKeys = new Set<string>();
+  dreams.forEach((d) => d.symbols?.forEach((s) => {
+    const k = normalizeSymbolKey(s); if (k) globalSymbolKeys.add(k);
+  }));
+  interpretations.forEach((i) => i.symbols?.forEach((s) => {
+    const k = normalizeSymbolKey(s); if (k) globalSymbolKeys.add(k);
+  }));
+
+  // Period-filtered counts
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
-  const interpretations = await StorageService.getInterpretations();
   const byKey = new Map<string, { count: number; displayName: string }>();
 
   const addSymbol = (raw: string) => {
@@ -68,15 +183,14 @@ export async function getRecurringSymbols(period?: InsightsPeriod): Promise<Symb
     }
   };
 
-  filtered.forEach((d) => {
-    d.symbols?.forEach(addSymbol);
-  });
+  filtered.forEach((d) => d.symbols?.forEach(addSymbol));
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) {
-      i.symbols?.forEach(addSymbol);
-    }
+    if (dreamIds.has(i.dreamId)) i.symbols?.forEach(addSymbol);
   });
 
+  mergeSubsetKeys(byKey);
+  const symbolGroupMap = await getSymbolGroupMap(Array.from(globalSymbolKeys));
+  applyGroupMap(byKey, symbolGroupMap);
   const symbolCounts = Array.from(symbolDisplayName(byKey).values());
   return symbolCounts.sort((a, b) => b.count - a.count);
 }
@@ -113,23 +227,27 @@ export async function getRecurringArchetypes(period?: InsightsPeriod): Promise<A
   })).sort((a, b) => b.count - a.count);
 }
 
-/** Normalize landscape for grouping (same as symbols) */
-function normalizeLandscapeKey(raw: string): string {
-  return raw
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
-}
-
 /**
  * Recurring landscapes (settings/places): optional period.
  * Aggregate from dreams and interpretations, count by normalized key, sort by frequency desc.
+ * AI groupings are computed from the GLOBAL landscape set so the cache is period-independent.
  */
 export async function getRecurringLandscapes(period?: InsightsPeriod): Promise<LandscapeCount[]> {
   const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+
+  // Collect global unique keys (all dreams) for stable AI grouping cache
+  const globalLandscapeKeys = new Set<string>();
+  dreams.forEach((d) => d.landscapes?.forEach((l) => {
+    const k = normalizeLandscapeKey(l); if (k) globalLandscapeKeys.add(k);
+  }));
+  interpretations.forEach((i) => i.landscapes?.forEach((l) => {
+    const k = normalizeLandscapeKey(l); if (k) globalLandscapeKeys.add(k);
+  }));
+
+  // Period-filtered counts
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
-  const interpretations = await StorageService.getInterpretations();
   const byKey = new Map<string, { count: number; displayName: string }>();
 
   const addLandscape = (raw: string) => {
@@ -144,21 +262,65 @@ export async function getRecurringLandscapes(period?: InsightsPeriod): Promise<L
     }
   };
 
-  filtered.forEach((d) => {
-    d.landscapes?.forEach(addLandscape);
-  });
+  filtered.forEach((d) => d.landscapes?.forEach(addLandscape));
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) {
-      i.landscapes?.forEach(addLandscape);
-    }
+    if (dreamIds.has(i.dreamId)) i.landscapes?.forEach(addLandscape);
   });
 
+  mergeSubsetKeys(byKey);
+  const landscapeGroupMap = await getLandscapeGroupMap(Array.from(globalLandscapeKeys));
+  applyGroupMap(byKey, landscapeGroupMap);
   const list = Array.from(byKey.entries()).map(([key, v]) => ({
     name: v.displayName,
     normalizedKey: key,
     count: v.count,
   }));
   return list.sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Recurring motifs (structural/spatial patterns): from interpretations only.
+ * Count by normalized key, sort by frequency desc.
+ * AI groupings computed from global motif set, applied to period counts.
+ */
+export async function getRecurringMotifs(period?: InsightsPeriod): Promise<MotifCount[]> {
+  const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+
+  // Global unique motif keys for stable AI grouping cache
+  const globalMotifKeys = new Set<string>();
+  interpretations.forEach((i) => (i.motifs ?? []).forEach((m) => {
+    const k = normalizeSymbolKey(m); if (k) globalMotifKeys.add(k);
+  }));
+
+  // Period-filtered counts (motifs live on interpretations only)
+  const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
+  const dreamIds = new Set(filtered.map((d) => d.id));
+  const byKey = new Map<string, { count: number; displayName: string }>();
+
+  const addMotif = (raw: string) => {
+    if (!raw || typeof raw !== 'string') return;
+    const key = normalizeSymbolKey(raw);
+    if (!key) return;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      byKey.set(key, { count: 1, displayName: raw.trim() });
+    }
+  };
+
+  interpretations.forEach((i) => {
+    if (dreamIds.has(i.dreamId)) (i.motifs ?? []).forEach(addMotif);
+  });
+
+  mergeSubsetKeys(byKey);
+  const motifGroupMap = await getMotifGroupMap(Array.from(globalMotifKeys));
+  applyGroupMap(byKey, motifGroupMap);
+
+  return Array.from(byKey.entries())
+    .map(([key, v]) => ({ name: v.displayName, normalizedKey: key, count: v.count }))
+    .sort((a, b) => b.count - a.count);
 }
 
 const THIS_MONTH = new Date().toISOString().slice(0, 7);

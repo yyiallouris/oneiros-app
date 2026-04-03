@@ -38,7 +38,7 @@ const calculateGlowIntensity = (dreamCount: number): number => {
 };
 
 // Color for days with dreams (single accent color)
-const HAS_DREAMS_COLOR = 'rgb(156, 79, 179)'; // #9c4fb3
+const HAS_DREAMS_COLOR = colors.buttonPrimary; // #6A4FB3 — matches journey dots
 
 const getDayColor = (dreamCount: number): string => {
   if (dreamCount === 0) return 'rgba(240, 229, 223, 0.4)'; // No dreams - light beige
@@ -115,11 +115,19 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
               if (glowIntensity <= 0) return null;
               
               const dayColor = getDayColor(day.dreamCount);
-              // Extract RGB from color string
+              // Extract RGB from either hex (#RRGGBB) or rgb(...) color string
+              let r: string, g: string, b: string;
+              const hexMatch = dayColor.match(/^#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/);
               const rgbMatch = dayColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-              if (!rgbMatch) return null;
-              
-              const [, r, g, b] = rgbMatch;
+              if (hexMatch) {
+                r = String(parseInt(hexMatch[1], 16));
+                g = String(parseInt(hexMatch[2], 16));
+                b = String(parseInt(hexMatch[3], 16));
+              } else if (rgbMatch) {
+                [, r, g, b] = rgbMatch;
+              } else {
+                return null;
+              }
               
               return (
                 <RadialGradient key={`glow-${day.date}`} id={`glow-${day.date}`} cx="50%" cy="50%">

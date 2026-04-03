@@ -8,6 +8,7 @@ export const MODAL_FOOTER =
 
 export type InfoModalKey =
   | 'main-symbols'
+  | 'symbolic-motifs'
   | 'core-architecture'
   | 'archetypal-states'
   | 'archetype-self'
@@ -42,11 +43,23 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     bullets: ['an inner state', 'a relationship', 'a memory or unresolved feeling'],
     bulletsAfterParagraph: 2,
   },
+  'symbolic-motifs': {
+    title: 'What are symbolic motifs?',
+    subtitle: 'The form the dream takes',
+    paragraphs: [
+      'Motifs describe the FORM of the dream — how it is structured, not what it means.',
+      'They are spatial or imaginal structures, movements in space, or recurring symbolic situations.',
+      'Examples:',
+      'These patterns often recur across dreams. They bridge concrete images and archetypal dynamics.',
+    ],
+    bullets: ['descending underground', 'crowded marketplace', 'watching from outside', 'threshold crossing', 'hidden backstage area'],
+    bulletsAfterParagraph: 2,
+  },
   'core-architecture': {
     title: 'What is core architecture?',
     subtitle: 'Deeper, but grounded',
     paragraphs: [
-      'This refers to the fundamental structures of the psyche, as described in Jungian psychology.',
+      'This refers to the deeper inner structures through which the dream organizes experience.',
       'Not roles or personalities — but deeper inner functions that shape how you experience yourself and the world.',
       'Examples include:',
       'These elements are always present, but dreams often reveal how they interact — and where tension or growth may be happening.',

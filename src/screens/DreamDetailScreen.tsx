@@ -44,6 +44,53 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     return { core, dynamic };
   }
 
+  const CHIPS_INITIAL_COUNT = 2;
+
+  /** Chip section that collapses when there are more than CHIPS_INITIAL_COUNT items. */
+  const CollapsibleChipsSection = ({
+    title,
+    infoKey,
+    items,
+    onPressItem,
+  }: {
+    title: string;
+    infoKey: string;
+    items: string[];
+    onPressItem?: (item: string) => void;
+  }) => {
+    const [expanded, setExpanded] = useState(false);
+    if (items.length === 0) return null;
+    const hasMore = items.length > CHIPS_INITIAL_COUNT;
+    const visible = expanded || !hasMore ? items : items.slice(0, CHIPS_INITIAL_COUNT);
+    const hiddenCount = items.length - CHIPS_INITIAL_COUNT;
+    return (
+      <View style={styles.chipsSection}>
+        <SectionTitleWithInfo title={title} infoKey={infoKey as any} variant="chips" showInfo />
+        <View style={styles.chipsContainer}>
+          {visible.map((item, index) => (
+            <Chip
+              key={index}
+              label={item}
+              variant="default"
+              onPress={onPressItem ? () => onPressItem(item) : undefined}
+            />
+          ))}
+        </View>
+        {hasMore && (
+          <TouchableOpacity
+            onPress={() => setExpanded((v) => !v)}
+            style={styles.expandChipsButton}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.expandChipsText}>
+              {expanded ? 'show less' : `+ ${hiddenCount} more`}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
   // Edit icon
   const EditIcon = ({ size = 24, color = colors.buttonPrimary }) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -411,12 +458,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const [chatScrollHeight, setChatScrollHeight] = useState(0);
     const [chatScrollOffset, setChatScrollOffset] = useState(0);
     const [showOfflineMessage, setShowOfflineMessage] = useState(false);
-    const [showDreamSecondarySymbols, setShowDreamSecondarySymbols] = useState(false);
-    const [showInterpretationSecondarySymbols, setShowInterpretationSecondarySymbols] = useState(false);
-    const [showDreamSecondaryCore, setShowDreamSecondaryCore] = useState(false);
-    const [showDreamSecondaryDynamic, setShowDreamSecondaryDynamic] = useState(false);
-    const [showInterpretationSecondaryCore, setShowInterpretationSecondaryCore] = useState(false);
-    const [showInterpretationSecondaryDynamic, setShowInterpretationSecondaryDynamic] = useState(false);
     const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
     const [reflectTrigger, setReflectTrigger] = useState(0);
     const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
@@ -430,12 +471,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       useCallback(() => {
         getInterpretationDepth().then(setInterpretationDepth);
         loadDreamData();
-        setShowDreamSecondarySymbols(false);
-        setShowInterpretationSecondarySymbols(false);
-        setShowDreamSecondaryCore(false);
-        setShowDreamSecondaryDynamic(false);
-        setShowInterpretationSecondaryCore(false);
-        setShowInterpretationSecondaryDynamic(false);
         // Clear typing state when screen gains focus
         return () => {
           setTypingMessageId(null);
@@ -867,34 +902,11 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {(dream.symbols?.length > 0 || dream.archetypes?.length > 0) && (
             <Card style={styles.symbolsCard}>
               {dream.symbols && dream.symbols.length > 0 && (
-                <View style={styles.chipsSection}>
-                  <SectionTitleWithInfo title="Symbols" infoKey="main-symbols" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                  <View style={styles.chipsContainer}>
-                    {dream.symbols.slice(0, 4).map((symbol, index) => (
-                      <Chip key={index} label={symbol} variant="accent" />
-                    ))}
-                  </View>
-                  {dream.symbols.length > 4 && (
-                    <TouchableOpacity
-                      style={styles.viewMoreButton}
-                      onPress={() => setShowDreamSecondarySymbols((v) => !v)}
-                    >
-                      <Text style={styles.viewMoreText}>
-                        {showDreamSecondarySymbols ? 'Show less' : `View more (${dream.symbols.length - 4} symbols)`}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {showDreamSecondarySymbols && dream.symbols.length > 4 && (
-                    <View style={styles.chipsSection}>
-                      <Text style={styles.chipsSectionTitle}>Secondary symbols</Text>
-                      <View style={styles.chipsContainer}>
-                        {dream.symbols.slice(4).map((symbol, index) => (
-                          <Chip key={index + 4} label={symbol} variant="default" />
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </View>
+                <CollapsibleChipsSection
+                  title="Symbols"
+                  infoKey="main-symbols"
+                  items={dream.symbols}
+                />
               )}
 
               {dream.archetypes && dream.archetypes.length > 0 && (() => {
@@ -902,78 +914,20 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                 return (
                   <>
                     {dreamCore.length > 0 && (
-                      <View style={styles.chipsSection}>
-                        <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                        <View style={styles.chipsContainer}>
-                          {dreamCore.slice(0, 4).map((archetype, index) => (
-                            <Chip
-                              key={`core-${index}`}
-                              label={archetype}
-                              variant="default"
-                              onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                            />
-                          ))}
-                        </View>
-                        {dreamCore.length > 4 && (
-                          <TouchableOpacity
-                            style={styles.viewMoreButton}
-                            onPress={() => setShowDreamSecondaryCore((v) => !v)}
-                          >
-                            <Text style={styles.viewMoreText}>
-                              {showDreamSecondaryCore ? 'Show less' : `View more (${dreamCore.length - 4})`}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                        {showDreamSecondaryCore && dreamCore.length > 4 && (
-                          <View style={styles.chipsContainer}>
-                            {dreamCore.slice(4).map((archetype, index) => (
-                              <Chip
-                                key={`core-${index + 4}`}
-                                label={archetype}
-                                variant="default"
-                                onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                              />
-                            ))}
-                          </View>
-                        )}
-                      </View>
+                      <CollapsibleChipsSection
+                        title="Core architecture"
+                        infoKey="core-architecture"
+                        items={dreamCore}
+                        onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                      />
                     )}
                     {dreamDynamic.length > 0 && (
-                      <View style={styles.chipsSection}>
-                        <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                        <View style={styles.chipsContainer}>
-                          {dreamDynamic.slice(0, 4).map((archetype, index) => (
-                            <Chip
-                              key={`dyn-${index}`}
-                              label={archetype}
-                              variant="default"
-                              onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                            />
-                          ))}
-                        </View>
-                        {dreamDynamic.length > 4 && (
-                          <TouchableOpacity
-                            style={styles.viewMoreButton}
-                            onPress={() => setShowDreamSecondaryDynamic((v) => !v)}
-                          >
-                            <Text style={styles.viewMoreText}>
-                              {showDreamSecondaryDynamic ? 'Show less' : `View more (${dreamDynamic.length - 4})`}
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-                        {showDreamSecondaryDynamic && dreamDynamic.length > 4 && (
-                          <View style={styles.chipsContainer}>
-                            {dreamDynamic.slice(4).map((archetype, index) => (
-                              <Chip
-                                key={`dyn-${index + 4}`}
-                                label={archetype}
-                                variant="default"
-                                onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                              />
-                            ))}
-                          </View>
-                        )}
-                      </View>
+                      <CollapsibleChipsSection
+                        title="Archetypal states / Dynamic patterns"
+                        infoKey="archetypal-states"
+                        items={dreamDynamic}
+                        onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                      />
                     )}
                   </>
                 );
@@ -992,34 +946,19 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                 <Card style={styles.interpretationCard}>
                   {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
                   {interpretation.symbols.length > 0 && (
-                    <View style={styles.chipsSection}>
-                      <SectionTitleWithInfo title="Main symbols" infoKey="main-symbols" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                      <View style={styles.chipsContainer}>
-                        {interpretation.symbols.slice(0, 4).map((symbol, index) => (
-                          <Chip key={index} label={symbol} variant="accent" />
-                        ))}
-                      </View>
-                      {interpretation.symbols.length > 4 && (
-                        <TouchableOpacity
-                          style={styles.viewMoreButton}
-                          onPress={() => setShowInterpretationSecondarySymbols((v) => !v)}
-                        >
-                          <Text style={styles.viewMoreText}>
-                            {showInterpretationSecondarySymbols ? 'Show less' : `View more (${interpretation.symbols.length - 4} symbols)`}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                      {showInterpretationSecondarySymbols && interpretation.symbols.length > 4 && (
-                        <View style={styles.chipsSection}>
-                          <Text style={styles.chipsSectionTitle}>Secondary symbols</Text>
-                          <View style={styles.chipsContainer}>
-                            {interpretation.symbols.slice(4).map((symbol, index) => (
-                              <Chip key={index + 4} label={symbol} variant="default" />
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                    </View>
+                    <CollapsibleChipsSection
+                      title="Main symbols"
+                      infoKey="main-symbols"
+                      items={interpretation.symbols}
+                    />
+                  )}
+
+                  {interpretation.motifs && interpretation.motifs.length > 0 && (
+                    <CollapsibleChipsSection
+                      title="Symbolic motifs"
+                      infoKey="symbolic-motifs"
+                      items={interpretation.motifs}
+                    />
                   )}
 
                   {interpretation.archetypes.length > 0 && (() => {
@@ -1027,78 +966,20 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     return (
                       <>
                         {interpCore.length > 0 && (
-                          <View style={styles.chipsSection}>
-                            <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                            <View style={styles.chipsContainer}>
-                              {interpCore.slice(0, 4).map((archetype, index) => (
-                                <Chip
-                                  key={`core-${index}`}
-                                  label={archetype}
-                                  variant="default"
-                                  onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                                />
-                              ))}
-                            </View>
-                            {interpCore.length > 4 && (
-                              <TouchableOpacity
-                                style={styles.viewMoreButton}
-                                onPress={() => setShowInterpretationSecondaryCore((v) => !v)}
-                              >
-                                <Text style={styles.viewMoreText}>
-                                  {showInterpretationSecondaryCore ? 'Show less' : `View more (${interpCore.length - 4})`}
-                                </Text>
-                              </TouchableOpacity>
-                            )}
-                            {showInterpretationSecondaryCore && interpCore.length > 4 && (
-                              <View style={styles.chipsContainer}>
-                                {interpCore.slice(4).map((archetype, index) => (
-                                  <Chip
-                                    key={`core-${index + 4}`}
-                                    label={archetype}
-                                    variant="default"
-                                    onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                                  />
-                                ))}
-                              </View>
-                            )}
-                          </View>
+                          <CollapsibleChipsSection
+                            title="Core architecture"
+                            infoKey="core-architecture"
+                            items={interpCore}
+                            onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                          />
                         )}
                         {interpDynamic.length > 0 && (
-                          <View style={styles.chipsSection}>
-                            <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="chips" showInfo={interpretationDepth === 'advanced'} />
-                            <View style={styles.chipsContainer}>
-                              {interpDynamic.slice(0, 4).map((archetype, index) => (
-                                <Chip
-                                  key={`dyn-${index}`}
-                                  label={archetype}
-                                  variant="default"
-                                  onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                                />
-                              ))}
-                            </View>
-                            {interpDynamic.length > 4 && (
-                              <TouchableOpacity
-                                style={styles.viewMoreButton}
-                                onPress={() => setShowInterpretationSecondaryDynamic((v) => !v)}
-                              >
-                                <Text style={styles.viewMoreText}>
-                                  {showInterpretationSecondaryDynamic ? 'Show less' : `View more (${interpDynamic.length - 4})`}
-                                </Text>
-                              </TouchableOpacity>
-                            )}
-                            {showInterpretationSecondaryDynamic && interpDynamic.length > 4 && (
-                              <View style={styles.chipsContainer}>
-                                {interpDynamic.slice(4).map((archetype, index) => (
-                                  <Chip
-                                    key={`dyn-${index + 4}`}
-                                    label={archetype}
-                                    variant="default"
-                                    onPress={() => setArchetypeModalKey(getArchetypeInfoKey(archetype))}
-                                  />
-                                ))}
-                              </View>
-                            )}
-                          </View>
+                          <CollapsibleChipsSection
+                            title="Archetypal states / Dynamic patterns"
+                            infoKey="archetypal-states"
+                            items={interpDynamic}
+                            onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                          />
                         )}
                       </>
                     );
@@ -1444,27 +1325,21 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       marginBottom: spacing.md,
       marginTop: spacing.xs,
     },
-    chipsSectionTitle: {
-      fontSize: typography.sizes.sm,
-      fontWeight: typography.weights.semibold,
-      color: colors.textSecondary,
-      marginBottom: spacing.sm,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
     chipsContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: spacing.sm,
     },
-    viewMoreButton: {
+    expandChipsButton: {
       marginTop: spacing.sm,
-      paddingVertical: spacing.xs,
+      paddingVertical: 2,
+      alignSelf: 'flex-start',
     },
-    viewMoreText: {
-      fontSize: typography.sizes.sm,
-      color: colors.buttonPrimary,
-      fontWeight: typography.weights.medium,
+    expandChipsText: {
+      fontSize: typography.sizes.xs,
+      color: colors.textMuted,
+      fontStyle: 'italic',
+      letterSpacing: 0.2,
     },
     summary: {
       fontSize: typography.sizes.md,

@@ -77,7 +77,6 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: colors.accent.buttonPrimaryLight12,
     marginLeft: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
@@ -85,6 +84,6 @@ const styles = StyleSheet.create({
   infoIcon: {
     fontSize: 14,
     fontWeight: typography.weights.semibold,
-    color: colors.accent.buttonPrimary,
+    color: colors.textPrimary,
   },
 });

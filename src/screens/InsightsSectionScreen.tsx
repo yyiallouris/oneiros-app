@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
   InteractionManager,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -17,11 +18,26 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
 import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
-import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
+
+const SECTION_ICON_SIZE = 88;
+const SectionSymbolsIcon = () => (
+  <Image source={require('../../assets/symbols.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+);
+const SectionMotifsIcon = () => (
+  <Image source={require('../../assets/motifs.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+);
+const SectionArchetypesIcon = () => (
+  <Image source={require('../../assets/archetypes.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+);
+const SectionPlacesIcon = () => (
+  <Image source={require('../../assets/places.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+);
+import type { InsightsSectionId, InsightsPeriod, MotifCount } from '../types/insights';
 import {
   getRecurringSymbols,
   getRecurringArchetypes,
   getRecurringLandscapes,
+  getRecurringMotifs,
   getCollectiveInsights,
   getSymbolClusters,
   symbolHasAssociations,
@@ -31,15 +47,20 @@ import {
   generateMonthlyInsights,
   getPatternInsightEntries,
   getMonthPeriod,
-  getFinishedMonthKeys,
+  getWeekPeriod,
+  getLast12MonthKeys,
   formatMonthKeyLabel,
-  isMonthFinished,
+  formatReportKeyLabel,
+  formatReportKeyLabelForEssay,
+  getReportKeyForGeneration,
+  getCurrentMonthKey,
+  isFirstWeekOfMonthFinished,
+  getWeekNumOfMonth,
 } from '../services/patternInsightsService';
 import { LocalStorage } from '../services/localStorage';
 import {
   remoteGetPatternReports,
   remoteSavePatternReport,
-  remoteDeletePatternReport,
 } from '../services/remoteStorage';
 import { UserService } from '../services/userService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
@@ -101,6 +122,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
   const [landscapes, setLandscapes] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
+  const [motifs, setMotifs] = useState<MotifCount[]>([]);
   const [collective, setCollective] = useState<{
     topSymbolsThisMonth: { symbol: string; count: number }[];
     archetypeTrends: { archetype: string; direction: string }[];
@@ -114,11 +136,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   /** Pattern recognition: archive (monthKey -> { generatedAt, text }), selected month for generate, viewing which report */
   const [patternReportsArchive, setPatternReportsArchive] = useState<Record<string, { generatedAt: string; text: string }>>({});
   const [patternSelectedMonthKey, setPatternSelectedMonthKey] = useState<string>(() => {
-    const finished = getFinishedMonthKeys();
-    if (finished[0]) return finished[0];
     const d = new Date();
-    const lastMonth = new Date(d.getFullYear(), d.getMonth() - 1, 1);
-    return `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    return currentMonthKey;
   });
   const [patternViewingMonthKey, setPatternViewingMonthKey] = useState<string | null>(null);
   const [patternMonthPickerOpen, setPatternMonthPickerOpen] = useState(false);
@@ -149,6 +169,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       } else if (currentSectionId === 'recurring-archetypes') {
         const data = await getRecurringArchetypes(period);
         setArchetypes(data);
+      } else if (currentSectionId === 'symbolic-motifs') {
+        const data = await getRecurringMotifs(period);
+        setMotifs(data);
       } else if (currentSectionId === 'space-landscapes') {
         const data = await getRecurringLandscapes(period);
         if (__DEV__) {
@@ -161,13 +184,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       } else if (currentSectionId === 'pattern-recognition') {
         const storedLang = await AsyncStorage.getItem(PATTERN_INSIGHT_LANGUAGE_KEY);
         if (storedLang) setPatternLanguage(storedLang);
-        setPatternSelectedMonthKey((prev) => {
-          if (!isMonthFinished(prev)) {
-            const finished = getFinishedMonthKeys();
-            return finished[0] ?? prev;
-          }
-          return prev;
-        });
+        setPatternSelectedMonthKey((prev) => prev);
         const userId = await UserService.getCurrentUserId();
         let reports: Record<string, { generatedAt: string; text: string }>;
         if (userId) {
@@ -275,8 +292,11 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           const visitedOnce = symbols.filter((s) => s.count < 2);
           return (
             <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionSymbolsIcon />
+              </View>
               {symbols.length === 0 ? (
-                <Text style={styles.empty}>No symbols yet. Get interpretations to see patterns.</Text>
+                <Text style={styles.empty}>No symbols yet. Get dream interpretations to see recurring symbols.</Text>
               ) : (
                 <>
                   {recurring.length > 0 ? (
@@ -469,17 +489,72 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           </>
         )}
 
+        {/* Symbolic Motifs: recurring structural/spatial patterns */}
+        {sectionId === 'symbolic-motifs' && (() => {
+          const recurringMotifs = motifs.filter((m) => m.count >= 2);
+          const seenOnce = motifs.filter((m) => m.count < 2);
+          return (
+            <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionMotifsIcon />
+              </View>
+              {motifs.length === 0 ? (
+                <Text style={styles.empty}>No motifs yet. Get dream interpretations to see recurring structural patterns.</Text>
+              ) : (
+                <>
+                  {recurringMotifs.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionFraming}>Patterns that keep shaping the dream space</Text>
+                      {recurringMotifs.map((m) => (
+                        <TouchableOpacity
+                          key={m.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterMotif: m.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>{m.name}</Text>
+                          <Text style={styles.archetypeCount}>×{m.count}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring motifs this period.</Text>
+                  )}
+                  {seenOnce.length > 0 && (
+                    <>
+                      <Text style={styles.subSectionLabel}>Other motifs</Text>
+                      {seenOnce.map((m) => (
+                        <TouchableOpacity
+                          key={m.normalizedKey}
+                          style={styles.archetypeRow}
+                          onPress={() => navigation.navigate('JournalFilter', { filterMotif: m.name })}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.archetypeName} numberOfLines={1}>{m.name}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
+
         {/* Dream Landscapes: split recurring (2+) vs visited once */}
         {sectionId === 'space-landscapes' && (() => {
           const recurringPlaces = landscapes.filter((l) => l.count >= 2);
           const visitedOnce = landscapes.filter((l) => l.count < 2);
           return (
             <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionPlacesIcon />
+              </View>
               {landscapes.length === 0 ? (
-                <Text style={styles.empty}>No places yet. Get interpretations to see recurring settings and places.</Text>
+                <Text style={styles.empty}>No places yet. Get dream interpretations to see recurring settings and places.</Text>
               ) : (
                 <>
-                  {recurringPlaces.length > 0 && (
+                  {recurringPlaces.length > 0 ? (
                     <>
                       <Text style={styles.sectionFraming}>Places you often return to</Text>
                       {recurringPlaces.map((l) => (
@@ -494,6 +569,8 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                         </TouchableOpacity>
                       ))}
                     </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring places this period.</Text>
                   )}
                   {visitedOnce.length > 0 && (
                     <>
@@ -524,14 +601,17 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           const dynamicList = archetypes.filter((a) => !CORE_ARCHETYPES.includes(a.name.toLowerCase()));
           return (
             <View style={[styles.section, styles.sectionNoTopPadding]}>
+              <View style={styles.sectionIcon}>
+                <SectionArchetypesIcon />
+              </View>
               {archetypes.length === 0 ? (
-                <Text style={styles.empty}>No archetypes yet. Get interpretations to see patterns.</Text>
+                <Text style={styles.empty}>No archetypes yet. Get dream interpretations to see recurring archetypes.</Text>
               ) : (
                 <>
                   {/* Core architecture — the skeleton, always present */}
                   {coreList.length > 0 && (
                     <View style={[styles.archetypeCategoryBlock, styles.archetypeCategoryBlockFirst]}>
-                      <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="archetype" showInfo={interpretationDepth === 'advanced'} />
+                      <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="archetype" showInfo />
                       <Text style={styles.archetypeCategoryNote}>
                         The skeleton of the psyche. These are not roles — they are always present. They organise how you relate to yourself and the world; they don't come and go.
                       </Text>
@@ -552,7 +632,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                   {/* Archetypal states / Dynamic patterns — what's running now */}
                   {dynamicList.length > 0 && (
                     <View style={styles.archetypeCategoryBlock}>
-                      <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="archetype" showInfo={interpretationDepth === 'advanced'} />
+                      <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="archetype" showInfo />
                       <Text style={styles.archetypeCategoryNote}>
                         What's running now. Phases or currents — they move through you; they don't define you. Making them identity is where the trouble starts.
                       </Text>
@@ -618,7 +698,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
 
               {patternMonthPickerOpen && (
                 <View style={styles.patternMonthDropdown}>
-                  {getFinishedMonthKeys().map((monthKey) => (
+                  {getLast12MonthKeys().map((monthKey) => (
                     <TouchableOpacity
                       key={monthKey}
                       style={[
@@ -648,7 +728,11 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               <TouchableOpacity
                 style={[
                   styles.patternGenerateRow,
-                  (patternInsightGenerating || !!patternReportsArchive[patternSelectedMonthKey]) && styles.patternGenerateRowDisabled,
+                  (patternInsightGenerating ||
+                    !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)] ||
+                    (patternSelectedMonthKey === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` &&
+                      !isFirstWeekOfMonthFinished(patternSelectedMonthKey))
+                  ) && styles.patternGenerateRowDisabled,
                 ]}
                 onPress={async () => {
                   if (patternInsightGenerating) return;
@@ -661,15 +745,37 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     );
                     return;
                   }
-                  if (patternReportsArchive[patternSelectedMonthKey]) {
+                  const now = new Date();
+                  const isCurrentMonth = patternSelectedMonthKey === getCurrentMonthKey();
+                  const effectiveReportKey = getReportKeyForGeneration(patternSelectedMonthKey);
+
+                  if (isCurrentMonth && !isFirstWeekOfMonthFinished(patternSelectedMonthKey)) {
                     Alert.alert(
-                      'One per month',
-                      'You can only generate one reflection per month. Remove the existing one to generate a new one.',
+                      'First week required',
+                      'You can generate a reflection for the current month once the first week is finished. Please wait until at least day 8 of the month.',
                       [{ text: 'OK' }]
                     );
                     return;
                   }
-                  const periodFilter = getMonthPeriod(patternSelectedMonthKey);
+                  if (patternReportsArchive[effectiveReportKey]) {
+                    if (isCurrentMonth) {
+                      Alert.alert(
+                        'Once per week',
+                        'You can generate one reflection per week for the current month. Come back next week for a fresh perspective on your dreams.',
+                        [{ text: 'OK' }]
+                      );
+                    } else {
+                      Alert.alert(
+                        'One per month',
+                        'A reflection already exists for this month.',
+                        [{ text: 'OK' }]
+                      );
+                    }
+                    return;
+                  }
+                  const periodFilter = isCurrentMonth
+                    ? getWeekPeriod(patternSelectedMonthKey, getWeekNumOfMonth(now.getDate()))
+                    : getMonthPeriod(patternSelectedMonthKey);
                   const entries = await getPatternInsightEntries(periodFilter);
                   if (entries.length === 0) {
                     setPatternEmptyForMonthKey(patternSelectedMonthKey);
@@ -684,19 +790,19 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     const endDate = entries[0].date;
                     const result = await generateMonthlyInsights('monthly', periodFilter, patternLanguage);
                     const userId = await UserService.getCurrentUserId();
-                    if (userId) await remoteSavePatternReport(patternSelectedMonthKey, result);
-                    await LocalStorage.savePatternReport(patternSelectedMonthKey, result);
+                    if (userId) await remoteSavePatternReport(effectiveReportKey, result);
+                    await LocalStorage.savePatternReport(effectiveReportKey, result);
                     const reports = userId
                       ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
                       : await LocalStorage.getPatternReports();
                     setPatternReportsArchive(reports);
                     setPatternReportMeta({
-                      monthKey: patternSelectedMonthKey,
+                      monthKey: effectiveReportKey,
                       dreamCount: entries.length,
                       startDate,
                       endDate,
                     });
-                    setPatternViewingMonthKey(patternSelectedMonthKey);
+                    setPatternViewingMonthKey(effectiveReportKey);
                   } catch (e: any) {
                     const msg = e?.message || 'Something went wrong. Please try again.';
                     Alert.alert('Error', msg);
@@ -822,39 +928,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     <View style={styles.patternReportHeader}>
                       <View style={styles.patternReportHeaderRow}>
                         <Text style={styles.patternReportMonth}>
-                          {formatMonthKeyLabel(patternViewingMonthKey)}
+                          {formatReportKeyLabelForEssay(patternViewingMonthKey)}
                         </Text>
                         <TouchableOpacity
-                          onPress={() => {
-                          Alert.alert(
-                            'Remove reflection',
-                            `Remove the reflection for ${formatMonthKeyLabel(patternViewingMonthKey)}?`,
-                            [
-                              { text: 'Cancel', style: 'cancel' },
-                              {
-                                text: 'Remove',
-                                style: 'destructive',
-                                onPress: async () => {
-                                  const userId = await UserService.getCurrentUserId();
-                                  if (userId) await remoteDeletePatternReport(patternViewingMonthKey);
-                                  await LocalStorage.deletePatternReport(patternViewingMonthKey);
-                                  const reports = userId
-                                    ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
-                                    : await LocalStorage.getPatternReports();
-                                  setPatternReportsArchive(reports);
-                                  setPatternViewingMonthKey(
-                                    Object.keys(reports).length > 0
-                                      ? Object.keys(reports).sort().reverse()[0]
-                                      : null
-                                  );
-                                },
-                              },
-                            ]
-                          );
-                        }}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <Text style={styles.patternRemoveLink}>Remove</Text>
+                          onPress={() => setPatternViewingMonthKey(null)}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.patternCloseLink}>Close</Text>
                         </TouchableOpacity>
                       </View>
                       {patternReportMeta?.monthKey === patternViewingMonthKey && (
@@ -882,23 +963,23 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 {Object.keys(patternReportsArchive)
                   .sort()
                   .reverse()
-                  .map((monthKey) => (
+                  .map((reportKey) => (
                     <TouchableOpacity
-                      key={monthKey}
+                      key={reportKey}
                       style={[
                         styles.patternArchiveRow,
-                        patternViewingMonthKey === monthKey && styles.patternArchiveRowActive,
+                        patternViewingMonthKey === reportKey && styles.patternArchiveRowActive,
                       ]}
-                      onPress={() => setPatternViewingMonthKey(monthKey)}
+                      onPress={() => setPatternViewingMonthKey(reportKey)}
                       activeOpacity={0.8}
                     >
                       <View style={styles.patternArchiveRowLeft}>
                         <Text style={styles.patternArchiveRowLabel} numberOfLines={1}>
-                          {formatMonthKeyLabel(monthKey)}
+                          {formatReportKeyLabel(reportKey)}
                         </Text>
-                        {patternReportsArchive[monthKey]?.generatedAt && (
+                        {patternReportsArchive[reportKey]?.generatedAt && (
                           <Text style={styles.patternArchiveRowGenerated} numberOfLines={1}>
-                            Generated {formatPatternDate(patternReportsArchive[monthKey].generatedAt.slice(0, 10))}
+                            Generated {formatPatternDate(patternReportsArchive[reportKey].generatedAt.slice(0, 10))}
                           </Text>
                         )}
                       </View>
@@ -978,6 +1059,10 @@ const styles = StyleSheet.create({
   },
   sectionNoTopPadding: {
     paddingTop: 0,
+  },
+  sectionIcon: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
   sectionLabel: {
     fontSize: typography.sizes.sm,
@@ -1371,9 +1456,10 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: text.secondary,
   },
-  patternRemoveLink: {
-    fontSize: typography.sizes.sm,
+  patternCloseLink: {
+    fontSize: typography.sizes.xs,
     color: text.muted,
+    fontWeight: typography.weights.medium,
   },
   patternReportBasedOn: {
     fontSize: typography.sizes.xs,

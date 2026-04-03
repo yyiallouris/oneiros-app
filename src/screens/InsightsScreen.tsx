@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
+  Image,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text } from '../theme';
+import { backgrounds, colors, spacing, typography, text } from '../theme';
 import { MountainWaveBackground, BreathingLine, Card } from '../components/ui';
 import {
   getRecurringSymbols,
@@ -35,54 +35,31 @@ import type {
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-// Overview row icons – stroke style to match app (no emojis)
-const ICON_SIZE = 22;
+const ICON_SIZE = 46;
+const ICON_RENDER_SIZE = 44;
 
-const DreamLogIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+const DreamLogIcon = ({ size = ICON_RENDER_SIZE - 14 }: { size?: number }) => (
+  <Image source={require('../../assets/dreams_logged.png')} style={{ width: size, height: size }} resizeMode="contain" />
 );
 
-const SymbolsIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M19 15l-1.2 3.6L14 20l3.6-1.2L19 15z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M5 19l-1.2 3.6L0 24l3.6-1.2L5 19z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+const SymbolsIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
+  <Image source={require('../../assets/symbols.png')} style={{ width: size, height: size }} resizeMode="contain" />
 );
 
-const ArchetypesIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 4a8 8 0 0 1 0 16"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
+const MotifsIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
+  <Image source={require('../../assets/motifs.png')} style={{ width: size, height: size }} resizeMode="contain" />
 );
 
-const LandscapeIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M19 5.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M5 20L7 12l2 8M11 20l2-5 2 5M16 20l1-3 1 3" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M3 20h18" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+const ArchetypesIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
+  <Image source={require('../../assets/archetypes.png')} style={{ width: size, height: size }} resizeMode="contain" />
 );
 
-const PatternIcon = ({ color = text.secondary, size = ICON_SIZE }: { color?: string; size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M4 8h4v2H4V8zM10 8h4v2h-4V8zM16 8h4v2h-4V8z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    <Path d="M4 14h4v2H4v-2zM10 14h4v2h-4v-2zM16 14h4v2h-4v-2z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
+const LandscapeIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
+  <Image source={require('../../assets/places.png')} style={{ width: size, height: size }} resizeMode="contain" />
+);
+
+const PatternIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
+  <Image source={require('../../assets/pattern_recognition.png')} style={{ width: size, height: size }} resizeMode="contain" />
 );
 
 type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
@@ -168,12 +145,12 @@ const InsightsScreen: React.FC = () => {
     }, [periodPreset])
   );
 
-  /** Linked sections: symbols, archetypes, space, pattern — open swipeable journey starting at tapped section */
+  /** Linked sections open the swipeable journey; pattern recognition stays standalone. */
   const LINKED_SECTION_IDS: InsightsSectionId[] = [
     'recurring-symbols',
+    'symbolic-motifs',
     'recurring-archetypes',
     'space-landscapes',
-    'pattern-recognition',
   ];
 
   const goToSection = (sectionId: InsightsSectionId) => {
@@ -205,6 +182,15 @@ const InsightsScreen: React.FC = () => {
 
   const goToCalendar = () => {
     navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
+  };
+
+  const goToSymbolicElements = () => {
+    navigation.navigate('InsightsJourney', {
+      initialSectionId: 'recurring-symbols',
+      periodStart: currentPeriod.startDate,
+      periodEnd: currentPeriod.endDate,
+      periodLabel,
+    });
   };
 
   const selectPreset = (key: PeriodPreset) => {
@@ -298,55 +284,43 @@ const InsightsScreen: React.FC = () => {
           </TouchableOpacity>
           */}
 
-          <TouchableOpacity style={styles.overviewRow} onPress={goToCalendar} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.overviewSection} onPress={goToCalendar} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <DreamLogIcon color={text.secondary} />
+              <DreamLogIcon />
             </View>
-            <Text style={styles.overviewLabel}>Dreams logged</Text>
+            <View style={styles.overviewContent}>
+              <Text style={styles.overviewLabel}>Dreams logged</Text>
+              <Text style={styles.overviewMeta}>
+                {dreamsCount} dream{dreamsCount === 1 ? '' : 's'} in this period
+              </Text>
+            </View>
+            <Text style={styles.overviewChevron}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.overviewSection} onPress={goToSymbolicElements} activeOpacity={0.7}>
+            <View style={styles.overviewIconWrap}>
+              <MotifsIcon />
+            </View>
+            <View style={styles.overviewContent}>
+              <Text style={styles.overviewLabel}>Symbolic Elements</Text>
+              <Text style={styles.overviewMeta}>Symbols, motifs, archetypes, places</Text>
+            </View>
+            <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.overviewRow}
-            onPress={() => goToSection('recurring-symbols')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.overviewIconWrap}>
-              <SymbolsIcon color={text.secondary} />
-            </View>
-            <Text style={styles.overviewLabel}>Symbols</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.overviewRow}
-            onPress={() => goToSection('recurring-archetypes')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.overviewIconWrap}>
-              <ArchetypesIcon color={text.secondary} />
-            </View>
-            <Text style={styles.overviewLabel}>Archetypes</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.overviewRow}
-            onPress={() => goToSection('space-landscapes')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.overviewIconWrap}>
-              <LandscapeIcon color={text.secondary} />
-            </View>
-            <Text style={styles.overviewLabel}>Places</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.overviewRow, styles.overviewRowLast]}
+            style={[styles.overviewSection, styles.overviewSectionLast]}
             onPress={() => goToSection('pattern-recognition')}
             activeOpacity={0.7}
           >
             <View style={styles.overviewIconWrap}>
-              <PatternIcon color={text.secondary} />
+              <PatternIcon />
             </View>
-            <Text style={styles.overviewLabel}>Pattern recognition</Text>
+            <View style={styles.overviewContent}>
+              <Text style={styles.overviewLabel}>Pattern recognition</Text>
+              <Text style={styles.overviewMeta}>Reflective themes emerging across your dreams</Text>
+            </View>
+            <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
         </Card>
       </ScrollView>
@@ -455,15 +429,19 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.lg,
   },
-  overviewRow: {
+  overviewSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.md,
+    backgroundColor: backgrounds.cardTransparent,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  overviewRowLast: {
-    borderBottomWidth: 0,
+  overviewSectionLast: {
+    marginBottom: 0,
   },
   journeyRow: {
     backgroundColor: colors.buttonPrimaryLight12,
@@ -479,19 +457,28 @@ const styles = StyleSheet.create({
   overviewIconWrap: {
     width: ICON_SIZE,
     height: ICON_SIZE,
-    marginRight: spacing.sm,
+    marginRight: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  overviewLabel: {
+  overviewContent: {
     flex: 1,
+    minWidth: 0,
+  },
+  overviewLabel: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
+    fontWeight: typography.weights.semibold,
   },
-  overviewValue: {
-    fontSize: typography.sizes.md,
+  overviewMeta: {
+    marginTop: 2,
+    fontSize: typography.sizes.sm,
     color: text.secondary,
-    fontWeight: typography.weights.medium,
+  },
+  overviewChevron: {
+    marginLeft: spacing.sm,
+    fontSize: typography.sizes.lg,
+    color: text.muted,
   },
 });
 

@@ -206,13 +206,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    backgroundColor: colors.accent.buttonPrimary,
-    borderRadius: borderRadius.md,
     alignItems: 'center',
   },
   closeButtonText: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
-    color: text.onAccent,
+    color: text.primary,
   },
 });

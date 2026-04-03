@@ -11,12 +11,13 @@ type Route = RouteProp<RootStackParamList, 'JournalFilter'>;
  */
 const JournalFilterScreen: React.FC = () => {
   const route = useRoute<Route>();
-  const { filterSymbol, filterLandscape } = route.params ?? {};
+  const { filterSymbol, filterLandscape, filterMotif } = route.params ?? {};
   return (
     <JournalScreen
       overrideParams={{
         filterSymbol: filterSymbol ?? undefined,
         filterLandscape: filterLandscape ?? undefined,
+        filterMotif: filterMotif ?? undefined,
       }}
     />
   );

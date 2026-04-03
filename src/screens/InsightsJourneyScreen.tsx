@@ -20,12 +20,12 @@ type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/** Section order for the insights journey flow: symbols → archetypes → landscapes → pattern recognition */
+/** Section order for the insights journey flow: symbols → motifs → archetypes → landscapes (pattern recognition is standalone) */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
   'recurring-symbols',
+  'symbolic-motifs',
   'recurring-archetypes',
   'space-landscapes',
-  'pattern-recognition',
 ];
 
 const InsightsJourneyScreen: React.FC = () => {
@@ -79,6 +79,11 @@ const InsightsJourneyScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <MountainWaveBackground height={260} lite />
+      <View style={styles.caption}>
+        <Text style={styles.captionText} numberOfLines={1}>
+          {INSIGHTS_SECTION_TITLES[JOURNEY_SECTIONS[currentIndex]] ?? ''}
+        </Text>
+      </View>
       <View style={styles.dots}>
         {JOURNEY_SECTIONS.map((id, i) => (
           <View
@@ -112,11 +117,6 @@ const InsightsJourneyScreen: React.FC = () => {
         removeClippedSubviews={false}
         decelerationRate="fast"
       />
-      <View style={styles.caption}>
-        <Text style={styles.captionText} numberOfLines={1}>
-          {INSIGHTS_SECTION_TITLES[JOURNEY_SECTIONS[currentIndex]] ?? ''}
-        </Text>
-      </View>
     </View>
   );
 };
@@ -126,10 +126,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  caption: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+    alignItems: 'center',
+  },
+  captionText: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+  },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: spacing.xs,
+    paddingTop: spacing.xs,
     paddingBottom: spacing.sm,
   },
   dot: {
@@ -147,15 +159,6 @@ const styles = StyleSheet.create({
   page: {
     width: SCREEN_WIDTH,
     flex: 1,
-  },
-  caption: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    alignItems: 'center',
-  },
-  captionText: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
   },
 });
 
