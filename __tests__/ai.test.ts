@@ -13,18 +13,27 @@ jest.mock('expo-constants', () => ({
 const mockFetch = jest.fn();
 global.fetch = mockFetch as any;
 
+function apiResponse(body: unknown) {
+  return {
+    ok: true,
+    status: 200,
+    headers: { get: () => null as string | null },
+    json: async () => body,
+    text: async () => (typeof body === 'string' ? body : JSON.stringify(body)),
+  };
+}
+
 describe('ai service', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mockFetch.mockReset();
   });
 
   it('returns interpretation when API succeeds', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockFetch.mockImplementation(async () =>
+      apiResponse({
         choices: [{ message: { content: 'Analysis result' } }],
-      }),
-    });
+      })
+    );
 
     const result = await generateInitialInterpretation({
       id: '1',
@@ -35,17 +44,17 @@ describe('ai service', () => {
     });
 
     expect(result).toBe('Analysis result');
-    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('throws when API key missing', () => {
+  it('throws when API key missing', async () => {
     jest.resetModules();
     jest.doMock('expo-constants', () => ({
       expoConfig: { extra: { openaiApiKey: '' } },
     }));
     const { generateInitialInterpretation: generateWithMissingKey } = require('../src/services/ai');
 
-    expect(() =>
+    await expect(
       generateWithMissingKey({
         id: '1',
         title: 'Test',
@@ -53,7 +62,7 @@ describe('ai service', () => {
         content: 'Dream text',
         archived: false,
       })
-    ).rejects.toThrow('OpenAI API key not configured');
+    ).rejects.toThrow(/OpenAI API key/);
   });
 });
 

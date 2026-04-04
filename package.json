@@ -11,6 +11,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "JEST_DISABLE_WATCHMAN=1 jest --watchman=false",
+    "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
     "detox:build:android": "detox build -c android.emu.debug",
     "detox:test:android": "detox test -c android.emu.debug"
   },

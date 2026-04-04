@@ -1,0 +1,17 @@
+---
+description: When changing app code or tests, follow flow docs and run Jest (see AI_AGENT_TESTING.md)
+globs: "**/{src,__tests__,e2e}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Flow testing (Oneiros)
+
+Follow **[documentation/AI_AGENT_TESTING.md](documentation/AI_AGENT_TESTING.md)** end-to-end for this task.
+
+**Summary**
+
+1. **New behavior** → update the matching `documentation/flows-*.md` (and `documentation/README.md` if you add a new flow doc).
+2. **Tests** → add or extend `__tests__/flows/*.flow.test.ts` (or `__tests__/*.test.ts`); register new flow files in `__tests__/flows/README.md`. Auth UI changes → update `e2e/login.e2e.ts` when appropriate.
+3. **Before done** → run `npm test` (full Jest). While iterating: `npm run test:flows` or a single file, e.g. `JEST_DISABLE_WATCHMAN=1 npx jest __tests__/flows/syncService.flow.test.ts --watchman=false`.
+
+Do not finish a task that changes `src/` or flow-related tests without a green `npm test` unless the user explicitly waives it.

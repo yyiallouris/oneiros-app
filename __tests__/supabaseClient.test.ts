@@ -8,14 +8,26 @@ describe('supabaseClient', () => {
   });
 
   it('throws when env is missing', () => {
+    const savedUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const savedKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.EXPO_PUBLIC_SUPABASE_URL;
+    delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_ANON_KEY;
+
     jest.doMock('expo-constants', () => ({
       expoConfig: { extra: {} },
       manifest: { extra: {} },
     }));
 
-    expect(() => require('../src/services/supabaseClient')).toThrow(
-      /Supabase configuration missing/
-    );
+    try {
+      expect(() => require('../src/services/supabaseClient')).toThrow(
+        /Supabase configuration missing/
+      );
+    } finally {
+      if (savedUrl !== undefined) process.env.EXPO_PUBLIC_SUPABASE_URL = savedUrl;
+      if (savedKey !== undefined) process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = savedKey;
+    }
   });
 
   it('creates client when env present', () => {
