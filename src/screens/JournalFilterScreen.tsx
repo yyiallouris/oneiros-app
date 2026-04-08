@@ -17,7 +17,6 @@ const JournalFilterScreen: React.FC = () => {
       overrideParams={{
         filterSymbol: filterSymbol ?? undefined,
         filterLandscape: filterLandscape ?? undefined,
-        filterMotif: filterMotif ?? undefined,
       }}
     />
   );

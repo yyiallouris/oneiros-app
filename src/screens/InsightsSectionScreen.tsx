@@ -10,7 +10,6 @@ import {
   Animated,
   Easing,
   InteractionManager,
-  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -18,19 +17,25 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
 import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
+import {
+  ArchetypesIcon,
+  MotifsIcon,
+  PlacesIcon,
+  SymbolsIcon,
+} from '../components/icons/InsightsIcons';
 
 const SECTION_ICON_SIZE = 88;
 const SectionSymbolsIcon = () => (
-  <Image source={require('../../assets/symbols.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+  <SymbolsIcon size={SECTION_ICON_SIZE} />
 );
 const SectionMotifsIcon = () => (
-  <Image source={require('../../assets/motifs.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+  <MotifsIcon size={SECTION_ICON_SIZE} />
 );
 const SectionArchetypesIcon = () => (
-  <Image source={require('../../assets/archetypes.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+  <ArchetypesIcon size={SECTION_ICON_SIZE} />
 );
 const SectionPlacesIcon = () => (
-  <Image source={require('../../assets/places.png')} style={{ width: SECTION_ICON_SIZE, height: SECTION_ICON_SIZE }} resizeMode="contain" />
+  <PlacesIcon size={SECTION_ICON_SIZE} />
 );
 import type { InsightsSectionId, InsightsPeriod, MotifCount } from '../types/insights';
 import {

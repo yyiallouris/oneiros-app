@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   bullet: {
     fontSize: typography.sizes.md,
-    color: colors.accent.buttonPrimary,
+    color: colors.buttonPrimary,
     marginRight: spacing.sm,
   },
   bulletText: {

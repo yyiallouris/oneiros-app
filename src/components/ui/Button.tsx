@@ -6,8 +6,10 @@ import {
   ActivityIndicator,
   ViewStyle,
   TextStyle,
+  StyleProp,
   Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 
 interface ButtonProps {
@@ -16,8 +18,8 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'ghost';
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -30,9 +32,10 @@ export const Button: React.FC<ButtonProps> = ({
   textStyle,
 }) => {
   const glowAnim = useRef(new Animated.Value(0)).current;
+  const isDisabled = disabled || loading;
 
   useEffect(() => {
-    if (variant === 'primary' && !disabled && !loading) {
+    if (variant === 'primary' && !isDisabled) {
       // Subtle breathing glow effect
       Animated.loop(
         Animated.sequence([
@@ -49,7 +52,7 @@ export const Button: React.FC<ButtonProps> = ({
         ])
       ).start();
     }
-  }, [variant, disabled, loading]);
+  }, [variant, isDisabled]);
 
   const glowOpacity = glowAnim.interpolate({
     inputRange: [0, 1],
@@ -63,23 +66,39 @@ export const Button: React.FC<ButtonProps> = ({
         variant === 'primary' && styles.primaryButton,
         variant === 'secondary' && styles.secondaryButton,
         variant === 'ghost' && styles.ghostButton,
-        (disabled || loading) && styles.disabledButton,
+        isDisabled && variant === 'primary' && styles.disabledPrimaryButton,
+        isDisabled && variant === 'secondary' && styles.disabledSecondaryButton,
+        isDisabled && variant === 'ghost' && styles.disabledGhostButton,
         style,
       ]}
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       activeOpacity={0.7}
     >
-      {variant === 'primary' && !disabled && !loading && (
+      {variant === 'primary' && (
+        <LinearGradient
+          colors={
+            isDisabled
+              ? [colors.buttonPrimaryDisabled, colors.buttonPrimaryDisabled]
+              : [colors.buttonGradientTop, colors.buttonGradientBottom]
+          }
+          start={{ x: 0.2, y: 0 }}
+          end={{ x: 0.8, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+      )}
+      {variant === 'primary' && <Animated.View pointerEvents="none" style={[styles.primaryContour, !isDisabled && styles.primaryContourActive]} />}
+      {variant === 'primary' && !isDisabled && (
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
             styles.glow,
             {
-              shadowColor: colors.buttonPrimary,
+              shadowColor: colors.buttonGlow,
               shadowOpacity: glowOpacity,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 2 },
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 6 },
               elevation: 8,
             },
           ]}
@@ -97,7 +116,9 @@ export const Button: React.FC<ButtonProps> = ({
             variant === 'primary' && styles.primaryButtonText,
             variant === 'secondary' && styles.secondaryButtonText,
             variant === 'ghost' && styles.ghostButtonText,
-            (disabled || loading) && styles.disabledButtonText,
+            isDisabled && variant === 'primary' && styles.disabledPrimaryButtonText,
+            isDisabled && variant === 'secondary' && styles.disabledSecondaryButtonText,
+            isDisabled && variant === 'ghost' && styles.disabledGhostButtonText,
             textStyle,
           ]}
         >
@@ -119,39 +140,70 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryButton: {
-    backgroundColor: colors.buttonPrimary,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.buttonEdge,
   },
   secondaryButton: {
-    backgroundColor: colors.cardBackground,
-    borderWidth: 1.5,
-    borderColor: colors.buttonPrimary,
+    backgroundColor: colors.cardGlassStrong,
+    borderWidth: 1,
+    borderColor: colors.contourLine,
   },
   ghostButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.cardGlassSoft,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
   },
-  disabledButton: {
-    opacity: 0.5,
+  disabledPrimaryButton: {
+    backgroundColor: colors.buttonPrimaryDisabled,
+    borderColor: colors.buttonPrimaryDisabledBorder,
+  },
+  disabledSecondaryButton: {
+    backgroundColor: colors.buttonPrimaryDisabledLight,
+    borderColor: colors.buttonPrimaryDisabledBorder,
+  },
+  disabledGhostButton: {
+    backgroundColor: 'transparent',
   },
   glow: {
     borderRadius: borderRadius.md,
     backgroundColor: colors.buttonPrimary,
   },
+  primaryContour: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.buttonEdge,
+    opacity: 0.7,
+  },
+  primaryContourActive: {
+    opacity: 1,
+  },
   buttonText: {
     fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    fontWeight: typography.weights.medium,
     fontFamily: typography.regular,
+    letterSpacing: 0.2,
   },
   primaryButtonText: {
     color: colors.white,
   },
   secondaryButtonText: {
-    color: colors.buttonPrimary,
+    color: colors.textAccent,
   },
   ghostButtonText: {
-    color: colors.textSecondary,
+    color: colors.textAccent,
   },
-  disabledButtonText: {
-    opacity: 0.7,
+  disabledPrimaryButtonText: {
+    color: colors.white,
+    opacity: 0.9,
+  },
+  disabledSecondaryButtonText: {
+    color: colors.buttonPrimaryDisabled,
+  },
+  disabledGhostButtonText: {
+    color: colors.buttonPrimaryDisabled,
+    opacity: 0.75,
   },
 });
 

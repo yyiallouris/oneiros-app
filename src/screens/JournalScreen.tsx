@@ -11,7 +11,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, MountainWaveBackground, BreathingLine, LinoSkeletonCard } from '../components/ui';
+import { Card, PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
@@ -56,11 +56,13 @@ const DreamCard = React.memo<DreamCardProps>(({ dream, onPress }) => {
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card style={styles.dreamCard}>
+      <Card transparent style={styles.dreamCard}>
         <View style={styles.dreamCardContent}>
           {/* Dream Content */}
           <View style={styles.dreamText}>
-            <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
+            <View style={styles.dreamDateSeal}>
+              <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
+            </View>
             <Text style={styles.dreamTitle} numberOfLines={1}>
               {displayTitle}
             </Text>
@@ -230,16 +232,17 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} lite />
+      <PsycheScreenBackground waveHeight={300} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft} />
-        <Text style={styles.headerTitle}>Journal</Text>
-        <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-          <CalendarIcon size={24} />
-        </TouchableOpacity>
-      </View>
+      <MysticHeader
+        title="Journal"
+        subtitle="Dreams remembered and ready to return."
+        right={
+          <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
+            <CalendarIcon size={24} />
+          </TouchableOpacity>
+        }
+      />
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -310,26 +313,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  headerLeft: {
-    width: 40,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
   headerRight: {
-    width: 40,
     alignItems: 'flex-end',
   },
   searchContainer: {
@@ -347,12 +331,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cardBackground,
-    borderRadius: borderRadius.md,
+    backgroundColor: colors.cardGlassStrong,
+    borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.contourLineFaint,
   },
   filterRow: {
     flexDirection: 'row',
@@ -363,7 +347,7 @@ const styles = StyleSheet.create({
   },
   filterHint: {
     fontSize: typography.sizes.xs,
-    color: colors.buttonPrimary,
+    color: colors.textAccent,
   },
   filterClearButton: {
     width: 28,
@@ -392,7 +376,6 @@ const styles = StyleSheet.create({
   },
   dreamCard: {
     marginBottom: spacing.md,
-    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
   },
   dreamCardContent: {
     flexDirection: 'row',
@@ -401,16 +384,25 @@ const styles = StyleSheet.create({
   dreamText: {
     flex: 1,
   },
+  dreamDateSeal: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    marginBottom: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.fieldSurface,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+  },
   dreamDate: {
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
-    marginBottom: spacing.xs,
     fontWeight: typography.weights.medium,
   },
   dreamTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    fontSize: typography.sizes.xl,
+    fontFamily: typography.bold,
+    color: colors.textAccent,
     marginBottom: spacing.xs,
   },
   dreamPreview: {
@@ -433,8 +425,8 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    fontFamily: typography.bold,
+    color: colors.textTitle,
     marginTop: spacing.lg,
     marginBottom: spacing.xs,
   },

@@ -41,6 +41,8 @@ describe('ai service', () => {
       date: '2024-01-01',
       content: 'Dream text',
       archived: false,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
     });
 
     expect(result).toBe('Analysis result');
@@ -61,6 +63,8 @@ describe('ai service', () => {
         date: '2024-01-01',
         content: 'Dream text',
         archived: false,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
       })
     ).rejects.toThrow(/OpenAI API key/);
   });

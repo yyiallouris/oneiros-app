@@ -8,7 +8,7 @@ const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -58,7 +58,7 @@ serve(async (req) => {
     }
 
     // Get the form data from request
-    const formData = await req.formData();
+    const formData = (await req.formData()) as any;
     const file = formData.get('file') as File;
     const model = formData.get('model') || 'whisper-1';
     const language = formData.get('language'); // no default — let Whisper auto-detect when omitted
@@ -111,8 +111,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error', message: error.message }),
+      JSON.stringify({ error: 'Internal server error', message }),
       { 
         status: 500, 
         headers: { 'Content-Type': 'application/json' } 

@@ -361,19 +361,16 @@ const AuthScreen: React.FC = () => {
       const redirectUrl = AuthSession.makeRedirectUri({
         scheme: 'oneiros-dream-journal',
         path: 'auth/callback',
-        useProxy: true, // Expo Go/dev client: use proxy to get back into the app
       });
       console.log('[Auth] Redirect URL:', redirectUrl);
 
-      const { data, error } = await supabase.auth.signInWithOAuth(
-        {
-          provider: 'google',
-        },
-        {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
           redirectTo: redirectUrl,
           skipBrowserRedirect: true,
-        }
-      );
+        },
+      });
 
       if (error) {
         console.error('[Auth] OAuth error:', error);
@@ -393,11 +390,11 @@ const AuthScreen: React.FC = () => {
       const authResult = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
       console.log('[Auth] Auth session result type:', authResult.type);
-      if (authResult.url) {
+      if ('url' in authResult && authResult.url) {
         console.log('[Auth] Auth session returned URL');
       }
 
-      if (authResult.type === 'success' && authResult.url) {
+      if (authResult.type === 'success' && 'url' in authResult && authResult.url) {
         // Try to extract tokens from the returned URL
         let accessToken: string | null = null;
         let refreshToken: string | null = null;

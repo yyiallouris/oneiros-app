@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { logEvent } from '../../services/logger';
@@ -165,6 +166,16 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         onPress={handlePress}
         disabled={disabled || isTranscribing}
       >
+        {!isRecording && (
+          <LinearGradient
+            colors={[colors.buttonGradientTop, colors.buttonGradientBottom]}
+            start={{ x: 0.15, y: 0 }}
+            end={{ x: 0.85, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        )}
+        <View pointerEvents="none" style={styles.recordHalo} />
         {isTranscribing ? (
           <ActivityIndicator size="small" color={colors.white} />
         ) : isRecording ? (
@@ -187,19 +198,32 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: colors.buttonPrimary,
+    borderWidth: 1,
+    borderColor: colors.buttonEdge,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 4,
+    shadowColor: colors.buttonGlow,
+    shadowOpacity: 0.34,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   recordButtonActive: {
     backgroundColor: colors.error || '#FF3B30',
+    borderColor: colors.error || '#FF3B30',
   },
   recordButtonDisabled: {
-    opacity: 0.5,
+    backgroundColor: colors.buttonPrimaryDisabled,
+    shadowColor: colors.buttonPrimaryDisabled,
+    shadowOpacity: 0.12,
+    borderColor: colors.buttonPrimaryDisabledBorder,
+  },
+  recordHalo: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: colors.buttonEdge,
+    opacity: 0.85,
   },
   durationContainer: {
     flexDirection: 'row',

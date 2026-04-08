@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Image, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { typography, text } from '../../theme';
+import { backgrounds, brandIcon, typography, text } from '../../theme';
 
 interface LoadingScreenProps {
   onComplete?: () => void;
@@ -10,7 +10,7 @@ interface LoadingScreenProps {
 
 const BRUSH_WIDTH = 100;
 const BRUSH_DURATION_MS = 1500;
-const IMAGE_SCALE = 0.88; // Slightly smaller than full screen
+const IMAGE_SCALE = 0.58; // Keep the mark prominent without crowding the title
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
@@ -61,12 +61,18 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         },
       ]}
     >
+      <LinearGradient
+        colors={[backgrounds.splash, '#F8F4FA', backgrounds.primary]}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.centerBox}>
         <View style={[styles.imageWrap, { width: imgW, height: imgH }]}>
           <Image
-          source={require('../../../assets/loading_image.png')}
+          source={require('../../../assets/branding/splash-logo.png')}
           style={{ width: imgW, height: imgH }}
-          resizeMode="cover"
+          resizeMode="contain"
           />
           <Animated.View
             style={[
@@ -99,7 +105,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4EFE8',
+    backgroundColor: backgrounds.splash,
   },
   centerBox: {
     flex: 1,
@@ -111,24 +117,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   titleWrap: {
-    marginTop: 20,
+    marginTop: 12,
     alignItems: 'center',
   },
   titleMain: {
     fontFamily: typography.bold,
-    fontSize: 28,
-    fontWeight: typography.weights.bold,
-    color: text.primary,
-    letterSpacing: 1.2,
+    fontSize: 34,
+    color: brandIcon.plum,
+    letterSpacing: 0.8,
   },
   titleSub: {
     fontFamily: typography.regular,
-    fontSize: 15,
-    fontWeight: typography.weights.regular,
+    fontSize: 18,
     color: text.secondary,
-    letterSpacing: 3,
-    marginTop: 4,
-    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginTop: 0,
   },
   brush: {
     position: 'absolute',

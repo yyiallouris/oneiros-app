@@ -33,9 +33,13 @@ import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
 type ChatRouteProp = RouteProp<RootStackParamList, 'InterpretationChat'>;
+type IconProps = {
+  size?: number;
+  color?: string;
+};
 
 // Send icon
-const SendIcon = ({ size = 24, color = colors.buttonPrimary }) => (
+const SendIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
@@ -48,7 +52,7 @@ const SendIcon = ({ size = 24, color = colors.buttonPrimary }) => (
 );
 
 // Copy icon
-const CopyIcon = ({ size = 20, color = colors.textSecondary }) => (
+const CopyIcon = ({ size = 20, color = colors.textSecondary }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"

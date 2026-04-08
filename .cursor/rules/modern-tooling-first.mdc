@@ -1,0 +1,18 @@
+---
+description: Prefer modern tooling and existing libraries over manual one-off implementations
+alwaysApply: true
+---
+
+# Modern tooling first
+
+- Prefer established tools, libraries, and standard workflows over custom one-off implementations.
+- Before building a manual solution, first check whether the project already has an existing pattern, dependency, or tool that solves the problem cleanly.
+- Do not reinvent the wheel when a modern, maintainable workflow exists.
+- Avoid messy generated code in source files, especially huge inline blobs, raw SVG path dumps, hand-copied transforms, or fragile ad hoc conversions.
+- If an asset or code transformation is needed, prefer purpose-built tooling such as generators, transformers, codemods, or build-time integration.
+- If the clean solution requires a small setup step, prefer that over a noisy manual workaround.
+- If a manual approach starts producing large unreadable output, stop and reassess instead of continuing.
+
+## Example
+
+- For SVG usage in React Native, prefer `SVGR`, `react-native-svg-transformer`, or an existing icon pipeline instead of pasting massive SVG path data into app source files by hand.

@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { Dream, Interpretation } from '../types/dream';
+import { Dream, Interpretation, type JungianSymbol } from '../types/dream';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -30,6 +30,10 @@ type DreamRow = {
   updated_at: string;
 };
 
+function isJungianSymbol(value: string | null | undefined): value is JungianSymbol {
+  return value === 'moon' || value === 'sun' || value === 'key' || value === 'eye' || value === 'labyrinth';
+}
+
 type SymbolStanceRow = { symbol: string; stance: string };
 
 type InterpretationRow = {
@@ -57,7 +61,7 @@ function mapDreamRowToDream(row: DreamRow): Dream {
     date: row.date,
     title: row.title ?? undefined,
     content: row.content,
-    symbol: row.symbol ?? undefined,
+    symbol: isJungianSymbol(row.symbol) ? row.symbol : undefined,
     archived: row.archived,
     // archetypes and symbols are not stored in dreams table
     // They come from local AsyncStorage and interpretations table
@@ -325,7 +329,7 @@ export async function remoteSavePatternReport(monthKey: string, text: string): P
       generated_at: new Date().toISOString(),
       text,
     },
-    { onConflict: ['user_id', 'month_key'] }
+    { onConflict: 'user_id,month_key' }
   );
 
   if (error) {

@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-app-version",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Log immediately to verify function is being called
   console.log("[openai-proxy] Function called", {
     method: req.method,

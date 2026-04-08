@@ -19,7 +19,7 @@ if (!POSTMARK_TOKEN) {
   console.warn("[contact-email] Missing POSTMARK_TOKEN environment variable.");
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   try {
     const body = (await req.json()) as Payload;
     const record = body?.record ?? {};

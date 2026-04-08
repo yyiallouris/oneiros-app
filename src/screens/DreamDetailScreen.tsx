@@ -18,7 +18,7 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Card, Button, Chip, WaveBackground, MountainWaveBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
+  import { Card, Button, Chip, PsycheScreenBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
   import { Animated, Dimensions } from 'react-native';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
@@ -35,6 +35,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
   type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
   type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
+  type IconProps = {
+    size?: number;
+    color?: string;
+  };
 
   // Post-Jungian split: core architecture vs archetypal states (same as Insights)
   const CORE_ARCHETYPES = ['self', 'ego', 'shadow', 'persona', 'anima', 'animus'];
@@ -92,7 +96,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   };
 
   // Edit icon
-  const EditIcon = ({ size = 24, color = colors.buttonPrimary }) => (
+  const EditIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
@@ -105,7 +109,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   );
 
   // Send icon
-  const SendIcon = ({ size = 24, color = colors.buttonPrimary }) => (
+  const SendIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
@@ -118,7 +122,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   );
 
   // Copy icon
-  const CopyIcon = ({ size = 20, color = colors.textSecondary }) => (
+  const CopyIcon = ({ size = 20, color = colors.textSecondary }: IconProps) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
         d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
@@ -828,7 +832,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={240} lite />
+            <PsycheScreenBackground waveHeight={240} />
             <ScrollView
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
@@ -853,7 +857,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={240} lite />
+            <PsycheScreenBackground waveHeight={240} />
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>Dream not found</Text>
             </View>
@@ -872,7 +876,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
-          <MountainWaveBackground height={240} lite />
+          <PsycheScreenBackground waveHeight={240} />
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
@@ -899,8 +903,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           </Card>
 
           {/* Dream Symbols and Archetypes */}
-          {(dream.symbols?.length > 0 || dream.archetypes?.length > 0) && (
-            <Card style={styles.symbolsCard}>
+          {((dream.symbols?.length ?? 0) > 0 || (dream.archetypes?.length ?? 0) > 0) && (
+            <Card transparent style={styles.symbolsCard}>
               {dream.symbols && dream.symbols.length > 0 && (
                 <CollapsibleChipsSection
                   title="Symbols"
@@ -943,7 +947,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               <Text style={styles.reflectionTitle}>Jungian reflection</Text>
 
               {interpretation ? (
-                <Card style={styles.interpretationCard}>
+                <Card transparent style={styles.interpretationCard}>
                   {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
                   {interpretation.symbols.length > 0 && (
                     <CollapsibleChipsSection
@@ -1047,7 +1051,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                   </View>
                 </Card>
               ) : (
-                <Card style={styles.noInterpretationCard}>
+                <Card transparent style={styles.noInterpretationCard}>
                   <Text style={styles.noInterpretationText}>
                     Ask the AI to reflect on symbols, archetypes and shadow dynamics.
                   </Text>
@@ -1073,7 +1077,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {/* Loading state */}
           {isGeneratingInitial && (
             <View style={styles.reflectionSection}>
-              <Card style={styles.loadingCard}>
+              <Card transparent style={styles.loadingCard}>
                 <PrintPatchLoader size={72} color={colors.buttonPrimary} />
                 <Text style={styles.loadingText}>Analyzing your dream...</Text>
               </Card>
@@ -1272,7 +1276,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     },
     symbolsCard: {
       marginBottom: spacing.lg,
-      backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
     },
     dreamHeader: {
       flexDirection: 'row',
@@ -1286,9 +1289,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       fontWeight: typography.weights.medium,
     },
     title: {
-      fontSize: typography.sizes.xl,
-      fontWeight: typography.weights.bold,
-      color: colors.textPrimary,
+      fontSize: typography.sizes.xxl,
+      fontFamily: typography.bold,
+      color: colors.textAccent,
       marginBottom: spacing.md,
     },
     content: {
@@ -1308,9 +1311,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       paddingBottom: spacing.xl,
     },
     reflectionTitle: {
-      fontSize: typography.sizes.lg,
-      fontWeight: typography.weights.semibold,
-      color: colors.textPrimary,
+      fontSize: typography.sizes.xl,
+      fontFamily: typography.bold,
+      color: colors.textTitle,
       marginBottom: spacing.md,
       zIndex: 1,
       position: 'relative',
@@ -1318,7 +1321,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     interpretationCard: {
       zIndex: 1,
       position: 'relative',
-      backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
       width: '100%', // Use full width
     },
     chipsSection: {
@@ -1369,7 +1371,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       alignItems: 'center',
       zIndex: 1,
       position: 'relative',
-      backgroundColor: 'rgba(240, 229, 223, 0.5)', // More transparent to show sun
     },
     noInterpretationText: {
       fontSize: typography.sizes.md,
@@ -1384,7 +1385,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     loadingCard: {
       alignItems: 'center',
       padding: spacing.xl,
-      backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
     },
     loadingText: {
       marginTop: spacing.md,
@@ -1393,8 +1393,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     },
     chatSection: {
       marginTop: spacing.lg,
-      backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
+      backgroundColor: colors.cardGlassSoft,
       borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.contourLineFaint,
       overflow: 'hidden',
       flex: 1,
     },
@@ -1407,9 +1409,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       borderBottomColor: colors.border,
     },
     chatTitle: {
-      fontSize: typography.sizes.md,
-      fontWeight: typography.weights.semibold,
-      color: colors.textPrimary,
+      fontSize: typography.sizes.lg,
+      fontFamily: typography.bold,
+      color: colors.textTitle,
     },
     closeButton: {
       width: 32,
@@ -1440,8 +1442,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     },
     messageBubble: {
       maxWidth: '95%', // Use more width
-      backgroundColor: 'rgba(237, 230, 223, 0.7)', // Semi-transparent to show sun
+      backgroundColor: colors.cardGlassSoft,
       borderRadius: borderRadius.lg,
+      borderWidth: 1,
+      borderColor: colors.contourLineFaint,
       padding: spacing.md,
       paddingRight: spacing.xl + spacing.sm, // Extra padding for copy button
       minHeight: 40, // Prevent layout shift during typing
@@ -1481,9 +1485,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     limitReachedContainer: {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
-      backgroundColor: colors.background,
+      backgroundColor: colors.navSurface,
       borderTopWidth: 1,
-      borderTopColor: colors.border,
+      borderTopColor: colors.navBorder,
     },
     limitReachedText: {
       fontSize: typography.sizes.sm,
@@ -1505,15 +1509,17 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       flexDirection: 'row',
       padding: spacing.md,
       paddingTop: spacing.lg,
-      backgroundColor: colors.background,
+      backgroundColor: colors.navSurface,
       borderTopWidth: 1,
-      borderTopColor: colors.border,
+      borderTopColor: colors.navBorder,
       alignItems: 'flex-end',
     },
     input: {
       flex: 1,
-      backgroundColor: colors.cardBackground,
+      backgroundColor: colors.fieldSurface,
       borderRadius: borderRadius.md,
+      borderWidth: 1,
+      borderColor: colors.contourLineFaint,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.md,
       fontSize: typography.sizes.md,
@@ -1530,8 +1536,14 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       height: 44,
       borderRadius: 22,
       backgroundColor: colors.buttonPrimary,
+      borderWidth: 1,
+      borderColor: colors.buttonEdge,
       alignItems: 'center',
       justifyContent: 'center',
+      shadowColor: colors.buttonGlow,
+      shadowOpacity: 0.24,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
     },
     sendButtonDisabled: {
       opacity: 0.5,

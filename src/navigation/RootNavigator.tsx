@@ -25,11 +25,12 @@ import InsightsJourneyScreen from '../screens/InsightsJourneyScreen';
 import JournalFilterScreen from '../screens/JournalFilterScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId } from '../types/insights';
-import { colors } from '../theme';
+import { colors, typography } from '../theme';
 import { supabase } from '../services/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import { StorageService } from '../services/storageService';
 import { SyncService } from '../services/syncService';
+import { LocalStorage } from '../services/localStorage';
 import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
 import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
@@ -141,7 +142,6 @@ export const RootNavigator: React.FC = () => {
           try {
             // CRITICAL: Before clearing, try to sync any unsynced dreams one last time
             // This ensures dreams are saved to database before logout
-            const { LocalStorage } = await import('../services/localStorage');
             const unsyncedDreams = await LocalStorage.getUnsyncedDreams();
             if (unsyncedDreams.length > 0) {
               console.log(`[RootNavigator] Found ${unsyncedDreams.length} unsynced dream(s) before logout, attempting final sync...`);
@@ -242,7 +242,6 @@ export const RootNavigator: React.FC = () => {
         
         try {
           // Get count of unsynced dreams before syncing
-          const { LocalStorage } = await import('../services/localStorage');
           const unsyncedDreams = await LocalStorage.getUnsyncedDreams();
           const unsyncedCount = unsyncedDreams.length;
           
@@ -256,8 +255,7 @@ export const RootNavigator: React.FC = () => {
               await SyncService.syncUnsyncedDreams();
               
               // Verify sync completed by checking unsynced queue again
-              const { LocalStorage: LocalStorage2 } = await import('../services/localStorage');
-              const remainingUnsynced = await LocalStorage2.getUnsyncedDreams();
+              const remainingUnsynced = await LocalStorage.getUnsyncedDreams();
               const syncedCount = unsyncedCount - remainingUnsynced.length;
               
               if (syncedCount > 0) {
@@ -344,6 +342,14 @@ export const RootNavigator: React.FC = () => {
               headerShown: false,
               cardStyle: { backgroundColor: colors.background },
               presentation: 'card',
+              headerStyle: { backgroundColor: colors.background },
+              headerShadowVisible: false,
+              headerTintColor: colors.textAccent,
+              headerTitleStyle: {
+                fontFamily: typography.bold,
+                fontSize: typography.sizes.xl,
+                color: colors.textTitle,
+              },
             }}
           >
             {!session ? (

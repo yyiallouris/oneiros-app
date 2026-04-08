@@ -7,13 +7,17 @@ import {
   TouchableOpacity,
   Animated,
   Easing,
-  Image,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { backgrounds, colors, spacing, typography, text } from '../theme';
-import { MountainWaveBackground, BreathingLine, Card } from '../components/ui';
+import { borderRadius, colors, spacing, typography, text } from '../theme';
+import { PsycheScreenBackground, MysticHeader, BreathingLine, Card } from '../components/ui';
+import {
+  DreamsLoggedIcon,
+  MotifsIcon,
+  PatternRecognitionIcon,
+} from '../components/icons/InsightsIcons';
 import {
   getRecurringSymbols,
   getRecurringArchetypes,
@@ -35,32 +39,9 @@ import type {
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-const ICON_SIZE = 46;
-const ICON_RENDER_SIZE = 44;
+const ICON_RENDER_SIZE = 60;
+const ICON_SIZE = ICON_RENDER_SIZE + 2;
 
-const DreamLogIcon = ({ size = ICON_RENDER_SIZE - 14 }: { size?: number }) => (
-  <Image source={require('../../assets/dreams_logged.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
-
-const SymbolsIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
-  <Image source={require('../../assets/symbols.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
-
-const MotifsIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
-  <Image source={require('../../assets/motifs.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
-
-const ArchetypesIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
-  <Image source={require('../../assets/archetypes.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
-
-const LandscapeIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
-  <Image source={require('../../assets/places.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
-
-const PatternIcon = ({ size = ICON_RENDER_SIZE }: { size?: number }) => (
-  <Image source={require('../../assets/pattern_recognition.png')} style={{ width: size, height: size }} resizeMode="contain" />
-);
 
 type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
 
@@ -214,12 +195,8 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <MountainWaveBackground height={180} lite />
-        <View style={styles.header}>
-          <View style={styles.headerLeft} />
-          <Text style={styles.headerTitle}>Insights</Text>
-          <View style={styles.headerRight} />
-        </View>
+        <PsycheScreenBackground waveHeight={180} />
+        <MysticHeader title="Insights" subtitle="Patterns rising into view." />
         <View style={styles.loadingPlaceholder}>
           <BreathingLine width={100} height={2} color={colors.textMuted} />
         </View>
@@ -229,13 +206,8 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
-
-      <View style={styles.header}>
-        <View style={styles.headerLeft} />
-        <Text style={styles.headerTitle}>Insights</Text>
-        <View style={styles.headerRight} />
-      </View>
+      <PsycheScreenBackground waveHeight={240} />
+      <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 
       <ScrollView
         style={styles.scroll}
@@ -271,13 +243,13 @@ const InsightsScreen: React.FC = () => {
           )}
         </View>
 
-        <Card style={styles.card}>
+        <Card transparent style={styles.card}>
           <Text style={styles.overviewTitle}>Dream Activity Overview</Text>
 
           {/* Legacy: Psychic journey as separate button — sections are now linked (swipe) when tapping Symbols / Archetypes / Space / Pattern
           <TouchableOpacity style={[styles.overviewRow, styles.journeyRow]} onPress={goToJourney} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <PatternIcon color={colors.buttonPrimary} />
+              <PatternRecognitionIcon size={ICON_RENDER_SIZE} />
             </View>
             <Text style={styles.journeyLabel}>Psychic journey</Text>
             <Text style={styles.overviewValue}>Swipe →</Text>
@@ -286,7 +258,7 @@ const InsightsScreen: React.FC = () => {
 
           <TouchableOpacity style={styles.overviewSection} onPress={goToCalendar} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <DreamLogIcon />
+              <DreamsLoggedIcon size={ICON_RENDER_SIZE - 14} color={colors.textAccent} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Dreams logged</Text>
@@ -296,10 +268,11 @@ const InsightsScreen: React.FC = () => {
             </View>
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
+          <View style={styles.overviewDivider} />
 
           <TouchableOpacity style={styles.overviewSection} onPress={goToSymbolicElements} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <MotifsIcon />
+              <MotifsIcon size={ICON_RENDER_SIZE} color={colors.textAccent} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Symbolic Elements</Text>
@@ -307,14 +280,15 @@ const InsightsScreen: React.FC = () => {
             </View>
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
+          <View style={styles.overviewDivider} />
 
           <TouchableOpacity
-            style={[styles.overviewSection, styles.overviewSectionLast]}
+            style={styles.overviewSection}
             onPress={() => goToSection('pattern-recognition')}
             activeOpacity={0.7}
           >
             <View style={styles.overviewIconWrap}>
-              <PatternIcon />
+              <PatternRecognitionIcon size={ICON_RENDER_SIZE} color={colors.textAccent} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Pattern recognition</Text>
@@ -333,24 +307,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.sm,
-  },
-  headerLeft: { width: 40 },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  headerRight: { width: 40 },
   loadingPlaceholder: {
     flex: 1,
     justifyContent: 'center',
@@ -363,9 +319,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxxl,
   },
   tagline: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
-    marginBottom: spacing.sm,
+    fontSize: typography.sizes.md,
+    color: colors.textAccent,
+    marginBottom: spacing.md,
+    fontStyle: 'italic',
   },
   periodSelectorWrap: {
     marginBottom: spacing.xl,
@@ -376,10 +333,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.cardBackground,
-    borderRadius: 8,
+    backgroundColor: colors.cardGlassStrong,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.contourLineFaint,
   },
   periodTriggerLabel: {
     fontSize: typography.sizes.md,
@@ -396,10 +353,10 @@ const styles = StyleSheet.create({
   },
   periodDropdown: {
     marginTop: spacing.xs,
-    borderRadius: 8,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.cardBackground,
+    borderColor: colors.contourLineFaint,
+    backgroundColor: colors.cardGlassStrong,
     overflow: 'hidden',
   },
   periodOption: {
@@ -421,27 +378,23 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: spacing.xl,
-    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent so sun remains visible behind
   },
   overviewTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    fontSize: typography.sizes.xl,
+    fontFamily: typography.bold,
+    color: colors.textTitle,
     marginBottom: spacing.lg,
   },
   overviewSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.md,
-    backgroundColor: backgrounds.cardTransparent,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
   },
-  overviewSectionLast: {
-    marginBottom: 0,
+  overviewDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
+    marginLeft: ICON_SIZE + spacing.md + spacing.xs,
   },
   journeyRow: {
     backgroundColor: colors.buttonPrimaryLight12,
@@ -460,6 +413,14 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.fieldSurface,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
   overviewContent: {
     flex: 1,
@@ -467,7 +428,7 @@ const styles = StyleSheet.create({
   },
   overviewLabel: {
     fontSize: typography.sizes.md,
-    color: colors.textPrimary,
+    color: colors.textTitle,
     fontWeight: typography.weights.semibold,
   },
   overviewMeta: {
@@ -477,7 +438,7 @@ const styles = StyleSheet.create({
   },
   overviewChevron: {
     marginLeft: spacing.sm,
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.md,
     color: text.muted,
   },
 });

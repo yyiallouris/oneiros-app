@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Animated, Easing, StyleProp, ViewStyle } from 'react-native';
 import { Card } from './Card';
 import { colors, spacing, borderRadius } from '../../theme';
 
 interface LinoSkeletonCardProps {
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**

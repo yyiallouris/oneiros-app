@@ -173,7 +173,6 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
               activeOpacity={0.7}
               disabled={isFuture}
               onPress={() => !isFuture && onDayPress(day.date)}
-              pointerEvents={isFuture ? 'none' : 'auto'}
               style={[
                 styles.dayTouchable,
                 {

@@ -56,18 +56,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background,
+    backgroundColor: colors.fieldSurface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.contourLineFaint,
   },
   accentChip: {
     backgroundColor: colors.buttonPrimaryLight,
-    borderColor: colors.buttonPrimary,
+    borderColor: colors.contourLineSoft,
   },
   labelChip: {
-    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    backgroundColor: colors.cardGlassSoft,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(226, 216, 204, 0.6)',
+    borderColor: colors.contourLineFaint,
   },
   chipText: {
     fontSize: typography.sizes.sm,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   accentChipText: {
-    color: colors.white,
+    color: colors.textAccent,
   },
   labelChipText: {
     color: colors.textSecondary,

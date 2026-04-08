@@ -3,6 +3,8 @@ export { Card } from './Card';
 export { Chip } from './Chip';
 export { WaveBackground } from './WaveBackground';
 export { MountainWaveBackground } from './MountainWaveBackground';
+export { PsycheScreenBackground } from './PsycheScreenBackground';
+export { MysticHeader } from './MysticHeader';
 export { SunDisc } from './SunDisc';
 export { SkyGlowBand } from './SkyGlowBand';
 export { SunriseSun } from './SunriseSun';

@@ -15,7 +15,7 @@ const AUTO_REPLY_HTML = `
 <p>Thanks,<br/>The Oneiros team</p>
 `;
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: cors() });
   }

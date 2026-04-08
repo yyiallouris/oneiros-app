@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabsParamList } from './types';
 import WriteScreen from '../screens/WriteScreen';
@@ -14,6 +15,26 @@ const Tab = createBottomTabNavigator<MainTabsParamList>();
 // Minimum bottom inset so tab bar stays above Android navigation bar when
 // system insets are 0 or small (edge-to-edge). Android nav bar is typically 48dp.
 const MIN_TAB_BAR_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
+
+const TabIconFrame = ({
+  focused,
+  children,
+}: {
+  focused: boolean;
+  children: React.ReactNode;
+}) => (
+  <View style={[styles.iconFrame, focused && styles.iconFrameActive]}>
+    {focused ? (
+      <LinearGradient
+        colors={['rgba(231, 217, 242, 0.88)', 'rgba(200, 140, 200, 0.38)']}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+    ) : null}
+    {children}
+  </View>
+);
 
 // Write tab icon (designer asset)
 const PenIcon = ({ color, size = 26 }: { color: string; size?: number }) => (
@@ -59,20 +80,35 @@ export const MainTabsNavigator: React.FC = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.cardBackground,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
+          position: 'absolute',
+          left: 16,
+          right: 16,
+          bottom: bottomInset,
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
           paddingTop: 8,
           paddingBottom: 8,
-          height: 68,
-          // Push the whole tab bar up so it sits just above the system nav bar (no double padding)
-          marginBottom: bottomInset,
+          height: 78,
+          borderRadius: 24,
+          elevation: 0,
+        },
+        tabBarBackground: () => (
+          <LinearGradient
+            colors={[colors.navSurface, colors.cardGlassStrong]}
+            start={{ x: 0.18, y: 0 }}
+            end={{ x: 0.82, y: 1 }}
+            style={styles.tabBackground}
+          />
+        ),
+        tabBarItemStyle: {
+          paddingVertical: 4,
         },
         tabBarActiveTintColor: colors.tabIconActive,
         tabBarInactiveTintColor: colors.tabIconInactive,
         tabBarLabelStyle: {
           fontSize: typography.sizes.xs,
           fontWeight: typography.weights.medium,
+          fontFamily: typography.regular,
           marginTop: 4,
         },
       }}
@@ -81,24 +117,61 @@ export const MainTabsNavigator: React.FC = () => {
         name="Write"
         component={WriteScreen}
         options={{
-          tabBarIcon: ({ color }) => <PenIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIconFrame focused={focused}>
+              <PenIcon color={color} />
+            </TabIconFrame>
+          ),
         }}
       />
       <Tab.Screen
         name="Journal"
         component={JournalScreen}
         options={{
-          tabBarIcon: ({ color }) => <BookIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIconFrame focused={focused}>
+              <BookIcon color={color} />
+            </TabIconFrame>
+          ),
         }}
       />
       <Tab.Screen
         name="Insights"
         component={InsightsScreen}
         options={{
-          tabBarIcon: ({ color }) => <InsightsIcon color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIconFrame focused={focused}>
+              <InsightsIcon color={color} />
+            </TabIconFrame>
+          ),
         }}
       />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  tabBackground: {
+    flex: 1,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.navBorder,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  iconFrame: {
+    width: 46,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
+    overflow: 'hidden',
+  },
+  iconFrameActive: {
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+  },
+});
 

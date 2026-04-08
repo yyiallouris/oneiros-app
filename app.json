@@ -5,22 +5,20 @@
     "version": "1.0.0",
     "projectId": "b81471aa-9f89-4729-8bf3-5ec9e8ec62e9",
     "orientation": "portrait",
-    "icon": "./assets/icon_1024.png",
+    "icon": "./assets/branding/icon-ios.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
-    "splash": {
-      "image": "./assets/loading_image.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oneirosdreamjournal.app"
+      "bundleIdentifier": "com.oneirosdreamjournal.app",
+      "icon": "./assets/branding/icon-ios.png"
     },
     "android": {
+      "icon": "./assets/branding/icon-android-legacy.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon_1024.png",
-        "backgroundColor": "#EDE8F5"
+        "foregroundImage": "./assets/branding/icon-android-foreground.png",
+        "backgroundImage": "./assets/branding/icon-android-background.png",
+        "monochromeImage": "./assets/branding/icon-android-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -32,6 +30,14 @@
     },
     "plugins": [
       "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F0F7",
+          "image": "./assets/branding/splash-lockup.png",
+          "imageWidth": 220
+        }
+      ],
       [
         "expo-local-authentication",
         {

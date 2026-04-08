@@ -1,8 +1,11 @@
 export const typography = {
   // Font families
-  regular: 'Inter-Regular',
-  medium: 'Inter-Medium',
-  bold: 'PlayfairDisplay-Bold', // Elegant serif for headers
+  // Brand typography:
+  // - "Oneiros" wordmark / splash title uses a romanesque serif feel.
+  // - UI copy stays on Inter for clarity and contrast.
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  bold: 'CormorantGaramond_600SemiBold',
   
   // Font sizes
   sizes: {

@@ -11,7 +11,10 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "JEST_DISABLE_WATCHMAN=1 jest --watchman=false",
+    "test:all": "JEST_DISABLE_WATCHMAN=1 jest --runInBand --watchman=false",
+    "test:one": "JEST_DISABLE_WATCHMAN=1 jest --runInBand --watchman=false",
     "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
+    "typecheck": "tsc --noEmit",
     "detox:build:android": "detox build -c android.emu.debug",
     "detox:test:android": "detox test -c android.emu.debug"
   },
@@ -56,6 +59,7 @@
     "@types/jest": "^29.5.12",
     "@types/pluralize": "^0.0.33",
     "@types/react": "~19.1.0",
+    "@types/react-test-renderer": "^19.1.0",
     "baseline-browser-mapping": "^2.9.19",
     "detox": "^20.46.3",
     "jest": "^29.7.0",

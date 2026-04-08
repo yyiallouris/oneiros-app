@@ -1,14 +1,14 @@
 /**
- * Time-of-day wave colors: purple → soft red.
- * Phase 0 = start of day (more purple), phase 1 = end of day (more red).
+ * Time-of-day wave colors: deep iris → soft red.
+ * Phase 0 = start of day (more iris), phase 1 = end of day (more red).
  * Used by WaveBackground for smooth, gradual shift as the hour passes.
  */
 
-// Palette: mauve → violet → magenta → pink → deep red → soft terracotta (smooth stages)
+// Palette: iris → violet → magenta → pink → deep red → soft terracotta (smooth stages)
 const WAVE_TIME_PALETTE = [
-  '#9B8BB5', // Deep lavender
-  '#A89CCF', // Accent purple
-  '#B8A5C9', // Soft violet
+  '#8477B1', // Deep iris dusk
+  '#9489C4', // Accent iris
+  '#A79DCC', // Soft iris violet
   '#C4A4B8', // Violet-magenta
   '#CE9FA8', // Blush
   '#D49A9A', // Dusty rose

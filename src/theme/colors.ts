@@ -1,7 +1,7 @@
 /**
  * Centralized Color System — single source of truth for the app palette.
  *
- * Edit this file to try new palettes. Sandy/cream backgrounds stay fixed.
+ * Edit this file to try new palettes. Shared UI and brand/splash colors live here.
  * All colors used in the app should be defined here; no hardcoded colors in components.
  */
 
@@ -14,67 +14,73 @@ const baseColors = {
 // ==================== BACKGROUND COLORS ====================
 export const backgrounds = {
   // Main backgrounds
-  primary: '#F4EFEA',      // Soft warm cream - main app background
-  secondary: '#EDE6DF',    // Slightly darker for cards
-  tertiary: '#F4EFE8',     // Warm paper tone (LoadingScreen)
-  card: '#EDE6DF',         // Card background
-  cardTransparent: 'rgba(237, 230, 223, 0.7)', // Semi-transparent card
-  cardSemiTransparent: 'rgba(240, 229, 223, 0.7)', // Semi-transparent for sun visibility
-  cardMoreTransparent: 'rgba(240, 229, 223, 0.5)', // More transparent
+  primary: '#F7F1F8',      // Mist base used across refreshed screens
+  secondary: '#F2EAF4',    // Soft supporting panel tone
+  tertiary: '#FBF7FC',     // Lighter paper mist
+  splash: '#F5F0F7',       // Brand mist used behind native splash and loading mark
+  card: '#F9F5FA',         // Card background
+  cardTransparent: 'rgba(249, 245, 250, 0.74)', // Semi-transparent card
+  cardSemiTransparent: 'rgba(249, 245, 250, 0.82)', // Stronger glass for hero surfaces
+  cardMoreTransparent: 'rgba(249, 245, 250, 0.62)', // More transparent
   
   // Wave backgrounds (for gradients)
-  wave1: '#DAD2C8',        // Gentle sand tone
-  wave2: '#CFC6BA',        // Deeper grounding tone
+  wave1: '#DECFE8',        // Lavender-mist topographic wave
+  wave2: '#C7AFD6',        // Deeper plum-lavender depth
   
   // Overlays
-  overlay: 'rgba(58, 47, 42, 0.25)', // Dark overlay
-  overlayLight: 'rgba(0, 0, 0, 0.2)', // Light overlay for menus
-  backdrop: 'rgba(0, 0, 0, 0.2)', // Backdrop for modals/menus
+  overlay: 'rgba(73, 50, 76, 0.24)', // Brand plum overlay
+  overlayLight: 'rgba(73, 50, 76, 0.12)', // Light overlay for menus
+  backdrop: 'rgba(46, 32, 51, 0.22)', // Backdrop for modals/menus
 } as const;
 
 // ==================== WAVES (MYSTICAL TINTS) ====================
 export const waveTints = {
-  A: '#4B4266', // deep mystic indigo
-  B: '#6E5160', // dusky mauve-brown
-  accentMist: 'rgba(106, 79, 179, 0.12)', // ultra-subtle tie-in with primary accent
+  A: '#403A69', // deep iris indigo
+  B: '#665E83', // muted iris mauve
+  accentMist: 'rgba(200, 140, 200, 0.12)', // ultra-subtle tie-in with orchid accents
 } as const;
 
 // ==================== TEXT COLORS ====================
 export const text = {
-  primary: '#3A2F2A',      // Deep brown-gray - main text
-  secondary: '#6E625B',    // Muted taupe - secondary text
-  muted: '#9A8F88',        // Soft gray-brown - placeholder/muted text
-  warmGray: 'rgba(40, 35, 30, 0.8)', // Warm gray for loading screen
+  primary: '#49324C',      // Plum-primary text / headings
+  secondary: '#6F5A77',    // Muted plum for supporting copy
+  muted: '#98889D',        // Soft muted mist-plum
+  warmGray: 'rgba(73, 50, 76, 0.78)', // Warm plum-gray for loading screen
+  title: '#49324C',        // Explicit display/title tone
+  accent: '#7A4B8A',       // Orchid-plum emphasis
   white: baseColors.white,
   onAccent: baseColors.white, // Text on accent backgrounds
 } as const;
 
 // ==================== TAB BAR COLORS ====================
 export const tabBar = {
-  iconActive: '#6F52C8',   // Active tab icon
-  iconInactive: '#5F5753', // Inactive tab icon
+  iconActive: '#49324C',   // Active tab icon / label
+  iconInactive: '#8E7D94', // Inactive tab icon / label
 } as const;
 
 // ==================== ACCENT COLORS ====================
 // Primary action color: buttons, tabs, microphone, calendar icon, sidebar, toggles, chips.
 // Change buttonPrimary here to update all of them.
 export const accent = {
-  buttonPrimary: '#6A4FB3',           // Primary actions (buttons, tabs, mic, calendar, etc.)
-  buttonPrimaryLight: 'rgba(106, 79, 179, 0.2)',   // Light bg for chips, toggles
-  buttonPrimaryLight12: 'rgba(106, 79, 179, 0.12)', // Subtle bg
-  buttonPrimary40: 'rgba(106, 79, 179, 0.4)',       // Borders, toggle track
-  buttonPrimary90: 'rgba(106, 79, 179, 0.9)',      // Solid-ish (e.g. user chat bubble)
+  buttonPrimary: '#6B4B7B',           // Primary actions (buttons, tabs, mic, calendar, etc.)
+  buttonPrimaryLight: 'rgba(200, 140, 200, 0.22)',   // Light bg for chips, toggles
+  buttonPrimaryLight12: 'rgba(200, 140, 200, 0.12)', // Subtle bg
+  buttonPrimary40: 'rgba(122, 75, 138, 0.38)',       // Borders, toggle track
+  buttonPrimary90: 'rgba(107, 75, 123, 0.92)',      // Solid-ish (e.g. user chat bubble)
+  buttonPrimaryDisabled: '#A18EAB',   // Muted plum-orchid for disabled primary actions
+  buttonPrimaryDisabledLight: 'rgba(161, 142, 171, 0.16)', // Disabled secondary/ghost bg
+  buttonPrimaryDisabledBorder: 'rgba(161, 142, 171, 0.34)', // Disabled outlines/text
 
-  // Legacy lavender (non-UI: e.g. calendar hasDreams dot, decorative only)
-  primary: '#A89CCF',
-  light: '#C3B8E0',
-  dark: '#7E70A8',
-  symbol: '#6A4FB3',                 // Same as buttonPrimary - icons, symbols, nav
+  // Decorative iris accents (e.g. calendar hasDreams dot, gradients)
+  primary: '#C88CC8',
+  light: '#E7D9F2',
+  dark: '#6A4475',
+  symbol: '#7A4B8A',                 // Icons, symbols, nav accents
   
   // Accent with opacity
-  primary90: 'rgba(168, 156, 207, 0.9)', // Semi-transparent accent
-  primary60: 'rgba(168, 156, 207, 0.6)',  // Light accent overlay
-  primary20: 'rgba(168, 156, 207, 0.2)',  // Very light accent overlay
+  primary90: 'rgba(200, 140, 200, 0.9)', // Semi-transparent accent
+  primary60: 'rgba(200, 140, 200, 0.6)',  // Light accent overlay
+  primary20: 'rgba(200, 140, 200, 0.2)',  // Very light accent overlay
   
   // Turquoise accent (used in loading, animations)
   turquoise: 'rgba(30, 95, 90, 1)',       // Full turquoise
@@ -87,6 +93,38 @@ export const accent = {
   
   // Orange accent (used in calendar)
   orange: 'rgb(220, 150, 100)', // Warm orange for calendar
+} as const;
+
+// ==================== BRAND ICON COLORS ====================
+// Used by the generated splash/icon assets and documented here so the
+// visual identity stays versioned beside the app palette.
+export const brandIcon = {
+  plum: '#49324C',         // Dark icon background + wordmark tone
+  plumShadow: '#2E2033',   // Deeper vignette / adaptive icon background shadow
+  orchid: '#C88CC8',       // Core glow + accent contour highlights
+  lavender: '#E7D9F2',     // Primary contour/light stroke
+  lavenderSoft: '#D9B4E8', // Secondary glow / supporting stroke tint
+  mist: '#F5F0F7',         // Splash background / light brand backdrop
+} as const;
+
+// ==================== BRAND SURFACES ====================
+export const surfaces = {
+  glass: 'rgba(249, 245, 250, 0.76)',       // Default mist glass card
+  glassStrong: 'rgba(249, 245, 250, 0.86)', // Search bars / dropdowns / strong surfaces
+  glassSoft: 'rgba(249, 245, 250, 0.62)',   // Chat / atmospheric surfaces
+  field: 'rgba(252, 249, 252, 0.88)',       // Inputs and inline controls
+  nav: 'rgba(245, 240, 247, 0.94)',         // Bottom nav / header chrome
+  navBorder: 'rgba(147, 125, 181, 0.22)',   // Navigation border tone
+  edgeGlow: 'rgba(255, 246, 255, 0.8)',     // Soft luminous top edge
+} as const;
+
+// ==================== CONTOUR SYSTEM ====================
+export const contours = {
+  line: 'rgba(147, 125, 181, 0.32)',       // Main contour stroke
+  lineSoft: 'rgba(147, 125, 181, 0.2)',    // Supporting contour stroke
+  lineFaint: 'rgba(147, 125, 181, 0.12)',  // Very soft full-screen texture
+  fill: 'rgba(231, 217, 242, 0.14)',       // Mist contour fill
+  glow: 'rgba(200, 140, 200, 0.24)',       // Orchid contour glow
 } as const;
 
 // ==================== SEMANTIC COLORS ====================
@@ -109,18 +147,18 @@ export const semantic = {
 
 // ==================== BORDER COLORS ====================
 export const borders = {
-  primary: '#E2D8CC',      // Main border color
-  input: '#D8CEC2',        // Input border
-  divider: '#EAE0D4',      // Divider line
-  card: '#E2D8CC',         // Card border
+  primary: 'rgba(147, 125, 181, 0.18)', // Main border color
+  input: 'rgba(147, 125, 181, 0.24)',   // Input border
+  divider: 'rgba(147, 125, 181, 0.12)', // Divider line
+  card: 'rgba(147, 125, 181, 0.18)',    // Card border
 } as const;
 
 // ==================== SHADOW COLORS ====================
 export const shadows = {
-  primary: 'rgba(58, 47, 42, 0.08)',  // Main shadow
-  card: 'rgba(0, 0, 0, 0.1)',         // Card shadow
-  button: 'rgba(0, 0, 0, 0.15)',      // Button shadow
-  overlay: 'rgba(0, 0, 0, 0.25)',     // Overlay shadow
+  primary: 'rgba(73, 50, 76, 0.1)',   // Main shadow
+  card: 'rgba(73, 50, 76, 0.12)',     // Card shadow
+  button: 'rgba(90, 58, 99, 0.25)',   // Button shadow
+  overlay: 'rgba(46, 32, 51, 0.28)',  // Overlay shadow
 } as const;
 
 // ==================== SUN CYCLE (moving sun gradient) ====================
@@ -131,30 +169,45 @@ export const SUN_CYCLE_DURATION_MS = 60 * 1000; // 1 minute per step
 // ==================== GRADIENT COLORS ====================
 export const gradients = {
   // Mountain wave gradients
-  mountainStart: '#E8D5B7',           // Start color
-  mountainStart90: 'rgba(232, 213, 183, 0.9)', // With opacity
-  mountainMid: '#C3B8E0',              // Mid color (accent light)
-  mountainMid60: 'rgba(195, 184, 224, 0.6)',  // With opacity
-  mountainMid20: 'rgba(195, 184, 224, 0.2)',   // With opacity
-  mountainEnd: '#C3B8E0',              // End color
-  mountainEnd20: 'rgba(195, 184, 224, 0.2)', // With opacity
+  mountainStart: '#F5F0F7',            // Start color
+  mountainStart90: 'rgba(245, 240, 247, 0.9)', // With opacity
+  mountainMid: '#E7D9F2',              // Mid color (lavender)
+  mountainMid60: 'rgba(231, 217, 242, 0.6)',  // With opacity
+  mountainMid20: 'rgba(231, 217, 242, 0.2)',   // With opacity
+  mountainEnd: '#D9B4E8',              // End color
+  mountainEnd20: 'rgba(217, 180, 232, 0.2)', // With opacity
   
   // Sun/Moon gradients
-  sunMoonStart: '#C3B8E0',            // Start (accent light)
-  sunMoonStart60: 'rgba(195, 184, 224, 0.6)', // With opacity
-  sunMoonMid: '#E8D5B7',               // Mid (mountain start)
-  sunMoonMid40: 'rgba(232, 213, 183, 0.4)',  // With opacity
-  sunMoonEnd: '#C3B8E0',               // End (accent light)
-  sunMoonEnd20: 'rgba(195, 184, 224, 0.2)', // With opacity
+  sunMoonStart: '#E7D9F2',            // Start (accent light)
+  sunMoonStart60: 'rgba(231, 217, 242, 0.6)', // With opacity
+  sunMoonMid: '#F5F0F7',               // Mid (mist)
+  sunMoonMid40: 'rgba(245, 240, 247, 0.4)',  // With opacity
+  sunMoonEnd: '#D9B4E8',               // End (orchid glow)
+  sunMoonEnd20: 'rgba(217, 180, 232, 0.2)', // With opacity
+
+  // Screen atmosphere
+  screenTop: '#FBF7FC',
+  screenMid: '#F5F0F7',
+  screenBottom: '#E7D9F2',
+  screenDepth: '#C7AFD6',
+  auraTop: 'rgba(255, 246, 255, 0.95)',
+  auraMid: 'rgba(231, 217, 242, 0.55)',
+  auraBottom: 'rgba(200, 140, 200, 0.18)',
+
+  // Primary action treatment
+  buttonTop: '#5A3A63',
+  buttonBottom: '#C88CC8',
+  buttonEdge: 'rgba(231, 217, 242, 0.52)',
+  buttonGlow: 'rgba(200, 140, 200, 0.35)',
   
   // Paper/carve effect
-  paper: 'rgba(244, 239, 232, 0.9)',  // Paper color for "carve" effect
-  paperLight: 'rgba(240, 229, 223, 0.4)', // Light beige for calendar
+  paper: 'rgba(245, 240, 247, 0.92)',  // Paper color for "carve" effect
+  paperLight: 'rgba(249, 245, 250, 0.55)', // Light mist for calendar
 } as const;
 
 // ==================== CALENDAR COLORS ====================
 export const calendar = {
-  noDreams: 'rgba(240, 229, 223, 0.4)', // No dreams - light beige
+  noDreams: 'rgba(249, 245, 250, 0.5)', // No dreams - light mist
   hasDreams: accent.primary,              // Has dreams - accent color
   orange: accent.orange,                  // Warm orange variant
 } as const;
@@ -172,6 +225,17 @@ export const colors = {
   cardBackground: backgrounds.secondary,
   backgroundSecondary: backgrounds.secondary,
   backgroundTertiary: backgrounds.tertiary,
+  backgroundSplash: backgrounds.splash,
+  cardGlass: surfaces.glass,
+  cardGlassStrong: surfaces.glassStrong,
+  cardGlassSoft: surfaces.glassSoft,
+  fieldSurface: surfaces.field,
+  navSurface: surfaces.nav,
+  navBorder: surfaces.navBorder,
+  contourLine: contours.line,
+  contourLineSoft: contours.lineSoft,
+  contourLineFaint: contours.lineFaint,
+  contourGlow: contours.glow,
   wave1: backgrounds.wave1,
   wave2: backgrounds.wave2,
   waveTintA: waveTints.A,
@@ -182,6 +246,9 @@ export const colors = {
   textPrimary: text.primary,
   textSecondary: text.secondary,
   textMuted: text.muted,
+  textTitle: text.title,
+  textAccent: text.accent,
+  onAccent: text.onAccent,
   
   // Tab bar icon colors
   tabIconActive: tabBar.iconActive,
@@ -196,6 +263,13 @@ export const colors = {
   buttonPrimaryLight12: accent.buttonPrimaryLight12,
   buttonPrimary40: accent.buttonPrimary40,
   buttonPrimary90: accent.buttonPrimary90,
+  buttonPrimaryDisabled: accent.buttonPrimaryDisabled,
+  buttonPrimaryDisabledLight: accent.buttonPrimaryDisabledLight,
+  buttonPrimaryDisabledBorder: accent.buttonPrimaryDisabledBorder,
+  buttonGradientTop: gradients.buttonTop,
+  buttonGradientBottom: gradients.buttonBottom,
+  buttonEdge: gradients.buttonEdge,
+  buttonGlow: gradients.buttonGlow,
   
   // Semantic
   success: semantic.success,
@@ -223,3 +297,6 @@ export type BorderKey = keyof typeof borders;
 export type ShadowKey = keyof typeof shadows;
 export type GradientKey = keyof typeof gradients;
 export type CalendarKey = keyof typeof calendar;
+export type BrandIconKey = keyof typeof brandIcon;
+export type SurfaceKey = keyof typeof surfaces;
+export type ContourKey = keyof typeof contours;

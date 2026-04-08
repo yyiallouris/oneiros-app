@@ -1,22 +1,26 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { colors, spacing, borderRadius } from '../../theme';
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   elevation?: boolean;
   transparent?: boolean; // New prop for semi-transparent cards
 }
 
 export const Card: React.FC<CardProps> = ({ children, style, elevation = true, transparent = false }) => {
   return (
-    <View style={[
-      styles.card, 
-      transparent && styles.transparentCard,
-      elevation && styles.elevation, 
-      style
-    ]}>
+    <View
+      style={[
+        styles.card,
+        transparent && styles.transparentCard,
+        elevation && styles.elevation,
+        style,
+      ]}
+    >
+      <View pointerEvents="none" style={styles.edgeGlow} />
+      <View pointerEvents="none" style={styles.innerBorder} />
       {children}
     </View>
   );
@@ -24,22 +28,42 @@ export const Card: React.FC<CardProps> = ({ children, style, elevation = true, t
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.cardBackground,
+    backgroundColor: colors.cardGlass,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
   },
   transparentCard: {
-    backgroundColor: 'rgba(237, 230, 223, 0.7)', // Semi-transparent cardBackground
+    backgroundColor: colors.cardGlassSoft,
   },
   elevation: {
     shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 10,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    elevation: 6,
+  },
+  edgeGlow: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    top: 0,
+    height: 18,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    opacity: 0.18,
+  },
+  innerBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
   },
 });
 

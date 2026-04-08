@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
   View,
   Text,
@@ -15,7 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, MountainWaveBackground } from '../components/ui';
+import { Card, Button, PsycheScreenBackground, MysticHeader } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -26,6 +27,7 @@ import { getRandomSymbol } from '../components/symbols';
 import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
+const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
 
 // Calendar icon for header
 const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
@@ -43,6 +45,7 @@ const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
 const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [todaysDream, setTodaysDream] = useState<Dream | null>(null);
@@ -189,6 +192,8 @@ const WriteScreen: React.FC = () => {
   // Keyboard vertical offset: no header on this tab, use status bar on Android so padding is correct
   const keyboardVerticalOffset =
     Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
+  const floatingTabBarInset = Math.max(insets.bottom, MIN_FLOATING_TAB_BOTTOM_INSET);
+  const saveBarOffset = tabBarHeight + floatingTabBarInset + spacing.sm;
 
   return (
     <KeyboardAvoidingView
@@ -196,29 +201,33 @@ const WriteScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      <MountainWaveBackground height={400} lite />
+      <PsycheScreenBackground waveHeight={360} />
       
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{headerGreeting}</Text>
-          <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-            <CalendarIcon size={24} />
-          </TouchableOpacity>
-        </View>
+        <MysticHeader
+          title={headerGreeting}
+          subtitle="Write while the dream is still warm."
+          left={
+            <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
+              <Text style={styles.menuIcon}>☰</Text>
+            </TouchableOpacity>
+          }
+          right={
+            <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
+              <CalendarIcon size={24} />
+            </TouchableOpacity>
+          }
+        />
 
         {/* Entry ritual */}
         <Text style={styles.entryRitual}>Take a breath. Let the dream come back.</Text>
 
         {/* Main Card */}
-        <Card style={styles.mainCard}>
+        <Card transparent style={styles.mainCard}>
           {/* Date Pill */}
           <View style={styles.datePill}>
             <Text style={styles.datePillText}>{formatDate(today)}</Text>
@@ -267,7 +276,15 @@ const WriteScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+      <View
+        style={[
+          styles.bottomActions,
+          {
+            bottom: saveBarOffset,
+            paddingBottom: spacing.lg,
+          },
+        ]}
+      >
         <Button
           title={todaysDream ? 'Update dream' : 'Save dream'}
           onPress={handleSaveDream}
@@ -342,55 +359,40 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.lg,
-    paddingBottom: 100,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-    paddingTop: spacing.md,
+    paddingBottom: 220,
   },
   headerLeft: {
-    width: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuIcon: {
     fontSize: 28,
-    color: colors.buttonPrimary,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.semibold,
-    fontFamily: typography.bold,
-    color: colors.textPrimary,
-    textAlign: 'center',
+    color: colors.textAccent,
   },
   headerRight: {
-    width: 40,
     alignItems: 'flex-end',
   },
   entryRitual: {
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
+    color: colors.textAccent,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
     paddingHorizontal: spacing.md,
   },
   mainCard: {
     minHeight: 400,
-    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
+    paddingTop: spacing.xl,
   },
   datePill: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.background,
+    backgroundColor: colors.fieldSurface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
     marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
   },
   datePillText: {
     fontSize: typography.sizes.sm,
@@ -398,15 +400,16 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   titleInput: {
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.xl,
     fontWeight: typography.weights.medium,
-    color: colors.textPrimary,
+    fontFamily: typography.bold,
+    color: colors.textAccent,
     marginBottom: spacing.sm,
     padding: 0,
   },
   linedDivider: {
     height: 1,
-    backgroundColor: colors.inputBorder,
+    backgroundColor: colors.contourLineSoft,
     marginBottom: spacing.md,
   },
   contentInputContainer: {
@@ -428,14 +431,19 @@ const styles = StyleSheet.create({
   },
   bottomActions: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    padding: spacing.lg,
-    paddingBottom: undefined, // set inline with safe area insets
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    marginHorizontal: spacing.md,
+    padding: spacing.md,
+    backgroundColor: colors.navSurface,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.navBorder,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
   },
   secondaryButton: {
     marginTop: spacing.sm,
@@ -447,22 +455,24 @@ const styles = StyleSheet.create({
   },
   menuBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: colors.overlay,
   },
   menuContainer: {
     position: 'absolute',
     left: 0,
     right: 'auto',
     bottom: 0,
-    width: 200,
-    backgroundColor: colors.cardBackground,
+    width: 220,
+    backgroundColor: colors.cardGlassStrong,
     padding: spacing.md,
     paddingBottom: Platform.OS === 'ios' ? spacing.xl : spacing.lg,
     borderTopRightRadius: borderRadius.lg,
     borderBottomRightRadius: borderRadius.lg,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
     shadowOffset: { width: 2, height: 0 },
     elevation: 8,
     justifyContent: 'space-between',
@@ -471,9 +481,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.bold,
+    color: colors.textTitle,
     marginBottom: spacing.md,
   },
   menuItem: {

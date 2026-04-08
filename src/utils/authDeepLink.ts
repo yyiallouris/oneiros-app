@@ -124,8 +124,8 @@ export async function processAuthDeepLink(url: string): Promise<ProcessAuthDeepL
   }
 
   // 2) Session in URL: access_token + refresh_token (OAuth or post-verify redirect from Supabase)
-  let accessToken = params.access_token ?? null;
-  let refreshToken = params.refresh_token ?? null;
+  let accessToken: string | null = params.access_token ?? null;
+  let refreshToken: string | null = params.refresh_token ?? null;
   if (!accessToken && (query || hash)) {
     const qp = new URLSearchParams(query || hash);
     accessToken = accessToken ?? qp.get('access_token');

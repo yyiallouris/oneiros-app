@@ -21,16 +21,18 @@ jest.mock('expo-auth-session/build/QueryParams', () => ({
   },
 }));
 
-const mockVerifyOtp = jest.fn();
-const mockSetSession = jest.fn();
-const mockGetUser = jest.fn(() => Promise.resolve({ data: { user: null }, error: null }));
+const mockVerifyOtp = jest.fn<any, any>();
+const mockSetSession = jest.fn<any, any>();
+const mockGetUser = jest.fn<Promise<{ data: { user: any }; error: null }>, []>(() =>
+  Promise.resolve({ data: { user: null }, error: null })
+);
 
 jest.mock('../../src/services/supabaseClient', () => ({
   supabase: {
     auth: {
-      verifyOtp: (...args: unknown[]) => mockVerifyOtp(...args),
-      setSession: (...args: unknown[]) => mockSetSession(...args),
-      getUser: (...args: unknown[]) => mockGetUser(...args),
+      verifyOtp: (payload: any) => mockVerifyOtp(payload),
+      setSession: (payload: any) => mockSetSession(payload),
+      getUser: () => mockGetUser(),
     },
   },
 }));
@@ -145,7 +147,8 @@ describe('authDeepLink flow', () => {
 
     it('setSession path: non-recovery clears pending reset concern via success', async () => {
       mockSetSession.mockResolvedValue({ error: null });
-      mockGetUser.mockResolvedValue({
+      mockGetUser.mockImplementation(() =>
+        Promise.resolve({
         data: {
           user: {
             identities: [{}],
@@ -153,7 +156,8 @@ describe('authDeepLink flow', () => {
           },
         },
         error: null,
-      });
+        })
+      );
       const url =
         'oneiros-dream-journal://auth#access_token=a2&refresh_token=r2';
       const result = await processAuthDeepLink(url);

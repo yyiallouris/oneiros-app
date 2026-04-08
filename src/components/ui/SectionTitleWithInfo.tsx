@@ -62,16 +62,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   chipsTitle: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.textSecondary,
+    fontSize: typography.sizes.md,
+    fontFamily: typography.bold,
+    color: colors.textTitle,
   },
   archetypeTitle: {
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
-    color: colors.textMuted,
+    color: colors.textAccent,
     textTransform: 'uppercase',
-    letterSpacing: 0.4,
+    letterSpacing: 0.8,
   },
   infoButton: {
     width: 22,
@@ -80,10 +80,13 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.cardGlassSoft,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
   },
   infoIcon: {
     fontSize: 14,
     fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
+    color: colors.textAccent,
   },
 });
