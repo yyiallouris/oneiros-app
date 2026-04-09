@@ -24,18 +24,19 @@ import {
   SymbolsIcon,
 } from '../components/icons/InsightsIcons';
 
-const SECTION_ICON_SIZE = 88;
+const SECTION_ICON_SIZE = 80;
+const SECTION_ICON_COLOR = colors.textAccent;
 const SectionSymbolsIcon = () => (
-  <SymbolsIcon size={SECTION_ICON_SIZE} />
+  <SymbolsIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
 );
 const SectionMotifsIcon = () => (
-  <MotifsIcon size={SECTION_ICON_SIZE} />
+  <MotifsIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
 );
 const SectionArchetypesIcon = () => (
-  <ArchetypesIcon size={SECTION_ICON_SIZE} />
+  <ArchetypesIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
 );
 const SectionPlacesIcon = () => (
-  <PlacesIcon size={SECTION_ICON_SIZE} />
+  <PlacesIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
 );
 import type { InsightsSectionId, InsightsPeriod, MotifCount } from '../types/insights';
 import {
@@ -1067,6 +1068,8 @@ const styles = StyleSheet.create({
   },
   sectionIcon: {
     alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
     marginBottom: spacing.lg,
   },
   sectionLabel: {
