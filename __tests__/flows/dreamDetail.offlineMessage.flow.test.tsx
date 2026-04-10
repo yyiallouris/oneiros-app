@@ -106,6 +106,10 @@ jest.mock('../../src/utils/network', () => ({
 }));
 
 jest.mock('../../src/constants/symbolArchetypeInfo', () => ({
+  ARCHETYPE_SECTION_TITLES: {
+    core: 'Inner structures',
+    dynamic: 'Archetypal energies',
+  },
   getArchetypeInfoKey: jest.fn(),
 }));
 

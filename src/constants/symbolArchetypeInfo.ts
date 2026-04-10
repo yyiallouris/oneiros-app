@@ -6,6 +6,25 @@
 export const MODAL_FOOTER =
   'These reflections are not diagnoses or truths — they are invitations to explore.';
 
+export const ARCHETYPE_SECTION_TITLES = {
+  core: 'Inner structures',
+  dynamic: 'Archetypal energies',
+} as const;
+
+export const ARCHETYPE_SECTION_NOTES = {
+  core:
+    'The deeper structures of the psyche. These are enduring functions like Ego, Shadow, or Persona that shape how experience gets organized.',
+  dynamic:
+    "Patterns that move through you for a time. They describe a living mood or current, not a fixed identity.",
+} as const;
+
+export const DREAM_LAYER_OVERVIEW = [
+  'Dreams speak through three interwoven layers:',
+  'Symbols — the vivid images and scenes that stand out.',
+  'Inner structures — deeper psychic functions such as Ego, Shadow, Persona, Anima, or Animus.',
+  'Archetypal energies — wider patterns or states of being that move through you temporarily.',
+] as const;
+
 export type InfoModalKey =
   | 'main-symbols'
   | 'symbolic-motifs'
@@ -31,14 +50,14 @@ export interface InfoModalContent {
 
 export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   'main-symbols': {
-    title: 'What are symbols?',
+    title: 'What are key symbols?',
     subtitle: 'More direct, more immediate',
     paragraphs: [
       'Symbols are the images, places, people or actions that stood out in your dream.',
       'They are not "codes" with fixed meanings, but living images that carry personal and emotional significance.',
       'A symbol may reflect:',
       'The same symbol can mean very different things for different people — or even for you, at different times.',
-      'Here, we highlight what appeared most strongly, so you can begin reflecting on it.',
+      'Here, we highlight the images carrying the strongest charge, so you can begin reflecting on them.',
     ],
     bullets: ['an inner state', 'a relationship', 'a memory or unresolved feeling'],
     bulletsAfterParagraph: 2,
@@ -48,45 +67,46 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     subtitle: 'The form the dream takes',
     paragraphs: [
       'Motifs describe the FORM of the dream — how it is structured, not what it means.',
+      'If symbols are the standout images, motifs are the recurring situations, pathways, or spatial shapes linking those images together.',
       'They are spatial or imaginal structures, movements in space, or recurring symbolic situations.',
       'Examples:',
-      'These patterns often recur across dreams. They bridge concrete images and archetypal dynamics.',
+      'These patterns often recur across dreams. They bridge concrete images and deeper psychic organization.',
     ],
     bullets: ['descending underground', 'crowded marketplace', 'watching from outside', 'threshold crossing', 'hidden backstage area'],
     bulletsAfterParagraph: 2,
   },
   'core-architecture': {
-    title: 'What is core architecture?',
-    subtitle: 'Deeper, but grounded',
+    title: 'What are inner structures?',
+    subtitle: 'The deeper structures shaping experience',
     paragraphs: [
-      'This refers to the deeper inner structures through which the dream organizes experience.',
-      'Not roles or personalities — but deeper inner functions that shape how you experience yourself and the world.',
+      'Inner structures are not moods or temporary roles. They are the deeper functions through which the dream organizes experience.',
+      'They shape how you experience yourself and the world, and dreams often show how they relate, split, or compensate for one another.',
       'Examples include:',
-      'These elements are always present, but dreams often reveal how they interact — and where tension or growth may be happening.',
+      'These structures are always present, but a dream may bring one into sharper focus than another.',
     ],
     bullets: [
       'Ego — your conscious sense of self',
-      'Shadow — parts of you that are hidden, rejected, or not yet integrated',
+      'Shadow — unintegrated intensity or charge that has not yet found relationship',
     ],
-    bulletsAfterParagraph: 2,
+    bulletsAfterParagraph: 4,
   },
   'archetypal-states': {
-    title: 'What are archetypal states?',
-    subtitle: 'More experiential, more alive',
+    title: 'What are archetypal energies?',
+    subtitle: 'Patterns that move through you',
     paragraphs: [
-      'Archetypes are universal patterns of human experience — ways of being that appear across cultures, myths, and inner life.',
-      'In dreams, archetypes don\'t show up as labels. They appear as states, moods, or dynamics you temporarily inhabit.',
+      'Archetypal energies are not your permanent structure. They are larger patterns of feeling, stance, or momentum that a dream shows moving through you.',
+      'In dreams, they rarely appear as labels. They show up as states, moods, figures, or dynamics that temporarily take hold.',
       'Examples:',
-      'These are not who you are, but energies you are moving through — or being asked to relate to. Dreams often show how these patterns support you, conflict, or seek expression.',
+      'These patterns are not who you are. They are ways of being you may be moving through, resisting, or being asked to relate to.',
     ],
     bullets: ['Caregiver', 'Explorer', 'Protector', 'Trickster'],
-    bulletsAfterParagraph: 2,
+    bulletsAfterParagraph: 4,
   },
 
-  // Core architecture — individual archetype chips
+  // Inner structures — individual archetype chips
   'archetype-self': {
     title: '🜂 Self',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',
@@ -112,7 +132,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'archetype-ego': {
     title: '🜃 Ego',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',
@@ -138,7 +158,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'archetype-shadow': {
     title: '🜄 Shadow',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',
@@ -164,7 +184,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'archetype-persona': {
     title: '🜁 Persona',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',
@@ -190,7 +210,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'archetype-anima': {
     title: '🜅 Anima',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',
@@ -215,7 +235,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'archetype-animus': {
     title: '🜆 Animus',
-    subtitle: 'Core architecture — structural',
+    subtitle: 'Inner structures — structural',
     sections: [
       {
         heading: 'What it is',

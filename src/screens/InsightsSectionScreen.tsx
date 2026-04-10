@@ -76,7 +76,13 @@ import {
   PATTERN_INSIGHT_LANGUAGE_KEY,
 } from '../constants/patternInsightLanguages';
 import { getInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
-import { getArchetypeInfoKey, type InfoModalKey } from '../constants/symbolArchetypeInfo';
+import { isInnerStructureArchetype } from '../constants/archetypes';
+import {
+  ARCHETYPE_SECTION_NOTES,
+  ARCHETYPE_SECTION_TITLES,
+  getArchetypeInfoKey,
+  type InfoModalKey,
+} from '../constants/symbolArchetypeInfo';
 import { isOnline } from '../utils/network';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
@@ -601,10 +607,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
         })()}
 
         {sectionId === 'recurring-archetypes' && (() => {
-          // Post-Jungian distinction: core architecture (structural) vs archetypal states (dynamic)
-          const CORE_ARCHETYPES = ['self', 'ego', 'shadow', 'persona', 'anima', 'animus'];
-          const coreList = archetypes.filter((a) => CORE_ARCHETYPES.includes(a.name.toLowerCase()));
-          const dynamicList = archetypes.filter((a) => !CORE_ARCHETYPES.includes(a.name.toLowerCase()));
+          // Post-Jungian distinction: inner structures (structural) vs archetypal energies (dynamic)
+          const coreList = archetypes.filter((a) => isInnerStructureArchetype(a.name));
+          const dynamicList = archetypes.filter((a) => !isInnerStructureArchetype(a.name));
           return (
             <View style={[styles.section, styles.sectionNoTopPadding]}>
               <View style={styles.sectionIcon}>
@@ -614,12 +619,19 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <Text style={styles.empty}>No archetypes yet. Get dream interpretations to see recurring archetypes.</Text>
               ) : (
                 <>
-                  {/* Core architecture — the skeleton, always present */}
+                  {/* DREAM_LAYER_OVERVIEW intentionally hidden for now until we decide its final placement. */}
+
+                  {/* Inner structures — the deeper functions that organize experience */}
                   {coreList.length > 0 && (
                     <View style={[styles.archetypeCategoryBlock, styles.archetypeCategoryBlockFirst]}>
-                      <SectionTitleWithInfo title="Core architecture" infoKey="core-architecture" variant="archetype" showInfo />
+                      <SectionTitleWithInfo
+                        title={ARCHETYPE_SECTION_TITLES.core}
+                        infoKey="core-architecture"
+                        variant="archetype"
+                        showInfo
+                      />
                       <Text style={styles.archetypeCategoryNote}>
-                        The skeleton of the psyche. These are not roles — they are always present. They organise how you relate to yourself and the world; they don't come and go.
+                        {ARCHETYPE_SECTION_NOTES.core}
                       </Text>
                       {coreList.map((a) => (
                         <TouchableOpacity
@@ -635,12 +647,17 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     </View>
                   )}
 
-                  {/* Archetypal states / Dynamic patterns — what's running now */}
+                  {/* Archetypal energies — the living patterns moving through experience */}
                   {dynamicList.length > 0 && (
                     <View style={styles.archetypeCategoryBlock}>
-                      <SectionTitleWithInfo title="Archetypal states / Dynamic patterns" infoKey="archetypal-states" variant="archetype" showInfo />
+                      <SectionTitleWithInfo
+                        title={ARCHETYPE_SECTION_TITLES.dynamic}
+                        infoKey="archetypal-states"
+                        variant="archetype"
+                        showInfo
+                      />
                       <Text style={styles.archetypeCategoryNote}>
-                        What's running now. Phases or currents — they move through you; they don't define you. Making them identity is where the trouble starts.
+                        {ARCHETYPE_SECTION_NOTES.dynamic}
                       </Text>
                       {dynamicList.map((a) => (
                         <TouchableOpacity
@@ -1616,6 +1633,27 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: text.secondary,
     lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  archetypeOverview: {
+    marginBottom: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.cardGlassSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  archetypeOverviewLead: {
+    fontSize: typography.sizes.sm,
+    color: colors.textPrimary,
+    fontWeight: typography.weights.medium,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.xs,
+  },
+  archetypeOverviewLine: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginTop: spacing.xs / 2,
   },
   archetypeCategoryBlock: {
     marginTop: spacing.xl,

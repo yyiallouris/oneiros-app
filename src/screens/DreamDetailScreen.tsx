@@ -28,7 +28,12 @@
   import { generateInitialInterpretation, sendChatMessage, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
   import { getInterpretationDepth, getMythicResonance, type InterpretationDepth } from '../services/userSettingsService';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
-  import { getArchetypeInfoKey, type InfoModalKey } from '../constants/symbolArchetypeInfo';
+  import { isInnerStructureArchetype } from '../constants/archetypes';
+  import {
+    ARCHETYPE_SECTION_TITLES,
+    getArchetypeInfoKey,
+    type InfoModalKey,
+  } from '../constants/symbolArchetypeInfo';
   import { isOnline } from '../utils/network';
   import { OfflineMessage } from '../components/OfflineMessage';
   import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -40,11 +45,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     color?: string;
   };
 
-  // Post-Jungian split: core architecture vs archetypal states (same as Insights)
-  const CORE_ARCHETYPES = ['self', 'ego', 'shadow', 'persona', 'anima', 'animus'];
+// Post-Jungian split: inner structures vs archetypal energies (same as Insights)
   function splitArchetypes(archetypes: string[]) {
-    const core = archetypes.filter((a) => CORE_ARCHETYPES.includes(a.toLowerCase()));
-    const dynamic = archetypes.filter((a) => !CORE_ARCHETYPES.includes(a.toLowerCase()));
+    const core = archetypes.filter((a) => isInnerStructureArchetype(a));
+    const dynamic = archetypes.filter((a) => !isInnerStructureArchetype(a));
     return { core, dynamic };
   }
 
@@ -919,7 +923,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                   <>
                     {dreamCore.length > 0 && (
                       <CollapsibleChipsSection
-                        title="Core architecture"
+                        title={ARCHETYPE_SECTION_TITLES.core}
                         infoKey="core-architecture"
                         items={dreamCore}
                         onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
@@ -927,7 +931,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     )}
                     {dreamDynamic.length > 0 && (
                       <CollapsibleChipsSection
-                        title="Archetypal states / Dynamic patterns"
+                        title={ARCHETYPE_SECTION_TITLES.dynamic}
                         infoKey="archetypal-states"
                         items={dreamDynamic}
                         onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
@@ -944,14 +948,14 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {/* Show reflection section only if no chat is active */}
           {!showChat && !isGeneratingInitial && (
             <View style={styles.reflectionSection}>
-              <Text style={styles.reflectionTitle}>Jungian reflection</Text>
+              <Text style={styles.reflectionTitle}>Symbolic reflection</Text>
 
               {interpretation ? (
                 <Card transparent style={styles.interpretationCard}>
                   {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
                   {interpretation.symbols.length > 0 && (
                     <CollapsibleChipsSection
-                      title="Main symbols"
+                      title="Key symbols"
                       infoKey="main-symbols"
                       items={interpretation.symbols}
                     />
@@ -971,7 +975,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                       <>
                         {interpCore.length > 0 && (
                           <CollapsibleChipsSection
-                            title="Core architecture"
+                            title={ARCHETYPE_SECTION_TITLES.core}
                             infoKey="core-architecture"
                             items={interpCore}
                             onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
@@ -979,7 +983,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                         )}
                         {interpDynamic.length > 0 && (
                           <CollapsibleChipsSection
-                            title="Archetypal states / Dynamic patterns"
+                            title={ARCHETYPE_SECTION_TITLES.dynamic}
                             infoKey="archetypal-states"
                             items={interpDynamic}
                             onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
@@ -1088,7 +1092,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {showChat && (
             <View style={styles.chatSection}>
               <View style={styles.chatHeader}>
-                <Text style={styles.chatTitle}>Jungian reflection</Text>
+                <Text style={styles.chatTitle}>Symbolic reflection</Text>
                 <TouchableOpacity onPress={animateChatClose} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>×</Text>
                 </TouchableOpacity>

@@ -108,6 +108,20 @@ jest.mock('../../src/constants/safeLabels', () => ({
 }));
 
 jest.mock('../../src/constants/symbolArchetypeInfo', () => ({
+  ARCHETYPE_SECTION_TITLES: {
+    core: 'Inner structures',
+    dynamic: 'Archetypal energies',
+  },
+  ARCHETYPE_SECTION_NOTES: {
+    core: 'Inner structures note',
+    dynamic: 'Archetypal energies note',
+  },
+  DREAM_LAYER_OVERVIEW: [
+    'Dreams speak through three interwoven layers:',
+    'Symbols — the vivid images and scenes that stand out.',
+    'Inner structures — deeper psychic functions.',
+    'Archetypal energies — wider patterns that move through you temporarily.',
+  ],
   getArchetypeInfoKey: jest.fn(),
 }));
 

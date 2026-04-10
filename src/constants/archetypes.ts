@@ -1,74 +1,84 @@
 /**
- * Fixed Jungian archetype whitelist for insights.
- * Slash-separated names (e.g. "Wise Old Man / Wise Old Woman") are separate archetypes.
- * Must match extraction in AI (ai.ts).
+ * Archetypes whitelist - Dream Weaver post-Jungian split.
+ * One master whitelist, with explicit inner structures vs archetypal energies.
+ * Must stay aligned with extraction in `ai.ts`.
  */
 
-export const ARCHETYPE_WHITELIST = [
+export const INNER_STRUCTURE_ARCHETYPES = [
   'Self',
   'Ego',
   'Shadow',
   'Persona',
   'Anima',
   'Animus',
+] as const;
+
+export const ARCHETYPAL_ENERGY_ARCHETYPES = [
   'Great Mother',
   'Father',
-  'Child (Divine Child)',
+  'Child',
   'Hero',
   'Trickster',
   'Wise Old Man',
   'Wise Old Woman',
   'Maiden',
   'Kore',
-  'Destroyer',
-  'Death Archetype',
-  'Rebirth Archetype',
-  'Healer',
-  'Wounded Healer',
-  'Savior',
-  'Redeemer',
   'Lover',
-  'Ruler',
+  'Warrior',
   'King',
   'Queen',
-  'Warrior',
-  'Caregiver',
-  'Protector',
-  'Innocent',
-  'Explorer',
-  'Creator',
-  'Rebel',
   'Magician',
-  'Sage',
-  'Jester',
+  'Healer',
+  'Wounded Healer',
+  'Destroyer',
+  'Death',
+  'Rebirth',
+] as const;
+
+export const ARCHETYPE_WHITELIST = [
+  ...INNER_STRUCTURE_ARCHETYPES,
+  ...ARCHETYPAL_ENERGY_ARCHETYPES,
 ] as const;
 
 export type ArchetypeName = (typeof ARCHETYPE_WHITELIST)[number];
 
-export function isWhitelistedArchetype(name: string): name is ArchetypeName {
-  const normalized = name.replace(/^\s*The\s+/i, '').trim();
-  return ARCHETYPE_WHITELIST.some(
-    (a) => a.toLowerCase() === normalized.toLowerCase()
-  );
-}
+const INNER_STRUCTURE_SET = new Set(
+  INNER_STRUCTURE_ARCHETYPES.map((name) => name.toLowerCase())
+);
+
+const NORMALIZATION_ALIASES: Record<string, ArchetypeName> = {
+  'child (divine child)': 'Child',
+  'death archetype': 'Death',
+  'rebirth archetype': 'Rebirth',
+};
 
 /** Strip optional leading "The " before matching. */
 function stripThe(name: string): string {
   return name.replace(/^\s*The\s+/i, '').trim();
 }
 
+export function isWhitelistedArchetype(name: string): name is ArchetypeName {
+  const normalized = stripThe(name).toLowerCase();
+  return ARCHETYPE_WHITELIST.some((a) => a.toLowerCase() === normalized);
+}
+
+export function isInnerStructureArchetype(name: string): boolean {
+  return INNER_STRUCTURE_SET.has(stripThe(name).toLowerCase());
+}
+
 export function normalizeArchetype(name: string): ArchetypeName | null {
   const trimmed = stripThe(name.trim());
   const lower = trimmed.toLowerCase();
 
-  // 1) Exact match
+  const aliased = NORMALIZATION_ALIASES[lower];
+  if (aliased) return aliased;
+
   const exact = ARCHETYPE_WHITELIST.find((a) => a.toLowerCase() === lower);
   if (exact) return exact;
 
-  // 2) Longest-match containment (prevents "Healer" stealing "Wounded Healer")
   const matches = ARCHETYPE_WHITELIST.filter((a) => {
-    const al = a.toLowerCase();
-    return al.includes(lower) || lower.includes(al);
+    const candidate = a.toLowerCase();
+    return candidate.includes(lower) || lower.includes(candidate);
   }).sort((a, b) => b.length - a.length);
 
   return matches[0] ?? null;
