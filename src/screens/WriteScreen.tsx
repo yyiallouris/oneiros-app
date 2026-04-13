@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -45,6 +46,7 @@ const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
 const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const tabBarHeight = useBottomTabBarHeight();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -194,6 +196,9 @@ const WriteScreen: React.FC = () => {
     Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
   const floatingTabBarInset = Math.max(insets.bottom, MIN_FLOATING_TAB_BOTTOM_INSET);
   const saveBarOffset = tabBarHeight + floatingTabBarInset + spacing.sm;
+  const isCompactHeight = windowHeight < 760;
+  const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
+  const contentInputBottomPadding = voiceButtonBottom + 28;
 
   return (
     <KeyboardAvoidingView
@@ -210,7 +215,8 @@ const WriteScreen: React.FC = () => {
       >
         <MysticHeader
           title={headerGreeting}
-          subtitle="Write while the dream is still warm."
+          style={[styles.headerShell, { paddingTop: insets.top + spacing.xs }]}
+          titleStyle={styles.headerTitle}
           left={
             <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
               <Text style={styles.menuIcon}>☰</Text>
@@ -218,7 +224,7 @@ const WriteScreen: React.FC = () => {
           }
           right={
             <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-              <CalendarIcon size={24} />
+              <CalendarIcon size={28} />
             </TouchableOpacity>
           }
         />
@@ -251,7 +257,7 @@ const WriteScreen: React.FC = () => {
           <View style={styles.contentInputContainer}>
             <TextInput
               ref={contentInputRef}
-              style={styles.contentInput}
+              style={[styles.contentInput, { paddingBottom: contentInputBottomPadding }]}
               placeholder="Write it as you remember it, without correcting."
               placeholderTextColor={colors.textMuted}
               value={content}
@@ -260,7 +266,7 @@ const WriteScreen: React.FC = () => {
               textAlignVertical="top"
               autoFocus={false}
             />
-            <View style={styles.voiceButtonContainer}>
+            <View style={[styles.voiceButtonContainer, { bottom: voiceButtonBottom }]}>
               <VoiceRecordButton
                 onTranscriptionComplete={(text) => {
                   setContent((prev) => (prev ? `${prev}\n${text}` : text));
@@ -358,12 +364,20 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
+    paddingTop: 0,
     paddingBottom: 220,
+  },
+  headerShell: {
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.xs,
+  },
+  headerTitle: {
+    marginTop: spacing.xs,
   },
   headerLeft: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: spacing.xs,
   },
   menuIcon: {
     fontSize: 28,
@@ -371,6 +385,7 @@ const styles = StyleSheet.create({
   },
   headerRight: {
     alignItems: 'flex-end',
+    marginTop: spacing.xs,
   },
   entryRitual: {
     fontSize: typography.sizes.md,
@@ -426,7 +441,6 @@ const styles = StyleSheet.create({
   },
   voiceButtonContainer: {
     position: 'absolute',
-    bottom: spacing.lg,
     right: spacing.sm,
   },
   bottomActions: {

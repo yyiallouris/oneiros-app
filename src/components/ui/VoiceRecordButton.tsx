@@ -1,33 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { colors, spacing, typography } from '../../theme';
 import { logEvent } from '../../services/logger';
 import { startRecording, stopRecording, getRecordingStatus, cleanupRecording } from '../../utils/voiceRecording';
 import { transcribeAudio } from '../../utils/voiceRecording';
+import MicrophoneAltIcon from '../../assets/icons/microphone-alt.svg';
 
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
   disabled?: boolean;
 }
-
-// Microphone icon
-const MicIcon = ({ size = 24, color = colors.white }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"
-      fill={color}
-    />
-    <Path
-      d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 // Stop icon
 const StopIcon = ({ size = 24, color = colors.white }) => (
@@ -165,23 +148,14 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         ]}
         onPress={handlePress}
         disabled={disabled || isTranscribing}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        {!isRecording && (
-          <LinearGradient
-            colors={[colors.buttonGradientTop, colors.buttonGradientBottom]}
-            start={{ x: 0.15, y: 0 }}
-            end={{ x: 0.85, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-        )}
-        <View pointerEvents="none" style={styles.recordHalo} />
         {isTranscribing ? (
-          <ActivityIndicator size="small" color={colors.white} />
+          <ActivityIndicator size="small" color={colors.buttonPrimary} />
         ) : isRecording ? (
-          <StopIcon size={20} color={colors.white} />
+          <StopIcon size={18} color={colors.error || '#FF3B30'} />
         ) : (
-          <MicIcon size={20} color={colors.white} />
+          <MicrophoneAltIcon width={24} height={24} />
         )}
       </TouchableOpacity>
     </View>
@@ -194,36 +168,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   recordButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.buttonPrimary,
-    borderWidth: 1,
-    borderColor: colors.buttonEdge,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.buttonGlow,
-    shadowOpacity: 0.34,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
+    padding: spacing.xs,
   },
   recordButtonActive: {
-    backgroundColor: colors.error || '#FF3B30',
-    borderColor: colors.error || '#FF3B30',
+    opacity: 0.92,
   },
   recordButtonDisabled: {
-    backgroundColor: colors.buttonPrimaryDisabled,
-    shadowColor: colors.buttonPrimaryDisabled,
-    shadowOpacity: 0.12,
-    borderColor: colors.buttonPrimaryDisabledBorder,
-  },
-  recordHalo: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: colors.buttonEdge,
-    opacity: 0.85,
+    opacity: 0.45,
   },
   durationContainer: {
     flexDirection: 'row',
