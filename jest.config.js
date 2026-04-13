@@ -11,6 +11,7 @@ module.exports = {
     '^react-native-reanimated$': '<rootDir>/__mocks__/react-native-reanimated.js',
     '^react-native-reanimated/plugin$': '<rootDir>/__mocks__/reanimatedPlugin.js',
     '^react-native-worklets/plugin$': '<rootDir>/__mocks__/workletsPlugin.js',
+    '\\.svg$': '<rootDir>/__mocks__/svgMock.js',
     '^@jest/test-sequencer$': '<rootDir>/__mocks__/@jest/test-sequencer.js',
     '^react-native/Libraries/Animated/NativeAnimatedHelper$': '<rootDir>/__mocks__/NativeAnimatedHelper.js',
     '^expo-constants$': '<rootDir>/__mocks__/expo-constants.js',
