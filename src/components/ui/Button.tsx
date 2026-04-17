@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -7,9 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
-  Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 
 interface ButtonProps {
@@ -31,33 +29,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const glowAnim = useRef(new Animated.Value(0)).current;
   const isDisabled = disabled || loading;
-
-  useEffect(() => {
-    if (variant === 'primary' && !isDisabled) {
-      // Subtle breathing glow effect
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowAnim, {
-            toValue: 1,
-            duration: 2000,
-            useNativeDriver: false,
-          }),
-          Animated.timing(glowAnim, {
-            toValue: 0,
-            duration: 2000,
-            useNativeDriver: false,
-          }),
-        ])
-      ).start();
-    }
-  }, [variant, isDisabled]);
-
-  const glowOpacity = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.2, 0.4],
-  });
 
   return (
     <TouchableOpacity
@@ -75,39 +47,9 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={isDisabled}
       activeOpacity={0.7}
     >
-      {variant === 'primary' && (
-        <LinearGradient
-          colors={
-            isDisabled
-              ? [colors.buttonPrimaryDisabled, colors.buttonPrimaryDisabled]
-              : [colors.buttonGradientTop, colors.buttonGradientBottom]
-          }
-          start={{ x: 0.2, y: 0 }}
-          end={{ x: 0.8, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-      )}
-      {variant === 'primary' && <Animated.View pointerEvents="none" style={[styles.primaryContour, !isDisabled && styles.primaryContourActive]} />}
-      {variant === 'primary' && !isDisabled && (
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            styles.glow,
-            {
-              shadowColor: colors.buttonGlow,
-              shadowOpacity: glowOpacity,
-              shadowRadius: 16,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 8,
-            },
-          ]}
-          pointerEvents="none"
-        />
-      )}
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? colors.white : colors.buttonPrimary}
+          color={variant === 'ghost' ? colors.buttonPrimary : colors.textPrimary}
         />
       ) : (
         <Text
@@ -133,70 +75,64 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
-    overflow: 'hidden',
+    minHeight: 50,
   },
   primaryButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.buttonPrimary90,
     borderWidth: 1,
     borderColor: colors.buttonEdge,
+    shadowColor: colors.buttonGlow,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    elevation: 5,
   },
   secondaryButton: {
-    backgroundColor: colors.cardGlassStrong,
+    backgroundColor: colors.buttonPrimaryLight12,
     borderWidth: 1,
-    borderColor: colors.contourLine,
+    borderColor: colors.buttonPrimary40,
   },
   ghostButton: {
-    backgroundColor: colors.cardGlassSoft,
+    backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    borderColor: colors.contourLineSoft,
   },
   disabledPrimaryButton: {
-    backgroundColor: colors.buttonPrimaryDisabled,
+    backgroundColor: colors.buttonPrimaryDisabledLight,
     borderColor: colors.buttonPrimaryDisabledBorder,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   disabledSecondaryButton: {
-    backgroundColor: colors.buttonPrimaryDisabledLight,
+    backgroundColor: colors.cardGlassSoft,
     borderColor: colors.buttonPrimaryDisabledBorder,
   },
   disabledGhostButton: {
     backgroundColor: 'transparent',
   },
-  glow: {
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.buttonPrimary,
-  },
-  primaryContour: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.buttonEdge,
-    opacity: 0.7,
-  },
-  primaryContourActive: {
-    opacity: 1,
-  },
   buttonText: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
     fontFamily: typography.regular,
-    letterSpacing: 0.2,
+    letterSpacing: 0.15,
   },
   primaryButtonText: {
     color: colors.white,
   },
   secondaryButtonText: {
-    color: colors.textAccent,
+    color: colors.buttonPrimary,
   },
   ghostButtonText: {
-    color: colors.textAccent,
+    color: colors.buttonPrimary,
   },
   disabledPrimaryButtonText: {
-    color: colors.white,
-    opacity: 0.9,
+    color: colors.buttonPrimaryDisabled,
   },
   disabledSecondaryButtonText: {
     color: colors.buttonPrimaryDisabled,

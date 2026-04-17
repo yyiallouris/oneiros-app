@@ -12,8 +12,13 @@ interface VoiceRecordButtonProps {
   disabled?: boolean;
 }
 
+interface IconProps {
+  size?: number;
+  color?: string;
+}
+
 // Stop icon
-const StopIcon = ({ size = 24, color = colors.white }) => (
+const StopIcon = ({ size = 24, color = colors.white }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M6 6h12v12H6z"

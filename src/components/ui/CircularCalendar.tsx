@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { colors, spacing, typography } from '../../theme';
+import { colors, spacing, typography, calendar } from '../../theme';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -41,7 +41,7 @@ const calculateGlowIntensity = (dreamCount: number): number => {
 const HAS_DREAMS_COLOR = colors.buttonPrimary; // #6A4FB3 — matches journey dots
 
 const getDayColor = (dreamCount: number): string => {
-  if (dreamCount === 0) return 'rgba(240, 229, 223, 0.4)'; // No dreams - light beige
+  if (dreamCount === 0) return calendar.noDreams;
   return HAS_DREAMS_COLOR;
 };
 

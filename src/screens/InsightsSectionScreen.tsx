@@ -1099,7 +1099,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    backgroundColor: colors.cardGlassSoft,
     borderRadius: 8,
   },
   dominantInsightLabel: {
@@ -1164,7 +1164,7 @@ const styles = StyleSheet.create({
   singleSymbolAssociationsBlock: {
     marginBottom: spacing.xl,
     padding: spacing.md,
-    backgroundColor: 'rgba(237, 230, 223, 0.5)',
+    backgroundColor: colors.cardGlassSoft,
     borderRadius: 8,
     borderLeftWidth: 3,
     borderLeftColor: colors.buttonPrimary,
@@ -1200,7 +1200,7 @@ const styles = StyleSheet.create({
   barTrack: {
     flex: 1,
     height: 8,
-    backgroundColor: 'rgba(237, 230, 223, 0.8)',
+    backgroundColor: colors.cardGlassStrong,
     borderRadius: 4,
     overflow: 'hidden',
   },

@@ -115,7 +115,7 @@ const CalendarScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={300} lite />
+      <MountainWaveBackground height={220} lite />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Circular Calendar */}
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
   dreamCard: {
     marginBottom: spacing.sm,
-    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Semi-transparent to show sun
+    backgroundColor: colors.cardGlassSoft,
   },
   dreamCardContent: {
     flexDirection: 'row',

@@ -90,7 +90,7 @@ export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => 
 const styles = StyleSheet.create({
   skeletonCard: {
     marginBottom: spacing.md,
-    backgroundColor: 'rgba(240, 229, 223, 0.7)', // Off-white track
+    backgroundColor: colors.cardGlassSoft,
     borderRadius: borderRadius.lg,
   },
   skeletonContent: {

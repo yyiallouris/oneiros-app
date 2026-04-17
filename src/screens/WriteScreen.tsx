@@ -206,7 +206,7 @@ const WriteScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      <PsycheScreenBackground waveHeight={360} />
+      <PsycheScreenBackground waveHeight={220} />
       
       <ScrollView
         style={styles.scrollView}
@@ -219,7 +219,7 @@ const WriteScreen: React.FC = () => {
           titleStyle={styles.headerTitle}
           left={
             <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
-              <Text style={styles.menuIcon}>☰</Text>
+              <Text style={styles.menuIcon}>⋯</Text>
             </TouchableOpacity>
           }
           right={

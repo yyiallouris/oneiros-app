@@ -34,9 +34,9 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
     ];
   }, [height, width]);
 
-  const contourStroke = `rgba(147, 125, 181, ${0.12 * contourOpacity})`;
-  const contourStrokeStrong = `rgba(147, 125, 181, ${0.2 * contourOpacity})`;
-  const contourGlow = `rgba(200, 140, 200, ${0.18 * contourOpacity})`;
+  const contourStroke = `rgba(126, 104, 141, ${0.08 * contourOpacity})`;
+  const contourStrokeStrong = `rgba(126, 104, 141, ${0.13 * contourOpacity})`;
+  const contourGlow = `rgba(200, 140, 200, ${0.1 * contourOpacity})`;
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -59,12 +59,12 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
         <Path
           d={`M ${0.12 * width} ${0.1 * height} C ${0.28 * width} ${0.03 * height}, ${0.55 * width} ${0.05 * height}, ${0.72 * width} ${0.15 * height} S ${0.88 * width} ${0.3 * height}, ${0.84 * width} ${0.44 * height} C ${0.78 * width} ${0.58 * height}, ${0.55 * width} ${0.62 * height}, ${0.34 * width} ${0.55 * height} C ${0.18 * width} ${0.49 * height}, ${0.02 * width} ${0.34 * height}, ${0.12 * width} ${0.1 * height} Z`}
           fill={contours.fill}
-          opacity={0.55 * contourOpacity}
+          opacity={0.34 * contourOpacity}
         />
         <Path
           d={`M ${0.26 * width} ${0.02 * height} C ${0.64 * width} ${0.02 * height}, ${0.86 * width} ${0.14 * height}, ${0.98 * width} ${0.34 * height} L ${width} 0 L 0 0 Z`}
           fill="url(#psycheGlow)"
-          opacity={0.9}
+          opacity={0.54}
         />
 
         {contourPaths.map((d, index) => (
@@ -73,9 +73,9 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
             d={d}
             fill="none"
             stroke={index < 2 ? contourStrokeStrong : contourStroke}
-            strokeWidth={index < 2 ? 1.6 : 1.15}
+            strokeWidth={index < 2 ? 1.35 : 1}
             strokeLinecap="round"
-            opacity={0.95}
+            opacity={0.8}
           />
         ))}
 
@@ -83,13 +83,14 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
           d={`M ${0.1 * width} ${0.18 * height} C ${0.28 * width} ${0.1 * height}, ${0.48 * width} ${0.11 * height}, ${0.62 * width} ${0.22 * height} S ${0.82 * width} ${0.4 * height}, ${0.92 * width} ${0.36 * height}`}
           fill="none"
           stroke={contourGlow}
-          strokeWidth={2}
+          strokeWidth={1.5}
           strokeLinecap="round"
+          opacity={0.72}
         />
       </Svg>
 
       <LinearGradient
-        colors={['rgba(255,255,255,0)', 'rgba(217, 180, 232, 0.1)', 'rgba(73, 50, 76, 0.16)']}
+        colors={['rgba(255,255,255,0)', 'rgba(232, 216, 234, 0.06)', 'rgba(73, 50, 76, 0.08)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.bottomDepth}
@@ -98,7 +99,7 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
       {showMountains && <MountainWaveBackground height={waveHeight} lite={lite} />}
 
       <LinearGradient
-        colors={['rgba(255, 246, 255, 0.7)', 'rgba(255,255,255,0)']}
+        colors={['rgba(255, 250, 255, 0.44)', 'rgba(255,255,255,0)']}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
         style={styles.topHaze}

@@ -28,7 +28,7 @@ const TabIconFrame = ({
   <View style={[styles.iconFrame, focused && styles.iconFrameActive]}>
     {focused ? (
       <LinearGradient
-        colors={['rgba(231, 217, 242, 0.88)', 'rgba(200, 140, 200, 0.38)']}
+        colors={['rgba(255, 255, 255, 0.68)', 'rgba(200, 140, 200, 0.12)']}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.8, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -89,7 +89,7 @@ export const MainTabsNavigator: React.FC = () => {
         },
         tabBarBackground: () => (
           <LinearGradient
-            colors={[colors.navSurface, colors.cardGlassStrong]}
+            colors={[colors.backgroundTertiary, colors.navSurface]}
             start={{ x: 0.18, y: 0 }}
             end={{ x: 0.82, y: 1 }}
             style={styles.tabBackground}
@@ -170,9 +170,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.navBorder,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
   },
   iconFrame: {
     width: 72,
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   iconFrameActive: {
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    borderColor: colors.border,
   },
 });
 

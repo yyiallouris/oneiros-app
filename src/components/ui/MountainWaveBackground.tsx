@@ -69,13 +69,13 @@ const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({ he
   const translateX2 = waveAnim2.interpolate({ inputRange: [0, 1], outputRange: [0, -30] });
   const translateX3 = waveAnim3.interpolate({ inputRange: [0, 1], outputRange: [0, 25] });
 
-  const tintAOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.0, 0.22] });
-  const tintBOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.18, 0.0] });
-  const accentMistOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.03, 0.06] });
+  const tintAOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.0, 0.11] });
+  const tintBOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.09, 0.0] });
+  const accentMistOpacity = colorPhase.interpolate({ inputRange: [0, 1], outputRange: [0.015, 0.03] });
 
-  const base1 = 0.40;
-  const base2 = 0.30;
-  const base3 = 0.25;
+  const base1 = 0.2;
+  const base2 = 0.14;
+  const base3 = 0.1;
 
   const paths = useMemo(
     () => ({
@@ -92,9 +92,9 @@ const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({ he
       {lite ? (
         /* Lite: same palette as full mode, but static (no tint animation) for perf */
         <>
-          <Path d={d} fill={waveTints.A} opacity={0.11 * tintStrength} />
-          <Path d={d} fill={waveTints.B} opacity={0.09 * tintStrength} />
-          <Path d={d} fill={accent.buttonPrimary} opacity={0.045 * tintStrength} />
+          <Path d={d} fill={waveTints.A} opacity={0.05 * tintStrength} />
+          <Path d={d} fill={waveTints.B} opacity={0.04 * tintStrength} />
+          <Path d={d} fill={accent.buttonPrimary} opacity={0.02 * tintStrength} />
         </>
       ) : (
         <>

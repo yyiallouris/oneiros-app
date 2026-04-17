@@ -232,7 +232,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={300} />
+      <PsycheScreenBackground waveHeight={210} />
 
       <MysticHeader
         title="Journal"

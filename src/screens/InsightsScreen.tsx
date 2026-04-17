@@ -195,7 +195,7 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <PsycheScreenBackground waveHeight={180} />
+        <PsycheScreenBackground waveHeight={150} />
         <MysticHeader title="Insights" subtitle="Patterns rising into view." />
         <View style={styles.loadingPlaceholder}>
           <BreathingLine width={100} height={2} color={colors.textMuted} />
@@ -206,7 +206,7 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={240} />
+      <PsycheScreenBackground waveHeight={180} />
       <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 
       <ScrollView

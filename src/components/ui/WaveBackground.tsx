@@ -53,12 +53,12 @@ const WaveBackgroundInner: React.FC = () => {
     <View style={styles.container} renderToHardwareTextureAndroid={Platform.OS === 'android'}>
       <Animated.View style={[styles.waveContainer, { transform: [{ translateX: translateX1 }] }]}>
         <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
-          <Path d={path1} fill={colors.wave1} opacity={0.3} />
+          <Path d={path1} fill={colors.wave1} opacity={0.16} />
         </Svg>
       </Animated.View>
       <Animated.View style={[styles.waveContainer, { transform: [{ translateX: translateX2 }] }]}>
         <Svg width={W} height={200} viewBox={`0 0 ${W} 200`} style={styles.wave}>
-          <Path d={path2} fill={colors.wave2} opacity={0.2} />
+          <Path d={path2} fill={colors.wave2} opacity={0.1} />
         </Svg>
       </Animated.View>
     </View>

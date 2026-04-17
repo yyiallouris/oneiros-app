@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { borderRadius, colors, spacing, typography } from '../../theme';
 
 interface MysticHeaderProps {
@@ -7,9 +7,9 @@ interface MysticHeaderProps {
   subtitle?: string;
   left?: React.ReactNode;
   right?: React.ReactNode;
-  style?: ViewStyle;
-  titleStyle?: TextStyle;
-  subtitleStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
+  subtitleStyle?: StyleProp<TextStyle>;
 }
 
 export const MysticHeader: React.FC<MysticHeaderProps> = ({

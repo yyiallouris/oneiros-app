@@ -42,11 +42,11 @@ const styles = StyleSheet.create({
     shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 10,
+      height: 8,
     },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 4,
   },
   edgeGlow: {
     position: 'absolute',
@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
     backgroundColor: colors.white,
-    opacity: 0.18,
+    opacity: 0.1,
   },
   innerBorder: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    borderColor: colors.border,
   },
 });
 

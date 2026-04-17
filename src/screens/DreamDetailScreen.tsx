@@ -836,7 +836,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <PsycheScreenBackground waveHeight={240} />
+            <PsycheScreenBackground waveHeight={180} />
             <ScrollView
               style={styles.scrollView}
               contentContainerStyle={styles.scrollContent}
@@ -861,7 +861,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <PsycheScreenBackground waveHeight={240} />
+            <PsycheScreenBackground waveHeight={180} />
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>Dream not found</Text>
             </View>
@@ -880,7 +880,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
-          <PsycheScreenBackground waveHeight={240} />
+          <PsycheScreenBackground waveHeight={180} />
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
