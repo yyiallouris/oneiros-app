@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Defs, Path, RadialGradient, Stop } from 'react-native-svg';
-import { backgrounds, brandIcon, contours, gradients } from '../../theme';
+import { contours, gradients } from '../../theme';
 import { MountainWaveBackground } from './MountainWaveBackground';
 
 interface PsycheScreenBackgroundProps {
@@ -19,24 +19,6 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
   contourOpacity = 1,
 }) => {
   const { width, height } = useWindowDimensions();
-
-  const contourPaths = useMemo(() => {
-    const w = width;
-    const h = Math.max(680, height);
-
-    return [
-      `M ${-0.08 * w} ${0.18 * h} C ${0.05 * w} ${0.08 * h}, ${0.3 * w} ${0.08 * h}, ${0.44 * w} ${0.2 * h} S ${0.78 * w} ${0.36 * h}, ${1.02 * w} ${0.24 * h}`,
-      `M ${-0.04 * w} ${0.24 * h} C ${0.12 * w} ${0.14 * h}, ${0.32 * w} ${0.16 * h}, ${0.46 * w} ${0.28 * h} S ${0.82 * w} ${0.42 * h}, ${1.04 * w} ${0.3 * h}`,
-      `M ${-0.02 * w} ${0.31 * h} C ${0.14 * w} ${0.22 * h}, ${0.34 * w} ${0.23 * h}, ${0.5 * w} ${0.34 * h} S ${0.84 * w} ${0.47 * h}, ${1.06 * w} ${0.38 * h}`,
-      `M ${0.02 * w} ${0.39 * h} C ${0.17 * w} ${0.31 * h}, ${0.37 * w} ${0.3 * h}, ${0.52 * w} ${0.41 * h} S ${0.84 * w} ${0.54 * h}, ${1.02 * w} ${0.48 * h}`,
-      `M ${0.08 * w} ${0.47 * h} C ${0.22 * w} ${0.39 * h}, ${0.42 * w} ${0.4 * h}, ${0.56 * w} ${0.5 * h} S ${0.82 * w} ${0.62 * h}, ${0.98 * w} ${0.58 * h}`,
-      `M ${0.18 * w} ${0.58 * h} C ${0.3 * w} ${0.5 * h}, ${0.48 * w} ${0.5 * h}, ${0.62 * w} ${0.58 * h} S ${0.8 * w} ${0.68 * h}, ${0.94 * w} ${0.66 * h}`,
-    ];
-  }, [height, width]);
-
-  const contourStroke = `rgba(126, 104, 141, ${0.08 * contourOpacity})`;
-  const contourStrokeStrong = `rgba(126, 104, 141, ${0.13 * contourOpacity})`;
-  const contourGlow = `rgba(200, 140, 200, ${0.1 * contourOpacity})`;
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -67,30 +49,10 @@ export const PsycheScreenBackground: React.FC<PsycheScreenBackgroundProps> = ({
           opacity={0.54}
         />
 
-        {contourPaths.map((d, index) => (
-          <Path
-            key={index}
-            d={d}
-            fill="none"
-            stroke={index < 2 ? contourStrokeStrong : contourStroke}
-            strokeWidth={index < 2 ? 1.35 : 1}
-            strokeLinecap="round"
-            opacity={0.8}
-          />
-        ))}
-
-        <Path
-          d={`M ${0.1 * width} ${0.18 * height} C ${0.28 * width} ${0.1 * height}, ${0.48 * width} ${0.11 * height}, ${0.62 * width} ${0.22 * height} S ${0.82 * width} ${0.4 * height}, ${0.92 * width} ${0.36 * height}`}
-          fill="none"
-          stroke={contourGlow}
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          opacity={0.72}
-        />
       </Svg>
 
       <LinearGradient
-        colors={['rgba(255,255,255,0)', 'rgba(232, 216, 234, 0.06)', 'rgba(73, 50, 76, 0.08)']}
+        colors={['rgba(255,255,255,0)', 'rgba(231, 217, 242, 0.08)', 'rgba(107, 75, 123, 0.1)']}
         start={{ x: 0.5, y: 0 }}
         end={{ x: 0.5, y: 1 }}
         style={styles.bottomDepth}

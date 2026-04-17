@@ -17,7 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, PsycheScreenBackground, MysticHeader } from '../components/ui';
+import { Button, PsycheScreenBackground, MysticHeader } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -25,23 +25,9 @@ import { saveDream, getDreamsByDate, saveDraft, getDraft, clearDraft } from '../
 import { Dream } from '../types/dream';
 import { UserService } from '../services/userService';
 import { getRandomSymbol } from '../components/symbols';
-import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
-
-// Calendar icon for header
-const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -187,10 +173,6 @@ const WriteScreen: React.FC = () => {
     setIsMenuOpen(true);
   };
 
-  const handleCalendarPress = () => {
-    navigation.navigate('Calendar');
-  };
-
   // Keyboard vertical offset: no header on this tab, use status bar on Android so padding is correct
   const keyboardVerticalOffset =
     Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
@@ -222,24 +204,17 @@ const WriteScreen: React.FC = () => {
               <Text style={styles.menuIcon}>⋯</Text>
             </TouchableOpacity>
           }
-          right={
-            <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-              <CalendarIcon size={28} />
-            </TouchableOpacity>
-          }
         />
 
         {/* Entry ritual */}
         <Text style={styles.entryRitual}>Take a breath. Let the dream come back.</Text>
 
-        {/* Main Card */}
-        <Card transparent style={styles.mainCard}>
+        <View style={styles.mainCard}>
           {/* Date Pill */}
           <View style={styles.datePill}>
             <Text style={styles.datePillText}>{formatDate(today)}</Text>
           </View>
 
-          {/* Title Input */}
           <TextInput
             style={styles.titleInput}
             placeholder="Name your dream (optional)"
@@ -250,10 +225,6 @@ const WriteScreen: React.FC = () => {
             onSubmitEditing={() => contentInputRef.current?.focus()}
           />
 
-          {/* Divider with lines */}
-          <View style={styles.linedDivider} />
-
-          {/* Content Input with Voice Recording */}
           <View style={styles.contentInputContainer}>
             <TextInput
               ref={contentInputRef}
@@ -275,7 +246,7 @@ const WriteScreen: React.FC = () => {
               />
             </View>
           </View>
-        </Card>
+        </View>
 
         {/* Spacer above Save dream button */}
         <View style={{ height: spacing.lg }} />
@@ -287,7 +258,6 @@ const WriteScreen: React.FC = () => {
           styles.bottomActions,
           {
             bottom: saveBarOffset,
-            paddingBottom: spacing.lg,
           },
         ]}
       >
@@ -296,6 +266,7 @@ const WriteScreen: React.FC = () => {
           onPress={handleSaveDream}
           disabled={!content.trim()}
           loading={isSaving}
+          style={styles.saveButton}
         />
       </View>
 
@@ -383,31 +354,37 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.textAccent,
   },
-  headerRight: {
-    alignItems: 'flex-end',
-    marginTop: spacing.xs,
-  },
   entryRitual: {
     fontSize: typography.sizes.md,
-    color: colors.textAccent,
+    color: colors.textSecondary,
     fontStyle: 'italic',
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
   },
   mainCard: {
-    minHeight: 400,
+    minHeight: 420,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.26)',
+    borderWidth: 1,
+    borderColor: 'rgba(107, 75, 123, 0.08)',
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
   },
   datePill: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.fieldSurface,
+    backgroundColor: 'rgba(107, 75, 123, 0.08)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    borderColor: 'rgba(107, 75, 123, 0.1)',
   },
   datePillText: {
     fontSize: typography.sizes.sm,
@@ -415,17 +392,12 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   titleInput: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.medium,
-    fontFamily: typography.bold,
-    color: colors.textAccent,
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.regular,
+    fontFamily: typography.regular,
+    color: colors.textSecondary,
     marginBottom: spacing.sm,
     padding: 0,
-  },
-  linedDivider: {
-    height: 1,
-    backgroundColor: colors.contourLineSoft,
-    marginBottom: spacing.md,
   },
   contentInputContainer: {
     position: 'relative',
@@ -437,6 +409,7 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     minHeight: 300,
     padding: 0,
+    paddingTop: spacing.xs,
     paddingRight: 60, // Space for voice button
   },
   voiceButtonContainer: {
@@ -445,19 +418,11 @@ const styles = StyleSheet.create({
   },
   bottomActions: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    marginHorizontal: spacing.md,
-    padding: spacing.md,
-    backgroundColor: colors.navSurface,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    borderColor: colors.navBorder,
-    shadowColor: colors.shadow,
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
+    left: spacing.md,
+    right: spacing.md,
+  },
+  saveButton: {
+    width: '100%',
   },
   secondaryButton: {
     marginTop: spacing.sm,

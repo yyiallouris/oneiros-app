@@ -14,7 +14,6 @@ import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PsycheScreenBackground, MysticHeader, BreathingLine, Card } from '../components/ui';
 import {
-  DreamsLoggedIcon,
   MotifsIcon,
   PatternRecognitionIcon,
 } from '../components/icons/InsightsIcons';
@@ -22,7 +21,6 @@ import {
   getRecurringSymbols,
   getRecurringArchetypes,
   getRecurringLandscapes,
-  getDreamsCountForPeriod,
   getPeriodThisMonth,
   getPeriodLastMonth,
   getPeriodLastNMonths,
@@ -88,7 +86,6 @@ const InsightsScreen: React.FC = () => {
       }).start();
     }
   }, [periodExpanded, dropdownOpacity]);
-  const [dreamsCount, setDreamsCount] = useState(0);
   const [symbols, setSymbols] = useState<SymbolCount[]>([]);
   const [archetypes, setArchetypes] = useState<ArchetypeCount[]>([]);
   const [landscapes, setLandscapes] = useState<LandscapeCount[]>([]);
@@ -108,14 +105,12 @@ const InsightsScreen: React.FC = () => {
             : periodFromPresetSync(periodPreset) ?? getPeriodThisMonth();
         if (!mounted) return;
         setCurrentPeriod(p);
-        const [dreamCount, s, a, l] = await Promise.all([
-          getDreamsCountForPeriod(p),
+        const [s, a, l] = await Promise.all([
           getRecurringSymbols(p),
           getRecurringArchetypes(p),
           getRecurringLandscapes(p),
         ]);
         if (!mounted) return;
-        setDreamsCount(dreamCount);
         setSymbols(s);
         setArchetypes(a);
         setLandscapes(l);
@@ -161,9 +156,10 @@ const InsightsScreen: React.FC = () => {
   //   });
   // };
 
-  const goToCalendar = () => {
-    navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
-  };
+  // Legacy: Dreams logged overview card linked to Calendar.
+  // const goToCalendar = () => {
+  //   navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
+  // };
 
   const goToSymbolicElements = () => {
     navigation.navigate('InsightsJourney', {
@@ -256,6 +252,7 @@ const InsightsScreen: React.FC = () => {
           </TouchableOpacity>
           */}
 
+          {/* Legacy: Dreams logged entry linked into Calendar.
           <TouchableOpacity style={styles.overviewSection} onPress={goToCalendar} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
               <DreamsLoggedIcon size={ICON_RENDER_SIZE - 14} color={colors.textAccent} />
@@ -269,6 +266,7 @@ const InsightsScreen: React.FC = () => {
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
           <View style={styles.overviewDivider} />
+          */}
 
           <TouchableOpacity style={styles.overviewSection} onPress={goToSymbolicElements} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>

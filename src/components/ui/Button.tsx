@@ -74,11 +74,11 @@ export const Button: React.FC<ButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.xl,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
+    minHeight: 52,
   },
   primaryButton: {
     backgroundColor: colors.buttonPrimary90,
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
     fontFamily: typography.regular,
-    letterSpacing: 0.15,
+    letterSpacing: 0.2,
   },
   primaryButtonText: {
     color: colors.white,

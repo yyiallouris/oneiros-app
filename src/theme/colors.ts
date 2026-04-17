@@ -24,8 +24,8 @@ export const backgrounds = {
   cardMoreTransparent: 'rgba(255, 255, 255, 0.72)', // More transparent
   
   // Wave backgrounds (for gradients)
-  wave1: '#EEE5EF',        // Very light lavender mist
-  wave2: '#E1D6E4',        // Soft plum-gray depth
+  wave1: '#EAE0EF',        // Very light iris mist
+  wave2: '#DDD0E5',        // Soft plum-lilac depth
   
   // Overlays
   overlay: 'rgba(73, 50, 76, 0.14)', // Brand plum overlay
@@ -187,12 +187,12 @@ export const gradients = {
 
   // Screen atmosphere
   screenTop: '#FFFDFE',
-  screenMid: '#FBF7FB',
-  screenBottom: '#F4EDF5',
-  screenDepth: '#E7DCE9',
-  auraTop: 'rgba(255, 249, 255, 0.92)',
-  auraMid: 'rgba(241, 232, 242, 0.34)',
-  auraBottom: 'rgba(200, 140, 200, 0.09)',
+  screenMid: '#F8F1FA',
+  screenBottom: '#EFE4F2',
+  screenDepth: '#E3D5E8',
+  auraTop: 'rgba(255, 249, 255, 0.94)',
+  auraMid: 'rgba(231, 217, 242, 0.42)',
+  auraBottom: 'rgba(107, 75, 123, 0.1)',
 
   // Primary action treatment
   buttonTop: '#5A3A63',

@@ -183,12 +183,20 @@ const DreamEditorScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom Actions */}
-      <View style={[styles.bottomActions, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+      <View
+        style={[
+          styles.bottomActions,
+          {
+            bottom: Math.max(insets.bottom, spacing.lg),
+          },
+        ]}
+      >
         <Button
           title={dream ? 'Save Changes' : 'Save Dream'}
           onPress={handleSave}
           disabled={!content.trim()}
           loading={isSaving}
+          style={styles.saveButton}
         />
 
         {dream && (
@@ -254,13 +262,11 @@ const styles = StyleSheet.create({
   },
   bottomActions: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.lg,
-    backgroundColor: colors.background,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    left: spacing.lg,
+    right: spacing.lg,
+  },
+  saveButton: {
+    width: '100%',
   },
   deleteButton: {
     marginTop: spacing.sm,

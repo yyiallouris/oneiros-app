@@ -25,16 +25,19 @@ const TabIconFrame = ({
   focused: boolean;
   children: React.ReactNode;
 }) => (
-  <View style={[styles.iconFrame, focused && styles.iconFrameActive]}>
+  <View style={styles.iconFrame}>
     {focused ? (
-      <LinearGradient
-        colors={['rgba(255, 255, 255, 0.68)', 'rgba(200, 140, 200, 0.12)']}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
+      <>
+        <View style={styles.focusAura} />
+        <LinearGradient
+          colors={['rgba(255, 255, 255, 0.72)', 'rgba(200, 140, 200, 0.18)', 'rgba(200, 140, 200, 0)']}
+          start={{ x: 0.5, y: 0.1 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.focusCore}
+        />
+      </>
     ) : null}
-    {children}
+    <View style={[styles.iconContent, focused && styles.iconContentFocused]}>{children}</View>
   </View>
 );
 
@@ -52,11 +55,11 @@ const TabSvgIcon = ({
   scale?: number;
 }) => (
   <View
-    style={{
-      alignItems: 'center',
-      justifyContent: 'center',
-      transform: [{ scale }],
-    }}
+    style={[
+      styles.iconSvgWrap,
+      focused && styles.iconSvgWrapFocused,
+      { transform: [{ scale: focused ? scale * 1.04 : scale }] },
+    ]}
   >
     <Icon
       width={width}
@@ -180,11 +183,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 24,
-    overflow: 'hidden',
   },
-  iconFrameActive: {
-    borderWidth: 1,
-    borderColor: colors.border,
+  focusAura: {
+    position: 'absolute',
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(200, 140, 200, 0.12)',
+    shadowColor: colors.buttonPrimary,
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  focusCore: {
+    position: 'absolute',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+  },
+  iconContent: {
+    width: 52,
+    height: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContentFocused: {
+    shadowColor: colors.buttonPrimary,
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  iconSvgWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconSvgWrapFocused: {
+    shadowColor: colors.buttonPrimary,
+    shadowOpacity: 0.16,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
   },
 });
 
