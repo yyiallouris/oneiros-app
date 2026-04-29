@@ -14,6 +14,7 @@ import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PsycheScreenBackground, MysticHeader, BreathingLine, Card } from '../components/ui';
 import {
+  DreamsLoggedIcon,
   MotifsIcon,
   PatternRecognitionIcon,
 } from '../components/icons/InsightsIcons';
@@ -21,6 +22,7 @@ import {
   getRecurringSymbols,
   getRecurringArchetypes,
   getRecurringLandscapes,
+  getDreamsCountForPeriod,
   getPeriodThisMonth,
   getPeriodLastMonth,
   getPeriodLastNMonths,
@@ -89,6 +91,7 @@ const InsightsScreen: React.FC = () => {
   const [symbols, setSymbols] = useState<SymbolCount[]>([]);
   const [archetypes, setArchetypes] = useState<ArchetypeCount[]>([]);
   const [landscapes, setLandscapes] = useState<LandscapeCount[]>([]);
+  const [dreamsCount, setDreamsCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const periodLabel =
@@ -105,15 +108,17 @@ const InsightsScreen: React.FC = () => {
             : periodFromPresetSync(periodPreset) ?? getPeriodThisMonth();
         if (!mounted) return;
         setCurrentPeriod(p);
-        const [s, a, l] = await Promise.all([
+        const [s, a, l, dc] = await Promise.all([
           getRecurringSymbols(p),
           getRecurringArchetypes(p),
           getRecurringLandscapes(p),
+          getDreamsCountForPeriod(p),
         ]);
         if (!mounted) return;
         setSymbols(s);
         setArchetypes(a);
         setLandscapes(l);
+        setDreamsCount(dc);
       })().finally(() => {
         if (mounted) setLoading(false);
       });
@@ -157,9 +162,9 @@ const InsightsScreen: React.FC = () => {
   // };
 
   // Legacy: Dreams logged overview card linked to Calendar.
-  // const goToCalendar = () => {
-  //   navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
-  // };
+  const goToCalendar = () => {
+    navigation.navigate('Calendar', { initialDate: currentPeriod.startDate });
+  };
 
   const goToSymbolicElements = () => {
     navigation.navigate('InsightsJourney', {
@@ -252,10 +257,10 @@ const InsightsScreen: React.FC = () => {
           </TouchableOpacity>
           */}
 
-          {/* Legacy: Dreams logged entry linked into Calendar.
+          {/* Legacy: Dreams logged entry linked into Calendar. */}
           <TouchableOpacity style={styles.overviewSection} onPress={goToCalendar} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <DreamsLoggedIcon size={ICON_RENDER_SIZE - 14} color={colors.textAccent} />
+              <DreamsLoggedIcon size={ICON_RENDER_SIZE - 14} color={colors.tabIconActive} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Dreams logged</Text>
@@ -266,11 +271,10 @@ const InsightsScreen: React.FC = () => {
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
           <View style={styles.overviewDivider} />
-          */}
 
           <TouchableOpacity style={styles.overviewSection} onPress={goToSymbolicElements} activeOpacity={0.7}>
             <View style={styles.overviewIconWrap}>
-              <MotifsIcon size={ICON_RENDER_SIZE} color={colors.textAccent} />
+              <MotifsIcon size={ICON_RENDER_SIZE} color={colors.tabIconActive} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Symbolic Elements</Text>
@@ -286,7 +290,7 @@ const InsightsScreen: React.FC = () => {
             activeOpacity={0.7}
           >
             <View style={styles.overviewIconWrap}>
-              <PatternRecognitionIcon size={ICON_RENDER_SIZE} color={colors.textAccent} />
+              <PatternRecognitionIcon size={ICON_RENDER_SIZE} color={colors.tabIconActive} />
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Pattern recognition</Text>

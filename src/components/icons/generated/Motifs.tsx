@@ -3,6 +3,7 @@ import Svg, { Path } from "react-native-svg";
 import type { SvgProps } from "react-native-svg";
 const SvgMotifs = (props: SvgProps) => (
   <Svg
+    xmlns="http://www.w3.org/2000/svg"
     width={710}
     height={588}
     viewBox="0 0 2048 1696"
@@ -100,3 +101,4 @@ const SvgMotifs = (props: SvgProps) => (
   </Svg>
 );
 export default SvgMotifs;
+
