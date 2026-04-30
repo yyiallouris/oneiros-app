@@ -106,7 +106,7 @@ export const SymbolInfoModal: React.FC<SymbolInfoModalProps> = ({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(58, 47, 42, 0.35)',
+    backgroundColor: backgrounds.backdrop,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
@@ -122,13 +122,15 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     height: Dimensions.get('window').height * 0.72,
-    backgroundColor: backgrounds.secondary,
-    borderRadius: borderRadius.xl,
+    backgroundColor: backgrounds.card,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: spacing.xl,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
     elevation: 2,
   },
   scroll: {
@@ -139,18 +141,20 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   title: {
+    fontFamily: typography.bold,
     fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
     color: text.primary,
     marginBottom: spacing.xs,
   },
   subtitle: {
+    fontFamily: typography.regular,
     fontSize: typography.sizes.sm,
     fontStyle: 'italic',
     color: text.muted,
     marginBottom: spacing.lg,
   },
   paragraph: {
+    fontFamily: typography.regular,
     fontSize: typography.sizes.md,
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     color: text.secondary,
@@ -166,12 +170,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   bullet: {
+    fontFamily: typography.regular,
     fontSize: typography.sizes.md,
     color: colors.buttonPrimary,
     marginRight: spacing.sm,
   },
   bulletText: {
     flex: 1,
+    fontFamily: typography.regular,
     fontSize: typography.sizes.md,
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     color: text.secondary,
@@ -180,12 +186,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionHeading: {
+    fontFamily: typography.semibold,
     fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
     color: text.primary,
     marginBottom: spacing.sm,
   },
   sectionContent: {
+    fontFamily: typography.regular,
     fontSize: typography.sizes.md,
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     color: text.secondary,
@@ -197,6 +204,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   footer: {
+    fontFamily: typography.regular,
     fontSize: typography.sizes.sm,
     fontStyle: 'italic',
     color: text.muted,
@@ -209,8 +217,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
+    fontFamily: typography.medium,
     fontSize: typography.sizes.md,
-    fontWeight: typography.weights.medium,
     color: text.primary,
   },
 });

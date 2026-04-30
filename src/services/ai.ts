@@ -269,28 +269,35 @@ function userSafeError(status: number, apiUrl: string): string {
 }
 
 const getModel = (): string => {
-  const model = getConfig('gptModel', 'gpt-4o');
-  return model || 'gpt-4o';
+  const model = getConfig('gptModel', 'gpt-5.4-mini');
+  return model || 'gpt-5.4-mini';
 };
 
 // Get token parameter name based on API endpoint path
 // OpenAI and many proxies use 'max_tokens'; Responses API uses 'max_output_tokens'; some proxies use 'max_completion_tokens'
 // Config override via 'tokenParamName' is respected
-const getTokenParamName = (apiUrl: string): string => {
+const getTokenParamName = (apiUrl: string, model: string): string => {
   const u = (apiUrl || '').trim().toLowerCase();
+  const isReasoningFamily = /^gpt-5/i.test(model) || /^o\d/i.test(model);
   const defaultTokenParam = (() => {
-    if (u.includes('/v1/chat/completions')) return 'max_tokens';
     if (u.includes('/v1/responses')) return 'max_output_tokens';
+    if (isReasoningFamily) return 'max_completion_tokens';
+    if (u.includes('/v1/chat/completions')) return 'max_tokens';
     return 'max_completion_tokens';
   })();
   return getConfig('tokenParamName', defaultTokenParam) || defaultTokenParam;
 };
 
 // Some proxies only accept max_tokens; set both primary param and max_tokens so either works
-const setTokenLimit = (payload: Record<string, unknown>, apiUrl: string, limit: number): void => {
-  const paramName = getTokenParamName(apiUrl);
+const setTokenLimit = (
+  payload: Record<string, unknown>,
+  apiUrl: string,
+  limit: number,
+  model: string
+): void => {
+  const paramName = getTokenParamName(apiUrl, model);
   payload[paramName] = limit;
-  if (paramName !== 'max_tokens') payload.max_tokens = limit;
+  if (paramName !== 'max_tokens' && !isOpenAIHost(apiUrl)) payload.max_tokens = limit;
 };
 
 // Valid core mode headings for interpretation (prevents injection of invalid headings)
@@ -300,6 +307,25 @@ const VALID_CORE_MODES = new Set(['Core Tension', 'Core State', 'Core Shift', 'C
 type ApiMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
+};
+
+type AiTask =
+  | 'interpretation_quick'
+  | 'interpretation_standard'
+  | 'interpretation_advanced'
+  | 'chat_followup'
+  | 'dream_extraction'
+  | 'pattern_insights'
+  | 'semantic_grouping';
+
+const supportsProxyTaskRouting = (apiUrl: string): boolean => {
+  return apiUrl.includes('/functions/v1/openai-proxy');
+};
+
+const attachProxyTask = (payload: Record<string, unknown>, apiUrl: string, task: AiTask): void => {
+  if (supportsProxyTaskRouting(apiUrl)) {
+    payload.task = task;
+  }
 };
 
 // Fetch with timeout, retry, and rate limit handling
@@ -847,6 +873,15 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
       messages,
       temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.50 : 0.55,
     };
+    attachProxyTask(
+      payload,
+      apiUrl,
+      depth === 'quick'
+        ? 'interpretation_quick'
+        : depth === 'advanced'
+          ? 'interpretation_advanced'
+          : 'interpretation_standard'
+    );
 
     if (capabilities.supportsMaxCompletionTokens) {
       const isGpt5 = /^gpt-5/i.test(model);
@@ -854,7 +889,7 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
         depth === 'quick' ? 450
         : depth === 'advanced' ? (isGpt5 ? 2400 : 2000)
         : (isGpt5 ? 1600 : 1200);
-      setTokenLimit(payload, apiUrl, tokenLimit);
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
@@ -983,9 +1018,10 @@ Content: ${dreamExcerpt}`;
       messages,
       temperature: 0.45, // Lower temperature for chat to stay analytical, avoid therapy-coach drift
     };
+    attachProxyTask(payload, apiUrl, 'chat_followup');
 
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 550); // ~200 words + 1 question; keeps chat snappy
+      setTokenLimit(payload, apiUrl, 550, model); // ~200 words + 1 question; keeps chat snappy
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
@@ -1278,9 +1314,10 @@ Return a JSON object with all fields. Put symbol_stances immediately after symbo
       messages,
       temperature: 0.25, // Low but not ultra-deterministic, reduces stereotyped extractions
     };
+    attachProxyTask(payload, apiUrl, 'dream_extraction');
 
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 2400); // JSON includes affects, motifs, relational_dynamics, core_mode, amplifications, symbol_stances
+      setTokenLimit(payload, apiUrl, 2400, model); // JSON includes affects, motifs, relational_dynamics, core_mode, amplifications, symbol_stances
     }
 
     if (capabilities.supportsResponseFormat) {
@@ -1525,9 +1562,10 @@ Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no a
       messages,
       temperature: 0.5,
     };
+    attachProxyTask(payload, apiUrl, 'pattern_insights');
 
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 600);
+      setTokenLimit(payload, apiUrl, 600, model);
     }
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
@@ -1610,7 +1648,8 @@ Return ONLY valid JSON:
     ];
 
     const payload: any = { model, messages, temperature: 0.1 };
-    if (capabilities.supportsMaxCompletionTokens) setTokenLimit(payload, apiUrl, 400);
+    attachProxyTask(payload, apiUrl, 'semantic_grouping');
+    if (capabilities.supportsMaxCompletionTokens) setTokenLimit(payload, apiUrl, 400, model);
     if (capabilities.supportsResponseFormat) payload.response_format = { type: 'json_object' };
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);

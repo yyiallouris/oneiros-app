@@ -4,7 +4,6 @@ import { SyncService } from './syncService';
 import { Dream, Interpretation, DreamDraft } from '../types/dream';
 import { logEvent } from './logger';
 import { isOnline } from '../utils/network';
-import { invalidateSymbolGroupingCache } from './symbolGroupingService';
 
 /**
  * Storage Service - Main interface for all storage operations
@@ -53,9 +52,6 @@ export class StorageService {
     // This is the critical path - must complete immediately
     await LocalStorage.saveDream(dream);
     logEvent('dream_saved_local', { id: dream.id, date: dream.date });
-
-    // Invalidate symbol grouping cache so insights re-groups on next load
-    invalidateSymbolGroupingCache().catch(() => {});
 
     // Add to unsynced queue immediately (don't wait for user check)
     await LocalStorage.addUnsyncedDream(dream);

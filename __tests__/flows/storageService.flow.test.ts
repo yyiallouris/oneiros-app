@@ -36,10 +36,6 @@ jest.mock('../../src/utils/network', () => ({
   isOnline: jest.fn(),
 }));
 
-jest.mock('../../src/services/symbolGroupingService', () => ({
-  invalidateSymbolGroupingCache: jest.fn().mockResolvedValue(undefined),
-}));
-
 jest.mock('../../src/services/logger', () => ({
   logEvent: jest.fn(),
 }));

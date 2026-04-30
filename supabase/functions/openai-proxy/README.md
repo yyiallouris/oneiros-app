@@ -17,6 +17,15 @@ In your Supabase project dashboard:
 1. Go to **Edge Functions** → **Settings**
 2. Add secret: `OPENAI_API_KEY` = your OpenAI API key (starts with `sk-`)
 
+Optional model-routing secrets:
+- `OPENAI_MODEL_CHEAP`: Default cheap model for structured background work. Defaults to `gpt-4o-mini`.
+- `OPENAI_MODEL_EXTRACTION`: Overrides the model for dream element extraction.
+- `OPENAI_MODEL_GROUPING`: Overrides the model for semantic grouping.
+- `OPENAI_MODEL_PATTERN`: Overrides the model for pattern insight generation.
+- `OPENAI_MODEL_INTERPRETATION`: Overrides the model for initial dream interpretations.
+- `OPENAI_MODEL_CHAT`: Overrides the model for follow-up chat.
+- `OPENAI_MODEL_DEFAULT`: Fallback model for unrouted requests.
+
 ### 2. Deploy the Function
 
 ```bash
@@ -60,8 +69,11 @@ The proxy accepts the same payload as OpenAI Chat Completions API:
 - `messages`: Array of message objects
 - `temperature`: Optional temperature
 - `max_tokens` or `max_completion_tokens`: Token limit
+- `task`: Optional Oneiros routing hint (`dream_extraction`, `semantic_grouping`, `pattern_insights`, `interpretation_quick`, `interpretation_standard`, `interpretation_advanced`, `chat_followup`)
 
 Returns the same response format as OpenAI.
+
+When `task` is present, the proxy may override the client-requested model. By default, `dream_extraction` and `semantic_grouping` route to `OPENAI_MODEL_CHEAP` / `gpt-4o-mini`; user-facing interpretation and chat stay on the requested model unless an override secret is configured.
 
 ## Headers
 

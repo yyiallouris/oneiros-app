@@ -11,7 +11,7 @@ interface OracleGlyphProps {
 
 export const OracleGlyph: React.FC<OracleGlyphProps> = ({
   size = 64, // ✅ bigger default
-  color = 'rgba(30, 95, 90, 0.55)', // dusty turquoise
+  color = colors.buttonPrimary,
   style,
 }) => {
   const breath = useRef(new Animated.Value(0.22)).current;
@@ -118,7 +118,7 @@ export const OracleGlyph: React.FC<OracleGlyphProps> = ({
             cx={moonCx + moonR * 0.45}
             cy={moonCy - moonR * 0.05}
             r={moonR * 0.85}
-            stroke={'rgba(244, 239, 232, 0.9)'} // paper color "carve"
+            stroke={colors.background}
             strokeWidth={2.2}
             fill="none"
             opacity={0.9}

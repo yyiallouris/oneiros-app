@@ -151,13 +151,13 @@ function dreamsInPeriod<T extends { date: string }>(dreams: T[], period: Insight
 /**
  * Recurring symbols (personal): aggregate across dreams/interpretations in optional period.
  * Count by normalized key, sort by frequency desc.
- * AI groupings are computed from the GLOBAL symbol set so the cache is period-independent.
+ * Cached semantic groupings use the GLOBAL symbol set so the cache is period-independent.
  */
 export async function getRecurringSymbols(period?: InsightsPeriod): Promise<SymbolCount[]> {
   const dreams = await StorageService.getDreams();
   const interpretations = await StorageService.getInterpretations();
 
-  // Collect global unique keys (all dreams) for stable AI grouping cache
+  // Collect global unique keys (all dreams) for stable semantic grouping cache
   const globalSymbolKeys = new Set<string>();
   dreams.forEach((d) => d.symbols?.forEach((s) => {
     const k = normalizeSymbolKey(s); if (k) globalSymbolKeys.add(k);
@@ -230,13 +230,13 @@ export async function getRecurringArchetypes(period?: InsightsPeriod): Promise<A
 /**
  * Recurring landscapes (settings/places): optional period.
  * Aggregate from dreams and interpretations, count by normalized key, sort by frequency desc.
- * AI groupings are computed from the GLOBAL landscape set so the cache is period-independent.
+ * Cached semantic groupings use the GLOBAL landscape set so the cache is period-independent.
  */
 export async function getRecurringLandscapes(period?: InsightsPeriod): Promise<LandscapeCount[]> {
   const dreams = await StorageService.getDreams();
   const interpretations = await StorageService.getInterpretations();
 
-  // Collect global unique keys (all dreams) for stable AI grouping cache
+  // Collect global unique keys (all dreams) for stable semantic grouping cache
   const globalLandscapeKeys = new Set<string>();
   dreams.forEach((d) => d.landscapes?.forEach((l) => {
     const k = normalizeLandscapeKey(l); if (k) globalLandscapeKeys.add(k);
@@ -281,7 +281,7 @@ export async function getRecurringLandscapes(period?: InsightsPeriod): Promise<L
 /**
  * Recurring motifs (structural/spatial patterns): from interpretations only.
  * Count by normalized key, sort by frequency desc.
- * AI groupings computed from global motif set, applied to period counts.
+ * Cached semantic groupings use the global motif set and are applied to period counts.
  */
 export async function getRecurringMotifs(period?: InsightsPeriod): Promise<MotifCount[]> {
   const dreams = await StorageService.getDreams();
@@ -472,8 +472,8 @@ export function getPeriodLastMonth(): InsightsPeriod {
 export function getPeriodLastNMonths(n: number): InsightsPeriod {
   const end = new Date();
   const start = new Date();
-  start.setMonth(start.getMonth() - (n - 1));
   start.setDate(1);
+  start.setMonth(start.getMonth() - (n - 1));
   return {
     startDate: start.toISOString().slice(0, 10),
     endDate: end.toISOString().slice(0, 10),

@@ -2,6 +2,62 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+const CHEAP_MODEL = Deno.env.get("OPENAI_MODEL_CHEAP") ?? "gpt-4o-mini";
+
+type OneirosTask =
+  | "interpretation_quick"
+  | "interpretation_standard"
+  | "interpretation_advanced"
+  | "chat_followup"
+  | "dream_extraction"
+  | "pattern_insights"
+  | "semantic_grouping";
+
+const TASKS = new Set<OneirosTask>([
+  "interpretation_quick",
+  "interpretation_standard",
+  "interpretation_advanced",
+  "chat_followup",
+  "dream_extraction",
+  "pattern_insights",
+  "semantic_grouping",
+]);
+
+function normalizeTask(task: unknown): OneirosTask | null {
+  return typeof task === "string" && TASKS.has(task as OneirosTask)
+    ? (task as OneirosTask)
+    : null;
+}
+
+function envModel(name: string): string | null {
+  const value = Deno.env.get(name)?.trim();
+  return value || null;
+}
+
+function resolveModel(requestedModel: string, task: OneirosTask | null): string {
+  switch (task) {
+    case "dream_extraction":
+      return envModel("OPENAI_MODEL_EXTRACTION") ?? CHEAP_MODEL;
+    case "semantic_grouping":
+      return envModel("OPENAI_MODEL_GROUPING") ?? CHEAP_MODEL;
+    case "pattern_insights":
+      return envModel("OPENAI_MODEL_PATTERN") ?? requestedModel;
+    case "interpretation_quick":
+    case "interpretation_standard":
+    case "interpretation_advanced":
+      return envModel("OPENAI_MODEL_INTERPRETATION") ?? requestedModel;
+    case "chat_followup":
+      return envModel("OPENAI_MODEL_CHAT") ?? envModel("OPENAI_MODEL_INTERPRETATION") ?? requestedModel;
+    default:
+      return envModel("OPENAI_MODEL_DEFAULT") ?? requestedModel;
+  }
+}
+
+function tokenParameterForModel(model: string): "max_tokens" | "max_completion_tokens" {
+  return /^gpt-5/i.test(model) || /^o\d/i.test(model)
+    ? "max_completion_tokens"
+    : "max_tokens";
+}
 
 // CORS headers for mobile app
 const corsHeaders = {
@@ -43,6 +99,7 @@ serve(async (req: Request) => {
     // Parse request body
     const body = await req.json();
     const { model, messages, temperature, max_tokens, max_completion_tokens, max_output_tokens } = body;
+    const task = normalizeTask(body.task);
 
     // Validate required fields
     if (!model || !messages || !Array.isArray(messages)) {
@@ -52,25 +109,19 @@ serve(async (req: Request) => {
       );
     }
 
-    // Build OpenAI request payload
-    // Forward token parameter with the same name the client sent
-    // Different models require different parameter names:
-    // - gpt-5.x models require max_completion_tokens
-    // - Older models use max_tokens
-    // - Responses API uses max_output_tokens
+    const resolvedModel = resolveModel(model, task);
+
+    // Build OpenAI request payload. The proxy owns model routing so clients cannot
+    // accidentally make cheap structured tasks run on the premium interpretation model.
     const payload: any = {
-      model,
+      model: resolvedModel,
       messages,
       ...(temperature !== undefined && { temperature }),
     };
     
-    // Forward the token parameter with the same name (don't convert)
-    if (max_completion_tokens !== undefined) {
-      payload.max_completion_tokens = max_completion_tokens;
-    } else if (max_output_tokens !== undefined) {
-      payload.max_output_tokens = max_output_tokens;
-    } else if (max_tokens !== undefined) {
-      payload.max_tokens = max_tokens;
+    const tokenLimit = max_completion_tokens ?? max_output_tokens ?? max_tokens;
+    if (tokenLimit !== undefined) {
+      payload[tokenParameterForModel(resolvedModel)] = tokenLimit;
     }
 
     // Forward request to OpenAI
@@ -86,14 +137,24 @@ serve(async (req: Request) => {
     // Get response status and body
     const status = openaiResponse.status;
     const responseText = await openaiResponse.text();
+    let usage: unknown = null;
+    try {
+      const parsedResponse = JSON.parse(responseText);
+      usage = parsedResponse?.usage ?? null;
+    } catch {
+      usage = null;
+    }
 
     // Log for debugging (without sensitive data)
     console.log(`[openai-proxy] Request ${requestId}`, {
-      model,
+      task: task ?? "unrouted",
+      requestedModel: model,
+      resolvedModel,
       status,
       appVersion,
       hasMessages: messages.length > 0,
       messageCount: messages.length,
+      usage,
     });
 
     // Return response with CORS headers

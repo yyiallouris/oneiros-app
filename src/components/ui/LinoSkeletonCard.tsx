@@ -9,7 +9,7 @@ interface LinoSkeletonCardProps {
 
 /**
  * LINO-style skeleton card for loading states
- * Off-white track, dusty turquoise fill, rounded edges
+ * Off-white track, muted violet fill, rounded edges
  * Use for: lists, feeds, entries
  */
 export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => {
@@ -51,7 +51,7 @@ export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => 
             styles.skeletonLine,
             styles.skeletonDate,
             { opacity },
-            { backgroundColor: 'rgba(30, 95, 90, 0.2)' }, // Dusty turquoise
+            { backgroundColor: colors.buttonPrimaryLight },
           ]}
         />
         
@@ -61,7 +61,7 @@ export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => 
             styles.skeletonLine,
             styles.skeletonTitle,
             { opacity },
-            { backgroundColor: 'rgba(30, 95, 90, 0.25)' },
+            { backgroundColor: colors.buttonPrimary40 },
           ]}
         />
         
@@ -71,7 +71,7 @@ export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => 
             styles.skeletonLine,
             styles.skeletonPreview1,
             { opacity },
-            { backgroundColor: 'rgba(30, 95, 90, 0.15)' },
+            { backgroundColor: colors.buttonPrimaryLight12 },
           ]}
         />
         <Animated.View
@@ -79,7 +79,7 @@ export const LinoSkeletonCard: React.FC<LinoSkeletonCardProps> = ({ style }) => 
             styles.skeletonLine,
             styles.skeletonPreview2,
             { opacity },
-            { backgroundColor: 'rgba(30, 95, 90, 0.15)' },
+            { backgroundColor: colors.buttonPrimaryLight12 },
           ]}
         />
       </View>

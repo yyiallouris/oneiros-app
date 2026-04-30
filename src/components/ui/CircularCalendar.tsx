@@ -38,7 +38,7 @@ const calculateGlowIntensity = (dreamCount: number): number => {
 };
 
 // Color for days with dreams (single accent color)
-const HAS_DREAMS_COLOR = colors.buttonPrimary; // #6A4FB3 — matches journey dots
+const HAS_DREAMS_COLOR = colors.buttonPrimary;
 
 const getDayColor = (dreamCount: number): string => {
   if (dreamCount === 0) return calendar.noDreams;

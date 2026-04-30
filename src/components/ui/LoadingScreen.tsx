@@ -62,7 +62,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       ]}
     >
       <LinearGradient
-        colors={[backgrounds.splash, '#F8F4FA', backgrounds.primary]}
+        colors={[backgrounds.splash, backgrounds.secondary, backgrounds.primary]}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleMain: {
-    fontFamily: typography.bold,
+    fontFamily: typography.display,
     fontSize: 34,
     color: brandIcon.plum,
     letterSpacing: 0.8,
@@ -140,4 +140,3 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
-

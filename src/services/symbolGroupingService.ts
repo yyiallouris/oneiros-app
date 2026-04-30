@@ -1,6 +1,6 @@
 /**
  * Symbol grouping service — caches AI-based semantic grouping of symbols/landscapes.
- * A single cheap API call per type, only re-runs when the unique term set changes.
+ * Normal reads never start a new AI request; callers must explicitly opt into refreshes.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +13,10 @@ const MOTIF_CACHE_KEY = 'oneiros_motif_grouping_v1';
 type TermCache = {
   hash: string;
   groupMap: Record<string, string>;
+};
+
+type GroupMapOptions = {
+  allowAiRefresh?: boolean;
 };
 
 /** Simple djb2-style hash of a sorted list of strings. */
@@ -45,13 +49,15 @@ async function saveTermCache(key: string, cache: TermCache): Promise<void> {
  * Uses cached result when the unique symbol set hasn't changed.
  */
 export async function getSymbolGroupMap(
-  uniqueSymbols: string[]
+  uniqueSymbols: string[],
+  options: GroupMapOptions = {}
 ): Promise<Record<string, string>> {
   if (uniqueSymbols.length < 2) return {};
 
   const hash = computeHash(uniqueSymbols);
   const cached = await loadTermCache(SYMBOL_CACHE_KEY);
   if (cached?.hash === hash) return cached.groupMap;
+  if (!options.allowAiRefresh) return {};
 
   const { symbolGroupMap } = await groupSimilarTerms(uniqueSymbols, []);
   await saveTermCache(SYMBOL_CACHE_KEY, { hash, groupMap: symbolGroupMap });
@@ -63,13 +69,15 @@ export async function getSymbolGroupMap(
  * Uses cached result when the unique motif set hasn't changed.
  */
 export async function getMotifGroupMap(
-  uniqueMotifs: string[]
+  uniqueMotifs: string[],
+  options: GroupMapOptions = {}
 ): Promise<Record<string, string>> {
   if (uniqueMotifs.length < 2) return {};
 
   const hash = computeHash(uniqueMotifs);
   const cached = await loadTermCache(MOTIF_CACHE_KEY);
   if (cached?.hash === hash) return cached.groupMap;
+  if (!options.allowAiRefresh) return {};
 
   // Motifs reuse the symbols slot in groupSimilarTerms (same language, same rules)
   const { symbolGroupMap } = await groupSimilarTerms(uniqueMotifs, []);
@@ -82,13 +90,15 @@ export async function getMotifGroupMap(
  * Uses cached result when the unique landscape set hasn't changed.
  */
 export async function getLandscapeGroupMap(
-  uniqueLandscapes: string[]
+  uniqueLandscapes: string[],
+  options: GroupMapOptions = {}
 ): Promise<Record<string, string>> {
   if (uniqueLandscapes.length < 2) return {};
 
   const hash = computeHash(uniqueLandscapes);
   const cached = await loadTermCache(LANDSCAPE_CACHE_KEY);
   if (cached?.hash === hash) return cached.groupMap;
+  if (!options.allowAiRefresh) return {};
 
   const { landscapeGroupMap } = await groupSimilarTerms([], uniqueLandscapes);
   await saveTermCache(LANDSCAPE_CACHE_KEY, { hash, groupMap: landscapeGroupMap });
@@ -118,7 +128,7 @@ export function applyGroupMap(
   }
 }
 
-/** Call after saving a new dream so the next insights load triggers a fresh grouping. */
+/** Clears cached semantic groupings after extracted interpretation terms change. */
 export async function invalidateSymbolGroupingCache(): Promise<void> {
   try {
     await Promise.all([

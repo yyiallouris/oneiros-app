@@ -17,7 +17,7 @@ interface BreathingLineProps {
 export const BreathingLine: React.FC<BreathingLineProps> = ({
   width = 160,
   height = 3,
-  color = 'rgba(30, 95, 90, 0.45)',
+  color = colors.buttonPrimary,
   style,
 }) => {
   const x = useRef(new Animated.Value(-1)).current;
@@ -74,7 +74,7 @@ export const BreathingLine: React.FC<BreathingLineProps> = ({
           {
             width,
             height,
-            backgroundColor: 'rgba(30, 95, 90, 0.14)', // Low contrast track
+            backgroundColor: colors.buttonPrimaryLight12,
           },
         ]}
       >

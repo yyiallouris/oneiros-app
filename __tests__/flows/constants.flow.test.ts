@@ -11,6 +11,6 @@ describe('flow-related constants', () => {
 
   it('MAX_AI_RESPONSES is initial plus follow-ups', () => {
     expect(MAX_AI_RESPONSES).toBe(1 + MAX_FOLLOW_UP_RESPONSES);
-    expect(MAX_AI_RESPONSES).toBe(4);
+    expect(MAX_AI_RESPONSES).toBe(6);
   });
 });

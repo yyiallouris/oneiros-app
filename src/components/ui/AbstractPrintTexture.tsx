@@ -13,7 +13,7 @@ interface PrintPatchLoaderProps {
 
 export const PrintPatchLoader: React.FC<PrintPatchLoaderProps> = ({
   size = 72,
-  color = 'rgba(30, 95, 90, 0.55)',
+  color = colors.buttonPrimary,
   style,
 }) => {
   // Create 5-7 horizontal threads with individual animations

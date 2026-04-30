@@ -302,7 +302,10 @@ export async function transcribeAudio(audioUri: string): Promise<string | null> 
             error: errorText.substring(0, 200),
             attempt,
           });
-          continue; // try again
+          if (response.status === 429 || response.status >= 500) {
+            continue; // transient; try again
+          }
+          break; // auth/config/client errors will not be fixed by retrying
         }
 
         const data = await response.json();
@@ -364,4 +367,3 @@ function getConfig(key: string, defaultValue: string | null = null): string | nu
     return defaultValue;
   }
 }
-

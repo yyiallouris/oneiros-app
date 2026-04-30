@@ -5,7 +5,7 @@ jest.mock('expo-constants', () => ({
     extra: {
       openaiApiKey: 'test-key',
       customGptEndpoint: null,
-      gptModel: 'gpt-4o',
+      gptModel: 'gpt-5.4-mini',
     },
   },
 }));
@@ -47,6 +47,10 @@ describe('ai service', () => {
 
     expect(result).toBe('Analysis result');
     expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(1);
+    const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
+    expect(interpretationBody.model).toBe('gpt-5.4-mini');
+    expect(interpretationBody.max_completion_tokens).toBe(1600);
+    expect(interpretationBody.max_tokens).toBeUndefined();
   });
 
   it('throws when API key missing', async () => {
@@ -69,4 +73,3 @@ describe('ai service', () => {
     ).rejects.toThrow(/OpenAI API key/);
   });
 });
-

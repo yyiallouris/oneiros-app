@@ -11,15 +11,19 @@ interface ChipProps {
 
 export const Chip: React.FC<ChipProps> = ({ label, variant = 'default', onPress }) => {
   const chipContent = (
-    <Text
-      style={[
-        styles.chipText,
-        variant === 'accent' && styles.accentChipText,
-        variant === 'label' && styles.labelChipText,
-      ]}
-    >
-      {label}
-    </Text>
+    <>
+      <Text
+        style={[
+          styles.chipText,
+          variant === 'accent' && styles.accentChipText,
+          variant === 'label' && styles.labelChipText,
+          onPress && styles.pressableChipText,
+        ]}
+      >
+        {label}
+      </Text>
+      {onPress && <Text style={styles.chipMark}>›</Text>}
+    </>
   );
 
   if (onPress) {
@@ -29,9 +33,12 @@ export const Chip: React.FC<ChipProps> = ({ label, variant = 'default', onPress 
         activeOpacity={0.7}
         style={[
           styles.chip,
+          styles.pressableChip,
           variant === 'accent' && styles.accentChip,
           variant === 'label' && styles.labelChip,
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={`Open note about ${label}`}
       >
         {chipContent}
       </TouchableOpacity>
@@ -53,12 +60,19 @@ export const Chip: React.FC<ChipProps> = ({ label, variant = 'default', onPress 
 
 const styles = StyleSheet.create({
   chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
     backgroundColor: colors.fieldSurface,
     borderWidth: 1,
     borderColor: colors.contourLineFaint,
+  },
+  pressableChip: {
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderColor: colors.contourLineSoft,
+    paddingRight: spacing.sm,
   },
   accentChip: {
     backgroundColor: colors.buttonPrimaryLight,
@@ -70,16 +84,26 @@ const styles = StyleSheet.create({
     borderColor: colors.contourLineFaint,
   },
   chipText: {
+    fontFamily: typography.medium,
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
-    fontWeight: typography.weights.medium,
+  },
+  pressableChipText: {
+    color: colors.textPrimary,
   },
   accentChipText: {
     color: colors.textAccent,
   },
   labelChipText: {
+    fontFamily: typography.regular,
     color: colors.textSecondary,
-    fontWeight: typography.weights.regular,
+  },
+  chipMark: {
+    fontFamily: typography.medium,
+    fontSize: typography.sizes.md,
+    lineHeight: typography.sizes.md,
+    color: colors.textAccent,
+    marginLeft: spacing.xs,
+    opacity: 0.78,
   },
 });
-

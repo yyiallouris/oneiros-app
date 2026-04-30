@@ -28,6 +28,16 @@ import { getRandomSymbol } from '../components/symbols';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
+const writePalette = {
+  background: '#F7F3F0',
+  secondaryWash: '#EFE8F1',
+  primaryInk: '#2B2430',
+  mutedViolet: '#6E4D78',
+  border: '#DDD3DD',
+  surface: '#FFFCFA',
+  button: '#4F3A58',
+  buttonDisabled: '#E4DDE4',
+} as const;
 
 const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -181,6 +191,7 @@ const WriteScreen: React.FC = () => {
   const isCompactHeight = windowHeight < 760;
   const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
   const contentInputBottomPadding = voiceButtonBottom + 28;
+  const isSaveDisabled = !content.trim() || isSaving;
 
   return (
     <KeyboardAvoidingView
@@ -189,6 +200,8 @@ const WriteScreen: React.FC = () => {
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
       <PsycheScreenBackground waveHeight={220} />
+      <View pointerEvents="none" style={styles.backgroundTint} />
+      <View pointerEvents="none" style={styles.backgroundWash} />
       
       <ScrollView
         style={styles.scrollView}
@@ -239,6 +252,7 @@ const WriteScreen: React.FC = () => {
             />
             <View style={[styles.voiceButtonContainer, { bottom: voiceButtonBottom }]}>
               <VoiceRecordButton
+                surface="field"
                 onTranscriptionComplete={(text) => {
                   setContent((prev) => (prev ? `${prev}\n${text}` : text));
                 }}
@@ -266,7 +280,8 @@ const WriteScreen: React.FC = () => {
           onPress={handleSaveDream}
           disabled={!content.trim()}
           loading={isSaving}
-          style={styles.saveButton}
+          style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
+          textStyle={[styles.saveButtonText, isSaveDisabled && styles.saveButtonTextDisabled]}
         />
       </View>
 
@@ -328,7 +343,21 @@ const WriteScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: writePalette.background,
+  },
+  backgroundTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: writePalette.background,
+    opacity: 0.84,
+  },
+  backgroundWash: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '62%',
+    backgroundColor: writePalette.secondaryWash,
+    opacity: 0.46,
   },
   scrollView: {
     flex: 1,
@@ -352,12 +381,11 @@ const styles = StyleSheet.create({
   },
   menuIcon: {
     fontSize: 28,
-    color: colors.textAccent,
+    color: writePalette.mutedViolet,
   },
   entryRitual: {
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
+    color: 'rgba(43, 36, 48, 0.68)',
     textAlign: 'center',
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
@@ -367,37 +395,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
-    borderRadius: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.26)',
+    borderRadius: 22,
+    backgroundColor: writePalette.surface,
     borderWidth: 1,
-    borderColor: 'rgba(107, 75, 123, 0.08)',
+    borderColor: writePalette.border,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.025,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   datePill: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(107, 75, 123, 0.08)',
+    backgroundColor: 'rgba(255, 252, 250, 0.56)',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(107, 75, 123, 0.1)',
+    borderColor: writePalette.border,
   },
   datePillText: {
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    color: 'rgba(43, 36, 48, 0.62)',
     fontWeight: typography.weights.medium,
   },
   titleInput: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.regular,
     fontFamily: typography.regular,
-    color: colors.textSecondary,
+    color: writePalette.primaryInk,
     marginBottom: spacing.sm,
     padding: 0,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(221, 211, 221, 0.78)',
   },
   contentInputContainer: {
     position: 'relative',
@@ -405,7 +437,7 @@ const styles = StyleSheet.create({
   },
   contentInput: {
     fontSize: typography.sizes.md,
-    color: colors.textPrimary,
+    color: writePalette.primaryInk,
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     minHeight: 300,
     padding: 0,
@@ -414,7 +446,7 @@ const styles = StyleSheet.create({
   },
   voiceButtonContainer: {
     position: 'absolute',
-    right: spacing.sm,
+    right: 0,
   },
   bottomActions: {
     position: 'absolute',
@@ -423,6 +455,27 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     width: '100%',
+    minHeight: 52,
+    borderRadius: 24,
+    backgroundColor: writePalette.button,
+    borderColor: 'rgba(255, 253, 254, 0.42)',
+    shadowColor: writePalette.button,
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
+  },
+  saveButtonDisabled: {
+    backgroundColor: writePalette.buttonDisabled,
+    borderColor: writePalette.border,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  saveButtonText: {
+    color: '#FFFDFE',
+  },
+  saveButtonTextDisabled: {
+    color: 'rgba(43, 36, 48, 0.42)',
   },
   secondaryButton: {
     marginTop: spacing.sm,
@@ -482,4 +535,3 @@ const styles = StyleSheet.create({
 });
 
 export default WriteScreen;
-

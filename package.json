@@ -12,6 +12,7 @@
     "web": "expo start --web",
     "test": "JEST_DISABLE_WATCHMAN=1 jest --watchman=false",
     "test:all": "JEST_DISABLE_WATCHMAN=1 jest --runInBand --watchman=false",
+    "test:coverage": "JEST_DISABLE_WATCHMAN=1 jest --coverage --runInBand --watchman=false",
     "test:one": "JEST_DISABLE_WATCHMAN=1 jest --runInBand --watchman=false",
     "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
     "typecheck": "tsc --noEmit",
@@ -19,8 +20,8 @@
     "detox:test:android": "detox test -c android.emu.debug"
   },
   "dependencies": {
+    "@expo-google-fonts/alegreya-sans": "^0.4.1",
     "@expo-google-fonts/cormorant-garamond": "^0.4.1",
-    "@expo-google-fonts/inter": "^0.4.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.8.4",
     "@react-navigation/native": "^7.1.19",

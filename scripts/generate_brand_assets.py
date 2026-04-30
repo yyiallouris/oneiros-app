@@ -20,16 +20,17 @@ CANVAS_SIZE = 1024
 SPLASH_RENDER_HEIGHT = 1400
 ICON_RENDER_HEIGHT = 1600
 
-PLUM = "#49324C"
-PLUM_SHADOW = "#2E2033"
-PLUM_HIGHLIGHT = "#5A3A63"
-ORCHID = "#C88CC8"
-LAVENDER = "#E7D9F2"
-LAVENDER_SOFT = "#D9B4E8"
-MIST = "#FFF6FF"
-SPLASH_BG = "#F4EFEA"
+PLUM = "#2B2430"
+PLUM_SHADOW = "#1F1A23"
+PLUM_HIGHLIGHT = "#4F3A58"
+VIOLET_GLOW = "#6E4D78"
+CONTOUR = "#DDD3DD"
+CONTOUR_SOFT = "#BBA8BF"
+PAPER_MIST = "#FFFCFA"
+SPLASH_BG = "#F7F3F0"
+TEXT_SECONDARY = "#55485D"
 
-INTER_FONT_PATH = ROOT / "node_modules" / "@expo-google-fonts" / "inter" / "400Regular" / "Inter_400Regular.ttf"
+ALEGREYA_FONT_PATH = ROOT / "node_modules" / "@expo-google-fonts" / "alegreya-sans" / "400Regular" / "AlegreyaSans_400Regular.ttf"
 CORMORANT_FONT_PATH = ROOT / "node_modules" / "@expo-google-fonts" / "cormorant-garamond" / "600SemiBold" / "CormorantGaramond_600SemiBold.ttf"
 
 
@@ -126,14 +127,14 @@ def build_icon_background() -> Image.Image:
         image,
         center=(CANVAS_SIZE * 0.34, CANVAS_SIZE * 0.28),
         radius=CANVAS_SIZE * 0.28,
-        color=ORCHID,
+        color=VIOLET_GLOW,
         opacity=48,
     )
     image = add_radial_glow(
         image,
         center=(CANVAS_SIZE * 0.70, CANVAS_SIZE * 0.76),
         radius=CANVAS_SIZE * 0.34,
-        color=LAVENDER_SOFT,
+        color=CONTOUR_SOFT,
         opacity=28,
     )
 
@@ -164,10 +165,10 @@ def create_channel_lut(stops: list[tuple[int, tuple[int, int, int]]], channel: i
 def recolor_logo(logo_image: Image.Image) -> Image.Image:
     grayscale = ImageOps.autocontrast(ImageOps.grayscale(logo_image), cutoff=1)
     stops = [
-        (0, hex_to_rgb(ORCHID)),
-        (92, hex_to_rgb(LAVENDER_SOFT)),
-        (176, hex_to_rgb(LAVENDER)),
-        (255, hex_to_rgb(MIST)),
+        (0, hex_to_rgb(VIOLET_GLOW)),
+        (92, hex_to_rgb(CONTOUR_SOFT)),
+        (176, hex_to_rgb(CONTOUR)),
+        (255, hex_to_rgb(PAPER_MIST)),
     ]
     red = grayscale.point(create_channel_lut(stops, 0))
     green = grayscale.point(create_channel_lut(stops, 1))
@@ -201,7 +202,7 @@ def create_core_glow(bounds: tuple[int, int, int, int], canvas_size: int = CANVA
         glow,
         center=(cx, cy),
         radius=logo_height * 0.20,
-        color=ORCHID,
+        color=VIOLET_GLOW,
         opacity=110,
         blur=logo_height * 0.09,
     )
@@ -209,7 +210,7 @@ def create_core_glow(bounds: tuple[int, int, int, int], canvas_size: int = CANVA
         glow,
         center=(cx, cy),
         radius=logo_height * 0.11,
-        color=LAVENDER,
+        color=CONTOUR,
         opacity=135,
         blur=logo_height * 0.05,
     )
@@ -217,7 +218,7 @@ def create_core_glow(bounds: tuple[int, int, int, int], canvas_size: int = CANVA
         glow,
         center=(cx, cy),
         radius=logo_height * 0.055,
-        color=MIST,
+        color=PAPER_MIST,
         opacity=180,
         blur=logo_height * 0.025,
     )
@@ -227,7 +228,7 @@ def create_core_glow(bounds: tuple[int, int, int, int], canvas_size: int = CANVA
 def create_outer_glow(logo_canvas: Image.Image) -> Image.Image:
     alpha = logo_canvas.getchannel("A")
     blurred = alpha.filter(ImageFilter.GaussianBlur(CANVAS_SIZE * 0.025))
-    layer = Image.new("RGBA", (CANVAS_SIZE, CANVAS_SIZE), hex_to_rgb(ORCHID) + (0,))
+    layer = Image.new("RGBA", (CANVAS_SIZE, CANVAS_SIZE), hex_to_rgb(VIOLET_GLOW) + (0,))
     layer.putalpha(blurred.point(lambda value: min(90, int(value * 0.42))))
     return layer
 
@@ -282,7 +283,7 @@ def create_splash_lockup(logo_image: Image.Image) -> Image.Image:
     canvas.alpha_composite(placed_logo, (logo_x, logo_y))
 
     title_font = ImageFont.truetype(str(CORMORANT_FONT_PATH), 108)
-    subtitle_font = ImageFont.truetype(str(INTER_FONT_PATH), 34)
+    subtitle_font = ImageFont.truetype(str(ALEGREYA_FONT_PATH), 34)
 
     title_y = logo_y + placed_logo.height + 30
     draw.text(
@@ -296,7 +297,7 @@ def create_splash_lockup(logo_image: Image.Image) -> Image.Image:
         (CANVAS_SIZE / 2, title_y + 86),
         "Dream Journal",
         font=subtitle_font,
-        fill=(110, 98, 91),
+        fill=hex_to_rgb(TEXT_SECONDARY),
         anchor="ma",
     )
     return canvas

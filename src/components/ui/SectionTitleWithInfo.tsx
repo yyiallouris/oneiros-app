@@ -33,19 +33,21 @@ export const SectionTitleWithInfo: React.FC<SectionTitleWithInfoProps> = ({
 
   return (
     <>
-      <View style={styles.row}>
+      <TouchableOpacity
+        style={styles.rowButton}
+        onPress={() => setModalVisible(true)}
+        hitSlop={{ top: 8, bottom: 8, left: 4, right: 12 }}
+        activeOpacity={0.72}
+        accessibilityRole="button"
+        accessibilityLabel={`Open note about ${title}`}
+      >
         <Text style={variant === 'chips' ? styles.chipsTitle : styles.archetypeTitle}>
           {title}
         </Text>
-        <TouchableOpacity
-          style={styles.infoButton}
-          onPress={() => setModalVisible(true)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.infoIcon}>?</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={variant === 'chips' ? styles.noteMark : styles.noteMarkSmall}>
+          <Text style={styles.noteMarkText}>›</Text>
+        </View>
+      </TouchableOpacity>
       <SymbolInfoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -61,6 +63,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
+  rowButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: spacing.sm,
+    paddingVertical: 2,
+    paddingRight: spacing.xs,
+  },
   chipsTitle: {
     fontSize: typography.sizes.md,
     fontFamily: typography.bold,
@@ -68,25 +78,37 @@ const styles = StyleSheet.create({
   },
   archetypeTitle: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.medium,
+    fontFamily: typography.medium,
     color: colors.textAccent,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  infoButton: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    marginLeft: spacing.xs,
+  noteMark: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    marginLeft: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.cardGlassSoft,
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    borderColor: colors.contourLineSoft,
   },
-  infoIcon: {
+  noteMarkSmall: {
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    marginLeft: spacing.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineSoft,
+  },
+  noteMarkText: {
+    fontFamily: typography.medium,
     fontSize: 14,
-    fontWeight: typography.weights.semibold,
+    lineHeight: 16,
     color: colors.textAccent,
   },
 });

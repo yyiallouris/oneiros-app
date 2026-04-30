@@ -2,223 +2,191 @@
 
 ## Overview
 
-All colors are defined in **`src/theme/colors.ts`** — this is the **single place** to adjust the app palette when trying new palettes. Sandy/cream backgrounds are fixed; other accents (buttons, sun, etc.) can be changed here.
+All app colors live in **`src/theme/colors.ts`**. The current visual direction is:
 
-**Never use hardcoded colors in components** — always import from the theme.
+```txt
+Warm bone / mist gray / dirty lilac
+```
 
----
+The palette should feel like paper, ash, moonlight, and a muted dream archive. Avoid returning the UI to soft wellness tones or bright decorative accent systems.
 
-## Palette — color name, hex, token, usage
+**Never use hardcoded colors in components** unless the color is truly local and cannot be expressed as a reusable token.
 
-(Excluding legacy tokens.)
+## Core Palette
 
-| Color name | Hex / RGBA | Token | Where it goes |
-|------------|------------|-------|---------------|
-| **White** | `#FFFFFF` | `baseColors.white`, `text.white`, `text.onAccent` | Text on accent, icon fills. |
-| **Black** | `#000000` | `baseColors.black` | Base for overlays (with opacity). |
-| **Cream** | `#F4EFEA` | `backgrounds.primary` | Main app background. |
-| **Beige / tan** | `#EDE6DF` | `backgrounds.secondary`, `backgrounds.card` | Card backgrounds. |
-| **Paper** | `#F4EFE8` | `backgrounds.tertiary` | LoadingScreen background, etc. |
-| **Semi-transparent card** | `rgba(237,230,223,0.7)` / `0.5` | `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent` | Semi-transparent card backgrounds, overlays. |
-| **Sand cream** | `#DAD2C8` | `backgrounds.wave1` | Waves / gradients (first tone). |
-| **Dark sand cream** | `#CFC6BA` | `backgrounds.wave2` | Waves / gradients (second). |
-| **Dark overlay** | `rgba(58,47,42,0.25)` | `backgrounds.overlay` | Dark overlay over screen. |
-| **Light overlay** | `rgba(0,0,0,0.2)` | `backgrounds.overlayLight`, `backgrounds.backdrop` | Menu overlay, modal backdrop. |
-| **Dark brown-gray (text)** | `#3A2F2A` | `text.primary` | Main text. |
-| **Taupe (text)** | `#6E625B` | `text.secondary` | Secondary text. |
-| **Muted gray-brown** | `#9A8F88` | `text.muted` | Placeholder, muted text. |
-| **Warm gray** | `rgba(40,35,30,0.8)` | `text.warmGray` | Loading screen text. |
-| **Violet (primary action)** | `#6A4FB3` | `accent.buttonPrimary`, `accent.symbol` | Buttons, tabs, microphone, calendar icon, nav, chips, toggles, symbols. |
-| **Light violet (20%)** | `rgba(106,79,179,0.2)` | `accent.buttonPrimaryLight` | Chip, toggle backgrounds. |
-| **Light violet (12%)** | `rgba(106,79,179,0.12)` | `accent.buttonPrimaryLight12` | Very subtle background. |
-| **Violet (40%)** | `rgba(106,79,179,0.4)` | `accent.buttonPrimary40` | Borders, toggle track. |
-| **Violet (90%)** | `rgba(106,79,179,0.9)` | `accent.buttonPrimary90` | User chat bubble. |
-| **Turquoise** | `rgba(30,95,90,1)` | `accent.turquoise` | Full turquoise (loading, animations). |
-| **Light turquoise** | `0.55` / `0.45` / `0.25` / `0.2` / `0.15` / `0.14` | `accent.turquoise55` … `turquoise14` | Lines, tracks, fills in loading/animations. |
-| **Orange** | `rgb(220,150,100)` | `accent.orange` | Calendar (warm variant). |
-| **Green** | `#4CAF50` | `semantic.success` | Success states. |
-| **Red** | `#FF3B30` | `semantic.error` | Errors. |
-| **Warning orange** | `#FFA726` | `semantic.warning` | Warnings. |
-| **Blue** | `#2196F3` | `semantic.info` | Info. |
-| **Light red** | `#FF5252` | `semantic.errorLight` | Light error. |
-| **Dark red** | `#D32F2F` | `semantic.errorDark` | Delete buttons. |
-| **Green/red/orange light (10%)** | `rgba(…,0.1)` | `semantic.successBackground` etc. | Status backgrounds. |
-| **Beige border** | `#E2D8CC` | `borders.primary`, `borders.card` | Main borders, card. |
-| **Beige input** | `#D8CEC2` | `borders.input` | Input borders. |
-| **Divider** | `#EAE0D4` | `borders.divider` | Divider lines. |
-| **Primary shadow** | `rgba(58,47,42,0.08)` | `shadows.primary` | General shadows. |
-| **Card shadow** | `rgba(0,0,0,0.1)` | `shadows.card` | Card shadows. |
-| **Button shadow** | `rgba(0,0,0,0.15)` | `shadows.button` | Button shadows. |
-| **Overlay shadow** | `rgba(0,0,0,0.25)` | `shadows.overlay` | Overlay shadows. |
-| **Sun / sun cycle** | `#FC2947`, `#FE6244` | `sunCyclePalette` | Moving sun gradient (if used). |
-| **Warm beige (gradient)** | `#E8D5B7` | `gradients.mountainStart`, `sunMoonMid` | Mountain wave start, sun/moon mid. |
-| **Lavender (gradient)** | `#C3B8E0` | `gradients.mountainMid`, `mountainEnd`, `sunMoonStart`, `sunMoonEnd` | Mid/end waves, sun/moon gradients. |
-| **Opacity gradients** | `rgba(232,213,183,…)`, `rgba(195,184,224,…)` | `gradients.mountainStart90`, `mountainMid60`, `mountainMid20`, `mountainEnd20`, `sunMoon*` | Mountain/sun-moon with transparency. |
-| **Paper carve** | `rgba(244,239,232,0.9)` | `gradients.paper` | Carve effect. |
-| **Light beige** | `rgba(240,229,223,0.4)` | `gradients.paperLight`, `calendar.noDreams` | Calendar, paper. |
-| **Calendar orange** | (same as `accent.orange`) | `calendar.orange` | Calendar warm variant. |
+| Color name | Value | Token | Usage |
+|------------|-------|-------|-------|
+| Warm bone | `#F7F3F0` | `backgrounds.primary` | Main app background, splash background |
+| Dirty lilac wash | `#EFE8F1` | `backgrounds.secondary`, `backgrounds.wave1`, `accent.light` | Secondary screen wash, soft panels, background waves |
+| Paper surface | `#FFFCFA` | `backgrounds.tertiary`, `backgrounds.card` | Raised surfaces, clean cards |
+| Ash-lilac border | `#DDD3DD` | `backgrounds.wave2`, `borders.primary`, `borders.input`, `borders.card` | Borders, dividers, wave depth |
+| Primary ink | `#2B2430` | `text.primary`, `text.title`, `brandIcon.plum` | Main text, titles, wordmark tone |
+| Muted plum-gray | `#55485D` | `text.secondary` | Supporting text |
+| Muted text | `#807384` | `text.muted` | Placeholders, subdued metadata |
+| Muted violet | `#6E4D78` | `text.accent`, `accent.symbol`, `brandIcon.glow` | Symbol accents, subtle emphasis |
+| Deep violet action | `#4F3A58` | `accent.buttonPrimary`, `accent.dark` | Buttons, selected controls, active UI |
+| Decorative violet | `#8B6A93` | `accent.primary`, `calendar.hasDreams` | Non-interactive highlights, dream-count marks |
 
-*(For `calendar.hasDreams` a decorative dot is used — color is defined in the theme as a reference to the accent group.)*
+## Main Token Groups
+
+### Backgrounds
+
+- `backgrounds.primary`: warm bone app base.
+- `backgrounds.secondary`: dirty lilac support wash.
+- `backgrounds.tertiary`: clean paper for raised sections.
+- `backgrounds.card`: paper card surface.
+- `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent`: translucent paper surfaces.
+- `backgrounds.wave1`, `wave2`: muted wave/background depth.
+- `backgrounds.overlay`, `overlayLight`, `backdrop`: ink-based overlays.
+
+### Text
+
+- `text.primary`: primary ink.
+- `text.secondary`: muted plum-gray.
+- `text.muted`: placeholders and lower-priority metadata.
+- `text.title`: title ink.
+- `text.accent`: muted violet emphasis.
+- `text.white`, `text.onAccent`: text on dark/accent surfaces.
+
+### Primary Action
+
+Change `accent.buttonPrimary` in `colors.ts` to update the main action family across the app.
+
+- `accent.buttonPrimary`: buttons, active controls, microphone, selected calendar states, send/edit icons.
+- `accent.buttonPrimaryLight`: light chip/toggle backgrounds.
+- `accent.buttonPrimaryLight12`: subtle action-tinted backgrounds.
+- `accent.buttonPrimary40`: action borders and toggle tracks.
+- `accent.buttonPrimary90`: solid chat/action surfaces.
+- `accent.buttonPrimaryDisabled*`: disabled primary-action states.
+
+### Decorative Accents
+
+- `accent.primary`: non-interactive decorative violet, including `calendar.hasDreams`.
+- `accent.light`: dirty lilac accent wash.
+- `accent.dark`: deep violet.
+- `accent.symbol`: symbol and nav accent tone.
+- `accent.orange`: warm calendar/sun contrast. Use sparingly.
+
+### Brand Icon
+
+- `brandIcon.plum`: dark icon and wordmark tone.
+- `brandIcon.plumShadow`: deep vignette/shadow.
+- `brandIcon.glow`: core muted-violet glow.
+- `brandIcon.contour`: primary contour/light stroke.
+- `brandIcon.contourSoft`: softer supporting contour.
+- `brandIcon.mist`: splash/light brand backdrop.
+
+### Surfaces
+
+- `surfaces.glass`: default translucent paper card.
+- `surfaces.glassStrong`: strong search/dropdown surface.
+- `surfaces.glassSoft`: soft chat/atmospheric surface.
+- `surfaces.field`: inputs and inline controls.
+- `surfaces.nav`: bottom nav/header chrome.
+- `surfaces.navBorder`: navigation outline.
+- `surfaces.edgeGlow`: subtle paper edge glow.
+
+### Contours
+
+- `contours.line`: main contour stroke.
+- `contours.lineSoft`: softer supporting stroke.
+- `contours.lineFaint`: very soft background texture.
+- `contours.fill`: atmospheric fill.
+- `contours.glow`: muted violet glow.
+
+### Semantics
+
+Semantic colors stay conventional:
+
+- `semantic.success`: green success state.
+- `semantic.error`, `errorLight`, `errorDark`: destructive/error states.
+- `semantic.warning`: warning state.
+- `semantic.info`: informational state.
+- `semantic.*Background`: low-opacity status backgrounds.
+
+### Gradients
+
+- `gradients.mountain*`: warm bone to dirty/ash lilac background depth.
+- `gradients.sunMoon*`: subtle moon/sun atmospheric wash.
+- `gradients.screen*`: full-screen atmosphere for `PsycheScreenBackground`.
+- `gradients.button*`: primary action treatment.
+- `gradients.paper`, `paperLight`: carve/paper effects.
+
+### Calendar
+
+- `calendar.noDreams`: light paper-mist day state.
+- `calendar.hasDreams`: decorative violet from `accent.primary`.
+- `calendar.orange`: warm optional variant.
 
 ## Import Methods
 
-### Method 1: Flat Object (Backward Compatible)
+### Flat Object
+
 ```typescript
 import { colors } from '../theme';
 
-// Usage
-backgroundColor: colors.background
-color: colors.textPrimary
-borderColor: colors.border
+backgroundColor: colors.background;
+color: colors.textPrimary;
+borderColor: colors.border;
 ```
 
-### Method 2: Grouped Exports (Recommended)
+### Grouped Exports
+
 ```typescript
-import { backgrounds, text, accent, semantic, borders } from '../theme';
+import { backgrounds, text, accent, borders } from '../theme';
 
-// Usage
-backgroundColor: backgrounds.primary
-color: text.primary
-borderColor: borders.primary
+backgroundColor: backgrounds.primary;
+color: text.primary;
+borderColor: borders.primary;
 ```
 
-## Color Groups
-
-### 🎨 Backgrounds (sandy/cream — keep as is)
-- `backgrounds.primary` - Main app background (#F4EFEA)
-- `backgrounds.secondary` - Card backgrounds (#EDE6DF)
-- `backgrounds.cardTransparent` - Semi-transparent cards
-- `backgrounds.overlay` - Dark overlays
-- `backgrounds.backdrop` - Light backdrops
-
-### 📝 Text
-- `text.primary` - Main text color (#3A2F2A)
-- `text.secondary` - Secondary text (#6E625B)
-- `text.muted` - Placeholder/muted text (#9A8F88)
-- `text.white` - White text for dark backgrounds
-
-### ✨ Primary action (one token for all UI)
-**Change `accent.buttonPrimary` in `colors.ts` to update every button-like element.**
-
-- `accent.buttonPrimary` (#6A4FB3) – **Buttons**, tab bar active tint, **microphone**, **calendar icon**, **sidebar/nav**, calendar selected/today, **symbol icons**, send/edit icons, chips, toggles, links, loading indicators.
-- `accent.buttonPrimaryLight` – Light backgrounds (chips, toggles, cards).
-- `accent.buttonPrimaryLight12` – Subtle backgrounds.
-- `accent.buttonPrimary40` – Borders, toggle track.
-
-**Legacy (decorative only, not for buttons):**
-- `accent.primary` / `accent.light` / `accent.dark` – Lavender; use only for non-interactive accents (e.g. calendar dream-count gradient).
-- `accent.symbol` – Same as buttonPrimary (icons/symbols).
-- `accent.turquoise*`, `accent.orange` – Other accents.
-
-### 🌅 Moving sun (MountainWaveBackground)
-- **Palette:** `sunCyclePalette` in `colors.ts` — `['#FC2947', '#FE6244']`. Color varies between these, 1 min per step.
-- **Duration:** `SUN_CYCLE_DURATION_MS` (60_000 ms per step). Change in `colors.ts`.
-- **Hook:** `useSunCycleColor()` from `theme/sunCycleColor.ts` — use in the sun gradient.
-
-### 🚦 Semantic
-- `semantic.success` - Success states (#4CAF50)
-- `semantic.error` - Error states (#FF3B30)
-- `semantic.warning` - Warning states (#FFA726)
-- `semantic.info` - Info states (#2196F3)
-
-### 🔲 Borders
-- `borders.primary` - Main border (#E2D8CC)
-- `borders.input` - Input borders (#D8CEC2)
-- `borders.divider` - Divider lines (#EAE0D4)
-
-### 🌈 Gradients
-- `gradients.mountainStart` - Mountain wave start
-- `gradients.mountainMid` - Mountain wave middle
-- `gradients.mountainEnd` - Mountain wave end
-- `gradients.sunMoon*` - Sun/Moon gradient variants
-
-### 📅 Calendar
-- `calendar.noDreams` - No dreams state
-- `calendar.hasDreams` - Has dreams state
-- `calendar.orange` - Orange variant
+Use grouped exports for new shared UI. The flat `colors` object remains for existing screens and compatibility.
 
 ## Best Practices
 
-### ✅ DO
+### Do
+
 ```typescript
-// Use centralized colors
-import { colors, backgrounds, text } from '../theme';
+import { backgrounds, text, borders } from '../theme';
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: backgrounds.primary,
     borderColor: borders.primary,
   },
-  text: {
-    color: text.primary,
+  label: {
+    color: text.secondary,
   },
 });
 ```
 
-### ❌ DON'T
+### Don't
+
 ```typescript
-// Never use hardcoded colors
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F4EFEA', // ❌ BAD
-    color: '#3A2F2A',            // ❌ BAD
+    backgroundColor: '#F7F3F0',
+    color: '#2B2430',
   },
 });
 ```
 
-## Migration Guide
+## Where To Edit
 
-If you find hardcoded colors in components:
+| What | File / export |
+|------|---------------|
+| Main app base | `colors.ts` -> `backgrounds.primary` |
+| Secondary wash | `colors.ts` -> `backgrounds.secondary` |
+| Text | `colors.ts` -> `text.*` |
+| Buttons / mic / active controls | `colors.ts` -> `accent.buttonPrimary` |
+| Symbol accents | `colors.ts` -> `accent.symbol` |
+| Borders | `colors.ts` -> `borders.*` |
+| Screen atmosphere | `colors.ts` -> `gradients.screen*` |
+| Brand splash/icon palette | `colors.ts` -> `brandIcon.*` |
 
-1. **Find the color** in the component
-2. **Check if it exists** in `colors.ts`
-3. **If it exists**: Replace with import
-4. **If it doesn't exist**: Add it to the appropriate group in `colors.ts`
-5. **Update the component** to use the centralized color
+## Adding Colors
 
-## Examples
-
-### Before (Bad)
-```typescript
-backgroundColor: '#F4EFEA'
-color: 'rgba(58, 47, 42, 0.08)'
-borderColor: '#E2D8CC'
-```
-
-### After (Good)
-```typescript
-import { backgrounds, text, borders } from '../theme';
-
-backgroundColor: backgrounds.primary
-color: text.primary
-borderColor: borders.primary
-```
-
-## Where to edit the palette
-
-| What                    | File / export                         |
-|-------------------------|----------------------------------------|
-| **All buttons / tabs / mic / calendar / nav** | `colors.ts` → `accent.buttonPrimary` |
-| Sun cycle colors        | `colors.ts` → `sunCyclePalette`        |
-| Sun step duration       | `colors.ts` → `SUN_CYCLE_DURATION_MS`  |
-| Backgrounds (sandy/cream) | `colors.ts` → `backgrounds.*` (keep as is) |
-| Text, borders, etc.     | `colors.ts` → respective groups        |
-
-## Adding New Colors
-
-When adding a new color:
-
-1. **Determine the group** (background, text, accent, semantic, etc.)
-2. **Add to the appropriate group** in `colors.ts`
-3. **Add to legacy `colors` object** if needed for backward compatibility
-4. **Use descriptive name** that indicates purpose
-5. **Add comment** explaining usage if needed
-
-Example:
-```typescript
-// In colors.ts
-export const semantic = {
-  // ... existing colors
-  danger: '#FF0000', // For critical errors
-} as const;
-```
+1. Add the color to the most specific group in `colors.ts`.
+2. Prefer role names over literal color names.
+3. Add a flat `colors.*` alias only when an existing component needs it.
+4. Update this guide if the color becomes part of the shared design system.

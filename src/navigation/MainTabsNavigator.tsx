@@ -30,7 +30,7 @@ const TabIconFrame = ({
       <>
         <View style={styles.focusAura} />
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.72)', 'rgba(200, 140, 200, 0.18)', 'rgba(200, 140, 200, 0)']}
+          colors={['rgba(255, 252, 250, 0.72)', 'rgba(110, 77, 120, 0.16)', 'rgba(110, 77, 120, 0)']}
           start={{ x: 0.5, y: 0.1 }}
           end={{ x: 0.5, y: 1 }}
           style={styles.focusCore}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: 'rgba(200, 140, 200, 0.12)',
+    backgroundColor: 'rgba(110, 77, 120, 0.1)',
     shadowColor: colors.buttonPrimary,
     shadowOpacity: 0.22,
     shadowRadius: 18,
@@ -224,4 +224,3 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
 });
-

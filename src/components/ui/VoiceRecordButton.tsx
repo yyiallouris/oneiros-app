@@ -10,6 +10,7 @@ import MicrophoneAltIcon from '../../assets/icons/microphone-alt.svg';
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
   disabled?: boolean;
+  surface?: 'plain' | 'field';
 }
 
 interface IconProps {
@@ -34,6 +35,7 @@ const MAX_RECORDING_MS = 3 * 60 * 1000; // 3 minutes
 export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   onTranscriptionComplete,
   disabled = false,
+  surface = 'plain',
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -148,6 +150,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       <TouchableOpacity
         style={[
           styles.recordButton,
+          surface === 'field' && styles.fieldRecordButton,
           isRecording && styles.recordButtonActive,
           (disabled || isTranscribing) && styles.recordButtonDisabled,
         ]}
@@ -176,6 +179,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xs,
+  },
+  fieldRecordButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 252, 250, 0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(221, 211, 221, 0.92)',
   },
   recordButtonActive: {
     opacity: 0.92,

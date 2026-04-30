@@ -4,7 +4,12 @@
 jest.mock('../../src/services/storageService', () => ({
   StorageService: {
     getDreams: jest.fn().mockResolvedValue([]),
+    getInterpretations: jest.fn().mockResolvedValue([]),
   },
+}));
+
+jest.mock('../../src/services/ai', () => ({
+  groupSimilarTerms: jest.fn(),
 }));
 
 import {
@@ -17,9 +22,23 @@ import {
   landscapeKeyMatches,
   motifKeyMatches,
   getCollectiveInsights,
+  getRecurringSymbols,
+  getRecurringLandscapes,
+  getRecurringMotifs,
 } from '../../src/services/insightsService';
+import { StorageService } from '../../src/services/storageService';
+import { groupSimilarTerms } from '../../src/services/ai';
+
+const mockStorageService = StorageService as jest.Mocked<typeof StorageService>;
+const mockGroupSimilarTerms = groupSimilarTerms as jest.MockedFunction<typeof groupSimilarTerms>;
 
 describe('insights periods & keys flow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStorageService.getDreams.mockResolvedValue([]);
+    mockStorageService.getInterpretations.mockResolvedValue([]);
+  });
+
   it('getPeriodThisMonth returns full month inclusive bounds', () => {
     const p = getPeriodThisMonth();
     expect(p.startDate.endsWith('-01')).toBe(true);
@@ -72,5 +91,48 @@ describe('insights periods & keys flow', () => {
     const c = await getCollectiveInsights();
     expect(c.topSymbolsThisMonth).toEqual([]);
     expect(c.archetypeTrends).toEqual([]);
+  });
+
+  it('recurring insight reads do not start semantic grouping AI on cache misses', async () => {
+    mockStorageService.getDreams.mockResolvedValue([
+      {
+        id: 'dream-1',
+        date: '2026-04-01',
+        content: 'A river beside an old house.',
+        symbols: ['silver river'],
+        landscapes: ['old house'],
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
+    ]);
+    mockStorageService.getInterpretations.mockResolvedValue([
+      {
+        id: 'interpretation-1',
+        dreamId: 'dream-1',
+        messages: [],
+        symbols: ['river'],
+        archetypes: [],
+        landscapes: ['house'],
+        motifs: ['falling', 'fall'],
+        summary: '',
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
+    ]);
+
+    await expect(getRecurringSymbols()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ normalizedKey: 'silver river', count: 1 }),
+      expect.objectContaining({ normalizedKey: 'river', count: 1 }),
+    ]));
+    await expect(getRecurringLandscapes()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ normalizedKey: 'old house', count: 1 }),
+      expect.objectContaining({ normalizedKey: 'house', count: 1 }),
+    ]));
+    await expect(getRecurringMotifs()).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ normalizedKey: 'falling', count: 1 }),
+      expect.objectContaining({ normalizedKey: 'fall', count: 1 }),
+    ]));
+
+    expect(mockGroupSimilarTerms).not.toHaveBeenCalled();
   });
 });
