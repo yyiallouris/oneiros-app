@@ -12,13 +12,14 @@ export type RootStackParamList = {
   LoginSupport: undefined;
   SetPassword: undefined;
   BiometricLock: undefined;
+  LegalConsent: undefined;
   Onboarding: undefined;
   MainTabs: NavigatorScreenParams<MainTabsParamList>;
   DreamEditor: { dreamId?: string; date?: string };
   InterpretationChat: { dreamId: string };
   DreamDetail: { dreamId: string };
   Account: undefined;
-  Contact: undefined;
+  Contact: { initialSubject?: string; initialMessage?: string } | undefined;
   Privacy: undefined;
   Calendar: { initialDate?: string } | undefined;
   InsightsSection: {
@@ -41,4 +42,3 @@ export type MainTabsParamList = {
   Journal: { filterSymbol?: string; filterLandscape?: string; filterMotif?: string } | undefined;
   Insights: undefined;
 };
-

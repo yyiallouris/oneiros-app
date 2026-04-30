@@ -1,9 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { colors, spacing, typography, text } from '../theme';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
 import { WaveBackground, Card } from '../components/ui';
+import { PRIVACY_SECTIONS } from '../constants/legal';
+import { RootStackParamList } from '../navigation/types';
+
+type NavProp = StackNavigationProp<RootStackParamList, 'Privacy'>;
 
 const PrivacyScreen: React.FC = () => {
+  const navigation = useNavigation<NavProp>();
+
   return (
     <View style={styles.container}>
       <WaveBackground />
@@ -12,17 +20,55 @@ const PrivacyScreen: React.FC = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Privacy</Text>
+        <Text style={styles.title}>Privacy & Legal</Text>
+        <Text style={styles.subtitle}>
+          Clear boundaries for a private journal, written in plain language.
+        </Text>
 
         <Card style={styles.card}>
-          <Text style={styles.paragraph}>
-            Your dreams and reflections are yours alone. We don’t read them, and we don’t track who wrote what.
-          </Text>
-          <Text style={styles.paragraph}>
-            Not even the people who built this app can see who you are or what you write. Your entries are stored under your account in a way that only you can access.
-          </Text>
-          <Text style={styles.paragraph}>
-            We don’t sell your data or use it for advertising. Your content is only used to give you your own insights and to back it up when you’re signed in.
+          {PRIVACY_SECTIONS.map((section) => (
+            <View key={section.title} style={styles.section}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <Text style={styles.paragraph}>{section.body}</Text>
+            </View>
+          ))}
+
+          <View style={styles.requestBox}>
+            <Text style={styles.requestTitle}>Data requests</Text>
+            <Text style={styles.requestText}>
+              For export, account deletion, or privacy questions, send a request from Contact us.
+            </Text>
+            <View style={styles.requestActions}>
+              <TouchableOpacity
+                style={styles.requestButton}
+                onPress={() =>
+                  navigation.navigate('Contact', {
+                    initialSubject: 'Data export request',
+                    initialMessage: 'I would like to request an export of my Oneiros data.',
+                  })
+                }
+                activeOpacity={0.7}
+              >
+                <Text style={styles.requestButtonText}>Request export</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.requestButton, styles.deleteButton]}
+                onPress={() =>
+                  navigation.navigate('Contact', {
+                    initialSubject: 'Account deletion request',
+                    initialMessage:
+                      'I would like to request deletion of my Oneiros account and associated data.',
+                  })
+                }
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.requestButtonText, styles.deleteButtonText]}>Request deletion</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <Text style={styles.footer}>
+            This in-app notice is a product summary and should be supported by a full hosted Privacy Policy and Terms of Use before public release.
           </Text>
         </Card>
       </ScrollView>
@@ -46,16 +92,85 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     fontFamily: typography.bold,
     color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  subtitle: {
+    fontSize: typography.sizes.md,
+    color: text.secondary,
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
     marginBottom: spacing.xl,
   },
   card: {
     marginBottom: spacing.xl,
   },
-  paragraph: {
+  section: {
+    paddingBottom: spacing.md,
+    marginBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borders.primary,
+  },
+  sectionTitle: {
     fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  paragraph: {
+    fontSize: typography.sizes.sm,
     color: text.secondary,
-    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  requestBox: {
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderWidth: 1,
+    borderColor: colors.contourLineSoft,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginTop: spacing.sm,
     marginBottom: spacing.lg,
+  },
+  requestTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  requestText: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.md,
+  },
+  requestActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  requestButton: {
+    borderWidth: 1,
+    borderColor: colors.buttonPrimary40,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.fieldSurface,
+  },
+  deleteButton: {
+    borderColor: colors.error,
+    backgroundColor: semantic.errorBackground,
+  },
+  requestButtonText: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.medium,
+    color: colors.buttonPrimary,
+  },
+  deleteButtonText: {
+    color: semantic.errorDark,
+  },
+  footer: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
+    fontStyle: 'italic',
   },
 });
 

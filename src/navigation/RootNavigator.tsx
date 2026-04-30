@@ -19,6 +19,7 @@ import { hasCompletedOnboarding } from '../services/onboardingService';
 import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
 import ContactScreen from '../screens/ContactScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
+import LegalConsentScreen from '../screens/LegalConsentScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import InsightsSectionScreen from '../screens/InsightsSectionScreen';
 import InsightsJourneyScreen from '../screens/InsightsJourneyScreen';
@@ -34,6 +35,7 @@ import { LocalStorage } from '../services/localStorage';
 import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
 import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
+import { hasAcceptedLegalConsent } from '../services/legalConsentService';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -50,6 +52,7 @@ export const RootNavigator: React.FC = () => {
   const [biometricLockEnabled, setBiometricLockEnabled] = useState(false);
   const [biometricUnlocked, setBiometricUnlocked] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
+  const [legalConsentAccepted, setLegalConsentAcceptedState] = useState<boolean | null>(null);
   const previousSessionRef = useRef<Session | null>(null);
   const wasOfflineRef = useRef<boolean>(false);
 
@@ -88,8 +91,11 @@ export const RootNavigator: React.FC = () => {
           setBiometricLockEnabled(lockEnabled);
           const completed = await hasCompletedOnboarding();
           setOnboardingCompleted(completed);
+          const legalAccepted = await hasAcceptedLegalConsent();
+          setLegalConsentAcceptedState(legalAccepted);
         } else {
           setOnboardingCompleted(null);
+          setLegalConsentAcceptedState(null);
         }
         setIsLoading(false);
       }
@@ -122,11 +128,13 @@ export const RootNavigator: React.FC = () => {
         setPendingPasswordReset(pending === 'true');
         syncBiometricFromRemote().then(setBiometricLockEnabled);
         hasCompletedOnboarding().then(setOnboardingCompleted);
+        hasAcceptedLegalConsent().then(setLegalConsentAcceptedState);
       } else {
         setPendingPasswordReset(false);
         setBiometricLockEnabled(false);
         setBiometricUnlocked(false);
         setOnboardingCompleted(null);
+        setLegalConsentAcceptedState(null);
       }
       setSession(newSession);
 
@@ -207,6 +215,7 @@ export const RootNavigator: React.FC = () => {
         console.log('[RootNavigator] User changed, re-initializing storage');
         StorageService.initialize().catch((err) => console.error('[RootNavigator] Re-init failed:', err));
         hasCompletedOnboarding().then(setOnboardingCompleted);
+        hasAcceptedLegalConsent().then(setLegalConsentAcceptedState);
       }
     });
 
@@ -364,6 +373,14 @@ export const RootNavigator: React.FC = () => {
                 <Stack.Screen name="BiometricLock" component={BiometricLockScreen} />
                 <Stack.Screen name="LoginSupport" component={LoginSupportScreen} />
               </>
+            ) : legalConsentAccepted !== true ? (
+              <Stack.Screen name="LegalConsent">
+                {() => (
+                  <LegalConsentScreen
+                    onAccepted={() => setLegalConsentAcceptedState(true)}
+                  />
+                )}
+              </Stack.Screen>
             ) : onboardingCompleted === false ? (
               <Stack.Screen name="Onboarding">
                 {() => (
@@ -427,7 +444,7 @@ export const RootNavigator: React.FC = () => {
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
-            headerTitle: 'Privacy',
+            headerTitle: 'Privacy & Legal',
           }}
         />
         <Stack.Screen
@@ -509,4 +526,3 @@ export const RootNavigator: React.FC = () => {
     </PendingPasswordResetContext.Provider>
   );
 };
-

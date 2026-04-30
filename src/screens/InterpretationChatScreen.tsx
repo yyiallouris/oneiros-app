@@ -29,6 +29,7 @@ import { getInterpretationDepth, getMythicResonance } from '../services/userSett
 import { isOnline } from '../utils/network';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
+import { LegalNotice } from '../components/LegalNotice';
 import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
@@ -606,6 +607,8 @@ const InterpretationChatScreen: React.FC = () => {
         </Text>
       </Card>
 
+      <LegalNotice style={styles.legalNotice} compact />
+
       {/* Chat Messages */}
       <FlatList
         ref={flatListRef}
@@ -661,9 +664,9 @@ const InterpretationChatScreen: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.quickButton}
-            onPress={() => handleQuickQuestion('What is the message?')}
+            onPress={() => handleQuickQuestion('What might this image suggest?')}
           >
-            <Text style={styles.quickButtonText}>What is the message?</Text>
+            <Text style={styles.quickButtonText}>What might this suggest?</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -700,7 +703,7 @@ const InterpretationChatScreen: React.FC = () => {
       >
         <TextInput
           style={styles.input}
-          placeholder="Ask a question..."
+          placeholder="Ask about symbols, feelings, or patterns..."
           placeholderTextColor={colors.textMuted}
           value={inputText}
           onChangeText={setInputText}
@@ -766,6 +769,10 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.white,
     lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+  },
+  legalNotice: {
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
   },
   chatContent: {
     padding: spacing.md,
@@ -908,4 +915,3 @@ const styles = StyleSheet.create({
 });
 
 export default InterpretationChatScreen;
-

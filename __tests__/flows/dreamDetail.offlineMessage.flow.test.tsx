@@ -191,7 +191,7 @@ describe('DreamDetail offline message flow', () => {
     fireEvent.press(screen.getByText('Expand conversation'));
     fireEvent.press(await screen.findByText('Continue exploring'));
 
-    const input = await screen.findByPlaceholderText('Ask a question...');
+    const input = await screen.findByPlaceholderText('Ask about symbols, feelings, or patterns...');
     fireEvent.changeText(input, 'What is this dream asking of me?');
 
     const touchables = screen.UNSAFE_getAllByType(TouchableOpacity);

@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert,
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text, borderRadius, borders } from '../theme';
+import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
 import { WaveBackground, Card } from '../components/ui';
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, getMythicResonance, setMythicResonance, type InterpretationDepth } from '../services/userSettingsService';
@@ -14,6 +14,7 @@ import {
   disableBiometric,
   getBiometricLabel,
 } from '../services/biometricAuthService';
+import { deleteAccountAndData } from '../services/accountDeletion';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -34,6 +35,7 @@ const AccountScreen: React.FC = () => {
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
   const [biometricLoading, setBiometricLoading] = useState(false);
+  const [accountDeleting, setAccountDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -103,6 +105,40 @@ const AccountScreen: React.FC = () => {
     } finally {
       setBiometricLoading(false);
     }
+  }, []);
+
+  const handleExportRequest = useCallback(() => {
+    navigation.navigate('Contact', {
+      initialSubject: 'Data export request',
+      initialMessage: 'I would like to request an export of my Oneiros data.',
+    });
+  }, [navigation]);
+
+  const handleDeletionRequest = useCallback(() => {
+    Alert.alert(
+      'Delete account and data?',
+      'This will delete your Oneiros account and associated dream data. This cannot be undone. Some records may be kept only where required for security, fraud prevention, or legal reasons.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setAccountDeleting(true);
+            try {
+              await deleteAccountAndData();
+            } catch {
+              Alert.alert(
+                'Could not delete account',
+                'Please try again later or contact us from Privacy & Legal so we can help.'
+              );
+            } finally {
+              setAccountDeleting(false);
+            }
+          },
+        },
+      ]
+    );
   }, []);
 
   return (
@@ -190,6 +226,38 @@ const AccountScreen: React.FC = () => {
             </View>
           </Card>
         )}
+
+        <Card style={styles.card}>
+          <Text style={styles.sectionLabel}>Your data</Text>
+          <TouchableOpacity style={styles.dataRow} onPress={() => navigation.navigate('Privacy')} activeOpacity={0.7}>
+            <View style={styles.dataRowContent}>
+              <Text style={styles.dataRowTitle}>Privacy & Legal</Text>
+              <Text style={styles.dataRowHint}>How your journal, AI reflections, and requests are handled.</Text>
+            </View>
+            <Text style={styles.dataRowChevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dataRow} onPress={handleExportRequest} activeOpacity={0.7}>
+            <View style={styles.dataRowContent}>
+              <Text style={styles.dataRowTitle}>Export journal</Text>
+              <Text style={styles.dataRowHint}>Request a copy of your dreams and AI reflections.</Text>
+            </View>
+            <Text style={styles.dataRowChevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.dataRow, styles.dataRowLast, accountDeleting && styles.dataRowDisabled]}
+            onPress={handleDeletionRequest}
+            activeOpacity={0.7}
+            disabled={accountDeleting}
+          >
+            <View style={styles.dataRowContent}>
+              <Text style={[styles.dataRowTitle, styles.deleteRowTitle]}>Delete account and data</Text>
+              <Text style={styles.dataRowHint}>
+                {accountDeleting ? 'Deleting account...' : 'Permanently remove your account and associated data.'}
+              </Text>
+            </View>
+            <Text style={[styles.dataRowChevron, styles.deleteRowTitle]}>›</Text>
+          </TouchableOpacity>
+        </Card>
       </ScrollView>
     </View>
   );
@@ -346,6 +414,41 @@ const styles = StyleSheet.create({
   },
   toggleThumbOn: {
     alignSelf: 'flex-end',
+  },
+  dataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borders.primary,
+  },
+  dataRowLast: {
+    borderBottomWidth: 0,
+  },
+  dataRowDisabled: {
+    opacity: 0.55,
+  },
+  dataRowContent: {
+    flex: 1,
+    paddingRight: spacing.md,
+  },
+  dataRowTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.medium,
+    color: colors.textPrimary,
+    marginBottom: 2,
+  },
+  dataRowHint: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+  },
+  dataRowChevron: {
+    fontSize: typography.sizes.xl,
+    color: colors.textMuted,
+  },
+  deleteRowTitle: {
+    color: semantic.errorDark,
   },
 });
 

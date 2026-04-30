@@ -36,6 +36,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   } from '../constants/symbolArchetypeInfo';
   import { isOnline } from '../utils/network';
   import { OfflineMessage } from '../components/OfflineMessage';
+  import { LegalNotice } from '../components/LegalNotice';
   import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
   type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
@@ -949,6 +950,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {!showChat && !isGeneratingInitial && (
             <View style={styles.reflectionSection}>
               <Text style={styles.reflectionTitle}>Symbolic reflection</Text>
+              <LegalNotice compact />
 
               {interpretation ? (
                 <Card transparent style={styles.interpretationCard}>
@@ -1092,7 +1094,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {showChat && (
             <View style={styles.chatSection}>
               <View style={styles.chatHeader}>
-                <Text style={styles.chatTitle}>Symbolic reflection</Text>
+                <View style={styles.chatTitleWrap}>
+                  <Text style={styles.chatTitle}>Symbolic reflection</Text>
+                  <Text style={styles.chatSubtitle}>AI-generated reflection, not care or advice.</Text>
+                </View>
                 <TouchableOpacity onPress={animateChatClose} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>×</Text>
                 </TouchableOpacity>
@@ -1194,7 +1199,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               >
                 <TextInput
                   style={styles.input}
-                  placeholder="Ask a question..."
+                  placeholder="Ask about symbols, feelings, or patterns..."
                   placeholderTextColor={colors.textMuted}
                   value={inputText}
                   onChangeText={setInputText}
@@ -1416,6 +1421,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       fontSize: typography.sizes.lg,
       fontFamily: typography.bold,
       color: colors.textTitle,
+    },
+    chatTitleWrap: {
+      flex: 1,
+      paddingRight: spacing.md,
+    },
+    chatSubtitle: {
+      fontSize: typography.sizes.xs,
+      color: colors.textMuted,
+      marginTop: 2,
+      lineHeight: typography.sizes.xs * typography.lineHeights.normal,
     },
     closeButton: {
       width: 32,

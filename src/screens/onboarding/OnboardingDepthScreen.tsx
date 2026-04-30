@@ -6,6 +6,7 @@ import { colors, spacing, typography, text, borderRadius } from '../../theme';
 import { MountainWaveBackground, Card, Button } from '../../components/ui';
 import { setInterpretationDepth, type InterpretationDepth } from '../../services/userSettingsService';
 import type { OnboardingStackParamList } from '../../navigation/types';
+import { AI_REFLECTION_NOTICE } from '../../constants/legal';
 
 type NavProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingDepth'>;
 
@@ -48,6 +49,7 @@ const OnboardingDepthScreen: React.FC = () => {
         <Text style={styles.subtitle}>
           Choose how deep you want your interpretations. You can change this anytime in Account settings.
         </Text>
+        <Text style={styles.notice}>{AI_REFLECTION_NOTICE}</Text>
 
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Level of analysis</Text>
@@ -113,7 +115,14 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: text.secondary,
     lineHeight: typography.sizes.md * 1.4,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  notice: {
+    fontSize: typography.sizes.sm,
+    color: text.muted,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.lg,
     textAlign: 'center',
   },
   card: {

@@ -22,6 +22,7 @@ const mockOnNetworkStateChange = jest.fn();
 const mockSyncBiometricFromRemote = jest.fn();
 const mockIsBiometricEnabled = jest.fn();
 const mockHasCompletedOnboarding = jest.fn();
+const mockHasAcceptedLegalConsent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const React = require('react');
@@ -51,6 +52,7 @@ jest.mock('../../src/screens/AuthScreen', () => () => null);
 jest.mock('../../src/screens/LoginSupportScreen', () => () => null);
 jest.mock('../../src/screens/SetPasswordScreen', () => () => null);
 jest.mock('../../src/screens/BiometricLockScreen', () => () => null);
+jest.mock('../../src/screens/LegalConsentScreen', () => () => null);
 jest.mock('../../src/screens/AccountScreen', () => () => null);
 jest.mock('../../src/screens/ContactScreen', () => () => null);
 jest.mock('../../src/screens/PrivacyScreen', () => () => null);
@@ -105,6 +107,10 @@ jest.mock('../../src/services/biometricAuthService', () => ({
 
 jest.mock('../../src/services/onboardingService', () => ({
   hasCompletedOnboarding: (...args: unknown[]) => mockHasCompletedOnboarding(...args),
+}));
+
+jest.mock('../../src/services/legalConsentService', () => ({
+  hasAcceptedLegalConsent: (...args: unknown[]) => mockHasAcceptedLegalConsent(...args),
 }));
 
 jest.mock('../../src/utils/authDeepLink', () => ({
@@ -187,6 +193,7 @@ describe('RootNavigator offline flow', () => {
     mockSyncBiometricFromRemote.mockResolvedValue(false);
     mockIsBiometricEnabled.mockResolvedValue(false);
     mockHasCompletedOnboarding.mockResolvedValue(true);
+    mockHasAcceptedLegalConsent.mockResolvedValue(true);
   });
 
   afterEach(async () => {

@@ -785,6 +785,15 @@ const AuthScreen: React.FC = () => {
             loading={isLoading}
             disabled={isLoading}
           />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Privacy')}
+            style={styles.legalLink}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.legalText}>
+              By continuing, you agree to Oneiros' Privacy & Legal terms. Dream text may be processed to provide AI reflections.
+            </Text>
+          </TouchableOpacity>
         </Card>
 
         <TouchableOpacity
@@ -961,6 +970,16 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.textMuted,
   },
+  legalLink: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.sm,
+  },
+  legalText: {
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
+    textAlign: 'center',
+  },
   forgotPasswordLink: {
     alignSelf: 'center',
     paddingVertical: spacing.sm,
@@ -983,5 +1002,4 @@ const styles = StyleSheet.create({
 });
 
 export default AuthScreen;
-
 

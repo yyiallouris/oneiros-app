@@ -308,7 +308,7 @@ const WriteScreen: React.FC = () => {
                   navigation.navigate('Privacy');
                 }}
               >
-                <Text style={styles.menuItemText}>Privacy</Text>
+                <Text style={styles.menuItemText}>Privacy & Legal</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.menuItem}

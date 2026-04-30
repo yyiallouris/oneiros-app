@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   KeyboardAvoidingView,
-  Platform,
   Alert,
 } from 'react-native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { WaveBackground, Button } from '../components/ui';
 import { sendContactMessage } from '../services/contact';
+import { RootStackParamList } from '../navigation/types';
+
+type ContactRouteProp = RouteProp<RootStackParamList, 'Contact'>;
 
 const ContactScreen: React.FC = () => {
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
+  const route = useRoute<ContactRouteProp>();
+  const [subject, setSubject] = useState(route.params?.initialSubject ?? '');
+  const [message, setMessage] = useState(route.params?.initialMessage ?? '');
   const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.initialSubject) setSubject(route.params.initialSubject);
+    if (route.params?.initialMessage) setMessage(route.params.initialMessage);
+  }, [route.params?.initialMessage, route.params?.initialSubject]);
 
   const handleSubmit = async () => {
     if (!message.trim()) {
@@ -45,7 +54,7 @@ const ContactScreen: React.FC = () => {
       <View style={styles.content}>
         <Text style={styles.title}>Contact us</Text>
         <Text style={styles.subtitle}>
-          Share feedback, ideas, or anything that’s on your mind. We’ll receive your message privately.
+          Share feedback, privacy requests, or anything that is on your mind. We will receive your message privately.
         </Text>
 
         <View style={styles.field}>
@@ -128,5 +137,3 @@ const styles = StyleSheet.create({
 });
 
 export default ContactScreen;
-
-
