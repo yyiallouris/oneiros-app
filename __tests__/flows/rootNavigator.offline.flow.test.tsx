@@ -33,10 +33,16 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('@react-navigation/stack', () => {
   const React = require('react');
+  const { Text } = require('react-native');
   return {
     createStackNavigator: () => ({
       Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-      Screen: () => null,
+      Screen: ({ name, component: Component, children }: any) => (
+        <>
+          <Text>{`screen:${name}`}</Text>
+          {typeof children === 'function' ? children({}) : Component ? <Component /> : null}
+        </>
+      ),
     }),
   };
 });
@@ -152,6 +158,14 @@ async function renderNavigator(): Promise<void> {
   const view = render(<RootNavigator />);
   unmountCurrent = view.unmount;
   await drainAsyncWork();
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
 }
 
 describe('RootNavigator offline flow', () => {
@@ -279,5 +293,58 @@ describe('RootNavigator offline flow', () => {
     expect(mockSyncUnsyncedDreams.mock.invocationCallOrder[0]).toBeLessThan(
       mockStorageClearAll.mock.invocationCallOrder[0]
     );
+  });
+
+  it('does not flash legal consent while login route state is still loading', async () => {
+    const legalConsent = deferred<boolean>();
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockHasAcceptedLegalConsent.mockReturnValue(legalConsent.promise);
+
+    const view = render(<RootNavigator />);
+    unmountCurrent = view.unmount;
+    await drainAsyncWork();
+
+    expect(view.queryByText('screen:Auth')).toBeTruthy();
+
+    await act(async () => {
+      const loginPromise = authStateChangeHandler?.('SIGNED_IN', session);
+      await flushMicrotasks();
+
+      expect(view.queryByText('screen:LegalConsent')).toBeNull();
+      expect(view.queryByText('screen:MainTabs')).toBeNull();
+
+      legalConsent.resolve(true);
+      await loginPromise;
+      await flushMicrotasks();
+    });
+
+    await waitFor(() => {
+      expect(view.queryByText('screen:LegalConsent')).toBeNull();
+      expect(view.getByText('screen:MainTabs')).toBeTruthy();
+    });
+  });
+
+  it('does not flash legal consent during cold start before stored consent resolves', async () => {
+    const legalConsent = deferred<boolean>();
+    mockHasAcceptedLegalConsent.mockReturnValue(legalConsent.promise);
+
+    const view = render(<RootNavigator />);
+    unmountCurrent = view.unmount;
+
+    await drainAsyncWork();
+
+    expect(view.queryByText('screen:LegalConsent')).toBeNull();
+    expect(view.queryByText('screen:MainTabs')).toBeNull();
+
+    await act(async () => {
+      legalConsent.resolve(true);
+      await flushMicrotasks();
+    });
+    await drainAsyncWork();
+
+    await waitFor(() => {
+      expect(view.queryByText('screen:LegalConsent')).toBeNull();
+      expect(view.getByText('screen:MainTabs')).toBeTruthy();
+    });
   });
 });

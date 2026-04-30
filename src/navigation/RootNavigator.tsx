@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
-import { AppState, AppStateStatus, Linking } from 'react-native';
+import { AppState, AppStateStatus, Linking, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -39,6 +39,13 @@ import { hasAcceptedLegalConsent } from '../services/legalConsentService';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+type AuthenticatedRouteState = {
+  pendingPasswordReset: boolean;
+  biometricLockEnabled: boolean;
+  onboardingCompleted: boolean;
+  legalConsentAccepted: boolean;
+};
+
 /** Set to false when user completes "Set new password" after password-reset link. */
 export const PendingPasswordResetContext = createContext<((v: boolean) => void) | null>(null);
 
@@ -53,11 +60,39 @@ export const RootNavigator: React.FC = () => {
   const [biometricUnlocked, setBiometricUnlocked] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const [legalConsentAccepted, setLegalConsentAcceptedState] = useState<boolean | null>(null);
+  const [routeStateReady, setRouteStateReady] = useState(false);
   const previousSessionRef = useRef<Session | null>(null);
+  const routeStateRequestRef = useRef(0);
   const wasOfflineRef = useRef<boolean>(false);
 
   useEffect(() => {
     let mounted = true;
+
+    const resolveAuthenticatedRouteState = async (): Promise<AuthenticatedRouteState> => {
+      const [pending, lockEnabled, completed, legalAccepted] = await Promise.all([
+        AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY)
+          .then((value) => value === 'true')
+          .catch(() => false),
+        syncBiometricFromRemote().catch(() => isBiometricEnabled()),
+        hasCompletedOnboarding().catch(() => false),
+        hasAcceptedLegalConsent().catch(() => false),
+      ]);
+
+      return {
+        pendingPasswordReset: pending,
+        biometricLockEnabled: lockEnabled,
+        onboardingCompleted: completed,
+        legalConsentAccepted: legalAccepted,
+      };
+    };
+
+    const applyAuthenticatedRouteState = (state: AuthenticatedRouteState) => {
+      setPendingPasswordReset(state.pendingPasswordReset);
+      setBiometricLockEnabled(state.biometricLockEnabled);
+      setOnboardingCompleted(state.onboardingCompleted);
+      setLegalConsentAcceptedState(state.legalConsentAccepted);
+      setRouteStateReady(true);
+    };
 
     const init = async () => {
       // Run storage init and deep link processing in parallel for faster first paint
@@ -82,21 +117,18 @@ export const RootNavigator: React.FC = () => {
 
       const { data } = await supabase.auth.getSession();
       if (mounted) {
-        setSession(data.session);
         previousSessionRef.current = data.session;
         if (data.session) {
-          const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
-          setPendingPasswordReset(pending === 'true');
-          const lockEnabled = await syncBiometricFromRemote();
-          setBiometricLockEnabled(lockEnabled);
-          const completed = await hasCompletedOnboarding();
-          setOnboardingCompleted(completed);
-          const legalAccepted = await hasAcceptedLegalConsent();
-          setLegalConsentAcceptedState(legalAccepted);
+          const requestId = ++routeStateRequestRef.current;
+          const routeState = await resolveAuthenticatedRouteState();
+          if (!mounted || requestId !== routeStateRequestRef.current) return;
+          applyAuthenticatedRouteState(routeState);
         } else {
+          setRouteStateReady(false);
           setOnboardingCompleted(null);
           setLegalConsentAcceptedState(null);
         }
+        setSession(data.session);
         setIsLoading(false);
       }
     };
@@ -107,6 +139,8 @@ export const RootNavigator: React.FC = () => {
       data: { subscription },
     } =     supabase.auth.onAuthStateChange(async (event, newSession) => {
       const previousSession = previousSessionRef.current;
+      const userChanged = !!previousSession && !!newSession && previousSession.user.id !== newSession.user.id;
+      const sessionStarted = !previousSession && !!newSession;
 
       // CRITICAL: Preserve session when offline - Supabase clears session on token refresh failure
       // when network is unavailable (known issue: supabase/auth-js#141). Don't kick user to login.
@@ -122,21 +156,32 @@ export const RootNavigator: React.FC = () => {
       previousSessionRef.current = newSession;
 
       // CRITICAL: Update UI state immediately so user sees correct screen (SetPassword/MainTabs)
-      // Only await the quick AsyncStorage read; StorageService.initialize() etc. run in background
+      // after all route-critical flags are known. Otherwise returning users can briefly see
+      // LegalConsent/Onboarding before AsyncStorage and remote biometric state finish resolving.
       if (newSession) {
-        const pending = await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY);
-        setPendingPasswordReset(pending === 'true');
-        syncBiometricFromRemote().then(setBiometricLockEnabled);
-        hasCompletedOnboarding().then(setOnboardingCompleted);
-        hasAcceptedLegalConsent().then(setLegalConsentAcceptedState);
+        const requestId = ++routeStateRequestRef.current;
+        if (sessionStarted || userChanged) {
+          setRouteStateReady(false);
+          setIsLoading(true);
+          setSession(newSession);
+        }
+
+        const routeState = await resolveAuthenticatedRouteState();
+        if (!mounted || requestId !== routeStateRequestRef.current) return;
+        applyAuthenticatedRouteState(routeState);
+        setSession(newSession);
+        setIsLoading(false);
       } else {
+        routeStateRequestRef.current += 1;
         setPendingPasswordReset(false);
         setBiometricLockEnabled(false);
         setBiometricUnlocked(false);
+        setRouteStateReady(false);
         setOnboardingCompleted(null);
         setLegalConsentAcceptedState(null);
+        setIsLoading(false);
+        setSession(null);
       }
-      setSession(newSession);
 
       // If user logged out, clear all local storage
       // Do this in background to avoid blocking the logout flow
@@ -214,8 +259,6 @@ export const RootNavigator: React.FC = () => {
       if (previousSession && newSession && previousSession.user.id !== newSession.user.id) {
         console.log('[RootNavigator] User changed, re-initializing storage');
         StorageService.initialize().catch((err) => console.error('[RootNavigator] Re-init failed:', err));
-        hasCompletedOnboarding().then(setOnboardingCompleted);
-        hasAcceptedLegalConsent().then(setLegalConsentAcceptedState);
       }
     });
 
@@ -341,6 +384,10 @@ export const RootNavigator: React.FC = () => {
   }, [session]);
 
   const showBiometricLock = !!session && biometricLockEnabled && !biometricUnlocked;
+
+  if (isLoading || (!!session && !routeStateReady)) {
+    return <View style={styles.routeLoading} />;
+  }
 
   return (
     <PendingPasswordResetContext.Provider value={setPendingPasswordReset}>
@@ -526,3 +573,10 @@ export const RootNavigator: React.FC = () => {
     </PendingPasswordResetContext.Provider>
   );
 };
+
+const styles = StyleSheet.create({
+  routeLoading: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+});

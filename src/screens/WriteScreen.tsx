@@ -289,7 +289,16 @@ const WriteScreen: React.FC = () => {
       {isMenuOpen && (
         <View style={styles.menuOverlay}>
           <TouchableOpacity style={styles.menuBackdrop} onPress={() => setIsMenuOpen(false)} />
-          <View style={[styles.menuContainer, { top: insets.top, paddingTop: spacing.md }]}>
+          <View
+            style={[
+              styles.menuContainer,
+              {
+                top: insets.top,
+                bottom: saveBarOffset,
+                paddingTop: spacing.md,
+              },
+            ]}
+          >
             <View style={styles.menuTop}>
               <Text style={styles.menuTitle}>Menu</Text>
               <TouchableOpacity
