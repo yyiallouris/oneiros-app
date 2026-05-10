@@ -17,7 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, PsycheScreenBackground, MysticHeader } from '../components/ui';
+import { Button, PsycheScreenBackground, MysticHeader, DesignExportForeground } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -157,8 +157,6 @@ const WriteScreen: React.FC = () => {
             archived: true, // Mark as archived
           };
 
-      // Save dream locally only (no API calls)
-      // Symbols/archetypes will be extracted when user requests AI interpretation
       await saveDream(dream);
       await clearDraft();
       
@@ -203,11 +201,12 @@ const WriteScreen: React.FC = () => {
       <View pointerEvents="none" style={styles.backgroundTint} />
       <View pointerEvents="none" style={styles.backgroundWash} />
       
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         <MysticHeader
           title={headerGreeting}
           style={[styles.headerShell, { paddingTop: insets.top + spacing.xs }]}
@@ -264,87 +263,88 @@ const WriteScreen: React.FC = () => {
 
         {/* Spacer above Save dream button */}
         <View style={{ height: spacing.lg }} />
-      </ScrollView>
+        </ScrollView>
 
-      {/* Bottom Actions */}
-      <View
-        style={[
-          styles.bottomActions,
-          {
-            bottom: saveBarOffset,
-          },
-        ]}
-      >
-        <Button
-          title={todaysDream ? 'Update dream' : 'Save dream'}
-          onPress={handleSaveDream}
-          disabled={!content.trim()}
-          loading={isSaving}
-          style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
-          textStyle={[styles.saveButtonText, isSaveDisabled && styles.saveButtonTextDisabled]}
-        />
-      </View>
+        {/* Bottom Actions */}
+        <View
+          style={[
+            styles.bottomActions,
+            {
+              bottom: saveBarOffset,
+            },
+          ]}
+        >
+          <Button
+            title={todaysDream ? 'Update dream' : 'Save dream'}
+            onPress={handleSaveDream}
+            disabled={!content.trim()}
+            loading={isSaving}
+            style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
+            textStyle={[styles.saveButtonText, isSaveDisabled && styles.saveButtonTextDisabled]}
+          />
+        </View>
 
-      {/* Side menu */}
-      {isMenuOpen && (
-        <View style={styles.menuOverlay}>
-          <TouchableOpacity style={styles.menuBackdrop} onPress={() => setIsMenuOpen(false)} />
-          <View
-            style={[
-              styles.menuContainer,
-              {
-                top: insets.top,
-                bottom: saveBarOffset,
-                paddingTop: spacing.md,
-              },
-            ]}
-          >
-            <View style={styles.menuTop}>
-              <Text style={styles.menuTitle}>Menu</Text>
+        {/* Side menu */}
+        {isMenuOpen && (
+          <View style={styles.menuOverlay}>
+            <TouchableOpacity style={styles.menuBackdrop} onPress={() => setIsMenuOpen(false)} />
+            <View
+              style={[
+                styles.menuContainer,
+                {
+                  top: insets.top,
+                  bottom: saveBarOffset,
+                  paddingTop: spacing.md,
+                },
+              ]}
+            >
+              <View style={styles.menuTop}>
+                <Text style={styles.menuTitle}>Menu</Text>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                    navigation.navigate('Account');
+                  }}
+                >
+                  <Text style={styles.menuItemText}>Account</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                    navigation.navigate('Privacy');
+                  }}
+                >
+                  <Text style={styles.menuItemText}>Privacy & Legal</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                    navigation.navigate('Contact');
+                  }}
+                >
+                  <Text style={styles.menuItemText}>Contact us</Text>
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
+                style={styles.menuItemBottom}
+                onPress={async () => {
                   setIsMenuOpen(false);
-                  navigation.navigate('Account');
+                  try {
+                    await supabase.auth.signOut();
+                  } catch {
+                    // ignore, RootNavigator will remain on current session if signOut fails
+                  }
                 }}
               >
-                <Text style={styles.menuItemText}>Account</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setIsMenuOpen(false);
-                  navigation.navigate('Privacy');
-                }}
-              >
-                <Text style={styles.menuItemText}>Privacy & Legal</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.menuItem}
-                onPress={() => {
-                  setIsMenuOpen(false);
-                  navigation.navigate('Contact');
-                }}
-              >
-                <Text style={styles.menuItemText}>Contact us</Text>
+                <Text style={styles.menuItemText}>Log out</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.menuItemBottom}
-              onPress={async () => {
-                setIsMenuOpen(false);
-                try {
-                  await supabase.auth.signOut();
-                } catch {
-                  // ignore, RootNavigator will remain on current session if signOut fails
-                }
-              }}
-            >
-              <Text style={styles.menuItemText}>Log out</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      )}
+        )}
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };

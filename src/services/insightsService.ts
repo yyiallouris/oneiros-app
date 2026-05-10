@@ -13,6 +13,8 @@ import type {
   ArchetypeCount,
   LandscapeCount,
   MotifCount,
+  ThresholdCount,
+  CentralConflictCount,
   SymbolMonthCount,
   ArchetypeMonthCount,
   InsightsPeriod,
@@ -321,6 +323,52 @@ export async function getRecurringMotifs(period?: InsightsPeriod): Promise<Motif
   return Array.from(byKey.entries())
     .map(([key, v]) => ({ name: v.displayName, normalizedKey: key, count: v.count }))
     .sort((a, b) => b.count - a.count);
+}
+
+function aggregateInterpretationTerms(
+  interpretations: Awaited<ReturnType<typeof StorageService.getInterpretations>>,
+  dreamIds: Set<string>,
+  selectTerms: (interpretation: typeof interpretations[number]) => string[] | undefined
+): { name: string; normalizedKey: string; count: number }[] {
+  const byKey = new Map<string, { count: number; displayName: string }>();
+  const addTerm = (raw: string) => {
+    if (!raw || typeof raw !== 'string') return;
+    const key = normalizeSymbolKey(raw);
+    if (!key) return;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      byKey.set(key, { count: 1, displayName: raw.trim() });
+    }
+  };
+
+  interpretations.forEach((i) => {
+    if (dreamIds.has(i.dreamId)) (selectTerms(i) ?? []).forEach(addTerm);
+  });
+
+  mergeSubsetKeys(byKey);
+  return Array.from(byKey.entries())
+    .map(([key, v]) => ({ name: v.displayName, normalizedKey: key, count: v.count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/** Recurring thresholds: transition points, not symbolic motifs. */
+export async function getRecurringThresholds(period?: InsightsPeriod): Promise<ThresholdCount[]> {
+  const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+  const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
+  const dreamIds = new Set(filtered.map((d) => d.id));
+  return aggregateInterpretationTerms(interpretations, dreamIds, (i) => i.thresholds);
+}
+
+/** Recurring central conflicts: dynamic tensions stated as "X vs Y". */
+export async function getRecurringCentralConflicts(period?: InsightsPeriod): Promise<CentralConflictCount[]> {
+  const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+  const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
+  const dreamIds = new Set(filtered.map((d) => d.id));
+  return aggregateInterpretationTerms(interpretations, dreamIds, (i) => i.central_conflicts);
 }
 
 const THIS_MONTH = new Date().toISOString().slice(0, 7);

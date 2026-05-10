@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, WaveBackground } from '../components/ui';
+import { Button, Card, WaveBackground, DesignExportForeground } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
@@ -64,7 +64,7 @@ const SetPasswordScreen: React.FC = () => {
       keyboardVerticalOffset={0}
     >
       <WaveBackground />
-      <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+      <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
           <Text style={styles.title}>Set new password</Text>
           <Text style={styles.subtitle}>
@@ -109,7 +109,7 @@ const SetPasswordScreen: React.FC = () => {
             style={styles.primaryButton}
           />
         </Card>
-      </View>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };

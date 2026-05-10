@@ -19,4 +19,4 @@ export { PrintPatchLoader } from './AbstractPrintTexture';
 export { LinoSkeletonCard } from './LinoSkeletonCard';
 export { SectionTitleWithInfo } from './SectionTitleWithInfo';
 export { SymbolInfoModal } from './SymbolInfoModal';
-
+export { DesignExportForeground } from './DesignExportForeground';

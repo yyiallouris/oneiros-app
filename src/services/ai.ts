@@ -1,33 +1,26 @@
-import { Dream, ChatMessage } from '../types/dream';
+import type { Dream, ChatMessage, Interpretation } from '../types/dream';
 import Constants from 'expo-constants';
-import { logError } from './logger';
+import { logError, logInfo } from './logger';
+import type { ArchetypeName } from '../constants/archetypes';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
-// Feature flags for model capabilities
-// These should be configured per model/endpoint, not guessed by string matching
 type ModelCapabilities = {
   supportsResponseFormat: boolean;
   supportsMaxCompletionTokens: boolean;
-  defaultTimeout: number; // milliseconds
+  defaultTimeout: number;
 };
 
-// Get model defaults based on known model patterns
-// Simple prefix match is safe because we use ^ anchor (won't match "myproxy-gpt-5")
 const defaultsFromModel = (model: string): ModelCapabilities => {
-  // GPT-5.x and other reasoning models may need longer timeouts
-  // Match "gpt-5" at start (covers gpt-5o, gpt-5.2, gpt-5-reasoning, etc.)
   const isGpt5 = /^gpt-5/i.test(model);
   if (isGpt5) {
     return {
-      supportsResponseFormat: true, // GPT-5.x models support structured output
+      supportsResponseFormat: true,
       supportsMaxCompletionTokens: true,
-      defaultTimeout: 60000, // 60 seconds for reasoning models
+      defaultTimeout: 60000,
     };
   }
 
-  // GPT-4 and GPT-3.5 support structured output
-  // Use prefix match for consistency with GPT-5 (avoids false positives like "my-gpt-4-proxy")
   const isGpt4 = /^gpt-4/i.test(model);
   const isGpt35 = /^gpt-3\.5/i.test(model);
   if (isGpt4 || isGpt35) {
@@ -38,11 +31,10 @@ const defaultsFromModel = (model: string): ModelCapabilities => {
     };
   }
 
-  // Default capabilities (conservative)
   return {
     supportsResponseFormat: false,
     supportsMaxCompletionTokens: true,
-    defaultTimeout: 30000, // 30 seconds default
+    defaultTimeout: 30000,
   };
 };
 
@@ -58,40 +50,24 @@ const getModelCapabilities = (model: string): ModelCapabilities => {
   const cfgTimeout = getConfig('defaultTimeoutMs');
   const cfgMaxTok = getConfig('supportsMaxCompletionTokens');
 
-  if (cfgResp !== null) {
-    caps.supportsResponseFormat = cfgResp === 'true';
-  }
+  if (cfgResp !== null) caps.supportsResponseFormat = cfgResp === 'true';
   if (cfgTimeout) {
     const parsedTimeout = parseInt(cfgTimeout, 10);
-    if (!Number.isNaN(parsedTimeout) && parsedTimeout > 0) {
-      caps.defaultTimeout = parsedTimeout;
-    }
+    if (!Number.isNaN(parsedTimeout) && parsedTimeout > 0) caps.defaultTimeout = parsedTimeout;
   }
-  if (cfgMaxTok !== null) {
-    caps.supportsMaxCompletionTokens = cfgMaxTok === 'true';
-  }
+  if (cfgMaxTok !== null) caps.supportsMaxCompletionTokens = cfgMaxTok === 'true';
 
   modelCapabilitiesCache.set(model, caps);
   return caps;
 };
 
-// Get API configuration from app.json "extra" section or environment variables
-// Configure in app.json under "extra" section (see AI_SETUP.md)
-// Prefer Constants.expoConfig (newer Expo SDK) over Constants.manifest (deprecated)
-// Using function declaration (hoisted) so it can be called before initialization
 function getConfig(key: string, defaultValue: string | null = null): string | null {
   try {
-    // Prefer expoConfig (newer Expo SDK)
     const extraValue = Constants.expoConfig?.extra?.[key];
-    if (extraValue && typeof extraValue === 'string') {
-      return extraValue;
-    }
+    if (extraValue && typeof extraValue === 'string') return extraValue;
 
-    // Fallback to manifest (older Expo SDK)
     const manifestValue = (Constants.manifest as any)?.extra?.[key];
-    if (manifestValue && typeof manifestValue === 'string') {
-      return manifestValue;
-    }
+    if (manifestValue && typeof manifestValue === 'string') return manifestValue;
 
     return defaultValue;
   } catch (error) {
@@ -100,49 +76,57 @@ function getConfig(key: string, defaultValue: string | null = null): string | nu
   }
 }
 
-// Safely extract hostname from URL with fallback for RN edge cases
-// Some React Native environments may not have URL constructor available
 function safeHostname(rawUrl: string): string | null {
   const u = (rawUrl || '').trim();
   try {
-    if (typeof URL !== 'undefined') {
-      return new URL(u).hostname.toLowerCase();
-    }
+    if (typeof URL !== 'undefined') return new URL(u).hostname.toLowerCase();
   } catch {}
-  // Fallback: crude but safe regex parsing
   const m = u.match(/^https?:\/\/([^/]+)/i);
   return m?.[1]?.toLowerCase() ?? null;
 }
 
-// Safely check if URL is OpenAI hostname (not just string contains)
-// Prevents false positives from proxy URLs that might include "api.openai.com" in path/query
-// Using function declaration for hoisting (can be called before definition in file)
 function isOpenAIHost(url: string): boolean {
   const host = safeHostname(url);
   return host === 'api.openai.com';
 }
 
-// Determine if client-side API key is required (only for direct OpenAI calls in dev)
 function requiresClientKey(apiUrl: string): boolean {
   return __DEV__ && isOpenAIHost(apiUrl);
 }
 
-// Get config values at runtime
-// ⚠️ SECURITY: Hard-block API key access in production builds
-// This prevents accidentally shipping with API key in binary/config
-// In production, API key should never be in the app - use server proxy instead
+function supportsProxyTaskRouting(apiUrl: string): boolean {
+  return apiUrl.includes('/functions/v1/openai-proxy');
+}
+
+/**
+ * When using Supabase `openai-proxy`, real model ids are only in task-config.ts.
+ * This value shapes the client payload only: token param family, timeouts, and logging hint.
+ */
+const PROXY_REQUEST_MODEL_HINT = 'gpt-5.4-mini';
+
+const getModel = (): string => {
+  const custom = getConfig('customGptEndpoint', null);
+  const apiUrl = custom || 'https://api.openai.com/v1/chat/completions';
+  if (supportsProxyTaskRouting(apiUrl)) return PROXY_REQUEST_MODEL_HINT;
+
+  const model = getConfig('gptModel', 'gpt-5.4-mini');
+  return model || 'gpt-5.4-mini';
+};
+
 const getApiKey = (): string => {
-  // Hard block in production so you can't accidentally ship a real key
-  if (!__DEV__) {
-    return 'disabled-in-production';
-  }
-  
+  if (!__DEV__) return 'disabled-in-production';
+
   const key = getConfig('openaiApiKey', 'your-openai-api-key');
+  const customEndpoint = getConfig('customGptEndpoint', null);
   if (__DEV__) {
+    const usesOpenaiProxy =
+      typeof customEndpoint === 'string' && customEndpoint.includes('/functions/v1/openai-proxy');
     console.log('[AI] Config detected', {
       hasKey: !!key && key !== 'your-openai-api-key',
-      model: getConfig('gptModel'),
-      apiUrl: getConfig('customGptEndpoint'),
+      apiUrl: customEndpoint ?? 'https://api.openai.com/v1/chat/completions',
+      models: usesOpenaiProxy
+        ? 'set in supabase/functions/openai-proxy/task-config.ts (client sends shape hint only)'
+        : `direct OpenAI / other: gptModel extra → ${getConfig('gptModel', 'gpt-5.4-mini')}`,
       source: Constants.expoConfig?.extra ? 'expo.extra' : 'env/manifest',
     });
   }
@@ -152,65 +136,44 @@ const getApiKey = (): string => {
 const getApiUrl = (): string => {
   const customEndpoint = getConfig('customGptEndpoint', null);
   const apiUrl = customEndpoint || 'https://api.openai.com/v1/chat/completions';
-  
-  // ⚠️ PRODUCTION SAFETY: Block direct OpenAI calls in production builds
-  // This prevents accidentally shipping with API key in client
-  // Before release, implement server proxy and set customGptEndpoint to proxy URL
-  // Use hostname check (not string includes) to prevent false positives
+
   if (!__DEV__ && isOpenAIHost(apiUrl)) {
-    // Log error (errors are logged in production, but context is sanitized)
     logError('ai_production_config_error', new Error('Direct OpenAI calls are disabled in production. Use a server proxy.'));
-    // Throw user-safe error message
     throw new Error('AI service is not configured. Please update the app or try again later.');
   }
-  
+
   return apiUrl;
 };
 
-// Build request headers - only includes OpenAI Authorization when calling OpenAI directly
-// When using a proxy, the proxy should handle authentication (not the client)
-// For Supabase Edge Functions, we send:
-// - apikey header: Supabase anon key
-// - Authorization header: Bearer <user_access_token> (JWT from session)
 const buildHeaders = async (
   apiUrl: string,
   apiKey: string,
-  requestId?: string
+  requestId?: string,
+  dreamId?: string
 ): Promise<Record<string, string>> => {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
-  // Only attach OpenAI key when calling OpenAI directly in dev
-  // Use helper for consistency
   if (requiresClientKey(apiUrl)) {
     headers.Authorization = `Bearer ${apiKey}`;
   } else {
-    // For proxy (Supabase Edge Function), we need:
-    // 1. apikey header: Supabase anon key
-    // 2. Authorization header: Bearer <user_access_token> (JWT from session)
-    // The Edge Function expects JWT Bearer token, not anon key in Authorization header
-    
-    // Get Supabase anon key for apikey header
-    const supabaseKey = 
-      getConfig('supabaseAnonKey') || 
+    const supabaseKey =
+      getConfig('supabaseAnonKey') ||
       Constants.expoConfig?.extra?.supabaseAnonKey ||
       (Constants.manifest as any)?.extra?.supabaseAnonKey ||
       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.SUPABASE_ANON_KEY;
-    
+
     if (supabaseKey) {
-      // apikey header: anon key
       headers.apikey = supabaseKey;
-      
-      // Authorization header: user access token (JWT)
-      // Import supabase client dynamically to avoid circular dependency
+
       const { supabase } = await import('./supabaseClient');
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
-      
+
       if (accessToken) {
         headers.Authorization = `Bearer ${accessToken}`;
         if (__DEV__) {
-          console.log('[AI] Using JWT Bearer token for proxy auth', { 
+          console.log('[AI] Using JWT Bearer token for proxy auth', {
             hasAccessToken: !!accessToken,
             tokenLength: accessToken.length,
             tokenPrefix: accessToken.substring(0, 20) || 'none',
@@ -218,64 +181,38 @@ const buildHeaders = async (
           });
         }
       } else {
-        // Fallback: if no session, still send anon key (may fail if function requires auth)
         headers.Authorization = `Bearer ${supabaseKey}`;
-        if (__DEV__) {
-          console.warn('[AI] No session access token found, falling back to anon key in Authorization header');
-        }
+        if (__DEV__) console.warn('[AI] No session access token found, falling back to anon key in Authorization header');
       }
     } else if (__DEV__) {
       console.warn('[AI] No Supabase anon key found for proxy authentication');
     }
   }
 
-  // Add request ID header for server-side debugging
-  if (requestId) {
-    headers['X-Request-Id'] = requestId;
-  }
+  if (requestId) headers['X-Request-Id'] = requestId;
 
-  // Add app version for debugging (metadata only, no privacy leak)
-  // Safe cast for manifest (can be null or weirdly typed in some Expo/EAS builds)
   const manifestVersion = (Constants.manifest as any)?.version;
   const appVersion = Constants.expoConfig?.version ?? manifestVersion ?? 'unknown';
   headers['X-App-Version'] = appVersion;
 
+  if (dreamId && supportsProxyTaskRouting(apiUrl)) headers['X-Dream-Id'] = dreamId;
+
   return headers;
 };
 
-// Safely truncate error messages to prevent logging huge dumps
-// Some backends echo request info in error messages that shouldn't be logged
 const safeErrMsg = (msg: unknown): string => {
-  if (typeof msg === 'string') {
-    return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
-  }
+  if (typeof msg === 'string') return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
   if (msg == null) return '';
   const s = String(msg);
   return s.length > 200 ? s.slice(0, 200) + '…' : s;
 };
 
-// Generate user-safe error messages (never expose internal errors to users)
 function userSafeError(status: number, apiUrl: string): string {
-  // For proxy endpoints in production, always use generic message
-  if (!__DEV__ && !isOpenAIHost(apiUrl)) {
-    return 'AI service is temporarily unavailable. Please try again later.';
-  }
-  // For 5xx server errors, use generic message
-  if (status >= 500) {
-    return 'AI service is temporarily unavailable. Please try again later.';
-  }
-  // For other errors, use generic message
+  if (!__DEV__ && !isOpenAIHost(apiUrl)) return 'AI service is temporarily unavailable. Please try again later.';
+  if (status >= 500) return 'AI service is temporarily unavailable. Please try again later.';
   return 'Something went wrong. Please try again.';
 }
 
-const getModel = (): string => {
-  const model = getConfig('gptModel', 'gpt-5.4-mini');
-  return model || 'gpt-5.4-mini';
-};
-
-// Get token parameter name based on API endpoint path
-// OpenAI and many proxies use 'max_tokens'; Responses API uses 'max_output_tokens'; some proxies use 'max_completion_tokens'
-// Config override via 'tokenParamName' is respected
 const getTokenParamName = (apiUrl: string, model: string): string => {
   const u = (apiUrl || '').trim().toLowerCase();
   const isReasoningFamily = /^gpt-5/i.test(model) || /^o\d/i.test(model);
@@ -288,7 +225,6 @@ const getTokenParamName = (apiUrl: string, model: string): string => {
   return getConfig('tokenParamName', defaultTokenParam) || defaultTokenParam;
 };
 
-// Some proxies only accept max_tokens; set both primary param and max_tokens so either works
 const setTokenLimit = (
   payload: Record<string, unknown>,
   apiUrl: string,
@@ -300,10 +236,8 @@ const setTokenLimit = (
   if (paramName !== 'max_tokens' && !isOpenAIHost(apiUrl)) payload.max_tokens = limit;
 };
 
-// Valid core mode headings for interpretation (prevents injection of invalid headings)
 const VALID_CORE_MODES = new Set(['Core Tension', 'Core State', 'Core Shift', 'Core Restoration']);
 
-// Type for OpenAI API message format
 type ApiMessage = {
   role: 'system' | 'user' | 'assistant';
   content: string;
@@ -313,24 +247,203 @@ type AiTask =
   | 'interpretation_quick'
   | 'interpretation_standard'
   | 'interpretation_advanced'
+  | 'interpretation_retry_compact'
   | 'chat_followup'
   | 'dream_extraction'
+  | 'conversation_element_update'
   | 'pattern_insights'
+  | 'pattern_insights_retry_compact'
   | 'semantic_grouping';
 
-const supportsProxyTaskRouting = (apiUrl: string): boolean => {
-  return apiUrl.includes('/functions/v1/openai-proxy');
-};
-
 const attachProxyTask = (payload: Record<string, unknown>, apiUrl: string, task: AiTask): void => {
-  if (supportsProxyTaskRouting(apiUrl)) {
-    payload.task = task;
-  }
+  if (supportsProxyTaskRouting(apiUrl)) payload.task = task;
 };
 
-// Fetch with timeout, retry, and rate limit handling
-// Different retry counts for transient errors (network/5xx) vs rate limits
-// Uses loop instead of recursion for predictable retry behavior
+type AiCostRates = { inputUsdPerMTok: number; outputUsdPerMTok: number };
+
+const USD_TO_EUR_ESTIMATE = 0.855;
+const AI_COST_RATES_USD_PER_MTOK: Record<string, AiCostRates> = {
+  'gpt-5.4': { inputUsdPerMTok: 2.5, outputUsdPerMTok: 15 },
+  'gpt-5.4-mini': { inputUsdPerMTok: 0.75, outputUsdPerMTok: 4.5 },
+  'claude-haiku-4-5': { inputUsdPerMTok: 1, outputUsdPerMTok: 5 },
+};
+
+const normalizeModelForPricing = (model: unknown): string | null => {
+  if (typeof model !== 'string') return null;
+  const m = model.toLowerCase();
+  if (m.includes('gpt-5.4-mini')) return 'gpt-5.4-mini';
+  if (m.includes('gpt-5.4')) return 'gpt-5.4';
+  if (m.includes('claude') && m.includes('haiku') && m.includes('4')) return 'claude-haiku-4-5';
+  return null;
+};
+
+const estimateCost = (
+  model: unknown,
+  promptTokens: number,
+  completionTokens: number
+): { usd: number; eur: number; rateKey: string | null } | null => {
+  const rateKey = normalizeModelForPricing(model);
+  if (!rateKey) return null;
+  const rates = AI_COST_RATES_USD_PER_MTOK[rateKey];
+  if (!rates) return null;
+  const usd =
+    (promptTokens / 1_000_000) * rates.inputUsdPerMTok +
+    (completionTokens / 1_000_000) * rates.outputUsdPerMTok;
+  return { usd, eur: usd * USD_TO_EUR_ESTIMATE, rateKey };
+};
+
+const estimateMessageInput = (messages: ApiMessage[]): { chars: number; roughTokens: number; turns: number } => {
+  const chars = messages.reduce((sum, message) => sum + message.content.length + message.role.length + 4, 0);
+  return { chars, roughTokens: Math.ceil(chars / 4), turns: messages.length };
+};
+
+const logAiRequestStart = (params: {
+  requestId: string;
+  task: AiTask;
+  model: string;
+  messages: ApiMessage[];
+  tokenLimit?: number;
+  apiUrl: string;
+  depth?: InterpretationDepth;
+  dreamId?: string;
+}): void => {
+  const estimate = estimateMessageInput(params.messages);
+  logInfo('ai_request_start', {
+    requestId: params.requestId,
+    task: params.task,
+    modelHint: params.model,
+    providerRoute: supportsProxyTaskRouting(params.apiUrl) ? 'proxy' : isOpenAIHost(params.apiUrl) ? 'direct_openai' : 'custom',
+    depth: params.depth,
+    dreamId: params.dreamId,
+    turns: estimate.turns,
+    inputChars: estimate.chars,
+    roughInputTokens: estimate.roughTokens,
+    tokenLimit: params.tokenLimit,
+  });
+};
+
+const aiResponseMeta = (response: Response, requestId: string) => ({
+  requestId,
+  provider: response.headers.get('x-ai-provider'),
+  resolvedModel: response.headers.get('x-ai-model'),
+  fallback: ['true', '1'].includes((response.headers.get('x-ai-fallback') ?? '').toLowerCase()),
+  upstreamMs: response.headers.get('x-ai-upstream-ms'),
+});
+
+type StepUsage = { prompt?: number; completion?: number; total: number };
+
+const dreamUsageBuckets = new Map<string, { byStep: Record<string, StepUsage> }>();
+
+function resetDreamAiUsageBucket(dreamId: string): void {
+  dreamUsageBuckets.set(dreamId, { byStep: {} });
+}
+
+function extractUsageFromCompletionResponse(data: unknown): StepUsage | null {
+  if (!data || typeof data !== 'object') return null;
+  const u = (data as { usage?: unknown }).usage;
+  if (!u || typeof u !== 'object') return null;
+  const usage = u as Record<string, unknown>;
+  const prompt = typeof usage.prompt_tokens === 'number' ? usage.prompt_tokens : undefined;
+  const completion = typeof usage.completion_tokens === 'number' ? usage.completion_tokens : undefined;
+  const totalRaw = usage.total_tokens;
+  let total = typeof totalRaw === 'number' && Number.isFinite(totalRaw) ? totalRaw : (prompt ?? 0) + (completion ?? 0);
+  if (!Number.isFinite(total)) total = 0;
+  if (total <= 0 && (prompt === undefined || prompt <= 0) && (completion === undefined || completion <= 0)) return null;
+  if (total <= 0) total = (prompt ?? 0) + (completion ?? 0);
+  if (total <= 0) return null;
+  return { prompt, completion, total };
+}
+
+function mergeStepUsage(into: Record<string, StepUsage>, step: string, addition: StepUsage): void {
+  const prev = into[step];
+  if (!prev) {
+    into[step] = { ...addition };
+    return;
+  }
+  into[step] = {
+    prompt: (prev.prompt ?? 0) + (addition.prompt ?? 0),
+    completion: (prev.completion ?? 0) + (addition.completion ?? 0),
+    total: prev.total + addition.total,
+  };
+}
+
+const DREAM_USAGE_STEP_LABEL: Record<string, string> = {
+  dream_extraction: 'symbol_extraction',
+  interpretation_quick: 'reflection_quick',
+  interpretation_standard: 'reflection_standard',
+  interpretation_advanced: 'reflection_deep',
+  interpretation_retry_compact: 'reflection_retry',
+  conversation_element_update: 'post_chat_elements',
+  chat_followup: 'interpretation_chat',
+  semantic_grouping: 'semantic_grouping',
+  pattern_insights: 'pattern_essay',
+  pattern_insights_retry_compact: 'pattern_essay_retry',
+};
+
+function recordDreamAiUsage(
+  dreamId: string | undefined,
+  step: string,
+  data: unknown,
+  meta?: {
+    requestId?: string;
+    provider?: string | null;
+    resolvedModel?: string | null;
+    fallback?: boolean;
+    upstreamMs?: string | null;
+  }
+): void {
+  const usage = extractUsageFromCompletionResponse(data);
+  if (!usage) return;
+
+  const dataModel = data && typeof data === 'object' ? (data as { model?: unknown }).model : undefined;
+  const model = meta?.resolvedModel ?? (typeof dataModel === 'string' ? dataModel : undefined);
+  const promptTokens = usage.prompt ?? 0;
+  const completionTokens = usage.completion ?? 0;
+  const cost = estimateCost(model, promptTokens, completionTokens);
+  const stepLabel = DREAM_USAGE_STEP_LABEL[step] ?? step;
+
+  logInfo('ai_step_token_cost', {
+    dreamId,
+    requestId: meta?.requestId,
+    step,
+    stepLabel,
+    provider: meta?.provider ?? undefined,
+    model,
+    pricingKey: cost?.rateKey,
+    promptTokens,
+    completionTokens,
+    totalTokens: usage.total,
+    estimatedUsd: cost ? Number(cost.usd.toFixed(6)) : undefined,
+    estimatedEur: cost ? Number(cost.eur.toFixed(6)) : undefined,
+    usdToEurEstimate: cost ? USD_TO_EUR_ESTIMATE : undefined,
+    fallback: meta?.fallback,
+    upstreamMs: meta?.upstreamMs ? Number(meta.upstreamMs) : undefined,
+  });
+
+  if (!dreamId) return;
+  let bucket = dreamUsageBuckets.get(dreamId);
+  if (!bucket) {
+    bucket = { byStep: {} };
+    dreamUsageBuckets.set(dreamId, bucket);
+  }
+  mergeStepUsage(bucket.byStep, step, usage);
+  const cumulativeTotal = Object.values(bucket.byStep).reduce((s, x) => s + x.total, 0);
+  const breakdown = Object.entries(bucket.byStep)
+    .map(([k, v]) => `${DREAM_USAGE_STEP_LABEL[k] ?? k}:${v.total}`)
+    .join(' + ');
+  logInfo('ai_dream_token_usage', {
+    dreamId,
+    requestId: meta?.requestId,
+    lastStep: step,
+    lastStepTotalTokens: usage.total,
+    cumulativeTotalTokens: cumulativeTotal,
+    breakdown,
+    byStepTotals: Object.fromEntries(
+      Object.entries(bucket.byStep).map(([k, v]) => [DREAM_USAGE_STEP_LABEL[k] ?? k, v.total])
+    ),
+  });
+}
+
 const fetchWithTimeout = async (
   url: string,
   options: RequestInit,
@@ -342,22 +455,17 @@ const fetchWithTimeout = async (
   let rateLeft = rateLimitRetries;
 
   while (true) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+
       if (response.status === 429 && rateLeft > 0) {
-      const retryAfter = response.headers.get('Retry-After');
-      const delaySec = retryAfter ? Number(retryAfter) : NaN;
+        const retryAfter = response.headers.get('Retry-After');
+        const delaySec = retryAfter ? Number(retryAfter) : NaN;
         const delay = Number.isFinite(delaySec) ? delaySec * 1000 : 2000;
-        if (__DEV__) {
-          console.log(`[AI] Rate limited (429), retrying after ${delay}ms...`);
-        }
+        if (__DEV__) console.log(`[AI] Rate limited (429), retrying after ${delay}ms...`);
         rateLeft--;
         clearTimeout(timeoutId);
         await new Promise((resolve) => setTimeout(resolve, delay));
@@ -365,108 +473,189 @@ const fetchWithTimeout = async (
       }
 
       if (response.status >= 500 && transientLeft > 0) {
-      if (__DEV__) {
-        console.log(`[AI] Server error (${response.status}), retrying...`);
-      }
+        if (__DEV__) console.log(`[AI] Server error (${response.status}), retrying...`);
         transientLeft--;
         clearTimeout(timeoutId);
-      const backoff = 600 + Math.floor(Math.random() * 400);
+        const backoff = 600 + Math.floor(Math.random() * 400);
         await new Promise((resolve) => setTimeout(resolve, backoff));
         continue;
-    }
-    
+      }
+
       clearTimeout(timeoutId);
-    return response;
+      return response;
     } catch (error: unknown) {
       clearTimeout(timeoutId);
       const err = error as { name?: string };
 
-      if (err.name === 'AbortError') {
-        throw new Error(`Request timeout after ${timeout}ms`);
-      }
+      if (err.name === 'AbortError') throw new Error(`Request timeout after ${timeout}ms`);
 
       if (transientLeft > 0) {
-      if (__DEV__) {
-          console.log(`[AI] Retrying fetch (${transientLeft} retries left)...`);
-      }
+        if (__DEV__) console.log(`[AI] Retrying fetch (${transientLeft} retries left)...`);
         transientLeft--;
-      const backoff = 300 + Math.floor(Math.random() * 200);
+        const backoff = 300 + Math.floor(Math.random() * 200);
         await new Promise((resolve) => setTimeout(resolve, backoff));
         continue;
-    }
-    
-    throw error;
+      }
+
+      throw error;
     }
   }
 };
 
-// Response extractors for different API formats (future-proofing)
-// Chat Completions API format (/v1/chat/completions)
-const chatCompletionsExtractor = (data: any): string | null => {
-  return data.choices?.[0]?.message?.content || null;
+const chatCompletionsExtractor = (data: any): string | null => data.choices?.[0]?.message?.content || null;
+const responsesExtractor = (data: any): string | null => data.content || data.text || null;
+const fallbackExtractor = (data: any): string | null => data.message?.content || data.text || null;
+
+type ExtractApiResponseOptions = {
+  allowTruncated?: boolean;
 };
 
-// Responses API format (/v1/responses) - for future migration
-// NOTE: This is a stub. Real Responses API typically returns `output` arrays with text inside.
-// When migrating, implement proper extraction based on actual API response structure.
-const responsesExtractor = (data: any): string | null => {
-  return data.content || data.text || null;
-};
-
-// Generic fallback extractor
-const fallbackExtractor = (data: any): string | null => {
-  return data.message?.content || data.text || null;
-};
-
-// Helper function to extract content from API response
-// Supports multiple API formats for future-proofing
-const extractApiResponseContent = (data: any): string => {
-  const content = chatCompletionsExtractor(data) ||
-                  responsesExtractor(data) ||
-                  fallbackExtractor(data) ||
-                  '';
+const extractApiResponseContent = (data: any, options?: ExtractApiResponseOptions): string => {
+  const content = chatCompletionsExtractor(data) || responsesExtractor(data) || fallbackExtractor(data) || '';
 
   if (!content || content.trim().length === 0) {
-    // Check finish_reason to provide better error context
     const finishReason = data.choices?.[0]?.finish_reason;
     const usage = data.usage;
-    
+
+    if ((finishReason === 'length' || finishReason === 'max_tokens') && options?.allowTruncated) return '';
+
     if (__DEV__) {
       console.error('[AI] Empty response received', {
         finishReason,
         completionTokens: usage?.completion_tokens,
         totalTokens: usage?.total_tokens,
         hasChoices: !!data.choices,
-        choicesLength: data.choices?.length
+        choicesLength: data.choices?.length,
       });
     }
-    
-    logError('ai_empty_response', new Error('Empty response from API'), { 
+
+    logError('ai_empty_response', new Error('Empty response from API'), {
       hasChoices: !!data.choices,
       choicesLength: data.choices?.length,
       finishReason,
       completionTokens: usage?.completion_tokens,
-      totalTokens: usage?.total_tokens
+      totalTokens: usage?.total_tokens,
     });
-    
-    // If finish_reason is "length", the response was cut off (token limit reached)
-    // This is a config issue, not a service outage - use appropriate message
-    if (finishReason === 'length') {
+
+    if (finishReason === 'length' || finishReason === 'max_tokens') {
       throw new Error(__DEV__
-        ? 'AI response was truncated (finish_reason=length). Increase token limit or reduce prompt size.'
+        ? `AI response was truncated (finish_reason=${finishReason}). Increase token limit or reduce prompt size.`
         : 'Couldn\'t complete the response. Please try again.'
       );
     }
-    
-    // Use consistent user-safe error message (same style as length error)
+
     throw new Error('Couldn\'t complete the response. Please try again.');
   }
 
   return content;
 };
 
-// Extract first JSON object using brace-balancing (more reliable than regex)
-// Moved to top-level to avoid redefinition in hot paths
+const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
+const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
+
+const isTruncatedResponse = (data: any): boolean => {
+  const finishReason = data.choices?.[0]?.finish_reason;
+  return finishReason === 'length' || finishReason === 'max_tokens';
+};
+
+const hasEndMarker = (text: string, marker: string): boolean => text.includes(marker);
+const stripEndMarker = (text: string, marker: string): string => text.split(marker).join('').trim();
+
+const ensureCompleteMarkedResponse = (
+  data: any,
+  content: string,
+  marker: string,
+  apiUrl: string,
+  requestId: string,
+  step: string
+): string => {
+  if (!content.trim() || isTruncatedResponse(data) || !hasEndMarker(content, marker)) {
+    logError('ai_retry_incomplete_response', new Error('Retry response missing completion marker or truncated'), {
+      requestId,
+      step,
+      finishReason: data?.choices?.[0]?.finish_reason,
+      contentLength: content.length,
+      hasMarker: hasEndMarker(content, marker),
+    });
+    throw new Error(userSafeError(500, apiUrl));
+  }
+  return content;
+};
+
+const QUICK_RETRY_PROMPT = `Your previous response was cut off.
+Rewrite from scratch in 80–160 words.
+Do not continue the previous response.
+No headings.
+Use 1–2 short paragraphs.
+Begin from a concrete image, action, place, figure, or bodily tone in the dream.
+Keep only one living psychological movement.
+Do not summarize the whole dream or list symbols.
+Do not use report-like language or framework labels.
+Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
+End with exactly one observational reflective question.
+The response must end naturally and not be cut off.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}`;
+
+const STANDARD_RETRY_PROMPT = `Your previous response was cut off.
+Rewrite from scratch in 180–320 words.
+Do not continue the previous response.
+
+Use the Standard mode, but with hidden structure:
+- Only use the Core heading, Dream Movement, and Reflective Questions.
+- Do not use separate headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, or Symbolic Movement.
+- Write the main interpretation as one compact reading path through the dream sequence.
+- Keep only the strongest 2–3 images and one central psychological movement.
+- Stay close to concrete dream details.
+- Avoid report-like language, therapeutic polish, archetype labels, and framework labels.
+- Mythic or archetypal widening is normally out of scope.
+- If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
+- Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
+
+End with exactly 2 reflective questions.
+The response must end naturally and not be cut off.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}`;
+
+const ADVANCED_RETRY_PROMPT = `Your previous response was cut off.
+Rewrite from scratch in 380–520 words.
+Do not continue the previous response.
+
+Use the Advanced mode, but with hidden structure:
+- Only use the Core heading, Dream Movement, and Reflective Questions.
+- Do not use separate headings for Charged Image, What the Dream Organizes, Symbolic Movement, or What Remains Unresolved.
+- Write the main interpretation as a continuous descent through the dream sequence.
+- Let one charged image become the gravitational center without naming it as a section.
+Stay close to the dream sequence.
+Do not make the dream cleaner or more coherent than it is.
+Keep the strongest image partly alive before interpreting it.
+Preserve ambiguity without dissolving intensity.
+Avoid report-like language, therapeutic polish, archetype labels, and elegant over-synthesis.
+Allow brief mythic resonance only when it is unmistakably earned by the dream image itself.
+Prefer one precise mythic echo over extended amplification.
+Do not create a Mythic Resonance section or lecture on mythology.
+
+End with exactly 2 reflective questions.
+The response must end naturally and not be cut off.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}`;
+
+const COMPRESSION_RETRY_ESSAY_SYSTEM_PROMPT = `Your previous essay was too long and was cut off.
+Rewrite the entire essay from scratch in a compact complete form.
+Do not continue the previous response.
+Compress each section; keep synthesis; drop repetition.
+Stay near the lower end of the word range appropriate for the number of dreams in the prompt.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_ESSAY}`;
+
 const extractFirstJsonObject = (s: string): string | null => {
   const start = s.indexOf('{');
   if (start === -1) return null;
@@ -479,46 +668,42 @@ const extractFirstJsonObject = (s: string): string | null => {
   return null;
 };
 
-// Generate unique request ID for correlation in logs
-// Note: This is for correlation only, not security (uses Math.random())
-const generateRequestId = (): string => {
-  return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-};
+const generateRequestId = (): string => `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
-// Helper to create request metadata (DRY pattern)
-// Reduces duplication across API call functions
-const startRequest = (): { requestId: string; model: string } => {
-  return {
-    requestId: generateRequestId(),
-    model: getModel(),
-  };
-};
+const startRequest = (): { requestId: string; model: string } => ({
+  requestId: generateRequestId(),
+  model: getModel(),
+});
 
-// Parse API response with fallback to text
-// IMPORTANT: Read text first, then parse JSON (can't read body twice)
 const parseApiResponse = async (
   response: Response,
   requestId?: string,
   apiUrl?: string
 ): Promise<any> => {
+  if (__DEV__ && apiUrl && supportsProxyTaskRouting(apiUrl)) {
+    const fb = response.headers.get('x-ai-fallback');
+    const fbReason = response.headers.get('x-ai-fallback-reason');
+    console.log('[AI] Proxy routing:', {
+      requestId,
+      provider: response.headers.get('x-ai-provider'),
+      model: response.headers.get('x-ai-model'),
+      fallback: fb === 'true',
+      fallbackReason: fbReason && fbReason.length > 0 ? fbReason : undefined,
+    });
+  }
+
   const raw = await response.text();
   try {
     return JSON.parse(raw);
   } catch (jsonError) {
-    // Log error with sanitized context (logger will strip sensitive fields)
-    // In dev, log raw for debugging; in prod, never expose raw body
-    if (__DEV__) {
-      console.error('[AI] Non-JSON response:', raw.substring(0, 200));
-    }
-    // Log content-type for debugging (metadata only, not sensitive)
+    if (__DEV__) console.error('[AI] Non-JSON response:', raw.substring(0, 200));
     const contentType = response.headers.get('content-type');
-    logError('ai_response_parse_error', jsonError, { 
+    logError('ai_response_parse_error', jsonError, {
       requestId,
       status: response.status,
       contentType,
-      responseLength: raw.length
+      responseLength: raw.length,
     });
-    // Throw user-safe error (never expose technical details like "API 502 invalid response")
     throw new Error(userSafeError(response.status, apiUrl || ''));
   }
 };
@@ -535,13 +720,21 @@ Core Constitution — non-negotiable principles:
 - Interpret dreams symbolically, never literally.
 - Never give advice, diagnosis, prescriptions, moral judgments, or therapeutic instructions of any kind.
 - Embodiment must remain purely observational. Never instruct the user to breathe, relax, sit with, focus on, try, or practice anything.
-- Use only hypothetical language. Never present interpretations as facts ("could suggest", "one possible reading", "it might be that...").
-- Respond entirely in the same language as the dream or the user's message.
+- Use hypothetical language, but do not hide behind vagueness. Never present interpretations as facts, yet allow clear symbolic landings when strongly grounded in dream details.
+- Use English for markdown section headings exactly as specified.
+- Use the user's dominant language for all paragraph text, bullets, and reflective questions.
 - Always start from affect, image, and the ego’s relationship to what appears.
 - Every interpretive claim must be tied to at least one concrete detail from the dream.
 - Treat dream figures as autonomous inner presences or complexes.
 - Shadow is always unintegrated intensity, charge, or unmetabolized vitality — never "negative" or moral failure.
 - Self is used only when a clear organizing center appears and the dream moves toward coherence. If the center brings agitation and loss of coherence, describe it as contested or unstable.
+
+Symbolic stance:
+- When a concrete image carries clear emotional, bodily, familial, cultural, or symbolic charge, allow the interpretation to land with precision instead of retreating into excessive neutrality.
+- Do not emotionally flatten the strongest image. Restraint should keep the image alive, not make it vague.
+- Do not reduce unusual dream details into generic symbolic categories. Stay with what makes the image specifically this image and not another one.
+- Preserve ambiguity without dissolving intensity. A strong image may remain unresolved while still carrying a clear psychological pressure.
+- Some dream images carry disproportionate psychic weight. Prioritize the images that alter atmosphere, embodiment, identity, belonging, orientation, or emotional reality inside the dream.
 
 Core Mode Logic (choose exactly one):
 
@@ -550,8 +743,12 @@ Core Mode Logic (choose exactly one):
 - Core Shift: threshold, irreversible change, leaving-behind, emergence, or transformation of form/identity/ground.
 - Core Restoration: the dream gives what waking life lacks, and tension is mild or absent.
 
-If two modes feel close, prefer Core State or Core Restoration over Core Tension.
-Do not force tension when the dream feels cohesive, restorative, playful, absurd, or numinous.
+If two modes feel close, choose the mode that best describes the dream's final movement and dominant affect.
+Prefer Core Tension when warmth, play, or coherence becomes organized around blockage, exposure, evaluation, shame, threat, illegitimacy, or unresolved pressure.
+Prefer Core State or Core Restoration only when ease, coherence, or replenishment remains dominant through the end.
+Do not force tension when the dream remains cohesive, restorative, playful, absurd, or numinous without a central rupture.
+
+Do not over-diagnose tension. Threat, shame, pursuit, exile, or bodily alarm usually indicate Core Tension, but only when they organize the dream's whole movement. If these appear briefly inside a wider field of play, coherence, absurdity, or restoration, choose the mode that best describes the dream as a whole.
 
 Style:
 - Be precise, psychologically grounded, and image-near.
@@ -569,282 +766,419 @@ Prioritize:
 - Inner tensions, ambivalences, or flows the dream actually stages
 - How the ego relates to what appears (what it approaches, avoids, or cannot yet metabolize)
 - What each image does to the dreamer’s attention, body, or stance
+- The psychic gravity of images that change atmosphere, embodiment, identity, belonging, orientation, or emotional reality
 - The larger symbolic forms or imaginal structures shaping the dream when clearly present
 - Archetypal dynamics only when they unmistakably deepen the specific image
 
 Never give conclusions, advice, or reassurance. Help the dreamer think symbolically.
 `;
 
-// Brief format (Quick Glance): 1 opening + atmosphere/affect + 1–2 symbols + felt sense (if present) + 1 question. 80–180 words.
+const DREAM_FIRST_READING_DIRECTIVE = `
+Let the dream narrative lead: image, affect, ego-position, figures, spaces, and movement.
+
+Return to the dream sequence and charged images first.
+Do not organize the reading around categories, tags, or frameworks.
+Do not mention indexing fields.
+
+The interpretation should feel like it arises from the dream scene itself.
+`;
+
+const INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE =
+  'OUTPUT LANGUAGE (mandatory): Keep all markdown section headings exactly as specified in English for UI consistency. ' +
+  'Write all paragraph text, bullets, and reflective questions in the same primary language as the dream narrative and any user notes in this request. ' +
+  'Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. ' +
+  'If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.';
+
 const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
 BRIEF mode (Quick Glance):
 - Total 80–180 words.
 - No headings.
+- Write one continuous image-near reflection, not a mini report.
 - Use 1–2 short paragraphs that do four things only:
-  1. open with the dream's dominant mode and core feeling or image in plain language
-  2. briefly render atmosphere if needed
-  3. name 1–2 key symbols with one concrete dream detail each
+  1. begin from one concrete dream image, action, place, figure, or bodily tone
+  2. render the atmosphere briefly
+  3. follow one central psychological movement
   4. include one felt-sense sentence only if bodily tone is clearly present
 - End with exactly one observational reflective question.
 - Do not use archetype labels, amplifications, or extra framework language.
+- Do not summarize the whole dream before entering it.
+- Do not list symbols.
+- Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
+
+Hard output limit:
+- Each paragraph must be 2–4 sentences maximum.
+- Prefer ending early over covering every detail.
+- The response must end naturally after the reflective question.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}
 `;
 
-// Standard mode (Core Reading): best reading experience — symbolic immediacy over analytic coverage
 const STANDARD_INTERPRETATION_FORMAT_PROMPT = `
 STANDARD mode (Core Reading):
 - Prioritize symbolic immediacy and the best reading experience, not exhaustive coverage.
-- If an extracted core_mode is provided in the user prompt, you MUST use that heading.
+- Use hidden structure: organize the reading internally, but keep the visible structure light.
+- The reading should feel like one compact path through the dream, not a report.
+- Let the dream sequence carry the form.
+- Follow the order of the dream unless one image clearly pulls the whole dream around it.
+- Do not distribute commentary equally across all details.
+- Avoid report-like language, therapeutic polish, and framework labels.
 
-## Core State / ## Core Tension / ## Core Shift / ## Core Restoration (1–2 sentences, always first)
-- Start from the image or action in the dream, not from a category label.
-- Plain language; no archetype terms in this section.
-- Avoid generic openers.
+Mythic resonance:
+- Mythic or archetypal widening is normally out of scope in Standard mode.
+- If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
+- Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
+- Prefer resonance over explanation.
 
-## Emotional Atmosphere (1 short paragraph)
-- Briefly render the dominant emotional tone and any inner split or ambivalence in felt, image-near language.
-- Do not interpret symbols here — save that for Key Symbols.
+Opening section:
+The first heading MUST be exactly one of:
+## Core Tension
+## Core State
+## Core Shift
+## Core Restoration
 
-## Key Symbols (usually 2, at most 3 bullets)
-- Choose only the symbols that carry the central psychic movement. Omit scenic, contextual, or secondary symbols.
-- Each symbol gets 1 strong sentence.
-- If symbol_stances are available from extraction, use them silently to sharpen each symbol's exact tone. Do not mention "stance" or any data-layer term. Let the symbol feel more specific and alive because of the stance, not more technical.
-- Use one vivid verb of psychic action per symbol.
-- Cite one concrete dream detail per bullet, woven in naturally (no parentheses).
+- Under the chosen Core heading, write 1–2 image-near sentences.
+- This should orient the dominant affect and final movement without sounding like a diagnosis.
+- Do not use archetype labels here.
 
-## Possible Psychological Meaning (1 short paragraph)
-- Synthesize the central psychic pattern, compromise formation, or organizing dynamic.
-- This is where the interpretation lands.
+## Dream Movement
 
-## Reflective Questions (always exactly 2)
+Write this as one compact interpretive reading, 2–4 short paragraphs.
+
+Internal movement to follow, without naming these as subheadings:
+1. Begin inside a concrete dream image, action, place, figure, or bodily tone.
+2. Let the strongest 1–3 images emerge naturally from the sequence.
+3. Show what they do to the dreamer's position, attention, body, agency, or belonging.
+4. Track the central movement without trying to cover every detail.
+5. Let unresolvedness appear only if the dream itself leaves something suspended.
+
+Rules for this section:
+- Do not split the reading into multiple analytical sections.
+- Do not use bullets for symbols.
+- Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, or Integration.
+- Every interpretive claim must be grounded in concrete dream detail.
+- Prefer one clear thread over complete coverage.
+- Preserve ambiguity without becoming vague.
+
+## Reflective Questions
+
+- Exactly 2 questions.
 - First question: somatic-observational when possible.
-- Second question: symbolic, relational, or imaginal — should deepen the central symbolic conflict, not open a new analytic thread.
-
-Optional — include at most one of each, only when clearly earned:
-- ONE single-sentence Felt Sense Anchor (as a statement, not a question) if bodily affect is strongly and clearly present in the dream.
-- ONE alternative reading sentence only if a central image is strongly and genuinely ambivalent: "One could also see [image] as… (cite one dream detail)."
-
-HARD RULES — never include in STANDARD mode:
-- Relational Field
-- Archetypal Dynamics
-- Decision-Edge
-- Amplification
-- More than 1 alternative reading
-- More than 3 Key Symbols (usually keep to 2)
+- Second question: symbolic, relational, or imaginal.
+- Questions should deepen the central movement, not open a new analytic thread.
+- Questions invite noticing, not self-improvement.
+- No advice verbs: try, practice, breathe, focus, work on, improve.
 
 Anti-framework language rule:
 - Prefer immediate, image-near, psychologically alive wording over analytic or institutional phrasing.
 - If a sentence can be made more vivid and direct without losing accuracy, always prefer the vivid version.
 
-Do not fill sections mechanically. Compress or omit any section that would sound generic or padded.
-Length: aim for 180–320 words. Omit any section that would be thinner than one strong sentence.
+Length: aim for 180–320 words.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}
 `;
 
-// Advanced mode (Deeper Dive): depth-oriented — goes deeper into psychic organization, not just more sections
 const ADVANCED_INTERPRETATION_FORMAT_PROMPT = `
 ADVANCED mode (Deeper Dive):
-- Go deeper into the dream's inner organization, movement, and ambivalence.
-- Do not become longer or more ornate just because this is advanced mode.
-- If an extracted core_mode is provided in the user prompt, you MUST use that heading.
+- Depth means staying inside the dream's movement, not explaining more.
+- The reading should feel like a continuous descent through the dream, not a report.
+- Use hidden structure: organize the interpretation internally, but do not expose many analytical headings.
+- Let the dream sequence carry the form.
+- Follow the order of the dream unless one charged image clearly pulls the whole dream around it.
+- Do not make the dream cleaner, wiser, or more coherent than it is.
+- Do not explain the strongest image too quickly.
+- Stay with strange, bodily, awkward, comic, ugly, tender, domestic, or uncanny details.
+- Prefer atmosphere, continuity, and image-near unfolding over category-by-category analysis.
+- Avoid report-like language, therapeutic polish, elegant over-synthesis, and framework labels.
+- Do not use phrases like "the dream organizes", "symbolic movement", or "charged image" in the body unless absolutely necessary.
 
-Deepen the reading through these priorities in order:
-1. What is the dream doing as a whole? Is it introducing disruption, offering restoration, testing a center, staging a threshold, preserving coherence through retreat, allowing vitality to appear in unstable form, staging play or absurd reorganization?
-2. When an image carries both promise and threat, permission and danger, vitality and overwhelm — hold both sides. Do not resolve ambivalence prematurely into one reading. Let the deeper meaning emerge from tension within the image.
-3. Look for 1–2 dominant dynamic tensions organizing the dream (e.g. continuity vs vitality, closeness vs engulfment, permission vs exposure, center vs collapse, smoothing-over vs alarm, protection vs avoidance, attraction vs overwhelm). Use only tensions the dream clearly supports.
-4. Ask whether the dream moves: toward greater coherence, partial integration, collapse, retreat, repair, threshold, unresolved suspension? If no real movement occurs, say so plainly.
-5. Use archetype language sparingly and only if it unmistakably deepens a specific image. A strong reading without archetype labels is better than a weaker one with them.
+Mythic resonance:
+- When a dream image carries unmistakable mythic, archetypal, ritual, initiatory, underworld, cosmic, sacred, or transpersonal weight, allow the interpretation to briefly widen beyond the personal psyche.
+- Mythic resonance must emerge organically from the image itself, not from symbolic inflation.
+- Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
+- A single precise mythic echo is stronger than extended amplification.
+- Prefer resonance over explanation.
+- Do not create a Mythic Resonance section.
+- Do not lecture on mythology or explain archetypal systems.
 
-Opening section (1 short paragraph — always first):
-- The first heading MUST be exactly one of:
-  ## Core Tension
-  ## Core State
-  ## Core Shift
-  ## Core Restoration
-- This opening section performs the function of naming the dream's central movement as a whole.
-- Start from image or action, not abstraction. Image-near language.
+Opening section:
+The first heading MUST be exactly one of:
+## Core Tension
+## Core State
+## Core Shift
+## Core Restoration
 
-## Emotional Atmosphere (optional — 1 short paragraph)
-- Briefly render the felt tone in sensorial, embodied language, especially when the dream carries awe, dread, quiet recognition, estrangement, tenderness, or numinous stillness.
-- Do not interpret symbols here.
+- Under the chosen Core heading, write 1–2 image-near sentences.
+- This should orient the dominant affect and final movement without sounding like a diagnosis.
+- Do not use archetype labels here.
 
-## Deeper Dynamics (1–2 short paragraphs)
-- Name the main dynamic tension(s) organizing the dream.
-- Use vivid, concrete, image-near language.
-- State tensions through the dream's actual figures, gestures, spaces, and bodily reactions — not through abstract system commentary.
-- Relational regulation, avoidance, smoothing-over, or field dynamics may appear here naturally if the dream warrants it — without becoming the main frame.
+## Dream Movement
 
-## Symbolic Forms
-- Prefer one compact paragraph. Use bullets only if two distinct forms clearly organize the dream.
-- Name 1–2 imaginal forms that shape the dream as a whole, not just isolated objects.
-- If extracted motifs are provided in the user prompt, use them as a scaffold — name the forms that fit the dream.
-- The section should feel like the reader is suddenly seeing the dream's shape more clearly, not like reading a category label.
-- Stay close to the actual dream images. Do not turn this into abstract interpretation.
-- If mythic resonance is enabled and a form clearly carries timeless or initiatory charge, you may briefly name that resonance here as an imaginal echo.
+Write this as one continuous interpretive essay, 4–7 short paragraphs.
 
-## Symbolic Development (1 short paragraph)
-- Describe whether the dream moves toward integration, instability, withdrawal, restoration, threshold, or unresolved suspension.
-- If the movement is blocked, partial, contradictory, or ambivalent, say that plainly.
-- If symbol_stances are available from extraction, use them silently to sharpen each symbol's exact tone here.
-- When bodily tone is especially clear, let one sentence carry that felt register naturally.
-- If a fork or decision-edge is clearly present in the dream logic, name it here without advising.
+Internal movement to follow, without naming these as subheadings:
+1. Begin inside the first scene: place, atmosphere, ego-position, and affect.
+2. Let the most charged image emerge naturally from the dream sequence.
+3. Stay with that image before interpreting it.
+4. Show how figures, spaces, objects, and actions gather around it.
+5. Track shifts in agency, belonging, distance, intimacy, passivity, activity, or permission.
+6. Let unresolvedness appear only if the dream itself leaves something suspended.
 
-## Archetypal Layer (optional — include only if unmistakably present)
-- 1 short paragraph or 1–2 bullets maximum.
-- Only if an archetype is clearly organizing the dream's structure or a symbol carries unmistakable numinous charge.
-- Use only: ${ARCHETYPE_WHITELIST.join(', ')}
-- For Shadow: unintegrated intensity or charge, not negative content.
-- For Self: only when the dream moves toward coherence and a clear organizing center is present.
-- If uncertain, omit entirely.
+Rules for this section:
+- Do not split the reading into multiple analytical sections.
+- Do not distribute equal commentary across all symbols.
+- Let one image become the gravitational center.
+- Use transitions that feel organic, not institutional.
+- Trust the image. Do not translate everything into psychology immediately.
+- Every interpretive claim must be grounded in concrete dream detail.
+- Preserve ambiguity without becoming vague.
 
-## Reflective Questions (always exactly 2)
-- First question: somatic-observational when possible.
-- Second question: symbolic, relational, or imaginal — deepens the central movement, not a new thread.
-- No advice or instruction verbs.
-- OK: "As you bring X to mind, what shifts in chest/belly?" / "When X comes back, where does the body register it first?"
-- Not OK: "Try to…" / "Take a moment…" / "Breathe and notice…"
+## Reflective Questions
 
-Hard rules:
-- Do not turn every dream into a developmental success story. If movement is absent or contradictory, say so.
-- Do not smooth over contradiction or ambivalence.
-Do not restate the same insight across sections.
-Length: aim for 220–420 words. If a section would be thin, omit it.
-`;
+- Exactly 2 questions.
+- First: somatic-observational when possible.
+- Second: symbolic, relational, or imaginal.
+- Questions invite noticing, not self-improvement.
+- No advice verbs: try, practice, breathe, focus, work on, improve.
 
-// Mythic resonance — appended to advanced when mythicResonance is true
-// Active detection of imaginal forms, not soft permission
-const ADVANCED_MYTHIC_NOTE = `
-Mythic resonance note: when mythic resonance is enabled, do not merely allow mythic echo — actively test whether the dream's symbolic forms carry timeless, initiatory, underworld, threshold, hidden-center, return-path, guide, waiting-figure, or labyrinthine charge. If one clearly does, include 1–2 sentences of imaginal resonance inside Symbolic Forms or Symbolic Development. This resonance should deepen the reading of the form, not decorate it. Frame it as an echo or atmosphere, never as a doctrine or claim. Do not name gods, myths, traditions, destiny, awakening, or higher truth. The resonance must arise directly from the dream image.
+Length: 420–620 words.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_READING}
 `;
 
 export type InterpretationDepth = 'quick' | 'standard' | 'advanced';
 
 export type GenerateInitialInterpretationOptions = {
-  /** When true, returns 1–2 paragraphs + 1 question (~80–150 words) instead of full structured format */
   brief?: boolean;
-  /** Level of analysis: quick (80–180 words), standard (150–350), advanced (400–700). Default standard. */
   depth?: InterpretationDepth;
-  /** When depth is advanced: if true, use mythic resonance in amplification; if false, use psychological (non-mythic). Ignored for quick/standard. */
-  mythicResonance?: boolean;
-  /** If provided, used for core_mode heading and no extraction API call is made inside (avoids duplicate call). Caller reuses this same extraction for saving symbols/archetypes/etc. — no data loss. */
-  extraction?: DreamExtraction;
 };
 
-export const generateInitialInterpretation = async (
+type InitialInterpretationRequest = {
+  depth: InterpretationDepth;
+  messages: ApiMessage[];
+  temperature: number;
+  interpretationStep: AiTask;
+};
+
+const buildInitialInterpretationRequest = (
   dream: Dream,
   options?: GenerateInitialInterpretationOptions
-): Promise<string> => {
-  let extractionForInterpretation: DreamExtraction | undefined = options?.extraction;
-
-  if (!extractionForInterpretation) {
-    try {
-      extractionForInterpretation = await extractDreamSymbolsAndArchetypes(dream);
-    } catch (error) {
-      logError('ai_extract_core_mode_for_interpretation_error', error, {
-        dreamId: dream.id,
-      });
-    }
-  }
-
-  const rawCoreMode = extractionForInterpretation?.core_mode?.trim();
-  const extractedCoreMode =
-    rawCoreMode && VALID_CORE_MODES.has(rawCoreMode) ? rawCoreMode : undefined;
-  const motifsLine = extractionForInterpretation?.motifs?.length
-    ? `Extracted motifs: ${extractionForInterpretation.motifs.join(', ')}`
-    : '';
-  const amplificationsLine = extractionForInterpretation?.amplifications?.length
-    ? `Extracted amplifications: ${extractionForInterpretation.amplifications.join(' | ')}`
-    : '';
-  const landscapesLine = extractionForInterpretation?.landscapes?.length
-    ? `Extracted landscapes: ${extractionForInterpretation.landscapes.join(', ')}`
-    : '';
-  const symbolsLine = extractionForInterpretation?.symbols?.length
-    ? `Extracted symbols: ${extractionForInterpretation.symbols.slice(0, 3).join(', ')}`
-    : '';
-  const symbolStances = extractionForInterpretation?.symbol_stances ?? [];
-  const symbolStancesLine = symbolStances.length
-    ? `Extracted symbol tones: ${symbolStances.slice(0, 4).map((s) => `${s.symbol} → ${s.stance}`).join('; ')}`
-    : '';
-
+): InitialInterpretationRequest => {
   interface ExtendedDream extends Dream {
     emotionOnWaking?: string;
     bodySensation?: string;
     currentLifeTheme?: string;
   }
+
   const extended = dream as ExtendedDream;
-  const emotionOnWaking = extended.emotionOnWaking || '';
-  const bodySensation = extended.bodySensation || '';
-  const currentLifeTheme = extended.currentLifeTheme || '';
-
   const personalizationPairs: Array<[string, string]> = [
-    ['Emotion on waking', emotionOnWaking],
-    ['Body sensation', bodySensation],
-    ['Current life theme', currentLifeTheme],
+    ['Emotion on waking', extended.emotionOnWaking || ''],
+    ['Body sensation', extended.bodySensation || ''],
+    ['Current life theme', extended.currentLifeTheme || ''],
   ];
-
   const personalizationSection = personalizationPairs
     .filter(([, v]) => Boolean(v))
     .map(([k, v]) => `${k}: ${v}`)
     .join('\n');
-  
-  const coreModeLine = extractedCoreMode ? `Extracted core_mode: ${extractedCoreMode}` : '';
-  const extractionContextLines = [
-    coreModeLine,
-    motifsLine,
-    amplificationsLine,
-    landscapesLine,
-    symbolsLine,
-    symbolStancesLine,
-  ].filter(Boolean);
-  const extractionContext = extractionContextLines.length ? extractionContextLines.join('\n') + '\n' : '';
-  const depth = options?.depth ?? (options?.brief ? 'quick' : 'standard');
-  const mythicResonance = options?.mythicResonance ?? false;
 
-  const forcedModeInstruction = extractedCoreMode
-    ? `\n\nYou MUST use ## ${extractedCoreMode} as the very first heading. Do NOT choose a different mode even if you disagree. Defer to the extracted mode for consistency.`
-    : '';
+  const depth = options?.depth ?? (options?.brief ? 'quick' : 'standard');
+  const outputLangSuffix = `\n\n${INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE}`;
 
   const userPrompt = depth === 'quick'
     ? `Here is a dream I want a brief symbolic reflection on.
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
-${extractionContext}
 ${personalizationSection ? `\n${personalizationSection}\n` : ''}
 Dream:
 ${dream.content}
 
-Give 1–2 short paragraphs and one reflective question. No conclusions, no advice.`
+${DREAM_FIRST_READING_DIRECTIVE}
+Give 1–2 short paragraphs and one reflective question. No conclusions, no advice.${outputLangSuffix}`
     : `Here is a dream I want to explore symbolically.
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
-${extractionContext}
 ${personalizationSection ? `\n${personalizationSection}\n` : ''}
 Dream:
 ${dream.content}
 
+${DREAM_FIRST_READING_DIRECTIVE}
 Please approach this as a symbolic psychological image, not a literal event.
 Focus on:
 - Emotional atmosphere and bodily affect
 - Inner tensions, ambivalences, or flows — whatever the dream actually stages
 - How the ego relates to what appears (including what it avoids, moves toward, or cannot metabolize)
 - What each image does to the dreamer's attention, body, or stance
-- The larger symbolic forms or imaginal structures that shape the dream as a whole when clearly present
-- Archetypal dynamics only when unmistakably present
+- The one or two images that carry the strongest charge
+- What remains strange, unresolved, or not fully readable
 
-Do not give conclusions. Offer symbolic perspectives and reflective questions.${forcedModeInstruction}`;
-
-  const { requestId, model } = startRequest();
+Do not give conclusions. Offer symbolic perspectives and reflective questions.${outputLangSuffix}`;
 
   let formatPrompt: string;
   if (depth === 'quick') {
     formatPrompt = BRIEF_INTERPRETATION_FORMAT_PROMPT;
   } else if (depth === 'advanced') {
-    formatPrompt = mythicResonance
-      ? ADVANCED_INTERPRETATION_FORMAT_PROMPT + ADVANCED_MYTHIC_NOTE
-      : ADVANCED_INTERPRETATION_FORMAT_PROMPT;
+    formatPrompt = ADVANCED_INTERPRETATION_FORMAT_PROMPT;
   } else {
     formatPrompt = STANDARD_INTERPRETATION_FORMAT_PROMPT;
   }
+
+  const interpretationStep: AiTask =
+    depth === 'quick'
+      ? 'interpretation_quick'
+      : depth === 'advanced'
+        ? 'interpretation_advanced'
+        : 'interpretation_standard';
+
+  return {
+    depth,
+    messages: [
+      { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
+      { role: 'system', content: INTERPRETATION_ROLE_PROMPT },
+      { role: 'system', content: formatPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.60 : 0.55,
+    interpretationStep,
+  };
+};
+
+const retryCompressedInitialInterpretation = async (params: {
+  apiUrl: string;
+  apiKey: string;
+  model: string;
+  originalMessages: ApiMessage[];
+  requestId: string;
+  tokenLimit: number;
+  timeout: number;
+  dreamId: string;
+  depth: InterpretationDepth;
+}): Promise<string> => {
+  const { apiUrl, apiKey, model, originalMessages, requestId, tokenLimit, timeout, dreamId, depth } = params;
+  const retryPrompt =
+    depth === 'quick'
+      ? QUICK_RETRY_PROMPT
+      : depth === 'advanced'
+        ? ADVANCED_RETRY_PROMPT
+        : STANDARD_RETRY_PROMPT;
+
+  const retryPayload: any = {
+    model,
+    messages: [...originalMessages, { role: 'system', content: retryPrompt }],
+    temperature: 0.35,
+  };
+  attachProxyTask(retryPayload, apiUrl, 'interpretation_retry_compact');
+  setTokenLimit(retryPayload, apiUrl, tokenLimit, model);
+  logAiRequestStart({
+    requestId: `${requestId}_retry_compact`,
+    task: 'interpretation_retry_compact',
+    model,
+    messages: retryPayload.messages,
+    tokenLimit,
+    apiUrl,
+    depth,
+    dreamId,
+  });
+
+  const retryHeaders = await buildHeaders(apiUrl, apiKey, `${requestId}_retry_compact`, dreamId);
+  const retryResponse = await fetchWithTimeout(
+    apiUrl,
+    { method: 'POST', headers: retryHeaders, body: JSON.stringify(retryPayload) },
+    timeout,
+    1,
+    1
+  );
+  const retryData = await parseApiResponse(retryResponse, `${requestId}_retry_compact`, apiUrl);
+
+  if (!retryResponse.ok) throw new Error(userSafeError(retryResponse.status, apiUrl));
+
+  recordDreamAiUsage(
+    dreamId,
+    'interpretation_retry_compact',
+    retryData,
+    aiResponseMeta(retryResponse, `${requestId}_retry_compact`)
+  );
+
+  const content = extractApiResponseContent(retryData, { allowTruncated: true });
+  return ensureCompleteMarkedResponse(
+    retryData,
+    content,
+    END_MARKER_DREAM_READING,
+    apiUrl,
+    `${requestId}_retry_compact`,
+    'interpretation_retry_compact'
+  );
+};
+
+const retryCompressedPatternEssay = async (params: {
+  apiUrl: string;
+  apiKey: string;
+  model: string;
+  originalMessages: ApiMessage[];
+  requestId: string;
+  tokenLimit: number;
+  timeout: number;
+}): Promise<string> => {
+  const { apiUrl, apiKey, model, originalMessages, requestId, tokenLimit, timeout } = params;
+  const retryPayload: any = {
+    model,
+    messages: [...originalMessages, { role: 'system', content: COMPRESSION_RETRY_ESSAY_SYSTEM_PROMPT }],
+    temperature: 0.35,
+  };
+  attachProxyTask(retryPayload, apiUrl, 'pattern_insights_retry_compact');
+  setTokenLimit(retryPayload, apiUrl, tokenLimit, model);
+  logAiRequestStart({
+    requestId: `${requestId}_retry_essay_compact`,
+    task: 'pattern_insights_retry_compact',
+    model,
+    messages: retryPayload.messages,
+    tokenLimit,
+    apiUrl,
+  });
+
+  const retryHeaders = await buildHeaders(apiUrl, apiKey, `${requestId}_retry_essay_compact`);
+  const retryResponse = await fetchWithTimeout(
+    apiUrl,
+    { method: 'POST', headers: retryHeaders, body: JSON.stringify(retryPayload) },
+    timeout,
+    1,
+    1
+  );
+  const retryData = await parseApiResponse(retryResponse, `${requestId}_retry_essay_compact`, apiUrl);
+
+  if (!retryResponse.ok) throw new Error(userSafeError(retryResponse.status, apiUrl));
+
+  recordDreamAiUsage(
+    undefined,
+    'pattern_insights_retry_compact',
+    retryData,
+    aiResponseMeta(retryResponse, `${requestId}_retry_essay_compact`)
+  );
+
+  const content = extractApiResponseContent(retryData, { allowTruncated: true });
+  return ensureCompleteMarkedResponse(
+    retryData,
+    content,
+    END_MARKER_DREAM_ESSAY,
+    apiUrl,
+    `${requestId}_retry_essay_compact`,
+    'pattern_insights_retry_compact'
+  );
+};
+
+export const generateInitialInterpretation = async (
+  dream: Dream,
+  options?: GenerateInitialInterpretationOptions
+): Promise<string> => {
+  resetDreamAiUsageBucket(dream.id);
+  const { depth, messages, temperature, interpretationStep } = buildInitialInterpretationRequest(dream, options);
+  const { requestId, model } = startRequest();
 
   try {
     const apiUrl = getApiUrl();
@@ -861,86 +1195,97 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
       }
     }
 
-    const messages: ApiMessage[] = [
-      { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
-      { role: 'system', content: INTERPRETATION_ROLE_PROMPT },
-      { role: 'system', content: formatPrompt },
-      { role: 'user', content: userPrompt },
-    ];
-
     const payload: any = {
       model,
       messages,
-      temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.50 : 0.55,
+      temperature,
     };
-    attachProxyTask(
-      payload,
-      apiUrl,
-      depth === 'quick'
-        ? 'interpretation_quick'
-        : depth === 'advanced'
-          ? 'interpretation_advanced'
-          : 'interpretation_standard'
-    );
 
+    attachProxyTask(payload, apiUrl, interpretationStep);
+
+    let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
       const isGpt5 = /^gpt-5/i.test(model);
-      const tokenLimit =
-        depth === 'quick' ? 450
-        : depth === 'advanced' ? (isGpt5 ? 2400 : 2000)
+      tokenLimit =
+        depth === 'quick' ? 550
+        : depth === 'advanced' ? (isGpt5 ? 2200 : 1800)
         : (isGpt5 ? 1600 : 1200);
       setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
-    const headers = await buildHeaders(apiUrl, apiKey, requestId);
+    logAiRequestStart({ requestId, task: interpretationStep, model, messages, tokenLimit, apiUrl, depth, dreamId: dream.id });
+
+    const headers = await buildHeaders(apiUrl, apiKey, requestId, dream.id);
     const response = await fetchWithTimeout(
       apiUrl,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      },
+      { method: 'POST', headers, body: JSON.stringify(payload) },
       capabilities.defaultTimeout,
-      1, // transient retries (network/5xx errors)
-      2  // rate limit retries
+      1,
+      2
     );
 
     const data = await parseApiResponse(response, requestId, apiUrl);
 
     if (!response.ok) {
-      // Log raw error message (truncated) for debugging
       const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
-      logError('ai_generate_initial_api_error', new Error(rawError), { 
+      logError('ai_generate_initial_api_error', new Error(rawError), {
         requestId,
         model,
         status: response.status,
-        hasError: !!data.error 
+        hasError: !!data.error,
       });
-      // Throw user-safe error message (never expose internal errors)
       throw new Error(userSafeError(response.status, apiUrl));
     }
 
+    recordDreamAiUsage(dream.id, interpretationStep, data, aiResponseMeta(response, requestId));
+
+    let content = extractApiResponseContent(data, { allowTruncated: true });
+
     if (__DEV__) {
-      const content = extractApiResponseContent(data);
       console.log('[AI] Response structure:', {
         hasChoices: !!data.choices,
         choicesLength: data.choices?.length,
         hasMessage: !!data.choices?.[0]?.message,
         hasContent: !!data.choices?.[0]?.message?.content,
         contentLength: content.length,
+        finishReason: data.choices?.[0]?.finish_reason,
       });
     }
 
-    return extractApiResponseContent(data);
+    if (isTruncatedResponse(data) || !content.trim()) {
+      const retryTokenLimit = depth === 'quick' ? 550 : depth === 'advanced' ? 1800 : 1200;
+      content = await retryCompressedInitialInterpretation({
+        apiUrl,
+        apiKey,
+        model,
+        originalMessages: messages,
+        requestId,
+        tokenLimit: retryTokenLimit,
+        timeout: capabilities.defaultTimeout,
+        dreamId: dream.id,
+        depth,
+      });
+    }
+
+    if (!hasEndMarker(content, END_MARKER_DREAM_READING)) {
+      logError('ai_missing_end_marker', new Error('Dream reading missing end marker'), {
+        requestId,
+        dreamId: dream.id,
+        depth,
+        contentLength: content.length,
+      });
+    }
+
+    return stripEndMarker(content, END_MARKER_DREAM_READING);
   } catch (error) {
     logError('ai_generate_initial_error', error, { requestId, model });
     throw error;
   }
 };
 
-// Chat mode: keep replies short and scannable (UX + post-Jungian balance)
 const CHAT_MODE_INSTRUCTIONS = `
 Chat mode:
+- Use the same language as the dream and the user's latest messages. Do not switch language just because the interface or a prior assistant turn used a different one.
 - Build on the existing reading instead of redoing a full analysis.
 - Be concise, but do not become casual, flattened, or generic.
 - Prefer one precise development over a quick summary of many points.
@@ -950,12 +1295,8 @@ Chat mode:
 - Focus on one or two key insights; avoid listing many points. Fewer, sharper observations.
 `;
 
-// Trim conversation history to last N messages to prevent context bloat
 const trimConversationHistory = (history: ChatMessage[], maxMessages: number = 12): ChatMessage[] => {
-  if (history.length <= maxMessages) {
-    return history;
-  }
-  // Keep the last N messages
+  if (history.length <= maxMessages) return history;
   return history.slice(-maxMessages);
 };
 
@@ -964,20 +1305,15 @@ export const sendChatMessage = async (
   conversationHistory: ChatMessage[],
   newMessage: string
 ): Promise<string> => {
-  // Truncate dream content to save tokens and prevent repetition
-  // In chat mode, we don't need the full dream every turn
-  const dreamExcerpt = dream.content.length > 1200
-    ? dream.content.slice(0, 1200) + '…'
-    : dream.content;
-  
+  const dreamExcerpt = dream.content.length > 1200 ? dream.content.slice(0, 1200) + '…' : dream.content;
+
   const dreamContext = `Dream being discussed:
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
 Content: ${dreamExcerpt}`;
 
-  // Trim conversation history to prevent context bloat
   const trimmedHistory = trimConversationHistory(conversationHistory);
-  const assistantCount = trimmedHistory.filter(m => m.role === 'assistant').length;
+  const assistantCount = trimmedHistory.filter((m) => m.role === 'assistant').length;
   const isFinalResponse = assistantCount === MAX_AI_RESPONSES - 1;
 
   const finalResponseInstruction = isFinalResponse
@@ -989,7 +1325,8 @@ Content: ${dreamExcerpt}`;
     { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
     ...(finalResponseInstruction ? [{ role: 'system' as const, content: finalResponseInstruction }] : []),
     { role: 'system', content: dreamContext },
-    ...trimmedHistory.map(msg => ({
+    { role: 'system', content: INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE },
+    ...trimmedHistory.map((msg) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     })),
@@ -1013,44 +1350,40 @@ Content: ${dreamExcerpt}`;
       }
     }
 
-    const payload: any = {
-      model,
-      messages,
-      temperature: 0.45, // Lower temperature for chat to stay analytical, avoid therapy-coach drift
-    };
+    const payload: any = { model, messages, temperature: 0.45 };
     attachProxyTask(payload, apiUrl, 'chat_followup');
 
+    let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 550, model); // ~200 words + 1 question; keeps chat snappy
+      tokenLimit = 550;
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
-    const headers = await buildHeaders(apiUrl, apiKey, requestId);
+    logAiRequestStart({ requestId, task: 'chat_followup', model, messages, tokenLimit, apiUrl, dreamId: dream.id });
+
+    const headers = await buildHeaders(apiUrl, apiKey, requestId, dream.id);
     const response = await fetchWithTimeout(
       apiUrl,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      },
+      { method: 'POST', headers, body: JSON.stringify(payload) },
       capabilities.defaultTimeout,
-      1, // transient retries (network/5xx errors)
-      2  // rate limit retries
+      1,
+      2
     );
 
     const data = await parseApiResponse(response, requestId, apiUrl);
 
     if (!response.ok) {
-      // Log raw error message (truncated) for debugging
       const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
-      logError('ai_send_chat_api_error', new Error(rawError), { 
+      logError('ai_send_chat_api_error', new Error(rawError), {
         requestId,
         model,
         status: response.status,
-        hasError: !!data.error 
+        hasError: !!data.error,
       });
-      // Throw user-safe error message (never expose internal errors)
       throw new Error(userSafeError(response.status, apiUrl));
     }
+
+    recordDreamAiUsage(dream.id, 'chat_followup', data, aiResponseMeta(response, requestId));
 
     return extractApiResponseContent(data);
   } catch (error) {
@@ -1059,7 +1392,6 @@ Content: ${dreamExcerpt}`;
   }
 };
 
-/** Phrases that exclude Self from chips — text undermines centering symbol */
 const SELF_SUPPRESSION_PHRASES = [
   'false center',
   "doesn't stabilize",
@@ -1080,18 +1412,9 @@ const SELF_SUPPRESSION_PHRASES = [
 
 const MAX_SYMBOLS_TOTAL = 12;
 
-/**
- * Archetype chips must be a strict reflection of the analysis text.
- * If the text undermines a centering symbol, Self must be suppressed.
- */
-export function filterArchetypesForDisplay(
-  archetypes: string[],
-  analysisText: string
-): string[] {
+export function filterArchetypesForDisplay(archetypes: string[], analysisText: string): string[] {
   const textLower = analysisText.toLowerCase();
-  const suppressSelf = SELF_SUPPRESSION_PHRASES.some((phrase) =>
-    textLower.includes(phrase.toLowerCase())
-  );
+  const suppressSelf = SELF_SUPPRESSION_PHRASES.some((phrase) => textLower.includes(phrase.toLowerCase()));
 
   return archetypes.filter((a) => {
     if (a.toLowerCase() === 'self' && suppressSelf) return false;
@@ -1099,7 +1422,6 @@ export function filterArchetypesForDisplay(
   });
 }
 
-// Helper: extract a markdown section by heading title
 const extractSection = (text: string, title: string): string | null => {
   const re = new RegExp(
     `##?\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n([\\s\\S]*?)(?=\\n##?\\s*|$)`,
@@ -1109,48 +1431,154 @@ const extractSection = (text: string, title: string): string | null => {
   return m ? m[1].trim() : null;
 };
 
-// Fallback extraction for rendered analysis.
-// Reliable mainly for standard-mode bullet sections (Key Symbols).
-// Advanced-mode Symbolic Forms is typically prose-only, so we do not use it for symbol extraction.
-// The primary extraction JSON (extractDreamSymbolsAndArchetypes) is the source of truth.
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const stripMarkdownHeadingText = (line: string): string =>
+  line.trim().replace(/^#{1,6}\s+/, '').replace(/\*+/g, '').trim();
+
+const headingStemKey = (raw: string): string => stripMarkdownHeadingText(raw).replace(/\s+/g, ' ').trim().toLowerCase();
+const normalizedHeadingStem = (raw: string): string => headingStemKey(raw).replace(/^the\s+/, '');
+
+const STRUCTURAL_INTERPRETATION_HEADING_KEYS = new Set([
+  'key symbols',
+  'reflective questions',
+  'questions',
+  'possible psychological meaning',
+  'emotional atmosphere',
+  'deeper dynamics',
+  'the charged image',
+  'charged image',
+  'what the dream organizes',
+  'symbolic movement',
+  'dream movement',
+  'what remains unresolved',
+  'symbolic forms',
+  'symbolic development',
+  'relational field',
+  'decision-edge',
+  'decision edge',
+  'amplification',
+  'mythic resonance',
+  'archetypal layer',
+  'archetypal dynamics',
+  'core state / core tension / core shift / core restoration',
+  'core tension / core state / core shift / core restoration',
+  'core tension / core state / core shift / core restoration (1–2 sentences, always first)',
+]);
+
+const GENERIC_SOLO_HEADING_STEMS = new Set([
+  'threshold',
+  'thresholds',
+  'hidden self',
+  'journey',
+  'integration',
+  'transformation',
+  'growth',
+  'healing',
+  'unknown',
+  'unconscious',
+  'psyche',
+  'soul',
+  'transcendence',
+  'awakening',
+  'the void',
+  'the deep',
+  'depth',
+  'depths',
+  'north gate',
+  'south gate',
+]);
+
+const isStructuralInterpretationHeading = (raw: string): boolean => {
+  const key = headingStemKey(raw);
+  if (STRUCTURAL_INTERPRETATION_HEADING_KEYS.has(key)) return true;
+  if (/^core (tension|state|shift|restoration)\b/i.test(key)) return true;
+  return false;
+};
+
+const extractInterpretationMarkdownHeadings = (text: string): string[] => {
+  const lines = [...text.matchAll(/^#{2,6}\s+(.+)$/gm)];
+  return lines.map((m) => m[1].trim());
+};
+
+const deriveSymbolTitlesFromDreamHeadings = (text: string): string[] => {
+  const titles = extractInterpretationMarkdownHeadings(text);
+  const candidates: string[] = [];
+  for (const raw of titles) {
+    if (isStructuralInterpretationHeading(raw)) continue;
+    const stem = normalizedHeadingStem(raw);
+    if (!stem || stem.length < 3) continue;
+    if (GENERIC_SOLO_HEADING_STEMS.has(stem)) continue;
+    const readable = stripMarkdownHeadingText(raw);
+    const cleaned = readable.replace(/^The\s+/i, '').slice(0, 72).trim();
+    if (cleaned.length >= 3) candidates.push(cleaned);
+  }
+  return [...new Set(candidates)];
+};
+
+const parseBulletLeadPhrasesFromSection = (section: string | null): string[] => {
+  if (!section) return [];
+  const out: string[] = [];
+  const bulletMatches = section.match(/^[-*]\s*(.+)$/gm);
+  if (bulletMatches) {
+    bulletMatches.forEach((bullet) => {
+      const text = bullet.replace(/^[-*]\s*/, '').trim();
+      const symbolName = text.split(/[:,\-]/)[0].trim();
+      if (symbolName && symbolName.length < 50) out.push(symbolName);
+    });
+  }
+  return out;
+};
+
+const extractExplicitArchetypesFromReadingProse = (text: string): ArchetypeName[] => {
+  const ordered = [...ARCHETYPE_WHITELIST].sort((a, b) => b.length - a.length);
+  const hits: ArchetypeName[] = [];
+  const seen = new Set<string>();
+  for (const label of ordered) {
+    try {
+      const re = new RegExp(`\\b${escapeRegex(label)}\\b`, 'iu');
+      if (!re.test(text)) continue;
+      if (!seen.has(label)) {
+        seen.add(label);
+        hits.push(label);
+      }
+    } catch {
+      continue;
+    }
+  }
+  return hits;
+};
+
 export const extractSymbolsAndArchetypesFromRenderedAnalysis = (aiResponse: string): {
   symbols: string[];
   archetypes: string[];
   landscapes: string[];
 } => {
+  const trimmed = aiResponse.includes(END_MARKER_DREAM_READING)
+    ? stripEndMarker(aiResponse, END_MARKER_DREAM_READING)
+    : aiResponse.trim();
+
   const symbols: string[] = [];
-  const archetypes: string[] = [];
+  symbols.push(...parseBulletLeadPhrasesFromSection(extractSection(trimmed, 'Key Symbols')));
+  if (symbols.length === 0) symbols.push(...parseBulletLeadPhrasesFromSection(extractSection(trimmed, 'Symbolic Forms')));
+  if (symbols.length === 0) symbols.push(...deriveSymbolTitlesFromDreamHeadings(trimmed));
 
-  // --- Symbols: from Key Symbols only (standard mode uses bullets; advanced Symbolic Forms is prose-only) ---
-  const symbolsSource = extractSection(aiResponse, 'Key Symbols');
-  if (symbolsSource) {
-    const bulletMatches = symbolsSource.match(/^[-*]\s*(.+)$/gm);
-    if (bulletMatches) {
-      bulletMatches.forEach((bullet) => {
-        const text = bullet.replace(/^[-*]\s*/, '').trim();
-        const symbolName = text.split(/[:,\-]/)[0].trim();
-        if (symbolName && symbolName.length < 50) symbols.push(symbolName);
-      });
-    }
-  }
-
-  // --- Archetypes: from "Archetypal Dynamics" (standard) or "Archetypal Layer" (advanced) ---
   const archeSection =
-    extractSection(aiResponse, 'Archetypal Dynamics') ||
-    extractSection(aiResponse, 'Archetypal Layer');
+    extractSection(trimmed, 'Archetypal Dynamics') ||
+    extractSection(trimmed, 'Archetypal Layer');
+  let archetypeCandidates: ArchetypeName[] = [];
   if (archeSection) {
     const bulletMatches = archeSection.match(/^[-*]\s*(.+)$/gm) || [];
-    const candidates = bulletMatches
+    archetypeCandidates = bulletMatches
       .map((b) => b.replace(/^[-*]\s*/, '').trim())
       .map((line) => line.split(/[:–—-]/)[0].trim())
       .flatMap((raw) => normalizeArchetypeList(raw));
-    archetypes.push(...candidates);
   }
+  if (archetypeCandidates.length === 0) archetypeCandidates = extractExplicitArchetypesFromReadingProse(trimmed);
 
   const filteredSymbols = filterAffectWords([...new Set(symbols)]);
-
-  const uniqueArchetypes = [...new Set(archetypes)];
-  const filteredArchetypes = filterArchetypesForDisplay(uniqueArchetypes, aiResponse);
+  const uniqueArchetypes = [...new Set(archetypeCandidates)];
+  const filteredArchetypes = filterArchetypesForDisplay(uniqueArchetypes, trimmed);
 
   return {
     symbols: filteredSymbols.slice(0, MAX_SYMBOLS_TOTAL),
@@ -1159,10 +1587,8 @@ export const extractSymbolsAndArchetypesFromRenderedAnalysis = (aiResponse: stri
   };
 };
 
-/** @deprecated Use extractSymbolsAndArchetypesFromRenderedAnalysis. Kept for backward compatibility. */
 export const extractSymbolsAndArchetypes = extractSymbolsAndArchetypesFromRenderedAnalysis;
 
-// Common emotional/affect words to filter out from symbols
 const AFFECT_WORDS = new Set([
   'worry', 'worried', 'anxiety', 'anxious', 'fear', 'fearful', 'afraid', 'scared',
   'sadness', 'sad', 'depression', 'depressed', 'melancholy', 'melancholic',
@@ -1192,65 +1618,95 @@ const AFFECT_WORDS = new Set([
   'disappointment', 'disappointed', 'regret', 'regretful',
 ]);
 
-// Filter out affect words from symbols
 const filterAffectWords = (symbols: string[]): string[] => {
-  return symbols.filter(symbol => {
+  return symbols.filter((symbol) => {
     const symbolLower = symbol.toLowerCase().trim();
-    // Check if the symbol is an affect word or contains one
     const words = symbolLower.split(/\s+/);
-    return !words.some(word => AFFECT_WORDS.has(word));
+    return !words.some((word) => AFFECT_WORDS.has(word));
   });
 };
 
+const CONVERSATION_ELEMENT_UPDATE_SYSTEM_PROMPT = `You revise long-term dream pattern metadata from a follow-up conversation.
+Return only the JSON fields requested in the user message.
+Do not extract, invent, or return symbols, symbol_stances, or landscapes.
+Use the user's confirmed clarifications; do not treat assistant speculation as ground truth unless the user echoes or grounds it.
+All field values in English. Return valid JSON only — no markdown fences or commentary.`;
+
 const EXTRACTION_SYSTEM_PROMPT = `
-You extract dream elements for long-term pattern tracking.
+You map dream elements for UI metadata and long-term pattern tracking.
+This may run as a background pre-catalogue from the raw dream, or after the interpretation when no cached metadata exists.
+Your job is indexing/cataloguing, not first reading.
+Use the dream as ground truth. If a final interpretation is provided, treat it as supporting context only.
 
 Rules:
-- Extract only what is clearly present or strongly implied in the dream text.
-- Be economical: usually 3–5 items per field unless the dream is unusually rich.
+- Map only what is clearly present or strongly implied by concrete dream language.
+- Be restrained and economical. Leave arrays empty when the dream does not clearly support a field.
 - Return every field value in English only, regardless of the dream language.
 - Prefer fewer high-confidence items over many weak ones.
-- symbols, symbol_stances, and core_mode are required. Other fields are optional.
+- Prefer concrete dream language over abstract psychological labels.
+- Do not infer archetypes unless strongly staged.
+- Do not use mythological amplification unless it directly clarifies the dream image.
+- core_mode may be null if choosing a mode would distort the dream.
 
 Fields:
-- symbols: 3–5 concrete images, figures, animals, places, objects, or forces. Never emotions. Use canonical singular form with no article.
-- symbol_stances: 3–5 items, one per key symbol, each { "symbol": "exact phrase from symbols", "stance": "2–8 words" }. Capture how the symbol is experienced in this dream: e.g. "playful", "blocking, alarming", "stressful attempt to prove", "warmly permitting closeness". Use specific lived tone, not generic positive/negative labels.
+- symbols: 1–5 concrete images, figures, animals, places, objects, or forces. Never emotions. Use canonical singular form with no article.
+- symbol_stances: 1–5 items, only for genuinely charged symbols. Add one entry per charged key symbol, maximum 5. If no symbol carries clear charge, use []. Each item is { "symbol": "exact phrase from symbols", "stance": "2–8 words" }. Capture how the symbol is experienced in this dream: e.g. "playful", "blocking, alarming", "stressful attempt to prove", "warmly permitting closeness". Use specific lived tone, not generic positive/negative labels.
 - archetypes: optional. Include only when clearly active. Use only: ${ARCHETYPE_WHITELIST.join(', ')}. Split combined labels into separate entries.
 - landscapes: 1–3 main settings or places in canonical form.
 - affects: 2–4 dominant felt tones or bodily energies, not diagnoses.
 - motifs: 2–4 short symbolic forms or situations describing the dream's shape, not its interpretation.
 - relational_dynamics: 1–3 short phrases about regulation of pace, permission, urgency, merging, or distance.
-- core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration".
-- amplifications: 0–2 brief items for symbols with unmistakable embodied or numinous charge.
+- thresholds: 0–3 moments of transition, departure, arrival, sleep, work, crossing, or change of ground.
+- central_conflicts: 0–2 concrete conflicts or opposing pressures clearly staged by the dream.
+  Use "X vs Y" only when both sides are supported by actual dream images, figures, actions, places, or bodily tones.
+  Prefer image-near phrasing over abstract psychology.
+  Good: "locked room vs open street", "wanting to enter vs being watched", "warm table vs silent exclusion", "sleeping body vs demand to perform".
+  Avoid generic pairs like "fear vs desire", "control vs surrender", or "autonomy vs belonging" unless the dream concretely stages both sides.
+  Use [] if none is clearly staged.
+- core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration", or null.
+- amplifications: 0–2 brief items for symbols with unmistakable embodied or numinous charge. Do not use mythological amplification unless it directly clarifies the dream image.
+
+Schema contract:
+{
+  "symbols": string[],
+  "symbol_stances": {"symbol": string, "stance": string}[],
+  "archetypes": string[],
+  "landscapes": string[],
+  "affects": string[],
+  "motifs": string[],
+  "relational_dynamics": string[],
+  "thresholds": string[],
+  "central_conflicts": string[],
+  "core_mode": "Core Tension" | "Core State" | "Core Shift" | "Core Restoration" | null,
+  "amplifications": string[]
+}
 
 Return ONLY one valid JSON object, single-line, no extra text. Put symbol_stances immediately after symbols:
 {
   "symbols": [...],
-  "symbol_stances": [{"symbol": "mirror (fogging)", "stance": "stressful attempt to prove"}, {"symbol": "thick paper seal", "stance": "barrier that blocks vital exchange"}, ...],
+  "symbol_stances": [{"symbol": "mirror", "stance": "stressful attempt to prove"}],
   "archetypes": [...],
   "landscapes": [...],
   "affects": [...],
   "motifs": [...],
   "relational_dynamics": [...],
+  "thresholds": [...],
+  "central_conflicts": [...],
   "core_mode": "Core Tension",
   "amplifications": [...]
 }
 
-If nothing fits a field, use []. If unsure, omit or use []. symbol_stances is required and should not be empty. Return only the JSON object with no markdown fences or commentary.
+If nothing fits an array field, use []. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
 `;
 
 export type SymbolStance = { symbol: string; stance: string };
 
-// Runtime-safe parsing helpers for extraction JSON
 const asStringArray = (value: unknown, max = 10): string[] =>
   Array.isArray(value)
-    ? value
-        .map((s) => String(s).trim())
-        .filter(Boolean)
-        .slice(0, max)
+    ? value.map((s) => String(s).trim()).filter(Boolean).slice(0, max)
     : [];
 
-const asSymbolStances = (value: unknown, max = 6): SymbolStance[] =>
+const asSymbolStances = (value: unknown, max = 5): SymbolStance[] =>
   Array.isArray(value)
     ? value
         .map((item: unknown) => {
@@ -1270,14 +1726,102 @@ export type DreamExtraction = {
   affects: string[];
   motifs: string[];
   relational_dynamics: string[];
+  thresholds: string[];
+  central_conflicts: string[];
   core_mode: string;
   amplifications: string[];
-  /** How each key symbol was experienced in the dream (playful, painful, stressful, etc.). */
   symbol_stances: SymbolStance[];
 };
 
-export const extractDreamSymbolsAndArchetypes = async (dream: Dream): Promise<DreamExtraction> => {
-  const extractionPrompt = `Analyze this dream and extract symbols, archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, and amplifications.
+const parseDreamExtractionRecord = (parsed: Record<string, unknown>): DreamExtraction => {
+  const rawSymbols = asStringArray(parsed.symbols, MAX_SYMBOLS_TOTAL);
+  const symbols = filterAffectWords(rawSymbols).slice(0, MAX_SYMBOLS_TOTAL);
+
+  const rawArchetypes: unknown[] = Array.isArray(parsed.archetypes) ? parsed.archetypes : [];
+  const expanded: string[] = rawArchetypes.flatMap((a) => normalizeArchetypeList(String(a)));
+  const uniqueArchetypes = [...new Set(expanded)];
+
+  const landscapes = asStringArray(parsed.landscapes, 5);
+  const affects = asStringArray(parsed.affects, 4);
+  const motifs = asStringArray(parsed.motifs, 4);
+  const relational_dynamics = asStringArray(parsed.relational_dynamics, 3);
+  const thresholds = asStringArray(parsed.thresholds, 3);
+  const central_conflicts = asStringArray(parsed.central_conflicts ?? parsed.centralConflicts, 2);
+  const core_mode =
+    typeof parsed.core_mode === 'string' && /^Core (Tension|State|Shift|Restoration)$/.test(parsed.core_mode)
+      ? parsed.core_mode
+      : '';
+  const amplifications = asStringArray(parsed.amplifications, 3);
+
+  const rawSymbolStances = parsed.symbol_stances ?? parsed.symbolStances;
+  const symbol_stances = asSymbolStances(rawSymbolStances, 5);
+
+  if (__DEV__ && symbol_stances.length === 0 && parsed && typeof parsed === 'object') {
+    console.warn('[AI] symbol_stances empty; parsed keys:', Object.keys(parsed));
+    if (rawSymbolStances != null) {
+      console.warn(
+        '[AI] rawSymbolStances type:',
+        typeof rawSymbolStances,
+        Array.isArray(rawSymbolStances) ? 'length=' + (rawSymbolStances as unknown[]).length : '',
+        rawSymbolStances
+      );
+    }
+  }
+
+  return {
+    symbols,
+    archetypes: uniqueArchetypes,
+    landscapes,
+    affects,
+    motifs,
+    relational_dynamics,
+    thresholds,
+    central_conflicts,
+    core_mode,
+    amplifications,
+    symbol_stances,
+  };
+};
+
+export type DreamDisplayMap = {
+  chargedImages: Array<{ label: string; tone?: string }>;
+  movement: string;
+  unresolvedPressure?: string;
+  resonance?: string;
+};
+
+export const buildDreamDisplayMap = (extraction: DreamExtraction): DreamDisplayMap => {
+  const chargedImages =
+    extraction.symbol_stances.length > 0
+      ? extraction.symbol_stances.slice(0, 4).map((s) => ({
+          label: s.symbol,
+          tone: s.stance || undefined,
+        }))
+      : extraction.symbols.slice(0, 4).map((label) => ({ label }));
+
+  const movement =
+    extraction.thresholds.slice(0, 3).join(' → ') ||
+    extraction.motifs.slice(0, 2).join(' → ') ||
+    extraction.central_conflicts[0] ||
+    extraction.relational_dynamics[0] ||
+    'unmapped movement';
+
+  return {
+    chargedImages,
+    movement,
+    unresolvedPressure: extraction.central_conflicts[0] || undefined,
+    resonance: extraction.amplifications[0] || extraction.motifs[0] || undefined,
+  };
+};
+
+export const extractDreamSymbolsAndArchetypes = async (
+  dream: Dream,
+  finalInterpretation: string = ''
+): Promise<DreamExtraction> => {
+  const interpretationContext = finalInterpretation.trim() || '(none provided)';
+  const hasFinalInterpretation = finalInterpretation.trim().length > 0;
+
+  const extractionPrompt = `${hasFinalInterpretation ? 'Catalog this dream into UI metadata fields after the final interpretation has been written' : 'Pre-catalog this dream into UI metadata fields from the raw dream only'}: symbols, symbol_stances, archetypes, landscapes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, and amplifications.
 
 Title: ${dream.title || 'Untitled'}
 Date: ${dream.date}
@@ -1285,7 +1829,13 @@ Date: ${dream.date}
 Dream:
 ${dream.content}
 
-Return a JSON object with all fields. Put symbol_stances immediately after symbols (required): symbols, then symbol_stances (3–5 items: { "symbol": "...", "stance": "2–8 words" }), then archetypes, landscapes, affects, motifs, relational_dynamics, core_mode, amplifications. For symbol_stances you MUST add one entry per key symbol with how it was experienced (e.g. "stressful attempt to prove", "playful", "reassuring"). If unsure for other fields use empty array [] or for core_mode use "Core State".`;
+${hasFinalInterpretation ? `Final interpretation:
+${interpretationContext}
+` : 'Final interpretation: (not provided; use raw dream only)\n'}
+Return one JSON object matching the schema exactly. Put symbol_stances immediately after symbols.
+symbol_stances must contain one entry per genuinely charged key symbol, maximum 5. Use [] if no symbol has clear charge.
+Do not write a new interpretation. Catalog only what ${hasFinalInterpretation ? 'the dream text and final interpretation concretely support' : 'the dream text concretely supports'}.
+If unsure for arrays, use []. For core_mode, choose the least distorted fit based on dominant final movement and affect, or null if no mode fits without distortion.`;
 
   const { requestId, model } = startRequest();
 
@@ -1309,128 +1859,76 @@ Return a JSON object with all fields. Put symbol_stances immediately after symbo
       { role: 'user', content: extractionPrompt },
     ];
 
-    const payload: any = {
-      model,
-      messages,
-      temperature: 0.25, // Low but not ultra-deterministic, reduces stereotyped extractions
-    };
+    const payload: any = { model, messages, temperature: 0.25 };
     attachProxyTask(payload, apiUrl, 'dream_extraction');
 
+    let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 2400, model); // JSON includes affects, motifs, relational_dynamics, core_mode, amplifications, symbol_stances
+      tokenLimit = 2600;
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
-    if (capabilities.supportsResponseFormat) {
-      payload.response_format = { type: 'json_object' };
-    }
+    if (capabilities.supportsResponseFormat) payload.response_format = { type: 'json_object' };
 
-    const headers = await buildHeaders(apiUrl, apiKey, requestId);
-    const extractionTimeout = Math.min(capabilities.defaultTimeout, 25000); // Cap so bad proxy doesn't hang
+    logAiRequestStart({ requestId, task: 'dream_extraction', model, messages, tokenLimit, apiUrl, dreamId: dream.id });
+
+    const headers = await buildHeaders(apiUrl, apiKey, requestId, dream.id);
+    const extractionTimeout = Math.min(capabilities.defaultTimeout, 25000);
     const response = await fetchWithTimeout(
       apiUrl,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      },
+      { method: 'POST', headers, body: JSON.stringify(payload) },
       extractionTimeout,
-      1, // transient retries (network/5xx errors)
-      2  // rate limit retries
+      1,
+      2
     );
 
     const data = await parseApiResponse(response, requestId, apiUrl);
 
     if (!response.ok) {
-      // Log raw error message (truncated) for debugging
       const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
-      logError('ai_extract_symbols_api_error', new Error(rawError), { 
+      logError('ai_extract_symbols_api_error', new Error(rawError), {
         requestId,
         model,
         status: response.status,
-        hasError: !!data.error 
+        hasError: !!data.error,
       });
-      // Throw user-safe error message (never expose internal errors)
       throw new Error(userSafeError(response.status, apiUrl));
     }
 
+    recordDreamAiUsage(dream.id, 'dream_extraction', data, aiResponseMeta(response, requestId));
+
     const content = extractApiResponseContent(data);
 
-    if (__DEV__) {
-      // Only log first 200 chars in dev mode, never full content
-      console.log('[AI] Extraction response (first 200 chars):', content.substring(0, 200));
-    }
+    if (__DEV__) console.log('[AI] Extraction response (first 200 chars):', content.substring(0, 200));
 
-    // Try to parse JSON from the response
     try {
-      // Try to extract JSON from the response if it's wrapped in text
-      let jsonStr = content.trim();
-      // Remove markdown code blocks if present
-      jsonStr = jsonStr.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
-      // If the model wrapped JSON with extra text, extract the first {...} block using brace balancing
       if (!jsonStr.startsWith('{')) {
         const extracted = extractFirstJsonObject(jsonStr);
-        if (extracted) {
-          jsonStr = extracted.trim();
-        } else {
-          // No JSON object found - throw clearer error
-          throw new Error('No JSON object found in response');
-        }
+        if (extracted) jsonStr = extracted.trim();
+        else throw new Error('No JSON object found in response');
       }
-      
+
       const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
 
-      const rawSymbols = asStringArray(parsed.symbols, MAX_SYMBOLS_TOTAL);
-      const symbols = filterAffectWords(rawSymbols).slice(0, MAX_SYMBOLS_TOTAL);
-
-      const rawArchetypes: unknown[] = Array.isArray(parsed.archetypes) ? parsed.archetypes : [];
-      const expanded: string[] = rawArchetypes.flatMap((a) => normalizeArchetypeList(String(a)));
-      const uniqueArchetypes = [...new Set(expanded)];
-
-      const landscapes = asStringArray(parsed.landscapes, 5);
-      const affects = asStringArray(parsed.affects, 4);
-      const motifs = asStringArray(parsed.motifs, 4);
-      const relational_dynamics = asStringArray(parsed.relational_dynamics, 3);
-      const core_mode =
-        typeof parsed.core_mode === 'string' &&
-        /^Core (Tension|State|Shift|Restoration)$/.test(parsed.core_mode)
-          ? parsed.core_mode
-          : '';
-      const amplifications = asStringArray(parsed.amplifications, 3);
-
-      const rawSymbolStances = parsed.symbol_stances ?? parsed.symbolStances;
-      const symbol_stances = asSymbolStances(rawSymbolStances, 6);
-
-      if (__DEV__ && symbol_stances.length === 0 && parsed && typeof parsed === 'object') {
-        console.warn('[AI] symbol_stances empty; parsed keys:', Object.keys(parsed));
-        if (rawSymbolStances != null) {
-          console.warn('[AI] rawSymbolStances type:', typeof rawSymbolStances, Array.isArray(rawSymbolStances) ? 'length=' + (rawSymbolStances as unknown[]).length : '', rawSymbolStances);
-        }
-      }
+      const extraction = parseDreamExtractionRecord(parsed);
 
       if (__DEV__) {
         console.log('[AI] Extracted:', {
-          symbolsCount: symbols.length,
-          archetypesCount: uniqueArchetypes.length,
-          landscapesCount: landscapes.length,
-          affectsCount: affects.length,
-          motifsCount: motifs.length,
-          symbol_stancesCount: symbol_stances.length,
-          core_mode,
+          symbolsCount: extraction.symbols.length,
+          archetypesCount: extraction.archetypes.length,
+          landscapesCount: extraction.landscapes.length,
+          affectsCount: extraction.affects.length,
+          motifsCount: extraction.motifs.length,
+          thresholdsCount: extraction.thresholds.length,
+          centralConflictsCount: extraction.central_conflicts.length,
+          symbol_stancesCount: extraction.symbol_stances.length,
+          core_mode: extraction.core_mode,
         });
       }
 
-      return {
-        symbols,
-        archetypes: uniqueArchetypes,
-        landscapes,
-        affects,
-        motifs,
-        relational_dynamics,
-        core_mode,
-        amplifications,
-        symbol_stances,
-      };
+      return extraction;
     } catch (parseError) {
       if (__DEV__) {
         console.warn('[AI] JSON parse failed, returning empty extraction:', parseError);
@@ -1453,32 +1951,303 @@ function emptyDreamExtraction(): DreamExtraction {
     affects: [],
     motifs: [],
     relational_dynamics: [],
+    thresholds: [],
+    central_conflicts: [],
     core_mode: '',
     amplifications: [],
     symbol_stances: [],
   };
 }
 
+type ConversationElementFields = Pick<
+  DreamExtraction,
+  | 'archetypes'
+  | 'affects'
+  | 'motifs'
+  | 'relational_dynamics'
+  | 'thresholds'
+  | 'central_conflicts'
+  | 'core_mode'
+  | 'amplifications'
+>;
+
+const interpretationToConversationFields = (interpretation: Interpretation): ConversationElementFields => ({
+  archetypes: interpretation.archetypes ?? [],
+  affects: interpretation.affects ?? [],
+  motifs: interpretation.motifs ?? [],
+  relational_dynamics: interpretation.relational_dynamics ?? [],
+  thresholds: interpretation.thresholds ?? [],
+  central_conflicts: interpretation.central_conflicts ?? [],
+  core_mode: interpretation.core_mode ?? '',
+  amplifications: interpretation.amplifications ?? [],
+});
+
+const uniqueCaseInsensitive = (values: string[], max: number): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const normalized = value.trim();
+    const key = normalized.toLowerCase();
+    if (!normalized || seen.has(key)) continue;
+    seen.add(key);
+    result.push(normalized);
+    if (result.length >= max) break;
+  }
+  return result;
+};
+
+export const mergeConversationElementUpdates = (
+  current: ConversationElementFields,
+  updates: Partial<ConversationElementFields>
+): ConversationElementFields => {
+  const rawArchetypes = updates.archetypes && updates.archetypes.length > 0 ? updates.archetypes : current.archetypes;
+  const archetypes = uniqueCaseInsensitive(rawArchetypes.flatMap((a) => normalizeArchetypeList(a)), 8);
+
+  const coreMode = updates.core_mode && VALID_CORE_MODES.has(updates.core_mode) ? updates.core_mode : current.core_mode;
+
+  return {
+    archetypes,
+    affects: uniqueCaseInsensitive(updates.affects && updates.affects.length > 0 ? updates.affects : current.affects, 5),
+    motifs: uniqueCaseInsensitive(updates.motifs && updates.motifs.length > 0 ? updates.motifs : current.motifs, 6),
+    relational_dynamics: uniqueCaseInsensitive(
+      updates.relational_dynamics && updates.relational_dynamics.length > 0
+        ? updates.relational_dynamics
+        : current.relational_dynamics,
+      4
+    ),
+    thresholds: uniqueCaseInsensitive(updates.thresholds && updates.thresholds.length > 0 ? updates.thresholds : current.thresholds, 4),
+    central_conflicts: uniqueCaseInsensitive(
+      updates.central_conflicts && updates.central_conflicts.length > 0
+        ? updates.central_conflicts
+        : current.central_conflicts,
+      2
+    ),
+    core_mode: coreMode,
+    amplifications: uniqueCaseInsensitive(
+      updates.amplifications && updates.amplifications.length > 0 ? updates.amplifications : current.amplifications,
+      4
+    ),
+  };
+};
+
+const conversationForExtractionPrompt = (messages: ChatMessage[], maxMessages = 10): string =>
+  trimConversationHistory(messages, maxMessages)
+    .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
+    .join('\n\n');
+
+export const updateInterpretationElementsFromConversation = async (
+  dream: Dream,
+  interpretation: Interpretation,
+  conversation: ChatMessage[]
+): Promise<Interpretation> => {
+  const current = interpretationToConversationFields(interpretation);
+  const prompt = `Review this dream follow-up conversation and revise the extracted elements used for long-term pattern reports.
+
+Dream title: ${dream.title || 'Untitled'}
+Dream date: ${dream.date}
+
+Dream text:
+${dream.content}
+
+Current extracted elements:
+${JSON.stringify(current)}
+
+Follow-up conversation:
+${conversationForExtractionPrompt(conversation)}
+
+Rules:
+- Return the full revised values for these fields only: archetypes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications.
+- central_conflicts: at most 2 items; use [] unless the conversation clearly grounds opposing pressures. Avoid generic "X vs Y" pairs without concrete dream support.
+- Do NOT return or revise key symbols, symbol_stances, or landscapes. Key symbols must remain grounded in the original dream text only.
+- Use the user's follow-up clarifications to update or add symbolic motifs, inner structures, and archetypal energies.
+- Do not add elements from assistant speculation unless the user confirms or clearly grounds them.
+- Keep values in English, concise, and suitable for pattern tracking.
+- Archetypes must use only this whitelist: ${ARCHETYPE_WHITELIST.join(', ')}.
+- core_mode must be exactly one of: Core Tension, Core State, Core Shift, Core Restoration.
+- If the conversation does not clarify a field, keep the current value.
+
+Return ONLY one valid JSON object:
+{
+  "archetypes": [...],
+  "affects": [...],
+  "motifs": [...],
+  "relational_dynamics": [...],
+  "thresholds": [...],
+  "central_conflicts": [...],
+  "core_mode": "Core State",
+  "amplifications": [...]
+}`;
+
+  const { requestId, model } = startRequest();
+
+  try {
+    const apiUrl = getApiUrl();
+    const apiKey = getApiKey();
+    const capabilities = getModelCapabilities(model);
+
+    if (!__DEV__ && isOpenAIHost(apiUrl)) {
+      throw new Error('Direct OpenAI calls are disabled in production builds. Configure a proxy endpoint.');
+    }
+    if (requiresClientKey(apiUrl)) {
+      if (!apiKey || apiKey === 'your-openai-api-key') {
+        logError('ai_missing_api_key', new Error('OpenAI API key not configured'));
+        return interpretation;
+      }
+    }
+
+    const messages: ApiMessage[] = [
+      { role: 'system', content: CONVERSATION_ELEMENT_UPDATE_SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ];
+
+    const payload: any = { model, messages, temperature: 0.2 };
+    attachProxyTask(payload, apiUrl, 'conversation_element_update');
+
+    let tokenLimit: number | undefined;
+    if (capabilities.supportsMaxCompletionTokens) {
+      tokenLimit = 1000;
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
+    }
+
+    if (capabilities.supportsResponseFormat) payload.response_format = { type: 'json_object' };
+
+    logAiRequestStart({ requestId, task: 'conversation_element_update', model, messages, tokenLimit, apiUrl, dreamId: dream.id });
+
+    const headers = await buildHeaders(apiUrl, apiKey, requestId, dream.id);
+    const response = await fetchWithTimeout(
+      apiUrl,
+      { method: 'POST', headers, body: JSON.stringify(payload) },
+      Math.min(capabilities.defaultTimeout, 20000),
+      1,
+      1
+    );
+
+    const data = await parseApiResponse(response, requestId, apiUrl);
+    if (!response.ok) {
+      const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
+      logError('ai_conversation_element_update_api_error', new Error(rawError), { requestId, model, status: response.status });
+      return interpretation;
+    }
+
+    recordDreamAiUsage(dream.id, 'conversation_element_update', data, aiResponseMeta(response, requestId));
+
+    const content = extractApiResponseContent(data);
+    let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    if (!jsonStr.startsWith('{')) {
+      const extracted = extractFirstJsonObject(jsonStr);
+      if (!extracted) return interpretation;
+      jsonStr = extracted.trim();
+    }
+
+    const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+    const updates: ConversationElementFields = {
+      archetypes: asStringArray(parsed.archetypes, 8),
+      affects: asStringArray(parsed.affects, 5),
+      motifs: asStringArray(parsed.motifs, 6),
+      relational_dynamics: asStringArray(parsed.relational_dynamics, 4),
+      thresholds: asStringArray(parsed.thresholds, 4),
+      central_conflicts: asStringArray(parsed.central_conflicts ?? parsed.centralConflicts, 2),
+      core_mode: typeof parsed.core_mode === 'string' ? parsed.core_mode.trim() : '',
+      amplifications: asStringArray(parsed.amplifications, 4),
+    };
+    const merged = mergeConversationElementUpdates(current, updates);
+
+    if (__DEV__) {
+      console.log('[AI] Conversation element update:', {
+        archetypesCount: merged.archetypes.length,
+        affectsCount: merged.affects.length,
+        motifsCount: merged.motifs.length,
+        relationalDynamicsCount: merged.relational_dynamics.length,
+        thresholdsCount: merged.thresholds.length,
+        centralConflictsCount: merged.central_conflicts.length,
+        core_mode: merged.core_mode,
+        amplificationsCount: merged.amplifications.length,
+      });
+    }
+
+    return {
+      ...interpretation,
+      archetypes: merged.archetypes,
+      affects: merged.affects.length > 0 ? merged.affects : undefined,
+      motifs: merged.motifs.length > 0 ? merged.motifs : undefined,
+      relational_dynamics: merged.relational_dynamics.length > 0 ? merged.relational_dynamics : undefined,
+      thresholds: merged.thresholds.length > 0 ? merged.thresholds : undefined,
+      central_conflicts: merged.central_conflicts.length > 0 ? merged.central_conflicts : undefined,
+      core_mode: merged.core_mode,
+      amplifications: merged.amplifications.length > 0 ? merged.amplifications : undefined,
+    };
+  } catch (error) {
+    logError('ai_conversation_element_update_error', error, { requestId, model });
+    return interpretation;
+  }
+};
+
 /* ============================
    PATTERN INSIGHTS (MONTHLY / QUARTERLY)
    ============================ */
 
-const PATTERN_INSIGHTS_SYSTEM_PROMPT = `
-You are a post-Jungian companion reviewing dream patterns over time.
+const MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT = `
+You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
 
-Your role is to reflect on a series of extracted dream elements (core modes, affects, motifs, relational dynamics, landscapes, amplifications) and offer a short, hypothetical reflection on emerging patterns — not to diagnose, advise, or conclude.
+Your role is to synthesize the month's dream material into a reflective symbolic essay.
+You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
+You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
 
-Rules:
-- Use hypothetical language only ("could suggest", "might indicate", "one possible reading").
-- Focus on recurring motifs/affects/relational dynamics. Note whether the psyche seems to move toward greater differentiation, greater concealment, repeated compromise, stronger contact with vitality, or continued smoothing-over of alarm. If there is little change across dreams, say so plainly.
-- Do not impose a developmental or progressive arc if the pattern is cyclical, stalled, contradictory, or too sparse to support one. Name what is actually there.
-- When amplifications are present, they carry mythic/embodied echoes — note 1–2 if they recur or contrast across dreams.
-- Use "Symbol stances" to see how each symbol was experienced (playful, painful, stressful, etc.). The same image can carry different meanings in different dreams — reflect on contrasts or recurrences when present.
-- Treat sparse data or flat affect as meaningful: name it (e.g. "a period of little emotional differentiation", "the psyche holding distance") rather than filling with generic reflection.
-- Note how the psyche might be organizing attention or vitality over time.
-- No conclusions, no advice — only orientations and 1–2 reflective questions.
-- Structure your response with: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
-- Keep total length 150–250 words. Cite 1–2 concrete recurrences from the data.
+Core principles:
+- Read the dreams as a field, not as isolated events.
+- Track recurring images, affects, symbol stances, relational dynamics, thresholds, and central conflicts.
+- Do not write as if explaining metadata fields.
+- Use extracted fields only to see the dream-field more clearly.
+- The essay should feel synthesized from images and movements, not generated from tags.
+- Use thresholds and central conflicts as high-value synthesis material only when the data clearly stages crossings or opposing pressures.
+- Notice whether the month shows movement, repetition, intensification, retreat, partial integration, contradiction, or unresolved suspension.
+- Do not force progress. If the month is cyclical, stalled, fragmented, or contradictory, say so plainly.
+- Do not flatten everything into generic themes like "change", "growth", or "anxiety".
+- Every major claim must be grounded in at least one concrete recurrence or contrast from the dream data.
+- If there are too few dreams to support a strong pattern, say so and offer a lighter reading.
+- Treat interpretation excerpts as supporting material, but do not simply repeat them.
+- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
+- Shadow means unintegrated charge, intensity, vitality, fear, anger, or instinct — not moral negativity.
+- Self should appear only if the month shows a credible organizing center or movement toward coherence.
+
+Style:
+- Write like a psychologically precise essay, not a bullet-point analytics report.
+- Use vivid, grounded, image-near language.
+- Prefer synthesis over listing.
+- Avoid generic coaching language.
+- Avoid advice.
+- Avoid conclusions that sound final.
+- Keep markdown section headings exactly as specified in English for UI consistency.
+- Write body text and reflective questions in the user's requested language.
+
+Essay shape:
+## The Month's Dream Field
+A short opening that names the dominant atmosphere or organizing movement of the month.
+
+## Recurring Images and Pressures
+Synthesize the main repeated symbols, affects, landscapes, and symbol stances. Focus on what the images are doing.
+
+## Thresholds and Conflicts
+Optional. Include this section only when crossings, transitions, or conflict pairs are concrete and structurally important. Otherwise weave those pressures into Recurring Images and Pressures or Movement Across the Month.
+Stay image-near and tied to the excerpts; avoid generic "X vs Y" psychology templates unless the month's images support each side.
+
+## Movement Across the Month
+Describe whether the dreams move toward coherence, intensification, retreat, partial repair, contradiction, or unresolved suspension. Do not force an evolution.
+
+## What Remains Open
+Name the unresolved question or psychic pressure the month seems to leave behind.
+
+## Reflective Questions
+Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+
+Length:
+- If 1 dream: 250–400 words.
+- If 2–4 dreams: 450–700 words.
+- If 5+ dreams: 650–800 words.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_ESSAY}
 `;
 
 export type PatternInsightDreamEntry = {
@@ -1487,34 +2256,42 @@ export type PatternInsightDreamEntry = {
   interpretation: string;
 };
 
+const trimEssayContextText = (text: string, max = 700): string => {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? clean.slice(0, max) + '...' : clean;
+};
+
 export const generatePatternInsights = async (
   dreamAnalyses: PatternInsightDreamEntry[],
   period: 'monthly' | 'quarterly' = 'monthly',
   language: string = 'en'
 ): Promise<string> => {
   if (dreamAnalyses.length === 0) {
-    return 'No interpreted dreams in this period. Interpret 2–3 dreams this month to unlock a reflection on patterns.';
+    if (language === 'el') {
+      return 'Δεν υπάρχουν ερμηνευμένα όνειρα σε αυτή την περίοδο. Χρειάζονται τουλάχιστον 1–2 καταχωρήσεις για να σχηματιστεί ένα ουσιαστικό μηνιαίο πεδίο.';
+    }
+    return 'No interpreted dreams in this period. Interpret 1–2 dreams to generate a meaningful dream essay.';
   }
 
   const context = dreamAnalyses
-    .map(
-      (d) => {
-        const stances = (d.extracted.symbol_stances ?? [])
-          .map((s) => `${s.symbol}: ${s.stance}`)
-          .join('; ');
-        return `
+    .map((d, index) => {
+      const stances = (d.extracted.symbol_stances ?? []).map((s) => `${s.symbol}: ${s.stance}`).join('; ');
+      return `
+Dream ${index + 1}
 Date: ${d.date}
 Core Mode: ${d.extracted.core_mode || '(not set)'}
 Affects: ${(d.extracted.affects ?? []).join(', ') || '(none)'}
-Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
-Relational: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
-Symbols: ${(d.extracted.symbols ?? []).slice(0, 3).join(', ') || '(none)'}
-Symbol stances (how each symbol was experienced): ${stances || '(none)'}
+Symbols: ${(d.extracted.symbols ?? []).slice(0, 5).join(', ') || '(none)'}
+Symbol stances: ${stances || '(none)'}
 Landscapes: ${(d.extracted.landscapes ?? []).slice(0, 3).join(', ') || '(none)'}
+Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
+Relational dynamics: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
+Thresholds: ${(d.extracted.thresholds ?? []).join('; ') || '(none)'}
+Central conflicts: ${(d.extracted.central_conflicts ?? []).join('; ') || '(none)'}
 Amplifications: ${(d.extracted.amplifications ?? []).join('; ') || '(none)'}
+Interpretation excerpt: ${d.interpretation ? trimEssayContextText(d.interpretation, 650) : '(none)'}
 `;
-      }
-    )
+    })
     .join('\n');
 
   const langNames: Record<string, string> = {
@@ -1523,17 +2300,36 @@ Amplifications: ${(d.extracted.amplifications ?? []).join('; ') || '(none)'}
   };
   const langInstruction = language === 'en'
     ? ''
-    : `\n\nIMPORTANT: Write the entire reflection in ${langNames[language] ?? `the language with ISO 639-1 code "${language}"`}. All section headings and body text must be in that language.`;
+    : `
 
-  const userPrompt = `You are reviewing dream patterns over a ${period} period.
+IMPORTANT LANGUAGE RULE:
+Keep all markdown section headings exactly as specified in English for UI consistency.
+Write all paragraph text, bullets, and reflective questions in ${langNames[language] ?? `the language with ISO 639-1 code "${language}"`}.
+Do not translate section headings.
+Preserve extracted symbols in English only if needed, but explain them in the requested language.`;
 
-Here are extracted elements from recent dreams:
+  const userPrompt = `You are writing a ${period} dream essay.
 
+Period: ${period}
+Number of interpreted dreams: ${dreamAnalyses.length}
+
+Dream data:
 ${context}
 
-Provide a short, hypothetical reflection (150–250 words) on emerging patterns.
-Use the structure: ## Emerging Patterns, ## Possible Evolutions, ## Reflective Questions.
-Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no advice.${langInstruction}`;
+Write a symbolic monthly/quarterly essay that synthesizes the dream field as a whole.
+
+Important:
+- Do not summarize each dream one by one.
+- Do not simply list recurring tags.
+- Do not write as if explaining metadata fields.
+- Use extracted fields only to see the dream-field more clearly.
+- The essay should feel synthesized from images and movements, not generated from tags.
+- Find the field-level pattern: recurring images, pressures, thresholds, conflicts, and movements.
+- Use thresholds and conflicts as major synthesis anchors only when they are concrete and recurring or structurally important.
+- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
+- Keep all claims hypothetical and grounded in the data.
+- No advice, no diagnosis, no prescriptions, no reassurance.
+${langInstruction}`;
 
   const { requestId, model } = startRequest();
 
@@ -1553,20 +2349,20 @@ Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no a
     }
 
     const messages: ApiMessage[] = [
-      { role: 'system', content: PATTERN_INSIGHTS_SYSTEM_PROMPT },
+      { role: 'system', content: MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },
     ];
 
-    const payload: any = {
-      model,
-      messages,
-      temperature: 0.5,
-    };
+    const payload: any = { model, messages, temperature: 0.48 };
     attachProxyTask(payload, apiUrl, 'pattern_insights');
 
+    let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
-      setTokenLimit(payload, apiUrl, 600, model);
+      tokenLimit = dreamAnalyses.length >= 5 ? 2200 : dreamAnalyses.length >= 2 ? 1700 : 1100;
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
+
+    logAiRequestStart({ requestId, task: 'pattern_insights', model, messages, tokenLimit, apiUrl });
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
     const response = await fetchWithTimeout(
@@ -1581,30 +2377,34 @@ Use hypothetical language. Cite 1–2 concrete recurrences. No conclusions, no a
 
     if (!response.ok) {
       const rawError = safeErrMsg(data.error?.message) || `API Error: ${response.status}`;
-      logError('ai_pattern_insights_api_error', new Error(rawError), {
-        requestId,
-        model,
-        status: response.status,
-      });
+      logError('ai_pattern_insights_api_error', new Error(rawError), { requestId, model, status: response.status });
       throw new Error(userSafeError(response.status, apiUrl));
     }
 
-    return extractApiResponseContent(data);
+    recordDreamAiUsage(undefined, 'pattern_insights', data, aiResponseMeta(response, requestId));
+
+    let content = extractApiResponseContent(data, { allowTruncated: true });
+
+    if (isTruncatedResponse(data) || !content.trim() || !hasEndMarker(content, END_MARKER_DREAM_ESSAY)) {
+      const retryTokenLimit = dreamAnalyses.length >= 5 ? 1700 : dreamAnalyses.length >= 2 ? 1300 : 850;
+      content = await retryCompressedPatternEssay({
+        apiUrl,
+        apiKey,
+        model,
+        originalMessages: messages,
+        requestId,
+        tokenLimit: retryTokenLimit,
+        timeout: capabilities.defaultTimeout,
+      });
+    }
+
+    return stripEndMarker(content, END_MARKER_DREAM_ESSAY);
   } catch (error) {
     logError('ai_pattern_insights_error', error, { requestId, model });
     throw error;
   }
 };
 
-/* ============================
-   SYMBOL / LANDSCAPE SEMANTIC GROUPING
-   ============================ */
-
-/**
- * Groups semantically equivalent symbols and landscapes into canonical forms.
- * Returns maps: variant → canonical (only for variants that differ from canonical).
- * Fails silently (returns empty maps) so insights always load.
- */
 export async function groupSimilarTerms(
   symbols: string[],
   landscapes: string[]
@@ -1649,8 +2449,15 @@ Return ONLY valid JSON:
 
     const payload: any = { model, messages, temperature: 0.1 };
     attachProxyTask(payload, apiUrl, 'semantic_grouping');
-    if (capabilities.supportsMaxCompletionTokens) setTokenLimit(payload, apiUrl, 400, model);
+
+    let tokenLimit: number | undefined;
+    if (capabilities.supportsMaxCompletionTokens) {
+      tokenLimit = 400;
+      setTokenLimit(payload, apiUrl, tokenLimit, model);
+    }
     if (capabilities.supportsResponseFormat) payload.response_format = { type: 'json_object' };
+
+    logAiRequestStart({ requestId, task: 'semantic_grouping', model, messages, tokenLimit, apiUrl });
 
     const headers = await buildHeaders(apiUrl, apiKey, requestId);
     const response = await fetchWithTimeout(
@@ -1664,6 +2471,7 @@ Return ONLY valid JSON:
     if (!response.ok) return empty;
 
     const data = await parseApiResponse(response, requestId, apiUrl);
+    recordDreamAiUsage(undefined, 'semantic_grouping', data, aiResponseMeta(response, requestId));
     const content = extractApiResponseContent(data);
 
     let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -1680,9 +2488,7 @@ Return ONLY valid JSON:
       const canonical = String(group?.canonical ?? '').trim();
       if (!canonical || !symbolSet.has(canonical)) continue;
       for (const member of (group?.members as string[]) ?? []) {
-        if (typeof member === 'string' && symbolSet.has(member) && member !== canonical) {
-          symbolGroupMap[member] = canonical;
-        }
+        if (typeof member === 'string' && symbolSet.has(member) && member !== canonical) symbolGroupMap[member] = canonical;
       }
     }
 
@@ -1691,9 +2497,7 @@ Return ONLY valid JSON:
       const canonical = String(group?.canonical ?? '').trim();
       if (!canonical || !landscapeSet.has(canonical)) continue;
       for (const member of (group?.members as string[]) ?? []) {
-        if (typeof member === 'string' && landscapeSet.has(member) && member !== canonical) {
-          landscapeGroupMap[member] = canonical;
-        }
+        if (typeof member === 'string' && landscapeSet.has(member) && member !== canonical) landscapeGroupMap[member] = canonical;
       }
     }
 

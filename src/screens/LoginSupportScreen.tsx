@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { WaveBackground, Button } from '../components/ui';
+import { WaveBackground, Button, DesignExportForeground } from '../components/ui';
 import { sendSupportRequest } from '../services/supportRequest';
 import { logEvent, logError } from '../services/logger';
 
@@ -65,7 +65,7 @@ const LoginSupportScreen: React.FC = () => {
       keyboardVerticalOffset={0}
     >
       <WaveBackground />
-      <View style={styles.content}>
+      <DesignExportForeground style={styles.content}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backRow}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
@@ -108,7 +108,7 @@ const LoginSupportScreen: React.FC = () => {
           loading={isSending}
           disabled={!email.trim() || !message.trim()}
         />
-      </View>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };

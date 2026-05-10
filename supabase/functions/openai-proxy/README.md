@@ -1,109 +1,43 @@
-# OpenAI Proxy Edge Function
+# `openai-proxy`
 
-This Supabase Edge Function acts as a secure proxy between your mobile app and OpenAI's API.
+OpenAI Chat Completions proxy (+ optional Anthropic fallback). Keys on the server.
 
-## Why This Exists
+## Πού διαλέγω provider + model ανά task
 
-- **Security**: Keeps your OpenAI API key on the server (never in the mobile app)
-- **Production Safety**: Required for production builds (client-side API keys get stolen)
-- **Rate Limiting**: Can add rate limiting per user if needed
-- **Logging**: Server-side logging for debugging
+**Ένα αρχείο στο repo:**
 
-## Setup
+### [`task-config.ts`](./task-config.ts)
 
-### 1. Set Environment Variable
+- **`TASK_AI_BY_TASK`** — για κάθε `task` βάζεις:
+  - **`provider`:** `"openai"` by default
+  - **`model`:** συγκεκριμένο id (π.χ. `"gpt-5.4-mini"`, `"gpt-5.4"`) **ή** **`null`** για να πέφτεις πίσω σε secrets / το model της εφαρμογής
+  - **`fallbackAnthropicModel` (optional):** μόνο με `provider: "openai"`. Αν το OpenAI αποτύχει (429, 5xx, κενό completion), μία προσπάθεια στο Anthropic με αυτό το model, αρκεί να υπάρχει **`ANTHROPIC_API_KEY`**.
 
-In your Supabase project dashboard:
-1. Go to **Edge Functions** → **Settings**
-2. Add secret: `OPENAI_API_KEY` = your OpenAI API key (starts with `sk-`)
+Προεπιλογή στο repo: extraction/grouping → **`gpt-5.4-mini`** · ερμηνείες, chat, pattern report → **`gpt-5.4`** με fallback **`claude-haiku-4-5`**.
 
-Optional model-routing secrets:
-- `OPENAI_MODEL_CHEAP`: Default cheap model for structured background work. Defaults to `gpt-4o-mini`.
-- `OPENAI_MODEL_EXTRACTION`: Overrides the model for dream element extraction.
-- `OPENAI_MODEL_GROUPING`: Overrides the model for semantic grouping.
-- `OPENAI_MODEL_PATTERN`: Overrides the model for pattern insight generation.
-- `OPENAI_MODEL_INTERPRETATION`: Overrides the model for initial dream interpretations.
-- `OPENAI_MODEL_CHAT`: Overrides the model for follow-up chat.
-- `OPENAI_MODEL_DEFAULT`: Fallback model for unrouted requests.
+- **`UNROUTED_TASK_AI`** — όταν το request δεν στέλνει `task`
 
-### 2. Deploy the Function
+Μετά την αλλαγή: **`supabase functions deploy openai-proxy`**
+
+### Αν `model` είναι `null` (fallback χωρίς hardcoded id)
+
+**OpenAI:** `OPENAI_MODEL` (όλα), ή ανά λειτουργία `OPENAI_MODEL_INTERPRETATION`, `OPENAI_MODEL_EXTRACTION`, …, τέλος το `model` του app.
+
+**Anthropic:** supported by the proxy code only if you explicitly configure a task with `provider: "anthropic"` or a `fallbackAnthropicModel`.
+
+## Υποχρεωτικά secrets
+
+- **`OPENAI_API_KEY`** — αν χρησιμοποιείς οποιοδήποτε task με `openai`
+- **`ANTHROPIC_API_KEY`** — μόνο για tasks που έχουν `fallbackAnthropicModel` ή `provider: "anthropic"`
+
+## Deploy
 
 ```bash
-# Make sure you're logged in to Supabase CLI
-supabase login
-
-# Link to your project (if not already linked)
-supabase link --project-ref your-project-ref
-
-# Deploy the function
 supabase functions deploy openai-proxy
 ```
 
-### 3. Get Your Function URL
+## App
 
-After deployment, you'll get a URL like:
-```
-https://your-project-ref.supabase.co/functions/v1/openai-proxy
-```
+`EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT` / `customGptEndpoint` → URL αυτού του function.
 
-### 4. Update Your App Config
-
-In your `.env` file:
-```bash
-EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT="https://your-project-ref.supabase.co/functions/v1/openai-proxy"
-```
-
-## How It Works
-
-1. **Mobile app** sends request to Supabase Edge Function
-2. **Edge Function** forwards request to OpenAI with API key
-3. **OpenAI** responds to Edge Function
-4. **Edge Function** returns response to mobile app
-
-The API key never leaves the server.
-
-## Request/Response Format
-
-The proxy accepts the same payload as OpenAI Chat Completions API:
-- `model`: Model name (e.g., "gpt-5.2")
-- `messages`: Array of message objects
-- `temperature`: Optional temperature
-- `max_tokens` or `max_completion_tokens`: Token limit
-- `task`: Optional Oneiros routing hint (`dream_extraction`, `semantic_grouping`, `pattern_insights`, `interpretation_quick`, `interpretation_standard`, `interpretation_advanced`, `chat_followup`)
-
-Returns the same response format as OpenAI.
-
-When `task` is present, the proxy may override the client-requested model. By default, `dream_extraction` and `semantic_grouping` route to `OPENAI_MODEL_CHEAP` / `gpt-4o-mini`; user-facing interpretation and chat stay on the requested model unless an override secret is configured.
-
-## Headers
-
-The proxy accepts and forwards:
-- `X-Request-Id`: For request correlation (optional)
-- `X-App-Version`: App version for debugging (optional)
-
-## Security Notes
-
-- ✅ API key is stored as Supabase secret (encrypted)
-- ✅ CORS is enabled for mobile app
-- ✅ No sensitive data in logs
-- ✅ Request ID correlation for debugging
-
-## Testing
-
-After deployment, test with:
-```bash
-curl -X POST https://your-project-ref.supabase.co/functions/v1/openai-proxy \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_SUPABASE_ANON_KEY" \
-  -d '{
-    "model": "gpt-4o",
-    "messages": [{"role": "user", "content": "Hello"}],
-    "max_tokens": 100
-  }'
-```
-
-## Troubleshooting
-
-- **401 Unauthorized**: Check that `OPENAI_API_KEY` is set in Supabase secrets
-- **CORS errors**: Make sure CORS headers are included (they should be)
-- **Timeout**: Edge Functions have a 60s timeout limit
+Το app στέλνει **`task`** στο body (`dream_extraction`, `interpretation_advanced`, κ.λπ.) ώστε να ταιριάζει με το `TASK_AI_BY_TASK`.

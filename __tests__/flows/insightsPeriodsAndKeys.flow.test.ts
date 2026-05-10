@@ -114,7 +114,6 @@ describe('insights periods & keys flow', () => {
         archetypes: [],
         landscapes: ['house'],
         motifs: ['falling', 'fall'],
-        summary: '',
         createdAt: '2026-04-01T00:00:00.000Z',
         updatedAt: '2026-04-01T00:00:00.000Z',
       },

@@ -10,14 +10,16 @@ const Stack = createStackNavigator<OnboardingStackParamList>();
 
 export interface OnboardingNavigatorProps {
   onComplete: () => void;
+  initialRouteName?: keyof OnboardingStackParamList;
 }
 
 export const OnboardingCompleteContext = React.createContext<(() => void) | null>(null);
 
-const OnboardingNavigator: React.FC<OnboardingNavigatorProps> = ({ onComplete }) => {
+const OnboardingNavigator: React.FC<OnboardingNavigatorProps> = ({ onComplete, initialRouteName }) => {
   return (
     <OnboardingCompleteContext.Provider value={onComplete}>
       <Stack.Navigator
+        initialRouteName={initialRouteName}
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: colors.background },

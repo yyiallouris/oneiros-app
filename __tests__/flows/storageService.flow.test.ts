@@ -67,7 +67,6 @@ const interpretation: Interpretation = {
   messages: [{ id: 'm1', role: 'assistant', content: 'A gentle reflection.', timestamp: 't' }],
   symbols: ['moon'],
   archetypes: ['shadow'],
-  summary: 'A short summary',
   createdAt: '2025-04-01T00:00:00.000Z',
   updatedAt: '2025-04-01T00:00:00.000Z',
 };

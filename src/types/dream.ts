@@ -27,13 +27,16 @@ export interface Interpretation {
   motifs?: string[];
   /** How figures regulate pace, permission, urgency, etc. for pattern tracking */
   relational_dynamics?: string[];
+  /** Moments of transition, crossing, departure, work, sleep, or change of ground */
+  thresholds?: string[];
+  /** Psychological oppositions staged by the dream, stated as "X vs Y" */
+  central_conflicts?: string[];
   /** One of: Core Tension, Core State, Core Shift, Core Restoration */
   core_mode?: string;
   /** Brief echoes/resonances for 1–2 key symbols (pattern/amplification) */
   amplifications?: string[];
   /** How each key symbol was experienced in the dream (e.g. playful, painful, stressful). */
   symbol_stances?: { symbol: string; stance: string }[];
-  summary?: string;
   createdAt: string;
   updatedAt: string;
   dreamContentAtCreation?: string; // Store the dream content when interpretation was created

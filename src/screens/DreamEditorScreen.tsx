@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button } from '../components/ui';
+import { Card, Button, DesignExportForeground } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreamById, saveDream, deleteDream } from '../utils/storage';
 import { formatDate, toISODate, generateId } from '../utils/date';
@@ -85,8 +85,6 @@ const DreamEditorScreen: React.FC = () => {
             updatedAt: new Date().toISOString(),
           };
 
-      // Save dream locally only (no API calls)
-      // Symbols/archetypes will be extracted when user requests AI interpretation
       await saveDream(dreamData);
       
       navigation.goBack();
@@ -139,16 +137,17 @@ const DreamEditorScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Card style={styles.mainCard}>
-          {/* Date Display */}
-          <View style={styles.datePill}>
-            <Text style={styles.datePillText}>{formatDate(date)}</Text>
-          </View>
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Card style={styles.mainCard}>
+            {/* Date Display */}
+            <View style={styles.datePill}>
+              <Text style={styles.datePillText}>{formatDate(date)}</Text>
+            </View>
 
           {/* Title Input */}
           <TextInput
@@ -176,40 +175,41 @@ const DreamEditorScreen: React.FC = () => {
             textAlignVertical="top"
             autoFocus={!dream}
           />
-        </Card>
+          </Card>
 
-        {/* Spacer */}
-        <View style={{ height: 140 }} />
-      </ScrollView>
+          {/* Spacer */}
+          <View style={{ height: 140 }} />
+        </ScrollView>
 
-      {/* Bottom Actions */}
-      <View
-        style={[
-          styles.bottomActions,
-          {
-            bottom: Math.max(insets.bottom, spacing.lg),
-          },
-        ]}
-      >
-        <Button
-          title={dream ? 'Save Changes' : 'Save Dream'}
-          onPress={handleSave}
-          disabled={!content.trim()}
-          loading={isSaving}
-          style={styles.saveButton}
-        />
-
-        {dream && (
+        {/* Bottom Actions */}
+        <View
+          style={[
+            styles.bottomActions,
+            {
+              bottom: Math.max(insets.bottom, spacing.lg),
+            },
+          ]}
+        >
           <Button
-            title="Delete Dream"
-            onPress={handleDelete}
-            variant="ghost"
-            style={styles.deleteButton}
-            textStyle={styles.deleteButtonText}
-            loading={isDeleting}
+            title={dream ? 'Save Changes' : 'Save Dream'}
+            onPress={handleSave}
+            disabled={!content.trim()}
+            loading={isSaving}
+            style={styles.saveButton}
           />
-        )}
-      </View>
+
+          {dream && (
+            <Button
+              title="Delete Dream"
+              onPress={handleDelete}
+              variant="ghost"
+              style={styles.deleteButton}
+              textStyle={styles.deleteButtonText}
+              loading={isDeleting}
+            />
+          )}
+        </View>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };
@@ -277,4 +277,3 @@ const styles = StyleSheet.create({
 });
 
 export default DreamEditorScreen;
-

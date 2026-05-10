@@ -29,6 +29,8 @@ export const DREAM_LAYER_OVERVIEW = [
 export type InfoModalKey =
   | 'main-symbols'
   | 'symbolic-motifs'
+  | 'contextual-thresholds'
+  | 'core-conflicts'
   | 'core-architecture'
   | 'archetypal-states'
   | 'archetype-self'
@@ -86,9 +88,9 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     title: 'What are symbolic motifs?',
     subtitle: 'The form the dream takes',
     paragraphs: [
-      'Motifs describe the FORM of the dream — how it is structured, not what it means.',
+      'Motifs describe the imaginal form of the dream — how it is structured, not what it means.',
       'If symbols are the standout images, motifs are the recurring situations, pathways, or spatial shapes linking those images together.',
-      'They are spatial or imaginal structures, movements in space, or recurring symbolic situations.',
+      'They are recurring symbolic situations, not every transition point or psychological conflict.',
       'Examples:',
       'These patterns often recur across dreams. They bridge concrete images and deeper psychic organization.',
     ],
@@ -98,6 +100,39 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       'watching from outside',
       'threshold crossing',
       'hidden backstage area',
+    ],
+    bulletsAfterParagraph: 2,
+  },
+  'contextual-thresholds': {
+    title: 'What are thresholds?',
+    subtitle: 'Where the dream changes ground',
+    paragraphs: [
+      'Thresholds are moments of crossing, departure, arrival, sleep, work, shelter, or change of place.',
+      'They are kept separate from motifs because they mark where the dreamer moves from one psychic ground to another.',
+      'Examples:',
+      'A threshold may feed a motif, but it is tracked as its own transition point.',
+    ],
+    bullets: [
+      'travel to work',
+      'need for night shelter',
+      'leaving the father’s house',
+      'moving toward brother’s home',
+    ],
+    bulletsAfterParagraph: 2,
+  },
+  'core-conflicts': {
+    title: 'What are core conflicts?',
+    subtitle: 'The tension the dream stages',
+    paragraphs: [
+      'Core conflicts name the psychological opposition organizing the dream.',
+      'They are written as “X vs Y” so the tension remains visible without turning into a fixed conclusion.',
+      'Examples:',
+      'They help reports notice repeated tensions without collapsing them into symbols or motifs.',
+    ],
+    bullets: [
+      'autonomy vs paternal inclusion',
+      'refuge vs hidden threat',
+      'surface cleanliness vs buried danger',
     ],
     bulletsAfterParagraph: 2,
   },

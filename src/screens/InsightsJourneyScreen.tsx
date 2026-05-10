@@ -11,7 +11,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text } from '../theme';
-import { MountainWaveBackground } from '../components/ui';
+import { MountainWaveBackground, DesignExportForeground } from '../components/ui';
 import { InsightsSectionScreen } from './InsightsSectionScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
@@ -20,10 +20,12 @@ type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/** Section order for the insights journey flow: symbols → motifs → archetypes → landscapes (pattern recognition is standalone) */
+/** Section order for the insights journey flow: symbols → motifs → thresholds → conflicts → archetypes → landscapes. */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
   'recurring-symbols',
   'symbolic-motifs',
+  'thresholds',
+  'core-conflicts',
   'recurring-archetypes',
   'space-landscapes',
 ];
@@ -79,44 +81,46 @@ const InsightsJourneyScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <MountainWaveBackground height={260} lite />
-      <View style={styles.caption}>
-        <Text style={styles.captionText} numberOfLines={1}>
-          {INSIGHTS_SECTION_TITLES[JOURNEY_SECTIONS[currentIndex]] ?? ''}
-        </Text>
-      </View>
-      <View style={styles.dots}>
-        {JOURNEY_SECTIONS.map((id, i) => (
-          <View
-            key={id}
-            style={[
-              styles.dot,
-              currentIndex === i && styles.dotActive,
-            ]}
-          />
-        ))}
-      </View>
-      <FlatList
-        ref={flatListRef}
-        data={JOURNEY_SECTIONS}
-        renderItem={renderPage}
-        keyExtractor={keyExtractor}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_WIDTH,
-          offset: SCREEN_WIDTH * index,
-          index,
-        })}
-        initialScrollIndex={safeInitialIndex}
-        initialNumToRender={Math.max(1, safeInitialIndex + 1)}
-        maxToRenderPerBatch={1}
-        windowSize={2}
-        removeClippedSubviews={false}
-        decelerationRate="fast"
-      />
+      <DesignExportForeground fill>
+        <View style={styles.caption}>
+          <Text style={styles.captionText} numberOfLines={1}>
+            {INSIGHTS_SECTION_TITLES[JOURNEY_SECTIONS[currentIndex]] ?? ''}
+          </Text>
+        </View>
+        <View style={styles.dots}>
+          {JOURNEY_SECTIONS.map((id, i) => (
+            <View
+              key={id}
+              style={[
+                styles.dot,
+                currentIndex === i && styles.dotActive,
+              ]}
+            />
+          ))}
+        </View>
+        <FlatList
+          ref={flatListRef}
+          data={JOURNEY_SECTIONS}
+          renderItem={renderPage}
+          keyExtractor={keyExtractor}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          getItemLayout={(_, index) => ({
+            length: SCREEN_WIDTH,
+            offset: SCREEN_WIDTH * index,
+            index,
+          })}
+          initialScrollIndex={safeInitialIndex}
+          initialNumToRender={Math.max(1, safeInitialIndex + 1)}
+          maxToRenderPerBatch={1}
+          windowSize={2}
+          removeClippedSubviews={false}
+          decelerationRate="fast"
+        />
+      </DesignExportForeground>
     </View>
   );
 };

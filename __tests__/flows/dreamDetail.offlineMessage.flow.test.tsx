@@ -57,6 +57,7 @@ jest.mock('../../src/components/ui', () => {
     LinoSkeletonCard: () => null,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
     SymbolInfoModal: () => null,
+    DesignExportForeground: ({ children }: any) => <View>{children}</View>,
   };
 });
 
@@ -92,12 +93,25 @@ jest.mock('../../src/utils/storage', () => ({
 jest.mock('../../src/services/ai', () => ({
   generateInitialInterpretation: jest.fn(),
   sendChatMessage: jest.fn(),
-  extractDreamSymbolsAndArchetypes: jest.fn(),
+  buildDreamDisplayMap: jest.fn(() => ({
+    chargedImages: [],
+    movement: 'unmapped movement',
+  })),
   filterArchetypesForDisplay: (value: string[]) => value,
+  updateInterpretationElementsFromConversation: jest.fn(async (_dream, interpretation) => interpretation),
+}));
+
+jest.mock('../../src/services/dreamMetadataPrefetchService', () => ({
+  getDreamMetadataForReflection: jest.fn(),
+  prefetchDreamMetadata: jest.fn(),
 }));
 
 jest.mock('../../src/services/userSettingsService', () => ({
   getInterpretationDepth: jest.fn().mockResolvedValue('standard'),
+}));
+
+jest.mock('../../src/services/userSettingsService', () => ({
+  ...jest.requireActual('../../src/services/userSettingsService'),
   getMythicResonance: jest.fn().mockResolvedValue(false),
 }));
 
@@ -138,7 +152,6 @@ const interpretation = {
   ],
   symbols: ['moon'],
   archetypes: ['shadow'],
-  summary: 'A short summary',
   dreamContentAtCreation: dream.content,
   createdAt: '2025-04-01T00:00:00.000Z',
   updatedAt: '2025-04-01T00:00:00.000Z',

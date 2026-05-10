@@ -24,15 +24,11 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-jest.mock('../../src/components/ui', () => {
-  const React = require('react');
-  const { View, Text } = require('react-native');
-  return {
-    Card: ({ children }: any) => <View>{children}</View>,
-    BreathingLine: () => null,
-    ThreadDrift: () => null,
-  };
-});
+jest.mock('../../src/components/ui', () => ({
+  BreathingLine: () => null,
+  ThreadDrift: () => null,
+  DesignExportForeground: ({ children }: any) => children,
+}));
 
 jest.mock('../../src/components/ui/PhasedTypingText', () => ({
   PhasedTypingText: ({ text }: { text: string }) => text,
@@ -61,13 +57,17 @@ jest.mock('../../src/utils/storage', () => ({
 jest.mock('../../src/services/ai', () => ({
   generateInitialInterpretation: jest.fn(),
   sendChatMessage: jest.fn(),
-  extractDreamSymbolsAndArchetypes: jest.fn(),
   filterArchetypesForDisplay: (value: string[]) => value,
+  updateInterpretationElementsFromConversation: jest.fn(async (_dream, interpretation) => interpretation),
+}));
+
+jest.mock('../../src/services/dreamMetadataPrefetchService', () => ({
+  getDreamMetadataForReflection: jest.fn(),
+  prefetchDreamMetadata: jest.fn(),
 }));
 
 jest.mock('../../src/services/userSettingsService', () => ({
   getInterpretationDepth: jest.fn().mockResolvedValue('standard'),
-  getMythicResonance: jest.fn().mockResolvedValue(false),
 }));
 
 jest.mock('../../src/utils/network', () => ({
@@ -103,7 +103,9 @@ describe('InterpretationChat offline message flow', () => {
   it('shows the offline message when initial interpretation generation requires internet', async () => {
     const screen = render(<InterpretationChatScreen />);
 
-    await waitFor(() => expect(screen.getByText('Dream summary')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText(/Ask about symbols/i)).toBeTruthy()
+    );
 
     expect(await screen.findByText("You're Offline")).toBeTruthy();
     expect(

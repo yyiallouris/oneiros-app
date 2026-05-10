@@ -2,8 +2,6 @@ import { UserService } from './userService';
 import {
   remoteGetInterpretationDepth,
   remoteSetInterpretationDepth,
-  remoteGetMythicResonance,
-  remoteSetMythicResonance,
   type InterpretationDepth,
 } from './remoteStorage';
 import { LocalStorage } from './localStorage';
@@ -43,39 +41,15 @@ export async function setInterpretationDepth(depth: InterpretationDepth): Promis
 }
 
 /**
- * Get mythic resonance (Advanced only): local-first, prefer newer by updated_at.
- * If remote has newer updated_at, use remote and update local. Else use local (avoids stale remote overwriting fresh local).
+ * Mythic / timeless framing is always enabled for Deeper Dive.
+ * Legacy persisted values are intentionally ignored.
  */
 export async function getMythicResonance(): Promise<boolean> {
-  const local = await LocalStorage.getMythicResonance();
-  const userId = await UserService.getCurrentUserId();
-  if (!userId) return local.value;
-
-  const remote = await remoteGetMythicResonance();
-  if (!remote) return local.value;
-
-  // Prefer newer: if local is newer (or remote has no timestamp), keep local
-  if (local.updatedAt && (!remote.updated_at || local.updatedAt >= remote.updated_at)) {
-    return local.value;
-  }
-  // Remote is newer: use it and update local
-  await LocalStorage.setMythicResonance(remote.value, remote.updated_at);
-  return remote.value;
+  return true;
 }
 
-/**
- * Set mythic resonance: write local first (immediate UI), then remote.
- * After remote succeeds, re-read canonical updated_at and update local — avoids sync edge cases.
- */
-export async function setMythicResonance(enabled: boolean): Promise<void> {
-  await LocalStorage.setMythicResonance(enabled, new Date().toISOString());
-  const userId = await UserService.getCurrentUserId();
-  if (userId) {
-    const canonicalUpdatedAt = await remoteSetMythicResonance(enabled);
-    if (canonicalUpdatedAt) {
-      await LocalStorage.setMythicResonance(enabled, canonicalUpdatedAt);
-    }
-  }
+export async function setMythicResonance(_enabled: boolean): Promise<void> {
+  // No-op kept for compatibility with older callers.
 }
 
 export type { InterpretationDepth };

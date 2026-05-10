@@ -36,8 +36,72 @@ import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
 import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
 import { hasAcceptedLegalConsent } from '../services/legalConsentService';
+import {
+  DESIGN_EXPORT_INITIAL_ONBOARDING_ROUTE,
+  DESIGN_EXPORT_INITIAL_ROUTE,
+  DESIGN_EXPORT_INITIAL_TAB,
+  DESIGN_EXPORT_DREAM_ID,
+  DESIGN_EXPORT_INSIGHTS_SECTION_ID,
+  DESIGN_EXPORT_JOURNAL_FILTER_SYMBOL,
+  DESIGN_EXPORT_MODE,
+  IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+} from '../designExport';
 
 const Stack = createStackNavigator<RootStackParamList>();
+
+const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
+  'Auth',
+  'LoginSupport',
+  'SetPassword',
+  'BiometricLock',
+  'LegalConsent',
+  'Onboarding',
+  'MainTabs',
+  'DreamEditor',
+  'InterpretationChat',
+  'DreamDetail',
+  'Account',
+  'Contact',
+  'Privacy',
+  'Calendar',
+  'InsightsSection',
+  'InsightsJourney',
+  'JournalFilter',
+];
+
+const MAIN_TAB_ROUTE_NAMES = ['Write', 'Journal', 'Insights'] as const;
+const ONBOARDING_ROUTE_NAMES = ['OnboardingName', 'OnboardingDepth', 'OnboardingSecure'] as const;
+
+const isRootRouteName = (route: string): route is keyof RootStackParamList =>
+  ROOT_ROUTE_NAMES.includes(route as keyof RootStackParamList);
+
+const isMainTabRouteName = (route: string): route is (typeof MAIN_TAB_ROUTE_NAMES)[number] =>
+  MAIN_TAB_ROUTE_NAMES.includes(route as (typeof MAIN_TAB_ROUTE_NAMES)[number]);
+
+const isOnboardingRouteName = (route: string): route is (typeof ONBOARDING_ROUTE_NAMES)[number] =>
+  ONBOARDING_ROUTE_NAMES.includes(route as (typeof ONBOARDING_ROUTE_NAMES)[number]);
+
+const getTodayForDesignExport = () => new Date().toISOString().slice(0, 10);
+
+const designExportInitialRootRoute = (): keyof RootStackParamList => {
+  if (isMainTabRouteName(DESIGN_EXPORT_INITIAL_ROUTE)) return 'MainTabs';
+  if (isOnboardingRouteName(DESIGN_EXPORT_INITIAL_ROUTE)) return 'Onboarding';
+  return isRootRouteName(DESIGN_EXPORT_INITIAL_ROUTE) ? DESIGN_EXPORT_INITIAL_ROUTE : 'MainTabs';
+};
+
+const designExportInitialTabRoute = () =>
+  isMainTabRouteName(DESIGN_EXPORT_INITIAL_ROUTE)
+    ? DESIGN_EXPORT_INITIAL_ROUTE
+    : isMainTabRouteName(DESIGN_EXPORT_INITIAL_TAB)
+      ? DESIGN_EXPORT_INITIAL_TAB
+      : 'Write';
+
+const designExportInitialOnboardingRoute = () =>
+  isOnboardingRouteName(DESIGN_EXPORT_INITIAL_ROUTE)
+    ? DESIGN_EXPORT_INITIAL_ROUTE
+    : isOnboardingRouteName(DESIGN_EXPORT_INITIAL_ONBOARDING_ROUTE)
+      ? DESIGN_EXPORT_INITIAL_ONBOARDING_ROUTE
+      : 'OnboardingName';
 
 type AuthenticatedRouteState = {
   pendingPasswordReset: boolean;
@@ -52,7 +116,192 @@ export const PendingPasswordResetContext = createContext<((v: boolean) => void) 
 /** Call when user passes biometric unlock (app lock). */
 export const BiometricUnlockContext = createContext<(() => void) | null>(null);
 
+const DesignExportRootNavigator: React.FC = () => {
+  const initialRouteName = designExportInitialRootRoute();
+  const initialTabRouteName = designExportInitialTabRoute();
+  const initialOnboardingRouteName = designExportInitialOnboardingRoute();
+  const today = getTodayForDesignExport();
+
+  return (
+    <PendingPasswordResetContext.Provider value={() => undefined}>
+      <BiometricUnlockContext.Provider value={() => undefined}>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName={initialRouteName}
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: colors.background },
+              presentation: 'card',
+              headerStyle: { backgroundColor: colors.background },
+              headerShadowVisible: false,
+              headerTintColor: colors.textAccent,
+              headerTitleStyle: {
+                fontFamily: typography.bold,
+                fontSize: typography.sizes.xl,
+                color: colors.textTitle,
+              },
+            }}
+          >
+            <Stack.Screen name="Auth" component={AuthScreen} />
+            <Stack.Screen name="LoginSupport" component={LoginSupportScreen} />
+            <Stack.Screen name="SetPassword" component={SetPasswordScreen} />
+            <Stack.Screen name="BiometricLock" component={BiometricLockScreen} />
+            <Stack.Screen name="LegalConsent">
+              {() => <LegalConsentScreen onAccepted={() => undefined} />}
+            </Stack.Screen>
+            <Stack.Screen name="Onboarding">
+              {() => (
+                <OnboardingNavigator
+                  onComplete={() => undefined}
+                  initialRouteName={initialOnboardingRouteName}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="MainTabs">
+              {() => <MainTabsNavigator initialRouteName={initialTabRouteName} />}
+            </Stack.Screen>
+            <Stack.Screen
+              name="DreamEditor"
+              component={DreamEditorScreen}
+              initialParams={{ date: today }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Edit Dream',
+              }}
+            />
+            <Stack.Screen
+              name="InterpretationChat"
+              component={InterpretationChatScreen}
+              initialParams={{ dreamId: DESIGN_EXPORT_DREAM_ID }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Jungian AI',
+              }}
+            />
+            <Stack.Screen
+              name="Account"
+              component={AccountScreen}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Account',
+              }}
+            />
+            <Stack.Screen
+              name="Contact"
+              component={ContactScreen}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Contact us',
+              }}
+            />
+            <Stack.Screen
+              name="Privacy"
+              component={PrivacyScreen}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Privacy & Legal',
+              }}
+            />
+            <Stack.Screen
+              name="DreamDetail"
+              component={DreamDetailScreen}
+              initialParams={{ dreamId: DESIGN_EXPORT_DREAM_ID }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Dream',
+              }}
+            />
+            <Stack.Screen
+              name="Calendar"
+              component={CalendarScreen}
+              initialParams={{ initialDate: today }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Dream Calendar',
+              }}
+            />
+            <Stack.Screen
+              name="InsightsSection"
+              component={InsightsSectionScreen}
+              initialParams={{
+                sectionId: DESIGN_EXPORT_INSIGHTS_SECTION_ID as InsightsSectionId,
+                periodStart: today,
+                periodEnd: today,
+                periodLabel: 'Design export',
+              }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitleAlign: 'center',
+                headerTitle: 'Insights',
+              }}
+            />
+            <Stack.Screen
+              name="InsightsJourney"
+              component={InsightsJourneyScreen}
+              initialParams={{
+                initialSectionId: DESIGN_EXPORT_INSIGHTS_SECTION_ID as InsightsSectionId,
+                periodStart: today,
+                periodEnd: today,
+                periodLabel: 'Design export',
+              }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitleAlign: 'center',
+                headerTitle: 'Insights',
+                headerBackTitle: 'Back',
+              }}
+            />
+            <Stack.Screen
+              name="JournalFilter"
+              component={JournalFilterScreen}
+              initialParams={{ filterSymbol: DESIGN_EXPORT_JOURNAL_FILTER_SYMBOL }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Journal',
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </BiometricUnlockContext.Provider>
+    </PendingPasswordResetContext.Provider>
+  );
+};
+
 export const RootNavigator: React.FC = () => {
+  if (DESIGN_EXPORT_MODE) {
+    return <DesignExportRootNavigator />;
+  }
+
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingPasswordReset, setPendingPasswordReset] = useState(false);
@@ -443,7 +692,7 @@ export const RootNavigator: React.FC = () => {
           name="DreamEditor"
           component={DreamEditorScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -454,7 +703,7 @@ export const RootNavigator: React.FC = () => {
           name="InterpretationChat"
           component={InterpretationChatScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -465,7 +714,7 @@ export const RootNavigator: React.FC = () => {
           name="Account"
           component={AccountScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -476,7 +725,7 @@ export const RootNavigator: React.FC = () => {
           name="Contact"
           component={ContactScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -487,7 +736,7 @@ export const RootNavigator: React.FC = () => {
           name="Privacy"
           component={PrivacyScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -498,7 +747,7 @@ export const RootNavigator: React.FC = () => {
           name="DreamDetail"
           component={DreamDetailScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -509,7 +758,7 @@ export const RootNavigator: React.FC = () => {
           name="Calendar"
           component={CalendarScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -529,7 +778,7 @@ export const RootNavigator: React.FC = () => {
               ? baseTitle
               : `${baseTitle} (${p.periodLabel})`;
             return {
-              headerShown: true,
+              headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
               headerStyle: { backgroundColor: colors.background },
               headerShadowVisible: false,
               headerTintColor: colors.textPrimary,
@@ -542,7 +791,7 @@ export const RootNavigator: React.FC = () => {
           name="InsightsJourney"
           component={InsightsJourneyScreen}
           options={{
-            headerShown: true,
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
             headerStyle: { backgroundColor: colors.background },
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
@@ -558,7 +807,7 @@ export const RootNavigator: React.FC = () => {
             const p = route.params as { filterSymbol?: string; filterLandscape?: string; filterMotif?: string };
             const title = p?.filterSymbol ? `Symbol: ${p.filterSymbol}` : p?.filterLandscape ? `Landscape: ${p.filterLandscape}` : p?.filterMotif ? `Motif: ${p.filterMotif}` : 'Journal';
             return {
-              headerShown: true,
+              headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
               headerStyle: { backgroundColor: colors.background },
               headerShadowVisible: false,
               headerTintColor: colors.textPrimary,
@@ -567,7 +816,7 @@ export const RootNavigator: React.FC = () => {
           }}
         />
           </Stack.Navigator>
-          <DevOfflineToggle />
+          {!IS_DESIGN_EXPORT_BACKGROUND_ONLY && <DevOfflineToggle />}
         </NavigationContainer>
       </BiometricUnlockContext.Provider>
     </PendingPasswordResetContext.Provider>

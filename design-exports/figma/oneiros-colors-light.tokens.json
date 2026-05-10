@@ -1,0 +1,188 @@
+{
+  "color": {
+    "bg": {
+      "primary": {
+        "$type": "color",
+        "$description": "Warm Bone - main app background and splash background.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.968627451, 0.952941176, 0.941176471],
+          "alpha": 1,
+          "hex": "#F7F3F0"
+        }
+      },
+      "secondary": {
+        "$type": "color",
+        "$description": "Dirty Lilac Wash - secondary background wash, soft panels, and waves.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.937254902, 0.909803922, 0.945098039],
+          "alpha": 1,
+          "hex": "#EFE8F1"
+        }
+      }
+    },
+    "surface": {
+      "paper": {
+        "$type": "color",
+        "$description": "Paper Mist - cards, raised surfaces, clean panels, inputs, and search surfaces.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [1, 0.988235294, 0.980392157],
+          "alpha": 1,
+          "hex": "#FFFCFA"
+        }
+      }
+    },
+    "border": {
+      "default": {
+        "$type": "color",
+        "$description": "Ash Lilac - borders, input outlines, card borders, dividers, and brand contour lines.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.866666667, 0.82745098, 0.866666667],
+          "alpha": 1,
+          "hex": "#DDD3DD"
+        }
+      }
+    },
+    "text": {
+      "primary": {
+        "$type": "color",
+        "$description": "Dream Ink - primary text, titles, active tab labels/icons, and brand wordmark tone.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.168627451, 0.141176471, 0.188235294],
+          "alpha": 1,
+          "hex": "#2B2430"
+        }
+      },
+      "secondary": {
+        "$type": "color",
+        "$description": "Muted Plum Gray - secondary/supporting text, subtitles, and descriptions.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.333333333, 0.282352941, 0.364705882],
+          "alpha": 1,
+          "hex": "#55485D"
+        }
+      },
+      "muted": {
+        "$type": "color",
+        "$description": "Faded Plum - placeholders, metadata, muted labels, and low-priority text.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.501960784, 0.450980392, 0.517647059],
+          "alpha": 1,
+          "hex": "#807384"
+        }
+      }
+    },
+    "accent": {
+      "action": {
+        "$type": "color",
+        "$description": "Deep Violet - primary buttons, selected controls, active UI states, microphone/action icons.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.309803922, 0.22745098, 0.345098039],
+          "alpha": 1,
+          "hex": "#4F3A58"
+        }
+      },
+      "symbol": {
+        "$type": "color",
+        "$description": "Oracle Violet - symbol accents, section icons, subtle emphasis text, and brand glow.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.431372549, 0.301960784, 0.470588235],
+          "alpha": 1,
+          "hex": "#6E4D78"
+        }
+      },
+      "decorative": {
+        "$type": "color",
+        "$description": "Dusty Mauve - decorative highlights, dream-count/calendar accents, non-interactive emphasis.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.545098039, 0.415686275, 0.576470588],
+          "alpha": 1,
+          "hex": "#8B6A93"
+        }
+      },
+      "disabled": {
+        "$type": "color",
+        "$description": "Disabled Plum - disabled button text/state family, disabled outlines, and disabled tints.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.592156863, 0.525490196, 0.607843137],
+          "alpha": 1,
+          "hex": "#97869B"
+        }
+      }
+    },
+    "brand": {
+      "shadow": {
+        "$type": "color",
+        "$description": "Night Plum - brand shadow/deep vignette, icon depth, and adaptive icon shadow treatment.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.121568627, 0.101960784, 0.137254902],
+          "alpha": 1,
+          "hex": "#1F1A23"
+        }
+      },
+      "contour-soft": {
+        "$type": "color",
+        "$description": "Soft Contour Lilac - soft brand contour, secondary glow, and supporting stroke tint.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.733333333, 0.658823529, 0.749019608],
+          "alpha": 1,
+          "hex": "#BBA8BF"
+        }
+      }
+    },
+    "status": {
+      "success": {
+        "$type": "color",
+        "$description": "Signal Green - success states, online/dev status, and positive confirmations.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.298039216, 0.68627451, 0.31372549],
+          "alpha": 1,
+          "hex": "#4CAF50"
+        }
+      },
+      "error": {
+        "$type": "color",
+        "$description": "Alert Red - error/destructive states, recording stop/error UI, and offline/error indicators.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [1, 0.231372549, 0.188235294],
+          "alpha": 1,
+          "hex": "#FF3B30"
+        }
+      },
+      "warning": {
+        "$type": "color",
+        "$description": "Lantern Amber - warning states, offline warning border, and caution feedback.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [1, 0.654901961, 0.149019608],
+          "alpha": 1,
+          "hex": "#FFA726"
+        }
+      },
+      "info": {
+        "$type": "color",
+        "$description": "Clear Sky Blue - neutral informational feedback.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.129411765, 0.588235294, 0.952941176],
+          "alpha": 1,
+          "hex": "#2196F3"
+        }
+      }
+    }
+  }
+}

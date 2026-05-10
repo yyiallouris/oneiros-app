@@ -12,12 +12,18 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { LoadingScreen } from './src/components/ui';
+import {
+  DESIGN_EXPORT_DEVICE_HEIGHT,
+  DESIGN_EXPORT_DEVICE_WIDTH,
+  DESIGN_EXPORT_HOLD_SPLASH,
+  DESIGN_EXPORT_MODE,
+} from './src/designExport';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!DESIGN_EXPORT_MODE || DESIGN_EXPORT_HOLD_SPLASH);
   const [fontsLoaded] = useFonts({
     AlegreyaSans_400Regular,
     AlegreyaSans_500Medium,
@@ -37,6 +43,60 @@ export default function App() {
     });
   }, [fontsLoaded]);
 
+  useEffect(() => {
+    if (!DESIGN_EXPORT_MODE || typeof document === 'undefined') {
+      return;
+    }
+
+    const styleId = 'oneiros-design-export-phone-frame';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        html,
+        body,
+        #root {
+          width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          min-width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          max-width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+          min-height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+          max-height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+          margin: 0 !important;
+          overflow: hidden !important;
+          background: #f7efe7 !important;
+        }
+
+        #root,
+        #root > div {
+          position: relative !important;
+          overflow: hidden !important;
+        }
+
+        #root > div {
+          width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          min-width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          max-width: ${DESIGN_EXPORT_DEVICE_WIDTH}px !important;
+          height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+          min-height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+          max-height: ${DESIGN_EXPORT_DEVICE_HEIGHT}px !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    const existing = document.querySelector('script[data-oneiros-figma-capture="true"]');
+    if (existing) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://mcp.figma.com/mcp/html-to-design/capture.js';
+    script.async = true;
+    script.dataset.oneirosFigmaCapture = 'true';
+    document.head.appendChild(script);
+  }, []);
+
   const handleLoadingComplete = () => {
     setIsLoading(false);
   };
@@ -49,7 +109,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <LoadingScreen onComplete={handleLoadingComplete} />
+        <LoadingScreen onComplete={DESIGN_EXPORT_HOLD_SPLASH ? undefined : handleLoadingComplete} />
       </SafeAreaProvider>
     );
   }

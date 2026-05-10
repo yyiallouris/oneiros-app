@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { WaveBackground, Button } from '../components/ui';
+import { WaveBackground, Button, DesignExportForeground } from '../components/ui';
 import { sendContactMessage } from '../services/contact';
 import { RootStackParamList } from '../navigation/types';
 
@@ -51,7 +51,7 @@ const ContactScreen: React.FC = () => {
       keyboardVerticalOffset={0}
     >
       <WaveBackground />
-      <View style={styles.content}>
+      <DesignExportForeground style={styles.content}>
         <Text style={styles.title}>Contact us</Text>
         <Text style={styles.subtitle}>
           Share feedback, privacy requests, or anything that is on your mind. We will receive your message privately.
@@ -87,7 +87,7 @@ const ContactScreen: React.FC = () => {
           loading={isSending}
           disabled={!message.trim()}
         />
-      </View>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };

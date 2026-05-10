@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius } from '../../theme';
-import { MountainWaveBackground, Card, Button } from '../../components/ui';
+import { MountainWaveBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import { setInterpretationDepth, type InterpretationDepth } from '../../services/userSettingsService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { AI_REFLECTION_NOTICE } from '../../constants/legal';
@@ -32,11 +32,12 @@ const OnboardingDepthScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <MountainWaveBackground height={260} lite />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
@@ -77,8 +78,9 @@ const OnboardingDepthScreen: React.FC = () => {
           <TouchableOpacity onPress={handleSkip} style={styles.skipButton} activeOpacity={0.7}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };

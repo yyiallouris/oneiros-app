@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Easing, Image, useWindowDimensions } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { backgrounds, brandIcon, typography, text } from '../../theme';
+import { DesignExportForeground } from './DesignExportForeground';
 
 interface LoadingScreenProps {
   onComplete?: () => void;
@@ -35,6 +36,10 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
+      if (!onComplete) {
+        return;
+      }
+
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 300,
@@ -67,12 +72,12 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.centerBox}>
+      <DesignExportForeground style={styles.centerBox}>
         <View style={[styles.imageWrap, { width: imgW, height: imgH }]}>
           <Image
-          source={require('../../../assets/branding/splash-logo.png')}
-          style={{ width: imgW, height: imgH }}
-          resizeMode="contain"
+            source={require('../../../assets/branding/splash-logo.png')}
+            style={{ width: imgW, height: imgH }}
+            resizeMode="contain"
           />
           <Animated.View
             style={[
@@ -97,7 +102,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           <Text style={styles.titleMain}>Oneiros</Text>
           <Text style={styles.titleSub}>Dream Journal</Text>
         </View>
-      </View>
+      </DesignExportForeground>
     </Animated.View>
   );
 };

@@ -18,6 +18,8 @@ function interpretationToExtraction(i: Interpretation): DreamExtraction {
     affects: i.affects ?? [],
     motifs: i.motifs ?? [],
     relational_dynamics: i.relational_dynamics ?? [],
+    thresholds: i.thresholds ?? [],
+    central_conflicts: i.central_conflicts ?? [],
     core_mode: i.core_mode ?? '',
     amplifications: i.amplifications ?? [],
     symbol_stances: i.symbol_stances ?? [],
@@ -47,7 +49,7 @@ export async function getPatternInsightEntries(
     if (period && (date < period.startDate || date > period.endDate)) continue;
 
     const firstAssistant = i.messages?.find((m) => m.role === 'assistant');
-    const interpretationText = firstAssistant?.content ?? i.summary ?? '';
+    const interpretationText = firstAssistant?.content ?? '';
 
     entries.push({
       date,
@@ -56,8 +58,8 @@ export async function getPatternInsightEntries(
     });
   }
 
-  entries.sort((a, b) => (b.date > a.date ? 1 : -1));
-  return entries.slice(0, MAX_DREAMS_FOR_INSIGHTS);
+  entries.sort((a, b) => (a.date > b.date ? 1 : -1));
+  return entries.slice(-MAX_DREAMS_FOR_INSIGHTS);
 }
 
 /**

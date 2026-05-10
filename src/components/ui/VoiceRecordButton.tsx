@@ -41,6 +41,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const [duration, setDuration] = useState(0);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const statusIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const stopInProgressRef = useRef(false);
 
   const transcribeFromUri = async (audioUri: string) => {
     logEvent('voice_transcription_start', {
@@ -72,11 +73,16 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         if (status.isRecording) {
           setDuration(status.duration);
           // Auto-stop and transcribe when we hit the hard cap
-          if (status.duration >= MAX_RECORDING_MS && !isTranscribing) {
+          if (status.duration >= MAX_RECORDING_MS && !isTranscribing && !stopInProgressRef.current) {
+            stopInProgressRef.current = true;
             setIsRecording(false);
-            const audioUri = await stopRecording();
-            if (audioUri) {
-              await transcribeFromUri(audioUri);
+            try {
+              const audioUri = await stopRecording();
+              if (audioUri) {
+                await transcribeFromUri(audioUri);
+              }
+            } finally {
+              stopInProgressRef.current = false;
             }
           }
         } else {
@@ -100,12 +106,20 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const handlePress = async () => {
     if (isRecording) {
       // Stop recording
+      if (stopInProgressRef.current) return;
+      stopInProgressRef.current = true;
       setIsRecording(false);
-      const audioUri = await stopRecording();
-      
-      if (audioUri) {
-        // Start transcription
-        await transcribeFromUri(audioUri);
+      try {
+        const audioUri = await stopRecording();
+        
+        if (audioUri) {
+          // Start transcription
+          await transcribeFromUri(audioUri);
+        } else {
+          Alert.alert('Recording failed', 'The audio file was not saved. Please try again.');
+        }
+      } finally {
+        stopInProgressRef.current = false;
       }
     } else {
       // Start recording

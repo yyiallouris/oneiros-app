@@ -18,18 +18,23 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, BreathingLine, ThreadDrift } from '../components/ui';
+import { BreathingLine, ThreadDrift, DesignExportForeground } from '../components/ui';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import { generateInitialInterpretation, sendChatMessage, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
-import { getInterpretationDepth, getMythicResonance } from '../services/userSettingsService';
+import {
+  generateInitialInterpretation,
+  sendChatMessage,
+  filterArchetypesForDisplay,
+  updateInterpretationElementsFromConversation,
+} from '../services/ai';
+import { getDreamMetadataForReflection } from '../services/dreamMetadataPrefetchService';
+import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
-import { LegalNotice } from '../components/LegalNotice';
 import Svg, { Path } from 'react-native-svg';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
@@ -389,18 +394,18 @@ const InterpretationChatScreen: React.FC = () => {
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
       const depth = await getInterpretationDepth();
-      // Extraction required — no fallback; on failure show error and stop
-      let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
+
+      const aiResponse = await generateInitialInterpretation(dreamData, { depth });
+      console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
+
+      // Keep metadata extraction as a separate model call over the full dream text.
+      let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
       try {
-        structured = await extractDreamSymbolsAndArchetypes(dreamData);
+        structured = await getDreamMetadataForReflection(dreamData, aiResponse);
       } catch {
         Alert.alert('Network error', 'Please check your connection and try again.');
         return;
       }
-
-      const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
-      const aiResponse = await generateInitialInterpretation(dreamData, { depth, mythicResonance, extraction: structured });
-      console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
 
       const aiMessage: ChatMessage = {
         id: generateId(),
@@ -415,6 +420,8 @@ const InterpretationChatScreen: React.FC = () => {
       const affects = structured.affects ?? [];
       const motifs = structured.motifs ?? [];
       const relational_dynamics = structured.relational_dynamics ?? [];
+      const thresholds = structured.thresholds ?? [];
+      const central_conflicts = structured.central_conflicts ?? [];
       const core_mode = structured.core_mode?.trim() || undefined;
       const amplifications = structured.amplifications ?? [];
       const symbol_stances = structured.symbol_stances ?? [];
@@ -425,6 +432,8 @@ const InterpretationChatScreen: React.FC = () => {
           landscapesCount: landscapes.length,
           affectsCount: affects.length,
           motifsCount: motifs.length,
+          thresholdsCount: thresholds.length,
+          centralConflictsCount: central_conflicts.length,
           core_mode,
         });
       }
@@ -438,10 +447,11 @@ const InterpretationChatScreen: React.FC = () => {
         affects: affects.length > 0 ? affects : undefined,
         motifs: motifs.length > 0 ? motifs : undefined,
         relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
+        thresholds: thresholds.length > 0 ? thresholds : undefined,
+        central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
         core_mode,
         amplifications: amplifications.length > 0 ? amplifications : undefined,
         symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-        summary: aiResponse.slice(0, 200),
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -523,14 +533,24 @@ const InterpretationChatScreen: React.FC = () => {
       setTypingMessageId(aiMessage.id);
 
       // Update interpretation
-      const updatedInterpretation: Interpretation = {
+      const updatedInterpretationBase: Interpretation = {
         ...interpretation,
         messages: updatedMessages,
         updatedAt: new Date().toISOString(),
       };
+      await saveInterpretation(updatedInterpretationBase);
+      setInterpretation(updatedInterpretationBase);
 
-      await saveInterpretation(updatedInterpretation);
-      setInterpretation(updatedInterpretation);
+      const updatedInterpretation = await updateInterpretationElementsFromConversation(
+        dream,
+        updatedInterpretationBase,
+        updatedMessages
+      );
+
+      if (updatedInterpretation !== updatedInterpretationBase) {
+        await saveInterpretation(updatedInterpretation);
+        setInterpretation(updatedInterpretation);
+      }
 
       // Only auto-scroll if user hasn't manually scrolled up
       if (!isUserScrolledUp) {
@@ -559,10 +579,10 @@ const InterpretationChatScreen: React.FC = () => {
   if (isLoadingDream) {
     return (
       <View style={styles.container}>
-        <View style={styles.loadingContainer}>
+        <DesignExportForeground style={styles.loadingContainer}>
           <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
           <Text style={styles.loadingText}>Loading dream...</Text>
-        </View>
+        </DesignExportForeground>
       </View>
     );
   }
@@ -570,25 +590,23 @@ const InterpretationChatScreen: React.FC = () => {
   if (!dream) {
     return (
       <View style={styles.container}>
-        <View style={styles.errorContainer}>
+        <DesignExportForeground style={styles.errorContainer}>
           <Text style={styles.errorText}>Dream not found</Text>
-        </View>
+        </DesignExportForeground>
       </View>
     );
   }
 
   if (isGeneratingInitial) {
     return (
-      <View style={styles.loadingContainer}>
-        <ThreadDrift size={60} color={colors.buttonPrimary} />
-        <Text style={styles.loadingText}>Analyzing your dream...</Text>
+      <View style={styles.container}>
+        <DesignExportForeground style={styles.loadingContainer}>
+          <ThreadDrift size={60} color={colors.buttonPrimary} />
+          <Text style={styles.loadingText}>Analyzing your dream...</Text>
+        </DesignExportForeground>
       </View>
     );
   }
-
-  const dreamPreview = dream.content.length > 150
-    ? dream.content.slice(0, 150) + '...'
-    : dream.content;
 
   const keyboardVerticalOffset =
     Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 56 : 90;
@@ -599,53 +617,44 @@ const InterpretationChatScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
-      {/* Dream Summary Card */}
-      <Card style={styles.summaryCard} elevation={false}>
-        <Text style={styles.summaryTitle}>Dream summary</Text>
-        <Text style={styles.summaryText} numberOfLines={3}>
-          {dreamPreview}
-        </Text>
-      </Card>
-
-      <LegalNotice style={styles.legalNotice} compact />
-
-      {/* Chat Messages */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        initialNumToRender={15}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        renderItem={({ item }) => {
-          const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
-          return (
-            <ChatBubble
-              message={item}
-              isUser={item.role === 'user'}
-              isTyping={typingMessageId === item.id}
-              onTypingComplete={() => {
-                if (typingMessageId === item.id) {
-                  setTypingMessageId(null);
-                }
-              }}
-              showSettleFooter={!!isLastAssistantAtLimit}
-            />
-          );
-        }}
-        contentContainerStyle={styles.chatContent}
-        showsVerticalScrollIndicator={false}
-        onScroll={(event) => {
-          // Detect if user scrolled up manually (for future "scroll to bottom" button, etc.)
-          const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-          const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 20;
-          setIsUserScrolledUp(!isAtBottom);
-        }}
-        onContentSizeChange={() => {
-          // ChatGPT/Grok-style: do NOT auto-scroll during live typing.
-          // Content stays where it is; user scrolls manually to continue reading.
-        }}
-      />
+      <DesignExportForeground fill>
+        {/* Chat Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          renderItem={({ item }) => {
+            const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
+            return (
+              <ChatBubble
+                message={item}
+                isUser={item.role === 'user'}
+                isTyping={typingMessageId === item.id}
+                onTypingComplete={() => {
+                  if (typingMessageId === item.id) {
+                    setTypingMessageId(null);
+                  }
+                }}
+                showSettleFooter={!!isLastAssistantAtLimit}
+              />
+            );
+          }}
+          contentContainerStyle={styles.chatContent}
+          showsVerticalScrollIndicator={false}
+          onScroll={(event) => {
+            // Detect if user scrolled up manually (for future "scroll to bottom" button, etc.)
+            const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+            const isAtBottom = contentOffset.y + layoutMeasurement.height >= contentSize.height - 20;
+            setIsUserScrolledUp(!isAtBottom);
+          }}
+          onContentSizeChange={() => {
+            // ChatGPT/Grok-style: do NOT auto-scroll during live typing.
+            // Content stays where it is; user scrolls manually to continue reading.
+          }}
+        />
 
       {/* Quick Questions */}
       {messages.length <= 1 && (
@@ -708,7 +717,7 @@ const InterpretationChatScreen: React.FC = () => {
           value={inputText}
           onChangeText={setInputText}
           multiline
-          maxLength={500}
+          maxLength={3000}
           editable={!reflectionLimitReached}
           pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
         />
@@ -732,6 +741,7 @@ const InterpretationChatScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };
@@ -751,28 +761,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     fontSize: typography.sizes.md,
     color: colors.textSecondary,
-  },
-  summaryCard: {
-    margin: spacing.md,
-    backgroundColor: colors.buttonPrimaryLight,
-    opacity: 0.9,
-  },
-  summaryTitle: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-    color: colors.white,
-    marginBottom: spacing.xs,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  summaryText: {
-    fontSize: typography.sizes.sm,
-    color: colors.white,
-    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
-  },
-  legalNotice: {
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
   },
   chatContent: {
     padding: spacing.md,

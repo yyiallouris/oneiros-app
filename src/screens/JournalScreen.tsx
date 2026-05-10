@@ -11,7 +11,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard } from '../components/ui';
+import { Card, PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
@@ -234,76 +234,78 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
     <View style={styles.container}>
       <PsycheScreenBackground waveHeight={210} />
 
-      <MysticHeader
-        title="Journal"
-        subtitle="Dreams remembered and ready to return."
-        right={
-          <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-            <CalendarIcon size={24} />
-          </TouchableOpacity>
-        }
-      />
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <SearchIcon />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search dreams..."
-            placeholderTextColor={colors.textMuted}
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-        </View>
-        {(filterSymbol || filterLandscape) && !isLoading && (
-          <View style={styles.filterRow}>
-            <Text style={styles.filterHint}>
-              {filterSymbol ? `Symbol: ${filterSymbol}` : `Landscape: ${filterLandscape}`}
-            </Text>
-            <TouchableOpacity
-              onPress={clearFilter}
-              style={styles.filterClearButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityLabel="Clear filter"
-            >
-              <Text style={styles.filterClearText}>×</Text>
+      <DesignExportForeground fill>
+        <MysticHeader
+          title="Journal"
+          subtitle="Dreams remembered and ready to return."
+          right={
+            <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
+              <CalendarIcon size={24} />
             </TouchableOpacity>
-          </View>
-        )}
-        {/* Breathing line below search bar */}
-        {isLoading && (
-          <View style={styles.headerLoader}>
-            <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
-          </View>
-        )}
-      </View>
-
-      {/* Dreams List */}
-      {isLoading ? (
-        <View style={styles.skeletonContainer}>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <LinoSkeletonCard key={i} />
-          ))}
-        </View>
-      ) : (
-        <FlatList
-          data={filteredDreams}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          initialNumToRender={15}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          removeClippedSubviews={true}
-          ListEmptyComponent={
-            <View style={styles.emptyStateContainer}>
-              {renderEmptyState()}
-            </View>
           }
-          showsVerticalScrollIndicator={false}
         />
-      )}
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <SearchIcon />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search dreams..."
+              placeholderTextColor={colors.textMuted}
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+          </View>
+          {(filterSymbol || filterLandscape) && !isLoading && (
+            <View style={styles.filterRow}>
+              <Text style={styles.filterHint}>
+                {filterSymbol ? `Symbol: ${filterSymbol}` : `Landscape: ${filterLandscape}`}
+              </Text>
+              <TouchableOpacity
+                onPress={clearFilter}
+                style={styles.filterClearButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Clear filter"
+              >
+                <Text style={styles.filterClearText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {/* Breathing line below search bar */}
+          {isLoading && (
+            <View style={styles.headerLoader}>
+              <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
+            </View>
+          )}
+        </View>
+
+        {/* Dreams List */}
+        {isLoading ? (
+          <View style={styles.skeletonContainer}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <LinoSkeletonCard key={i} />
+            ))}
+          </View>
+        ) : (
+          <FlatList
+            data={filteredDreams}
+            keyExtractor={keyExtractor}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
+            ListEmptyComponent={
+              <View style={styles.emptyStateContainer}>
+                {renderEmptyState()}
+              </View>
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </DesignExportForeground>
     </View>
   );
 };
@@ -444,4 +446,3 @@ const styles = StyleSheet.create({
 });
 
 export default JournalScreen;
-

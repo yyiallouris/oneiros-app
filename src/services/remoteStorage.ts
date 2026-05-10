@@ -46,6 +46,8 @@ type InterpretationRow = {
   affects?: string[];
   motifs?: string[];
   relational_dynamics?: string[];
+  thresholds?: string[];
+  central_conflicts?: string[];
   core_mode?: string | null;
   amplifications?: string[];
   symbol_stances?: SymbolStanceRow[];
@@ -95,10 +97,11 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     affects: row.affects && row.affects.length > 0 ? row.affects : undefined,
     motifs: row.motifs && row.motifs.length > 0 ? row.motifs : undefined,
     relational_dynamics: row.relational_dynamics && row.relational_dynamics.length > 0 ? row.relational_dynamics : undefined,
+    thresholds: row.thresholds && row.thresholds.length > 0 ? row.thresholds : undefined,
+    central_conflicts: row.central_conflicts && row.central_conflicts.length > 0 ? row.central_conflicts : undefined,
     core_mode: row.core_mode && row.core_mode.trim() ? row.core_mode : undefined,
     amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
     symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
-    summary: row.summary ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -118,10 +121,12 @@ function mapInterpretationToRow(
     affects: interpretation.affects,
     motifs: interpretation.motifs,
     relational_dynamics: interpretation.relational_dynamics,
+    thresholds: interpretation.thresholds,
+    central_conflicts: interpretation.central_conflicts,
     core_mode: interpretation.core_mode ?? null,
     amplifications: interpretation.amplifications,
     symbol_stances: interpretation.symbol_stances,
-    summary: interpretation.summary ?? null,
+    summary: null,
     messages: interpretation.messages as any[],
   };
 }
@@ -450,58 +455,4 @@ export async function remoteSetBiometricEnabled(enabled: boolean): Promise<void>
   const userId = await getUserId();
   if (!userId) return;
   await remoteSetBiometricEnabledForUser(userId, enabled);
-}
-
-// --- User settings: mythic_resonance (Advanced/Deeper Dive only) ---
-
-export async function remoteGetMythicResonance(): Promise<{ value: boolean; updated_at: string } | null> {
-  const userId = await getUserId();
-  if (!userId) return null;
-
-  const { data, error } = await supabase
-    .from('user_settings')
-    .select('mythic_resonance, updated_at')
-    .eq('user_id', userId)
-    .maybeSingle();
-
-  if (error) {
-    logError('remote_get_mythic_resonance_error', error);
-    return null;
-  }
-  const row = data as { mythic_resonance: boolean; updated_at: string } | null;
-  if (!row) return null;
-  return { value: row.mythic_resonance ?? false, updated_at: row.updated_at ?? '' };
-}
-
-/**
- * Set mythic_resonance. Returns canonical updated_at from server (re-read after upsert)
- * so local can store the real server time — avoids edge cases if server overrides our timestamp.
- */
-export async function remoteSetMythicResonance(enabled: boolean): Promise<string | null> {
-  const userId = await getUserId();
-  if (!userId) return null;
-
-  const { error } = await supabase.from('user_settings').upsert(
-    {
-      user_id: userId,
-      mythic_resonance: enabled,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id' }
-  );
-
-  if (error) {
-    logError('remote_set_mythic_resonance_error', error, { enabled });
-    return null;
-  }
-  logEvent('remote_set_mythic_resonance_success', { enabled });
-
-  // Re-read to get canonical server updated_at (handles triggers, server-generated timestamps)
-  const { data } = await supabase
-    .from('user_settings')
-    .select('updated_at')
-    .eq('user_id', userId)
-    .single();
-
-  return (data as { updated_at: string } | null)?.updated_at ?? null;
 }

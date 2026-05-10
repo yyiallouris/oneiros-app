@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Switch } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { WaveBackground, Card } from '../components/ui';
+import { WaveBackground, Card, DesignExportForeground } from '../components/ui';
 import { UserService } from '../services/userService';
-import { getInterpretationDepth, setInterpretationDepth, getMythicResonance, setMythicResonance, type InterpretationDepth } from '../services/userSettingsService';
+import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import {
   getBiometricStatus,
   isBiometricEnabled,
@@ -21,7 +21,7 @@ type NavProp = StackNavigationProp<RootStackParamList>;
 const DEPTH_OPTIONS: { value: InterpretationDepth; label: string; hint: string }[] = [
   { value: 'quick', label: 'Quick Glance', hint: '80–180 words, low cognitive load' },
   { value: 'standard', label: 'Core Reflection', hint: '150–350 words, full post-Jungian' },
-  { value: 'advanced', label: 'Deeper Dive', hint: '400–700 words, extended & motif tracking' },
+  { value: 'advanced', label: 'Deeper Dive', hint: 'Imaginal structure + Symbolic Forms; restrained mythic resonance when earned' },
 ];
 
 const AccountScreen: React.FC = () => {
@@ -30,7 +30,6 @@ const AccountScreen: React.FC = () => {
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [interpretationDepth, setInterpretationDepthState] = useState<InterpretationDepth>('standard');
-  const [mythicResonance, setMythicResonanceState] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
@@ -45,9 +44,6 @@ const AccountScreen: React.FC = () => {
       });
       getInterpretationDepth().then((depth) => {
         if (mounted) setInterpretationDepthState(depth);
-      });
-      getMythicResonance().then((enabled) => {
-        if (mounted) setMythicResonanceState(enabled);
       });
       getBiometricStatus().then((status) => {
         if (mounted) {
@@ -81,11 +77,6 @@ const AccountScreen: React.FC = () => {
   const handleDepthSelect = useCallback((depth: InterpretationDepth) => {
     setInterpretationDepthState(depth);
     setInterpretationDepth(depth);
-  }, []);
-
-  const handleMythicResonanceToggle = useCallback(async (value: boolean) => {
-    setMythicResonanceState(value);
-    await setMythicResonance(value);
   }, []);
 
   const handleBiometricToggle = useCallback(async (value: boolean) => {
@@ -144,12 +135,13 @@ const AccountScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <WaveBackground />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={styles.title}>Account</Text>
 
         <Card style={styles.card}>
@@ -189,21 +181,6 @@ const AccountScreen: React.FC = () => {
               {interpretationDepth === opt.value && <Text style={styles.depthCheck}>✓</Text>}
             </TouchableOpacity>
           ))}
-          {interpretationDepth === 'advanced' && (
-            <View style={styles.mythicRow}>
-              <View style={styles.mythicContent}>
-                <Text style={styles.mythicLabel}>Mythic Resonance</Text>
-                <Text style={styles.mythicHint}>Adds brief mythic echoes as metaphors — not spiritual claims. Available in Deeper Dive.</Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.toggle, mythicResonance && styles.toggleOn]}
-                onPress={() => handleMythicResonanceToggle(!mythicResonance)}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.toggleThumb, mythicResonance && styles.toggleThumbOn]} />
-              </TouchableOpacity>
-            </View>
-          )}
         </Card>
 
         {biometricSupported && (
@@ -257,8 +234,9 @@ const AccountScreen: React.FC = () => {
             </View>
             <Text style={[styles.dataRowChevron, styles.deleteRowTitle]}>›</Text>
           </TouchableOpacity>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };
@@ -352,26 +330,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     color: colors.buttonPrimary,
     marginLeft: spacing.sm,
-  },
-  mythicRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: borders.primary,
-  },
-  mythicContent: { flex: 1 },
-  mythicLabel: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.medium,
-    color: colors.textPrimary,
-  },
-  mythicHint: {
-    fontSize: typography.sizes.sm,
-    color: text.muted,
-    marginTop: 2,
   },
   biometricRow: {
     flexDirection: 'row',

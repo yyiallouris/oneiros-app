@@ -16,7 +16,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
-import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
+import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -38,12 +38,20 @@ const SectionArchetypesIcon = () => (
 const SectionPlacesIcon = () => (
   <PlacesIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
 );
-import type { InsightsSectionId, InsightsPeriod, MotifCount } from '../types/insights';
+import type {
+  InsightsSectionId,
+  InsightsPeriod,
+  MotifCount,
+  ThresholdCount,
+  CentralConflictCount,
+} from '../types/insights';
 import {
   getRecurringSymbols,
   getRecurringArchetypes,
   getRecurringLandscapes,
   getRecurringMotifs,
+  getRecurringThresholds,
+  getRecurringCentralConflicts,
   getCollectiveInsights,
   getSymbolClusters,
   symbolHasAssociations,
@@ -135,6 +143,8 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
   const [landscapes, setLandscapes] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [motifs, setMotifs] = useState<MotifCount[]>([]);
+  const [thresholds, setThresholds] = useState<ThresholdCount[]>([]);
+  const [centralConflicts, setCentralConflicts] = useState<CentralConflictCount[]>([]);
   const [collective, setCollective] = useState<{
     topSymbolsThisMonth: { symbol: string; count: number }[];
     archetypeTrends: { archetype: string; direction: string }[];
@@ -159,8 +169,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [patternReportMeta, setPatternReportMeta] = useState<{ monthKey: string; dreamCount: number; startDate: string; endDate: string } | null>(null);
   /** When user tapped Generate and there were 0 entries for this month, show empty state. */
   const [patternEmptyForMonthKey, setPatternEmptyForMonthKey] = useState<string | null>(null);
-  /** First-time intro for pattern section (dismissible once). */
-  const [patternIntroDismissed, setPatternIntroDismissed] = useState(true);
   const [patternLanguage, setPatternLanguage] = useState(DEFAULT_PATTERN_INSIGHT_LANGUAGE);
   const [patternLanguagePickerOpen, setPatternLanguagePickerOpen] = useState(false);
   const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
@@ -184,6 +192,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       } else if (currentSectionId === 'symbolic-motifs') {
         const data = await getRecurringMotifs(period);
         setMotifs(data);
+      } else if (currentSectionId === 'thresholds') {
+        const data = await getRecurringThresholds(period);
+        setThresholds(data);
+      } else if (currentSectionId === 'core-conflicts') {
+        const data = await getRecurringCentralConflicts(period);
+        setCentralConflicts(data);
       } else if (currentSectionId === 'space-landscapes') {
         const data = await getRecurringLandscapes(period);
         if (__DEV__) {
@@ -207,8 +221,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
         }
         setPatternReportsArchive(reports);
         setPatternViewingMonthKey(null);
-        const introSeen = await AsyncStorage.getItem('@pattern_recognition_intro_seen');
-        setPatternIntroDismissed(introSeen === 'true');
       }
     } finally {
       setLoading(false);
@@ -283,9 +295,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
     return (
       <View style={[styles.container, embedded && styles.containerTransparent]}>
         {!embedded && <MountainWaveBackground height={260} lite />}
-        <View style={styles.centered}>
+        <DesignExportForeground style={styles.centered}>
           <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
-        </View>
+        </DesignExportForeground>
       </View>
     );
   }
@@ -293,11 +305,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   return (
     <View style={[styles.container, embedded && styles.containerTransparent]}>
       {!embedded && <MountainWaveBackground height={260} lite />}
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Recurring symbols: split into recurring (count ≥ 2) and visited once */}
         {sectionId === 'recurring-symbols' && (() => {
           const recurring = symbols.filter((s) => s.count >= 2);
@@ -553,6 +566,90 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           );
         })()}
 
+        {/* Thresholds: transition points kept separate from motifs */}
+        {sectionId === 'thresholds' && (() => {
+          const recurringThresholds = thresholds.filter((t) => t.count >= 2);
+          const seenOnce = thresholds.filter((t) => t.count < 2);
+          return (
+            <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionMotifsIcon />
+              </View>
+              {thresholds.length === 0 ? (
+                <Text style={styles.empty}>No thresholds yet. Interpret dreams to see recurring transition points.</Text>
+              ) : (
+                <>
+                  {recurringThresholds.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionFraming}>Places where the dream changes ground</Text>
+                      {recurringThresholds.map((t) => (
+                        <View key={t.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{t.name}</Text>
+                          <Text style={styles.archetypeCount}>×{t.count}</Text>
+                        </View>
+                      ))}
+                    </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring thresholds this period.</Text>
+                  )}
+                  {seenOnce.length > 0 && (
+                    <>
+                      <Text style={styles.subSectionLabel}>Single crossings</Text>
+                      {seenOnce.map((t) => (
+                        <View key={t.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{t.name}</Text>
+                        </View>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
+
+        {/* Core conflicts: dynamic tensions kept separate from motifs */}
+        {sectionId === 'core-conflicts' && (() => {
+          const recurringConflicts = centralConflicts.filter((c) => c.count >= 2);
+          const seenOnce = centralConflicts.filter((c) => c.count < 2);
+          return (
+            <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionMotifsIcon />
+              </View>
+              {centralConflicts.length === 0 ? (
+                <Text style={styles.empty}>No core conflicts yet. Interpret dreams to see the tensions they stage.</Text>
+              ) : (
+                <>
+                  {recurringConflicts.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionFraming}>Tensions that keep returning</Text>
+                      {recurringConflicts.map((c) => (
+                        <View key={c.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{c.name}</Text>
+                          <Text style={styles.archetypeCount}>×{c.count}</Text>
+                        </View>
+                      ))}
+                    </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring core conflicts this period.</Text>
+                  )}
+                  {seenOnce.length > 0 && (
+                    <>
+                      <Text style={styles.subSectionLabel}>Single tensions</Text>
+                      {seenOnce.map((c) => (
+                        <View key={c.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{c.name}</Text>
+                        </View>
+                      ))}
+                    </>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
+
         {/* Dream Landscapes: split recurring (2+) vs visited once */}
         {sectionId === 'space-landscapes' && (() => {
           const recurringPlaces = landscapes.filter((l) => l.count >= 2);
@@ -680,23 +777,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
 
         {sectionId === 'pattern-recognition' && (
           <View style={styles.patternWrap}>
-            {!patternIntroDismissed && (
-              <View style={styles.patternIntroCard}>
-                <Text style={styles.patternIntroCardBody}>
-                  Reflections are based on your dream interpretations (moods, motifs, relationships). They are hypothetical and not advice — use them as orientation.
-                </Text>
-                <TouchableOpacity
-                  style={styles.patternIntroCardButton}
-                  onPress={() => {
-                    AsyncStorage.setItem('@pattern_recognition_intro_seen', 'true');
-                    setPatternIntroDismissed(true);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.patternIntroCardButtonText}>Got it</Text>
-                </TouchableOpacity>
-              </View>
-            )}
             <Text style={styles.patternIntro}>
               A reflective essay on emerging themes across your dreams for a chosen month.
             </Text>
@@ -892,7 +972,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               <View style={styles.patternEmptyCard}>
                 <Text style={styles.patternEmptyTitle}>No interpreted dreams in this period</Text>
                 <Text style={styles.patternEmptyBody}>
-                  Interpret 2–3 dreams this month to unlock a reflection on patterns.
+                  Interpret 1–2 dreams to generate a meaningful dream essay.
                 </Text>
               </View>
             )}
@@ -1048,15 +1128,16 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
             )}
           </Card>
         )}
-      </ScrollView>
+        </ScrollView>
 
-      {archetypeModalKey && (
-        <SymbolInfoModal
-          visible={!!archetypeModalKey}
-          onClose={() => setArchetypeModalKey(null)}
-          contentKey={archetypeModalKey}
-        />
-      )}
+        {archetypeModalKey && (
+          <SymbolInfoModal
+            visible={!!archetypeModalKey}
+            onClose={() => setArchetypeModalKey(null)}
+            contentKey={archetypeModalKey}
+          />
+        )}
+      </DesignExportForeground>
     </View>
   );
 };
@@ -1290,30 +1371,6 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
   },
   card: { marginBottom: spacing.lg },
-  patternIntroCard: {
-    marginBottom: spacing.md,
-    padding: spacing.lg,
-    backgroundColor: colors.buttonPrimaryLight12,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.buttonPrimary40,
-  },
-  patternIntroCardBody: {
-    fontSize: typography.sizes.sm,
-    color: colors.textPrimary,
-    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
-    marginBottom: spacing.md,
-  },
-  patternIntroCardButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  patternIntroCardButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.buttonPrimary,
-  },
   patternWrap: {
     marginBottom: spacing.xl,
   },

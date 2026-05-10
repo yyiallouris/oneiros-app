@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { WaveBackground, Card } from '../components/ui';
+import { WaveBackground, Card, DesignExportForeground } from '../components/ui';
 import { PRIVACY_SECTIONS } from '../constants/legal';
 import { RootStackParamList } from '../navigation/types';
 
@@ -15,15 +15,16 @@ const PrivacyScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <WaveBackground />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.title}>Privacy & Legal</Text>
-        <Text style={styles.subtitle}>
-          Clear boundaries for a private journal, written in plain language.
-        </Text>
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Privacy & Legal</Text>
+          <Text style={styles.subtitle}>
+            Clear boundaries for a private journal, written in plain language.
+          </Text>
 
         <Card style={styles.card}>
           {PRIVACY_SECTIONS.map((section) => (
@@ -70,8 +71,9 @@ const PrivacyScreen: React.FC = () => {
           <Text style={styles.footer}>
             This in-app notice is a product summary and should be supported by a full hosted Privacy Policy and Terms of Use before public release.
           </Text>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };

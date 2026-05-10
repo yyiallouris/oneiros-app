@@ -216,6 +216,8 @@ export class SyncService {
             affects: (remoteI.affects && remoteI.affects.length > 0) ? remoteI.affects : localI?.affects,
             motifs: (remoteI.motifs && remoteI.motifs.length > 0) ? remoteI.motifs : localI?.motifs,
             relational_dynamics: (remoteI.relational_dynamics && remoteI.relational_dynamics.length > 0) ? remoteI.relational_dynamics : localI?.relational_dynamics,
+            thresholds: (remoteI.thresholds && remoteI.thresholds.length > 0) ? remoteI.thresholds : localI?.thresholds,
+            central_conflicts: (remoteI.central_conflicts && remoteI.central_conflicts.length > 0) ? remoteI.central_conflicts : localI?.central_conflicts,
             core_mode: remoteI.core_mode && remoteI.core_mode.trim() ? remoteI.core_mode : localI?.core_mode,
             amplifications: (remoteI.amplifications && remoteI.amplifications.length > 0) ? remoteI.amplifications : localI?.amplifications,
           };

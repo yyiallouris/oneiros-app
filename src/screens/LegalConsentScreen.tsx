@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Card, Button, MountainWaveBackground } from '../components/ui';
+import { Card, Button, MountainWaveBackground, DesignExportForeground } from '../components/ui';
 import { CRISIS_NOTICE, LEGAL_CONSENT_ITEMS, WELLNESS_DISCLAIMER } from '../constants/legal';
 import { setLegalConsentAccepted } from '../services/legalConsentService';
 import { RootStackParamList } from '../navigation/types';
@@ -37,11 +37,12 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
   return (
     <View style={styles.container}>
       <MountainWaveBackground height={260} lite />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
         <Text style={styles.title}>Before we begin</Text>
         <Text style={styles.subtitle}>
           A small boundary around a very private space.
@@ -82,8 +83,9 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
           >
             <Text style={styles.linkText}>Read privacy and legal details</Text>
           </TouchableOpacity>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };

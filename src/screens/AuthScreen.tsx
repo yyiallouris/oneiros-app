@@ -21,12 +21,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, WaveBackground } from '../components/ui';
+import { Button, Card, WaveBackground, DesignExportForeground } from '../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
 import { processAuthDeepLink, isNewGoogleUser } from '../utils/authDeepLink';
+import { DESIGN_EXPORT_AUTH_MODE, DESIGN_EXPORT_MODE } from '../designExport';
 
 // Complete OAuth session in browser
 WebBrowser.maybeCompleteAuthSession();
@@ -39,7 +40,7 @@ const AUTH_REQUEST_TIMEOUT_MS = 25_000;
 const AuthScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
-  const [mode, setMode] = useState<Mode>('login');
+  const [mode, setMode] = useState<Mode>(DESIGN_EXPORT_MODE ? DESIGN_EXPORT_AUTH_MODE : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [verifyPassword, setVerifyPassword] = useState('');
@@ -504,7 +505,7 @@ const AuthScreen: React.FC = () => {
         keyboardVerticalOffset={0}
       >
         <WaveBackground />
-        <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+        <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
             <Text style={styles.title}>Reset password</Text>
             <Text style={styles.subtitle}>
@@ -558,7 +559,7 @@ const AuthScreen: React.FC = () => {
               <Text style={styles.switchModeText}>Back to sign in</Text>
             </TouchableOpacity>
           </Card>
-        </View>
+        </DesignExportForeground>
       </KeyboardAvoidingView>
     );
   }
@@ -572,7 +573,7 @@ const AuthScreen: React.FC = () => {
         keyboardVerticalOffset={0}
       >
         <WaveBackground />
-        <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+        <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
             <Text style={styles.title}>Verify your email</Text>
             <Text style={styles.subtitle}>
@@ -617,7 +618,7 @@ const AuthScreen: React.FC = () => {
               <Text style={styles.switchModeText}>Back to sign up</Text>
             </TouchableOpacity>
           </Card>
-        </View>
+        </DesignExportForeground>
       </KeyboardAvoidingView>
     );
   }
@@ -629,18 +630,19 @@ const AuthScreen: React.FC = () => {
       keyboardVerticalOffset={0}
     >
       <WaveBackground />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + spacing.lg,
-            paddingBottom: insets.bottom + spacing.lg,
-          },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: insets.top + spacing.lg,
+              paddingBottom: insets.bottom + spacing.lg,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
         <View style={styles.header}>
           <Text style={styles.titleMain}>Oneiros</Text>
           <Text style={styles.titleSub}>Dream Journal</Text>
@@ -803,7 +805,8 @@ const AuthScreen: React.FC = () => {
         >
           <Text style={styles.supportLinkText}>Having issues? Contact us!</Text>
         </TouchableOpacity>
-      </ScrollView>
+        </ScrollView>
+      </DesignExportForeground>
     </KeyboardAvoidingView>
   );
 };
@@ -1002,4 +1005,3 @@ const styles = StyleSheet.create({
 });
 
 export default AuthScreen;
-

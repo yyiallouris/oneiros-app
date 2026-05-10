@@ -7,7 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
-import { Button, WaveBackground } from '../components/ui';
+import { Button, WaveBackground, DesignExportForeground } from '../components/ui';
 import { requireBiometricUnlock, getBiometricStatus, getBiometricLabel } from '../services/biometricAuthService';
 import { BiometricUnlockContext } from '../navigation/RootNavigator';
 
@@ -48,7 +48,7 @@ const BiometricLockScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <WaveBackground />
-      <View style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
+      <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>Dream Journal is locked</Text>
@@ -71,7 +71,7 @@ const BiometricLockScreen: React.FC = () => {
         >
           <Text style={styles.supportLinkText}>Having issues? Contact us!</Text>
         </TouchableOpacity>
-      </View>
+      </DesignExportForeground>
     </View>
   );
 };

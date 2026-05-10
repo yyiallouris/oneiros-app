@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders } from '../../theme';
-import { MountainWaveBackground, Card, Button } from '../../components/ui';
+import { MountainWaveBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import { UserService } from '../../services/userService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 
@@ -30,12 +30,13 @@ const OnboardingNameScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <MountainWaveBackground height={260} lite />
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <DesignExportForeground fill>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={styles.welcome}>Welcome to Oneiros</Text>
         <Text style={styles.subtitle}>
           Your dream journal companion. Let’s set a few things up — you can skip any step.
@@ -63,8 +64,9 @@ const OnboardingNameScreen: React.FC = () => {
           <TouchableOpacity onPress={handleSkip} style={styles.skipButton} activeOpacity={0.7}>
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };

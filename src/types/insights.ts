@@ -43,6 +43,18 @@ export interface MotifCount {
   count: number;
 }
 
+export interface ThresholdCount {
+  name: string;
+  normalizedKey: string;
+  count: number;
+}
+
+export interface CentralConflictCount {
+  name: string;
+  normalizedKey: string;
+  count: number;
+}
+
 /** Monthly symbolic overview – short reflective text (no advice) */
 export interface MonthlyOverview {
   month: string;
@@ -69,6 +81,8 @@ export type InsightsSectionId =
   | 'symbol-details'     // deep dive: recurring symbols, clusters, all symbols
   | 'recurring-archetypes'
   | 'symbolic-motifs'    // recurring structural/spatial patterns from dreams
+  | 'thresholds'         // transition points: work, travel, sleep, crossing, shelter
+  | 'core-conflicts'     // dynamic tensions stated as "X vs Y"
   | 'space-landscapes'   // recurring settings/places (e.g. forest, beach)
   | 'pattern-recognition' // AI-generated monthly/quarterly pattern insights
   | 'collective';

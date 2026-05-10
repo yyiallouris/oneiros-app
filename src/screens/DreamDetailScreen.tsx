@@ -18,15 +18,22 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Card, Button, Chip, PsycheScreenBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal } from '../components/ui';
+  import { Card, Button, Chip, PsycheScreenBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
   import { Animated, Dimensions } from 'react-native';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
   import { Dream, Interpretation, ChatMessage } from '../types/dream';
   import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
   import { formatDateShort, generateId } from '../utils/date';
-  import { generateInitialInterpretation, sendChatMessage, extractDreamSymbolsAndArchetypes, filterArchetypesForDisplay } from '../services/ai';
-  import { getInterpretationDepth, getMythicResonance, type InterpretationDepth } from '../services/userSettingsService';
+  import {
+    buildDreamDisplayMap,
+    generateInitialInterpretation,
+    sendChatMessage,
+    filterArchetypesForDisplay,
+    updateInterpretationElementsFromConversation,
+  } from '../services/ai';
+  import { getDreamMetadataForReflection } from '../services/dreamMetadataPrefetchService';
+  import { getInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
   import { isInnerStructureArchetype } from '../constants/archetypes';
   import {
@@ -36,7 +43,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   } from '../constants/symbolArchetypeInfo';
   import { isOnline } from '../utils/network';
   import { OfflineMessage } from '../components/OfflineMessage';
-  import { LegalNotice } from '../components/LegalNotice';
   import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 
   type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
@@ -54,6 +60,21 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
   }
 
   const CHIPS_INITIAL_COUNT = 2;
+
+  const compactUnique = (items: Array<string | undefined>, max: number): string[] => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const item of items) {
+      const value = item?.trim();
+      if (!value) continue;
+      const key = value.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(value);
+      if (result.length >= max) break;
+    }
+    return result;
+  };
 
   /** Chip section that collapses when there are more than CHIPS_INITIAL_COUNT items. */
   const CollapsibleChipsSection = ({
@@ -163,54 +184,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     onCopy?: (text: string) => void;
     showSettleFooter?: boolean;
   }
-
-  // Helper function to extract a better summary from the AI response
-  // Tries to get the first meaningful section (Atmosphere & Affect or first paragraph)
-  const extractSummary = (text: string, maxLength: number = 250): string => {
-    if (!text) return '';
-    
-    // Try to find "Atmosphere & Affect" section first
-    const atmosphereMatch = text.match(/(?:Atmosphere\s*&\s*Affect|1\.\s*\*\*Atmosphere\s*&\s*Affect\*\*)[\s\S]*?(?=\n\s*(?:\d+\.\s*\*\*|$))/i);
-    if (atmosphereMatch) {
-      let summary = atmosphereMatch[0];
-      // Remove the header
-      summary = summary.replace(/^(?:Atmosphere\s*&\s*Affect|1\.\s*\*\*Atmosphere\s*&\s*Affect\*\*)\s*/i, '');
-      // Get first paragraph or up to maxLength
-      const firstParagraph = summary.split('\n\n')[0] || summary;
-      if (firstParagraph.length <= maxLength) {
-        return firstParagraph.trim();
-      }
-      // If too long, cut at sentence boundary
-      const sentences = firstParagraph.match(/[^.!?]+[.!?]+/g) || [];
-      let result = '';
-      for (const sentence of sentences) {
-        if ((result + sentence).length <= maxLength) {
-          result += sentence;
-        } else {
-          break;
-        }
-      }
-      return result.trim() || firstParagraph.substring(0, maxLength).trim();
-    }
-    
-    // Fallback: get first paragraph or first maxLength characters
-    const firstParagraph = text.split('\n\n')[0] || text;
-    if (firstParagraph.length <= maxLength) {
-      return firstParagraph.trim();
-    }
-    
-    // Cut at sentence boundary
-    const sentences = firstParagraph.match(/[^.!?]+[.!?]+/g) || [];
-    let result = '';
-    for (const sentence of sentences) {
-      if ((result + sentence).length <= maxLength) {
-        result += sentence;
-      } else {
-        break;
-      }
-    }
-    return result.trim() || firstParagraph.substring(0, maxLength).trim();
-  };
 
   // Helper function to format markdown text for better display
   // Converts markdown to plain text with proper spacing and formatting
@@ -543,21 +516,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         await saveDream(dreamData);
 
         const depth = await getInterpretationDepth();
-        // Extraction required — no fallback; on failure show error and stop
-        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
+        const aiResponse = await generateInitialInterpretation(dreamData, { depth });
+
+        // Keep metadata extraction as a separate model call over the full dream text.
+        let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
         try {
-          structured = await extractDreamSymbolsAndArchetypes(dreamData);
+          structured = await getDreamMetadataForReflection(dreamData, aiResponse);
         } catch {
           Alert.alert('Network error', 'Please check your connection and try again.');
           return;
         }
-
-        const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
-        const aiResponse = await generateInitialInterpretation(dreamData, {
-          depth,
-          mythicResonance,
-          extraction: structured,
-        });
 
         const aiMessage: ChatMessage = {
           id: generateId(),
@@ -572,6 +540,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         const affects = structured.affects ?? [];
         const motifs = structured.motifs ?? [];
         const relational_dynamics = structured.relational_dynamics ?? [];
+        const thresholds = structured.thresholds ?? [];
+        const central_conflicts = structured.central_conflicts ?? [];
         const core_mode = structured.core_mode?.trim() || undefined;
         const amplifications = structured.amplifications ?? [];
         const symbol_stances = structured.symbol_stances ?? [];
@@ -582,6 +552,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             landscapesCount: landscapes.length,
             affectsCount: affects.length,
             motifsCount: motifs.length,
+            thresholdsCount: thresholds.length,
+            centralConflictsCount: central_conflicts.length,
             core_mode,
           });
         }
@@ -595,10 +567,11 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           affects: affects.length > 0 ? affects : undefined,
           motifs: motifs.length > 0 ? motifs : undefined,
           relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
+          thresholds: thresholds.length > 0 ? thresholds : undefined,
+          central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
           core_mode,
           amplifications: amplifications.length > 0 ? amplifications : undefined,
           symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-          summary: extractSummary(aiResponse, 250),
           dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -658,17 +631,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       setIsGeneratingInitial(true);
       try {
         const depth = await getInterpretationDepth();
-        // Extraction required — no fallback; on failure show error and stop
-        let structured: Awaited<ReturnType<typeof extractDreamSymbolsAndArchetypes>>;
+        const aiResponse = await generateInitialInterpretation(dream, { depth });
+
+        // Keep metadata extraction as a separate model call over the full dream text.
+        let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
         try {
-          structured = await extractDreamSymbolsAndArchetypes(dream);
+          structured = await getDreamMetadataForReflection(dream, aiResponse);
         } catch {
           Alert.alert('Network error', 'Please check your connection and try again.');
           return;
         }
-
-        const mythicResonance = depth === 'advanced' ? await getMythicResonance() : false;
-        const aiResponse = await generateInitialInterpretation(dream, { depth, mythicResonance, extraction: structured });
 
         const aiMessage: ChatMessage = {
           id: generateId(),
@@ -683,6 +655,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         const affects = structured.affects ?? [];
         const motifs = structured.motifs ?? [];
         const relational_dynamics = structured.relational_dynamics ?? [];
+        const thresholds = structured.thresholds ?? [];
+        const central_conflicts = structured.central_conflicts ?? [];
         const core_mode = structured.core_mode?.trim() || undefined;
         const amplifications = structured.amplifications ?? [];
         const symbol_stances = structured.symbol_stances ?? [];
@@ -693,6 +667,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             landscapesCount: landscapes.length,
             affectsCount: affects.length,
             motifsCount: motifs.length,
+            thresholdsCount: thresholds.length,
+            centralConflictsCount: central_conflicts.length,
             core_mode,
           });
         }
@@ -705,10 +681,11 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           affects: affects.length > 0 ? affects : undefined,
           motifs: motifs.length > 0 ? motifs : undefined,
           relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
+          thresholds: thresholds.length > 0 ? thresholds : undefined,
+          central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
           core_mode,
           amplifications: amplifications.length > 0 ? amplifications : undefined,
           symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-          summary: extractSummary(aiResponse, 250),
           dreamContentAtCreation: dream.content, // Update stored content
           updatedAt: new Date().toISOString(),
         };
@@ -788,14 +765,24 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         setMessages(updatedMessages);
         setTypingMessageId(aiMessage.id);
 
-        const updatedInterpretation: Interpretation = {
+        const updatedInterpretationBase: Interpretation = {
           ...interpretation,
           messages: updatedMessages,
           updatedAt: new Date().toISOString(),
         };
+        await saveInterpretation(updatedInterpretationBase);
+        setInterpretation(updatedInterpretationBase);
 
-        await saveInterpretation(updatedInterpretation);
-        setInterpretation(updatedInterpretation);
+        const updatedInterpretation = await updateInterpretationElementsFromConversation(
+          dream,
+          updatedInterpretationBase,
+          updatedMessages
+        );
+
+        if (updatedInterpretation !== updatedInterpretationBase) {
+          await saveInterpretation(updatedInterpretation);
+          setInterpretation(updatedInterpretation);
+        }
 
         // Only auto-scroll if user hasn't manually scrolled up
         if (!isUserScrolledUp) {
@@ -838,21 +825,23 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         <View style={styles.root}>
           <View style={styles.container}>
             <PsycheScreenBackground waveHeight={180} />
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.scrollContent}
-            >
-              {/* Dream content skeleton - matches dreamCard position */}
-              <LinoSkeletonCard style={styles.skeletonCardStyle} />
-              
-              {/* Wave divider placeholder */}
-              <View style={{ height: spacing.lg }} />
-              
-              {/* Interpretation section skeleton - matches reflectionSection position */}
-              <View style={styles.reflectionSection}>
+            <DesignExportForeground fill>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+              >
+                {/* Dream content skeleton - matches dreamCard position */}
                 <LinoSkeletonCard style={styles.skeletonCardStyle} />
-              </View>
-            </ScrollView>
+                
+                {/* Wave divider placeholder */}
+                <View style={{ height: spacing.lg }} />
+                
+                {/* Interpretation section skeleton - matches reflectionSection position */}
+                <View style={styles.reflectionSection}>
+                  <LinoSkeletonCard style={styles.skeletonCardStyle} />
+                </View>
+              </ScrollView>
+            </DesignExportForeground>
           </View>
         </View>
       );
@@ -863,9 +852,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         <View style={styles.root}>
           <View style={styles.container}>
             <PsycheScreenBackground waveHeight={180} />
-            <View style={styles.errorContainer}>
+            <DesignExportForeground style={styles.errorContainer}>
               <Text style={styles.errorText}>Dream not found</Text>
-            </View>
+            </DesignExportForeground>
           </View>
         </View>
       );
@@ -873,6 +862,21 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
     const keyboardVerticalOffset =
       Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 56 : 90;
+
+    const firstAssistantInterpretationText =
+      interpretation?.messages?.find((m) => m.role === 'assistant')?.content?.trim() ??
+      interpretation?.messages?.[0]?.content?.trim() ??
+      '';
+
+    const interpretationCollapsedPreview = (() => {
+      const text = firstAssistantInterpretationText;
+      if (!text) return '';
+      // First paragraph only for the card teaser; line cap below adds a single trailing ellipsis.
+      return (text.split('\n\n')[0] || text).trim();
+    })();
+
+    const showInterpretationPreview =
+      Boolean(interpretationCollapsedPreview) || Boolean(firstAssistantInterpretationText);
 
     return (
       <View style={styles.root}>
@@ -882,18 +886,19 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
           <PsycheScreenBackground waveHeight={180} />
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            scrollEventThrottle={16}
-            onScroll={(event) => {
-              const { contentOffset } = event.nativeEvent;
-              // Track scroll position - if user scrolls, they control the view
-              // This is used to prevent auto-scroll during typing in reflection section
-            }}
-          >
+          <DesignExportForeground fill>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={16}
+              onScroll={(event) => {
+                const { contentOffset } = event.nativeEvent;
+                // Track scroll position - if user scrolls, they control the view
+                // This is used to prevent auto-scroll during typing in reflection section
+              }}
+            >
           {/* Dream Content Card */}
           <Card style={styles.dreamCard}>
             <View style={styles.dreamHeader}>
@@ -950,64 +955,64 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {!showChat && !isGeneratingInitial && (
             <View style={styles.reflectionSection}>
               <Text style={styles.reflectionTitle}>Symbolic reflection</Text>
-              <LegalNotice compact />
 
               {interpretation ? (
                 <Card transparent style={styles.interpretationCard}>
-                  {/* Show only symbols and archetypes here; landscapes are used in Insights tab only */}
-                  {interpretation.symbols.length > 0 && (
-                    <CollapsibleChipsSection
-                      title="Key symbols"
-                      infoKey="main-symbols"
-                      items={interpretation.symbols}
-                    />
+                  {showInterpretationPreview && (
+                    <Text 
+                      style={styles.interpretationPreview}
+                      textBreakStrategy="highQuality"
+                      selectable={true}
+                      numberOfLines={isInterpretationExpanded ? undefined : 6}
+                      ellipsizeMode="tail"
+                    >
+                      {isInterpretationExpanded 
+                        ? formatMarkdownText(firstAssistantInterpretationText)
+                        : formatMarkdownText(interpretationCollapsedPreview)
+                      }
+                    </Text>
                   )}
 
-                  {interpretation.motifs && interpretation.motifs.length > 0 && (
-                    <CollapsibleChipsSection
-                      title="Symbolic motifs"
-                      infoKey="symbolic-motifs"
-                      items={interpretation.motifs}
-                    />
-                  )}
+                  {(() => {
+                    const displayMap = buildDreamDisplayMap({
+                      symbols: interpretation.symbols ?? [],
+                      archetypes: interpretation.archetypes ?? [],
+                      landscapes: interpretation.landscapes ?? [],
+                      affects: interpretation.affects ?? [],
+                      motifs: interpretation.motifs ?? [],
+                      relational_dynamics: interpretation.relational_dynamics ?? [],
+                      thresholds: interpretation.thresholds ?? [],
+                      central_conflicts: interpretation.central_conflicts ?? [],
+                      core_mode: interpretation.core_mode ?? '',
+                      amplifications: interpretation.amplifications ?? [],
+                      symbol_stances: interpretation.symbol_stances ?? [],
+                    });
+                    const chargedImageItems = compactUnique(displayMap.chargedImages.map((image) => image.label), 4);
+                    const movementItems = compactUnique(
+                      [displayMap.movement, displayMap.unresolvedPressure, displayMap.resonance],
+                      3
+                    );
 
-                  {interpretation.archetypes.length > 0 && (() => {
-                    const { core: interpCore, dynamic: interpDynamic } = splitArchetypes(interpretation.archetypes);
                     return (
                       <>
-                        {interpCore.length > 0 && (
+                        {chargedImageItems.length > 0 && (
                           <CollapsibleChipsSection
-                            title={ARCHETYPE_SECTION_TITLES.core}
-                            infoKey="core-architecture"
-                            items={interpCore}
-                            onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                            title="Charged Images"
+                            infoKey="main-symbols"
+                            items={chargedImageItems}
                           />
                         )}
-                        {interpDynamic.length > 0 && (
+
+                        {movementItems.length > 0 && (
                           <CollapsibleChipsSection
-                            title={ARCHETYPE_SECTION_TITLES.dynamic}
-                            infoKey="archetypal-states"
-                            items={interpDynamic}
-                            onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
+                            title="Dream Movement"
+                            infoKey="symbolic-motifs"
+                            items={movementItems}
                           />
                         )}
                       </>
                     );
                   })()}
-
-                  {interpretation.summary && (
-                    <Text 
-                      style={styles.summary}
-                      textBreakStrategy="highQuality"
-                      selectable={true}
-                      numberOfLines={isInterpretationExpanded ? undefined : 5}
-                    >
-                      {isInterpretationExpanded 
-                        ? formatMarkdownText(interpretation.messages[0]?.content || interpretation.summary)
-                        : formatMarkdownText(interpretation.summary)
-                      }
-                    </Text>
-                  )}
 
                   {/* Action buttons */}
                   <View style={styles.actionButtonsContainer}>
@@ -1096,7 +1101,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               <View style={styles.chatHeader}>
                 <View style={styles.chatTitleWrap}>
                   <Text style={styles.chatTitle}>Symbolic reflection</Text>
-                  <Text style={styles.chatSubtitle}>AI-generated reflection, not care or advice.</Text>
                 </View>
                 <TouchableOpacity onPress={animateChatClose} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>×</Text>
@@ -1204,7 +1208,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                   value={inputText}
                   onChangeText={setInputText}
                   multiline
-                  maxLength={500}
+                  maxLength={3000}
                   editable={!reflectionLimitReached}
                   pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
                   onFocus={() => {
@@ -1237,7 +1241,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               </TouchableOpacity>
             </View>
           )}
-        </ScrollView>
+            </ScrollView>
+          </DesignExportForeground>
         </KeyboardAvoidingView>
 
         {archetypeModalKey && (
@@ -1352,7 +1357,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       fontStyle: 'italic',
       letterSpacing: 0.2,
     },
-    summary: {
+    interpretationPreview: {
       fontSize: typography.sizes.md,
       color: colors.textPrimary,
       lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
@@ -1425,12 +1430,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     chatTitleWrap: {
       flex: 1,
       paddingRight: spacing.md,
-    },
-    chatSubtitle: {
-      fontSize: typography.sizes.xs,
-      color: colors.textMuted,
-      marginTop: 2,
-      lineHeight: typography.sizes.xs * typography.lineHeights.normal,
     },
     closeButton: {
       width: 32,

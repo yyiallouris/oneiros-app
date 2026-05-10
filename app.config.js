@@ -28,7 +28,6 @@ const extraFromEnv = {
     ['EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT', 'CUSTOM_GPT_ENDPOINT'],
     null
   ),
-  gptModel: getEnv(['EXPO_PUBLIC_GPT_MODEL', 'GPT_MODEL'], 'gpt-4o'),
   supabaseUrl: getEnv(
     ['EXPO_PUBLIC_SUPABASE_URL', 'SUPABASE_URL'],
     ''

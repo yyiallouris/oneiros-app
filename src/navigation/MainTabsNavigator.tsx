@@ -11,6 +11,7 @@ import { colors, typography } from '../theme';
 import WriteTabIcon from '../assets/tab-icons/write_tab.svg';
 import JournalTabIcon from '../assets/tab-icons/journal_tab.svg';
 import InsightsTabIcon from '../assets/tab-icons/insights_tab.svg';
+import { IS_DESIGN_EXPORT_BACKGROUND_ONLY } from '../designExport';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -69,12 +70,17 @@ const TabSvgIcon = ({
   </View>
 );
 
-export const MainTabsNavigator: React.FC = () => {
+export interface MainTabsNavigatorProps {
+  initialRouteName?: keyof MainTabsParamList;
+}
+
+export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRouteName }) => {
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, MIN_TAB_BAR_BOTTOM_INSET);
 
   return (
     <Tab.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -89,6 +95,7 @@ export const MainTabsNavigator: React.FC = () => {
           height: 86,
           borderRadius: 24,
           elevation: 0,
+          display: IS_DESIGN_EXPORT_BACKGROUND_ONLY ? 'none' : 'flex',
         },
         tabBarBackground: () => (
           <LinearGradient

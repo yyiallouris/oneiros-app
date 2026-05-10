@@ -12,7 +12,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
-import { PsycheScreenBackground, MysticHeader, BreathingLine, Card } from '../components/ui';
+import { PsycheScreenBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
 import {
   DreamsLoggedIcon,
   MotifsIcon,
@@ -130,6 +130,8 @@ const InsightsScreen: React.FC = () => {
   const LINKED_SECTION_IDS: InsightsSectionId[] = [
     'recurring-symbols',
     'symbolic-motifs',
+    'thresholds',
+    'core-conflicts',
     'recurring-archetypes',
     'space-landscapes',
   ];
@@ -197,10 +199,12 @@ const InsightsScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <PsycheScreenBackground waveHeight={150} />
-        <MysticHeader title="Insights" subtitle="Patterns rising into view." />
-        <View style={styles.loadingPlaceholder}>
-          <BreathingLine width={100} height={2} color={colors.textMuted} />
-        </View>
+        <DesignExportForeground fill>
+          <MysticHeader title="Insights" subtitle="Patterns rising into view." />
+          <View style={styles.loadingPlaceholder}>
+            <BreathingLine width={100} height={2} color={colors.textMuted} />
+          </View>
+        </DesignExportForeground>
       </View>
     );
   }
@@ -208,14 +212,15 @@ const InsightsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <PsycheScreenBackground waveHeight={180} />
-      <MysticHeader title="Insights" subtitle="Patterns rising into view." />
+      <DesignExportForeground fill>
+        <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.tagline}>{periodLabel} in your dreams</Text>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.tagline}>{periodLabel} in your dreams</Text>
 
         <View style={styles.periodSelectorWrap}>
           <TouchableOpacity
@@ -278,7 +283,7 @@ const InsightsScreen: React.FC = () => {
             </View>
             <View style={styles.overviewContent}>
               <Text style={styles.overviewLabel}>Symbolic Elements</Text>
-              <Text style={styles.overviewMeta}>Symbols, motifs, archetypes, places</Text>
+              <Text style={styles.overviewMeta}>Symbols, motifs, thresholds, conflicts</Text>
             </View>
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
@@ -298,8 +303,9 @@ const InsightsScreen: React.FC = () => {
             </View>
             <Text style={styles.overviewChevron}>›</Text>
           </TouchableOpacity>
-        </Card>
-      </ScrollView>
+          </Card>
+        </ScrollView>
+      </DesignExportForeground>
     </View>
   );
 };
