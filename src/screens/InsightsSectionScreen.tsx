@@ -15,8 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text, borderRadius, backgrounds } from '../theme';
-import { MountainWaveBackground, BreathingLine, Card, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
+import { colors, spacing, typography, text, borderRadius } from '../theme';
+import { MountainWaveBackground, BreathingLine, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -61,15 +61,13 @@ import {
   generateMonthlyInsights,
   getPatternInsightEntries,
   getMonthPeriod,
-  getWeekPeriod,
   getLast12MonthKeys,
   formatMonthKeyLabel,
   formatReportKeyLabel,
   formatReportKeyLabelForEssay,
   getReportKeyForGeneration,
   getCurrentMonthKey,
-  isFirstWeekOfMonthFinished,
-  getWeekNumOfMonth,
+  canGeneratePatternReflection,
 } from '../services/patternInsightsService';
 import { LocalStorage } from '../services/localStorage';
 import {
@@ -153,11 +151,21 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [lessFrequentExpanded, setLessFrequentExpanded] = useState(false);
   const [allSymbolsExpanded, setAllSymbolsExpanded] = useState(false);
   const [clustersExpanded, setClustersExpanded] = useState(false);
+  const [singleAppearancesExpanded, setSingleAppearancesExpanded] = useState(false);
+  const [singleMotifsExpanded, setSingleMotifsExpanded] = useState(false);
+  const [singleCrossingsExpanded, setSingleCrossingsExpanded] = useState(false);
+  const [singleTensionsExpanded, setSingleTensionsExpanded] = useState(false);
+  const [singlePlacesExpanded, setSinglePlacesExpanded] = useState(false);
   /** When set, show associations only for this symbol (Explore symbol data). */
   const [selectedSymbolForAssociations, setSelectedSymbolForAssociations] = useState<string | null>(null);
-  /** Pattern recognition: archive (monthKey -> { generatedAt, text }), selected month for generate, viewing which report */
+  /** Period reflection: archive (monthKey -> { generatedAt, text }), selected month for generate, viewing which report */
   const [patternReportsArchive, setPatternReportsArchive] = useState<Record<string, { generatedAt: string; text: string }>>({});
   const [patternSelectedMonthKey, setPatternSelectedMonthKey] = useState<string>(() => {
+    const routeStartMonth = route.params?.periodStart?.slice(0, 7);
+    const routeEndMonth = route.params?.periodEnd?.slice(0, 7);
+    if (sectionId === 'pattern-recognition' && routeStartMonth && routeStartMonth === routeEndMonth) {
+      return routeStartMonth;
+    }
     const d = new Date();
     const currentMonthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     return currentMonthKey;
@@ -311,7 +319,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-        {/* Recurring symbols: split into recurring (count ≥ 2) and visited once */}
+        {/* Returning images: split into recurring (count ≥ 2) and visited once */}
         {sectionId === 'recurring-symbols' && (() => {
           const recurring = symbols.filter((s) => s.count >= 2);
           const visitedOnce = symbols.filter((s) => s.count < 2);
@@ -321,7 +329,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionSymbolsIcon />
               </View>
               {symbols.length === 0 ? (
-                <Text style={styles.empty}>No symbols yet. Get dream interpretations to see recurring symbols.</Text>
+                <Text style={styles.empty}>No images yet. Get dream interpretations to see returning images.</Text>
               ) : (
                 <>
                   {recurring.length > 0 ? (
@@ -342,12 +350,19 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring symbols this period.</Text>
+                    <Text style={styles.mutedNote}>No returning images this period.</Text>
                   )}
                   {visitedOnce.length > 0 && (
-                    <>
-                      <Text style={styles.subSectionLabel}>Other symbols</Text>
-                      {visitedOnce.map((s) => (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSingleAppearancesExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Single Appearances</Text>
+                        <Text style={styles.expandHint}>{singleAppearancesExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singleAppearancesExpanded && visitedOnce.map((s) => (
                         <TouchableOpacity
                           key={s.normalizedKey}
                           style={styles.archetypeRow}
@@ -359,7 +374,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                           </Text>
                         </TouchableOpacity>
                       ))}
-                    </>
+                    </View>
                   )}
                 </>
               )}
@@ -524,7 +539,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionMotifsIcon />
               </View>
               {motifs.length === 0 ? (
-                <Text style={styles.empty}>No motifs yet. Get dream interpretations to see recurring structural patterns.</Text>
+                <Text style={styles.empty}>No repeating patterns yet. Get dream interpretations to see recurring dream situations.</Text>
               ) : (
                 <>
                   {recurringMotifs.length > 0 ? (
@@ -543,12 +558,19 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring motifs this period.</Text>
+                    <Text style={styles.mutedNote}>No repeating patterns this period.</Text>
                   )}
                   {seenOnce.length > 0 && (
-                    <>
-                      <Text style={styles.subSectionLabel}>Other motifs</Text>
-                      {seenOnce.map((m) => (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSingleMotifsExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Single Appearances</Text>
+                        <Text style={styles.expandHint}>{singleMotifsExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singleMotifsExpanded && seenOnce.map((m) => (
                         <TouchableOpacity
                           key={m.normalizedKey}
                           style={styles.archetypeRow}
@@ -558,7 +580,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                           <Text style={styles.archetypeName} numberOfLines={1}>{m.name}</Text>
                         </TouchableOpacity>
                       ))}
-                    </>
+                    </View>
                   )}
                 </>
               )}
@@ -593,14 +615,21 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     <Text style={styles.mutedNote}>No recurring thresholds this period.</Text>
                   )}
                   {seenOnce.length > 0 && (
-                    <>
-                      <Text style={styles.subSectionLabel}>Single crossings</Text>
-                      {seenOnce.map((t) => (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSingleCrossingsExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Single Crossings</Text>
+                        <Text style={styles.expandHint}>{singleCrossingsExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singleCrossingsExpanded && seenOnce.map((t) => (
                         <View key={t.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{t.name}</Text>
                         </View>
                       ))}
-                    </>
+                    </View>
                   )}
                 </>
               )}
@@ -608,7 +637,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           );
         })()}
 
-        {/* Core conflicts: dynamic tensions kept separate from motifs */}
+        {/* Inner tensions: dynamic tensions kept separate from motifs */}
         {sectionId === 'core-conflicts' && (() => {
           const recurringConflicts = centralConflicts.filter((c) => c.count >= 2);
           const seenOnce = centralConflicts.filter((c) => c.count < 2);
@@ -618,7 +647,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionMotifsIcon />
               </View>
               {centralConflicts.length === 0 ? (
-                <Text style={styles.empty}>No core conflicts yet. Interpret dreams to see the tensions they stage.</Text>
+                <Text style={styles.empty}>No inner tensions yet. Interpret dreams to see the tensions they stage.</Text>
               ) : (
                 <>
                   {recurringConflicts.length > 0 ? (
@@ -632,17 +661,24 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring core conflicts this period.</Text>
+                    <Text style={styles.mutedNote}>No recurring inner tensions this period.</Text>
                   )}
                   {seenOnce.length > 0 && (
-                    <>
-                      <Text style={styles.subSectionLabel}>Single tensions</Text>
-                      {seenOnce.map((c) => (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSingleTensionsExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Single Tensions</Text>
+                        <Text style={styles.expandHint}>{singleTensionsExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singleTensionsExpanded && seenOnce.map((c) => (
                         <View key={c.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{c.name}</Text>
                         </View>
                       ))}
-                    </>
+                    </View>
                   )}
                 </>
               )}
@@ -660,7 +696,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionPlacesIcon />
               </View>
               {landscapes.length === 0 ? (
-                <Text style={styles.empty}>No places yet. Get dream interpretations to see recurring settings and places.</Text>
+                <Text style={styles.empty}>No dream places yet. Get dream interpretations to see recurring settings and places.</Text>
               ) : (
                 <>
                   {recurringPlaces.length > 0 ? (
@@ -682,9 +718,16 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     <Text style={styles.mutedNote}>No recurring places this period.</Text>
                   )}
                   {visitedOnce.length > 0 && (
-                    <>
-                      <Text style={styles.subSectionLabel}>Other places you've visited</Text>
-                      {visitedOnce.map((l) => (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSinglePlacesExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Other Places</Text>
+                        <Text style={styles.expandHint}>{singlePlacesExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singlePlacesExpanded && visitedOnce.map((l) => (
                         <TouchableOpacity
                           key={l.normalizedKey}
                           style={styles.archetypeRow}
@@ -695,7 +738,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                           <Text style={styles.archetypeCount}>×{l.count}</Text>
                         </TouchableOpacity>
                       ))}
-                    </>
+                    </View>
                   )}
                 </>
               )}
@@ -778,7 +821,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
         {sectionId === 'pattern-recognition' && (
           <View style={styles.patternWrap}>
             <Text style={styles.patternIntro}>
-              A reflective essay on emerging themes across your dreams for a chosen month.
+              A symbolic reflection on the dream field of a chosen month.
             </Text>
 
             <View style={styles.patternCard}>
@@ -832,9 +875,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 style={[
                   styles.patternGenerateRow,
                   (patternInsightGenerating ||
-                    !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)] ||
-                    (patternSelectedMonthKey === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` &&
-                      !isFirstWeekOfMonthFinished(patternSelectedMonthKey))
+                    !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]
                   ) && styles.patternGenerateRowDisabled,
                 ]}
                 onPress={async () => {
@@ -852,14 +893,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                   const isCurrentMonth = patternSelectedMonthKey === getCurrentMonthKey();
                   const effectiveReportKey = getReportKeyForGeneration(patternSelectedMonthKey);
 
-                  if (isCurrentMonth && !isFirstWeekOfMonthFinished(patternSelectedMonthKey)) {
-                    Alert.alert(
-                      'First week required',
-                      'You can generate a reflection for the current month once the first week is finished. Please wait until at least day 8 of the month.',
-                      [{ text: 'OK' }]
-                    );
-                    return;
-                  }
                   if (patternReportsArchive[effectiveReportKey]) {
                     if (isCurrentMonth) {
                       Alert.alert(
@@ -877,10 +910,13 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     return;
                   }
                   const periodFilter = isCurrentMonth
-                    ? getWeekPeriod(patternSelectedMonthKey, getWeekNumOfMonth(now.getDate()))
+                    ? {
+                        startDate: `${patternSelectedMonthKey}-01`,
+                        endDate: now.toISOString().slice(0, 10),
+                      }
                     : getMonthPeriod(patternSelectedMonthKey);
                   const entries = await getPatternInsightEntries(periodFilter);
-                  if (entries.length === 0) {
+                  if (!canGeneratePatternReflection(entries.length)) {
                     setPatternEmptyForMonthKey(patternSelectedMonthKey);
                     setPatternReportMeta(null);
                     setPatternViewingMonthKey(null);
@@ -889,8 +925,8 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                   setPatternEmptyForMonthKey(null);
                   setPatternInsightGenerating(true);
                   try {
-                    const startDate = entries[entries.length - 1].date;
-                    const endDate = entries[0].date;
+                    const startDate = entries[0].date;
+                    const endDate = entries[entries.length - 1].date;
                     const result = await generateMonthlyInsights('monthly', periodFilter, patternLanguage);
                     const userId = await UserService.getCurrentUserId();
                     if (userId) await remoteSavePatternReport(effectiveReportKey, result);
@@ -970,9 +1006,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
 
             {patternEmptyForMonthKey === patternSelectedMonthKey && !patternInsightGenerating && (
               <View style={styles.patternEmptyCard}>
-                <Text style={styles.patternEmptyTitle}>No interpreted dreams in this period</Text>
+                <Text style={styles.patternEmptyTitle}>A light field is forming</Text>
                 <Text style={styles.patternEmptyBody}>
-                  Interpret 1–2 dreams to generate a meaningful dream essay.
+                  Reflect on at least 2 dreams in this period to generate a meaningful dream essay.
                 </Text>
               </View>
             )}
@@ -1095,7 +1131,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
         )}
 
         {sectionId === 'collective' && (
-          <Card style={styles.card}>
+          <View style={styles.collectivePanel}>
             <Text style={styles.body}>
               Anonymized, aggregate only: no individual data, no quotes, no dates tied to users.
             </Text>
@@ -1115,7 +1151,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 )}
                 {collective.archetypeTrends.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionLabel}>Archetype trends</Text>
+                    <Text style={styles.sectionLabel}>Archetypal echoes</Text>
                     {collective.archetypeTrends.map((t, i) => (
                       <View key={i} style={styles.themeRow}>
                         <Text style={styles.themeName}>{t.archetype}</Text>
@@ -1126,7 +1162,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 )}
               </>
             )}
-          </Card>
+          </View>
         )}
         </ScrollView>
 
@@ -1178,10 +1214,10 @@ const styles = StyleSheet.create({
   },
   dominantInsightBlock: {
     marginBottom: spacing.lg,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.cardGlassSoft,
-    borderRadius: 8,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
   },
   dominantInsightLabel: {
     fontSize: typography.sizes.xs,
@@ -1244,11 +1280,14 @@ const styles = StyleSheet.create({
   },
   singleSymbolAssociationsBlock: {
     marginBottom: spacing.xl,
-    padding: spacing.md,
-    backgroundColor: colors.cardGlassSoft,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.buttonPrimary,
+    paddingVertical: spacing.md,
+    paddingLeft: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderLeftWidth: 2,
+    borderTopColor: colors.contourLineFaint,
+    borderBottomColor: colors.contourLineFaint,
+    borderLeftColor: colors.accentOldGold,
   },
   singleSymbolAssociationsTitle: {
     fontSize: typography.sizes.sm,
@@ -1370,7 +1409,13 @@ const styles = StyleSheet.create({
     color: text.muted,
     lineHeight: typography.sizes.xs * typography.lineHeights.relaxed,
   },
-  card: { marginBottom: spacing.lg },
+  collectivePanel: {
+    marginBottom: spacing.lg,
+    paddingVertical: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
+  },
   patternWrap: {
     marginBottom: spacing.xl,
   },
@@ -1382,13 +1427,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   patternCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: borderRadius.lg,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
   },
   patternMonthRow: {
     flexDirection: 'row',
@@ -1518,11 +1561,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   patternReportCard: {
-    backgroundColor: backgrounds.cardTransparent,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
   },
   patternReportHeader: {
     marginBottom: spacing.md,
@@ -1590,11 +1632,10 @@ const styles = StyleSheet.create({
   },
   patternEmptyCard: {
     marginTop: spacing.md,
-    padding: spacing.lg,
-    backgroundColor: backgrounds.cardTransparent,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
   },
   patternEmptyTitle: {
     fontSize: typography.sizes.md,
@@ -1693,11 +1734,10 @@ const styles = StyleSheet.create({
   },
   archetypeOverview: {
     marginBottom: spacing.md,
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.cardGlassSoft,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
   },
   archetypeOverviewLead: {
     fontSize: typography.sizes.sm,

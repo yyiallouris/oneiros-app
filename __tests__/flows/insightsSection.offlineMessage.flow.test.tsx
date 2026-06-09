@@ -35,6 +35,7 @@ jest.mock('../../src/components/ui', () => {
     Card: ({ children }: any) => <View>{children}</View>,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
     SymbolInfoModal: () => null,
+    DesignExportForeground: ({ children }: any) => <View>{children}</View>,
   };
 });
 
@@ -66,15 +67,13 @@ jest.mock('../../src/services/patternInsightsService', () => ({
   generateMonthlyInsights: jest.fn(),
   getPatternInsightEntries: jest.fn().mockResolvedValue([]),
   getMonthPeriod: jest.fn((monthKey: string) => ({ startDate: `${monthKey}-01`, endDate: `${monthKey}-28` })),
-  getWeekPeriod: jest.fn(),
   getLast12MonthKeys: jest.fn().mockReturnValue(['2025-04']),
   formatMonthKeyLabel: jest.fn().mockReturnValue('April 2025'),
   formatReportKeyLabel: jest.fn().mockReturnValue('April 2025'),
   formatReportKeyLabelForEssay: jest.fn().mockReturnValue('April 2025'),
   getReportKeyForGeneration: jest.fn((monthKey: string) => monthKey),
   getCurrentMonthKey: jest.fn().mockReturnValue('2025-04'),
-  isFirstWeekOfMonthFinished: jest.fn().mockReturnValue(true),
-  getWeekNumOfMonth: jest.fn().mockReturnValue(2),
+  canGeneratePatternReflection: jest.fn((count: number) => count >= 2),
 }));
 
 jest.mock('../../src/services/localStorage', () => ({

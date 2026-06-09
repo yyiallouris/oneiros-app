@@ -22,6 +22,7 @@ import PrivacyScreen from '../screens/PrivacyScreen';
 import LegalConsentScreen from '../screens/LegalConsentScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 import InsightsSectionScreen from '../screens/InsightsSectionScreen';
+import PatternExplorerScreen from '../screens/PatternExplorerScreen';
 import InsightsJourneyScreen from '../screens/InsightsJourneyScreen';
 import JournalFilterScreen from '../screens/JournalFilterScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
@@ -65,6 +66,7 @@ const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
   'Privacy',
   'Calendar',
   'InsightsSection',
+  'PatternExplorer',
   'InsightsJourney',
   'JournalFilter',
 ];
@@ -136,8 +138,8 @@ const DesignExportRootNavigator: React.FC = () => {
               headerShadowVisible: false,
               headerTintColor: colors.textAccent,
               headerTitleStyle: {
-                fontFamily: typography.bold,
-                fontSize: typography.sizes.xl,
+                fontFamily: typography.medium,
+                fontSize: typography.sizes.lg,
                 color: colors.textTitle,
               },
             }}
@@ -257,6 +259,23 @@ const DesignExportRootNavigator: React.FC = () => {
                 headerTintColor: colors.textPrimary,
                 headerTitleAlign: 'center',
                 headerTitle: 'Insights',
+              }}
+            />
+            <Stack.Screen
+              name="PatternExplorer"
+              component={PatternExplorerScreen}
+              initialParams={{
+                periodStart: today,
+                periodEnd: today,
+                periodLabel: 'Design export',
+              }}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitleAlign: 'center',
+                headerTitle: 'Pattern Explorer',
               }}
             />
             <Stack.Screen
@@ -651,8 +670,8 @@ export const RootNavigator: React.FC = () => {
               headerShadowVisible: false,
               headerTintColor: colors.textAccent,
               headerTitleStyle: {
-                fontFamily: typography.bold,
-                fontSize: typography.sizes.xl,
+                fontFamily: typography.medium,
+                fontSize: typography.sizes.lg,
                 color: colors.textTitle,
               },
             }}
@@ -770,7 +789,7 @@ export const RootNavigator: React.FC = () => {
           component={InsightsSectionScreen}
           options={({ route }) => {
             const p = route.params as { sectionId?: InsightsSectionId; periodLabel?: string };
-            // Pattern recognition opens standalone; use "Insights" for consistency with carousel (no period in header)
+            // Period Reflection opens standalone; use "Insights" for consistency with other Insights detail routes.
             const baseTitle = p?.sectionId === 'pattern-recognition'
               ? 'Insights'
               : (p?.sectionId ? (INSIGHTS_SECTION_TITLES[p.sectionId] ?? 'Insights') : 'Insights');
@@ -785,6 +804,19 @@ export const RootNavigator: React.FC = () => {
               headerTitleAlign: 'center',
               headerTitle: title,
             };
+          }}
+        />
+        <Stack.Screen
+          name="PatternExplorer"
+          component={PatternExplorerScreen}
+          options={{
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.textPrimary,
+            headerTitleAlign: 'center',
+            headerTitle: 'Pattern Explorer',
+            headerBackTitle: 'Back',
           }}
         />
         <Stack.Screen

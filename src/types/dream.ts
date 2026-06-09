@@ -14,6 +14,59 @@ export interface Dream {
 
 export type JungianSymbol = 'moon' | 'sun' | 'key' | 'eye' | 'labyrinth';
 
+export type DisplayDistillationDominantLens =
+  | 'image'
+  | 'affect'
+  | 'threshold'
+  | 'relationship'
+  | 'conflict'
+  | 'archetypal'
+  | 'restoration'
+  | 'unclear';
+
+export type DisplayDistillationAnchorType =
+  | 'image'
+  | 'feeling'
+  | 'tension'
+  | 'threshold'
+  | 'relationship'
+  | 'archetypal_echo';
+
+export type DisplayDistillationDreamMovement =
+  | 'stuck'
+  | 'approaching'
+  | 'crossing'
+  | 'descending'
+  | 'confronting'
+  | 'hiding'
+  | 'returning'
+  | 'integrating'
+  | 'restoring'
+  | 'unclear';
+
+export type CoreMode =
+  | 'Core Tension'
+  | 'Core State'
+  | 'Core Shift'
+  | 'Core Restoration';
+
+export type DisplayDistillationAnchor = {
+  label: string;
+  type: DisplayDistillationAnchorType;
+  salience: 1 | 2 | 3 | 4 | 5;
+  ui_meaning: string;
+};
+
+export type DisplayDistillation = {
+  essence_title: string;
+  essence_line: string;
+  dominant_lens: DisplayDistillationDominantLens;
+  visible_anchors: DisplayDistillationAnchor[];
+  main_tension: string | null;
+  dream_movement: DisplayDistillationDreamMovement;
+  movement_line: string | null;
+};
+
 export interface Interpretation {
   id: string;
   dreamId: string;
@@ -32,11 +85,13 @@ export interface Interpretation {
   /** Psychological oppositions staged by the dream, stated as "X vs Y" */
   central_conflicts?: string[];
   /** One of: Core Tension, Core State, Core Shift, Core Restoration */
-  core_mode?: string;
+  core_mode?: CoreMode;
   /** Brief echoes/resonances for 1–2 key symbols (pattern/amplification) */
   amplifications?: string[];
   /** How each key symbol was experienced in the dream (e.g. playful, painful, stressful). */
   symbol_stances?: { symbol: string; stance: string }[];
+  /** Minimal user-facing dream-field summary for DreamDetail. */
+  display_distillation?: DisplayDistillation;
   createdAt: string;
   updatedAt: string;
   dreamContentAtCreation?: string; // Store the dream content when interpretation was created
@@ -55,4 +110,3 @@ export interface DreamDraft {
   content: string;
   lastSaved: string;
 }
-

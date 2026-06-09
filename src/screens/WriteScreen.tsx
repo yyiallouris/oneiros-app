@@ -29,14 +29,14 @@ import { getRandomSymbol } from '../components/symbols';
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
 const writePalette = {
-  background: '#F7F3F0',
-  secondaryWash: '#EFE8F1',
-  primaryInk: '#2B2430',
-  mutedViolet: '#6E4D78',
-  border: '#DDD3DD',
-  surface: '#FFFCFA',
-  button: '#4F3A58',
-  buttonDisabled: '#E4DDE4',
+  background: colors.background,
+  secondaryWash: colors.backgroundSecondary,
+  primaryInk: colors.textPrimary,
+  mutedViolet: colors.textAccent,
+  border: colors.border,
+  surface: colors.backgroundTertiary,
+  button: colors.buttonPrimary,
+  buttonDisabled: colors.accentLight,
 } as const;
 
 const WriteScreen: React.FC = () => {
@@ -222,6 +222,8 @@ const WriteScreen: React.FC = () => {
         <Text style={styles.entryRitual}>Take a breath. Let the dream come back.</Text>
 
         <View style={styles.mainCard}>
+          <View pointerEvents="none" style={styles.paperGrain} />
+          <View pointerEvents="none" style={styles.paperRuleTop} />
           {/* Date Pill */}
           <View style={styles.datePill}>
             <Text style={styles.datePillText}>{formatDate(today)}</Text>
@@ -394,7 +396,7 @@ const styles = StyleSheet.create({
   },
   entryRitual: {
     fontSize: typography.sizes.md,
-    color: 'rgba(43, 36, 48, 0.68)',
+    color: 'rgba(45, 36, 48, 0.68)',
     textAlign: 'center',
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
@@ -404,19 +406,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
-    borderRadius: 22,
+    borderRadius: 14,
     backgroundColor: writePalette.surface,
-    borderWidth: 1,
-    borderColor: writePalette.border,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineFaint,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.025,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.018,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 1,
+    overflow: 'hidden',
+  },
+  paperGrain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.accentClayBrown,
+    opacity: 0.018,
+  },
+  paperRuleTop: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    top: spacing.lg,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.contourLineFaint,
+    opacity: 0.7,
   },
   datePill: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 252, 250, 0.56)',
+    backgroundColor: colors.cardGlassSoft,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
@@ -426,7 +443,7 @@ const styles = StyleSheet.create({
   },
   datePillText: {
     fontSize: typography.sizes.sm,
-    color: 'rgba(43, 36, 48, 0.62)',
+    color: 'rgba(45, 36, 48, 0.62)',
     fontWeight: typography.weights.medium,
   },
   titleInput: {
@@ -438,7 +455,7 @@ const styles = StyleSheet.create({
     padding: 0,
     paddingBottom: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(221, 211, 221, 0.78)',
+    borderBottomColor: colors.divider,
   },
   contentInputContainer: {
     position: 'relative',
@@ -463,16 +480,17 @@ const styles = StyleSheet.create({
     right: spacing.md,
   },
   saveButton: {
-    width: '100%',
-    minHeight: 52,
-    borderRadius: 24,
+    alignSelf: 'center',
+    width: '92%',
+    minHeight: 48,
+    borderRadius: 18,
     backgroundColor: writePalette.button,
-    borderColor: 'rgba(255, 253, 254, 0.42)',
+    borderColor: colors.buttonEdge,
     shadowColor: writePalette.button,
-    shadowOpacity: 0.14,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   saveButtonDisabled: {
     backgroundColor: writePalette.buttonDisabled,
@@ -481,10 +499,10 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   saveButtonText: {
-    color: '#FFFDFE',
+    color: colors.onAccent,
   },
   saveButtonTextDisabled: {
-    color: 'rgba(43, 36, 48, 0.42)',
+    color: 'rgba(45, 36, 48, 0.42)',
   },
   secondaryButton: {
     marginTop: spacing.sm,

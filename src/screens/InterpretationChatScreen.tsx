@@ -422,9 +422,10 @@ const InterpretationChatScreen: React.FC = () => {
       const relational_dynamics = structured.relational_dynamics ?? [];
       const thresholds = structured.thresholds ?? [];
       const central_conflicts = structured.central_conflicts ?? [];
-      const core_mode = structured.core_mode?.trim() || undefined;
+      const core_mode = structured.core_mode ?? undefined;
       const amplifications = structured.amplifications ?? [];
       const symbol_stances = structured.symbol_stances ?? [];
+      const display_distillation = structured.display_distillation;
 
       if (__DEV__) {
         console.log('[DreamInterpretation] Extracted (chat):', {
@@ -452,6 +453,7 @@ const InterpretationChatScreen: React.FC = () => {
         core_mode,
         amplifications: amplifications.length > 0 ? amplifications : undefined,
         symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
+        display_distillation,
         dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

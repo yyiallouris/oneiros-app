@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
 
 const mockSetOptions = jest.fn();
 const mockGetDreamById = jest.fn();
@@ -93,10 +93,6 @@ jest.mock('../../src/utils/storage', () => ({
 jest.mock('../../src/services/ai', () => ({
   generateInitialInterpretation: jest.fn(),
   sendChatMessage: jest.fn(),
-  buildDreamDisplayMap: jest.fn(() => ({
-    chargedImages: [],
-    movement: 'unmapped movement',
-  })),
   filterArchetypesForDisplay: (value: string[]) => value,
   updateInterpretationElementsFromConversation: jest.fn(async (_dream, interpretation) => interpretation),
 }));
@@ -139,6 +135,12 @@ const dream = {
   updatedAt: '2025-04-01T00:00:00.000Z',
 };
 
+const dreamWithTags = {
+  ...dream,
+  symbols: ['stale moon'],
+  archetypes: ['Shadow'],
+};
+
 const interpretation = {
   id: 'interpretation-1',
   dreamId: 'dream-1',
@@ -152,6 +154,26 @@ const interpretation = {
   ],
   symbols: ['moon'],
   archetypes: ['shadow'],
+  affects: ['wonder'],
+  landscapes: ['moonlit water'],
+  thresholds: ['shoreline'],
+  relational_dynamics: ['watching from a distance'],
+  motifs: ['light over water'],
+  central_conflicts: ['distance vs contact'],
+  amplifications: ['moon over water'],
+  symbol_stances: [{ symbol: 'moon', stance: 'quietly luminous' }],
+  display_distillation: {
+    essence_title: 'Moonlit distance',
+    essence_line: 'The dream gathers around a quiet image of distance and reflection.',
+    dominant_lens: 'image',
+    visible_anchors: [
+      { label: 'moon', type: 'image', salience: 5, ui_meaning: 'a quiet center of attention' },
+      { label: 'water', type: 'image', salience: 4, ui_meaning: 'a reflective surface' },
+    ],
+    main_tension: 'distance vs contact',
+    dream_movement: 'approaching',
+    movement_line: 'The dream watches from a distance rather than crossing.',
+  },
   dreamContentAtCreation: dream.content,
   createdAt: '2025-04-01T00:00:00.000Z',
   updatedAt: '2025-04-01T00:00:00.000Z',
@@ -179,9 +201,9 @@ describe('DreamDetail offline message flow', () => {
   it('shows the offline message when reflect is pressed without connectivity', async () => {
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Reflect')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Reflect on this dream')).toBeTruthy());
 
-    fireEvent.press(screen.getByText('Reflect'));
+    fireEvent.press(screen.getByText('Reflect on this dream'));
 
     await act(async () => {
       jest.advanceTimersByTime(850);
@@ -199,12 +221,11 @@ describe('DreamDetail offline message flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Expand conversation')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
 
-    fireEvent.press(screen.getByText('Expand conversation'));
-    fireEvent.press(await screen.findByText('Continue exploring'));
+    fireEvent.press(screen.getByText('Continue exploring'));
 
-    const input = await screen.findByPlaceholderText('Ask about symbols, feelings, or patterns...');
+    const input = await screen.findByPlaceholderText('Ask about an image, feeling, or pattern...');
     fireEvent.changeText(input, 'What is this dream asking of me?');
 
     const touchables = screen.UNSAFE_getAllByType(TouchableOpacity);
@@ -218,5 +239,70 @@ describe('DreamDetail offline message flow', () => {
     expect(
       screen.getByText(/Jungian AI chat requires an internet connection/i)
     ).toBeTruthy();
+  });
+
+  it('renders the sanctuary summary instead of top-level ontology chips', async () => {
+    mockGetDreamById.mockResolvedValue(dreamWithTags);
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+
+    const screen = render(<DreamDetailScreen />);
+
+    expect(await screen.findByText('Dream essence')).toBeTruthy();
+    expect(screen.getByText('Moonlit distance')).toBeTruthy();
+    expect(screen.getByText('Key anchors')).toBeTruthy();
+    expect(screen.getByText('Inner movement')).toBeTruthy();
+    expect(screen.getByText('distance vs contact')).toBeTruthy();
+    expect(screen.getAllByText('Symbolic reflection').length).toBeGreaterThan(0);
+    expect(screen.getByText('Explore symbolic layers')).toBeTruthy();
+    expect(screen.queryByText('Symbols')).toBeNull();
+    expect(screen.queryByText('Inner structures')).toBeNull();
+    expect(screen.queryByText('Archetypal energies')).toBeNull();
+  });
+
+  it('keeps symbolic layers collapsed until opened', async () => {
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+
+    const screen = render(<DreamDetailScreen />);
+
+    await screen.findByText('Explore symbolic layers');
+    expect(screen.queryByText('Emotional weather')).toBeNull();
+
+    fireEvent.press(screen.getByText('Explore symbolic layers'));
+
+    expect(await screen.findByText('Emotional weather')).toBeTruthy();
+    expect(screen.getByText('wonder')).toBeTruthy();
+  });
+
+  it.each(['ios', 'android'] as const)('renders the sanctuary summary on %s', async (os) => {
+    const originalOS = Platform.OS;
+    Object.defineProperty(Platform, 'OS', { value: os, configurable: true });
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+
+    const screen = render(<DreamDetailScreen />);
+
+    expect(await screen.findByText('Dream essence')).toBeTruthy();
+    fireEvent.press(screen.getByText('Continue exploring'));
+    expect(screen.getByPlaceholderText('Ask about an image, feeling, or pattern...')).toBeTruthy();
+
+    Object.defineProperty(Platform, 'OS', { value: originalOS, configurable: true });
+  });
+
+  it('shows reflection-focused loading copy while generating', async () => {
+    mockIsOnline.mockResolvedValue(true);
+    const ai = require('../../src/services/ai');
+    ai.generateInitialInterpretation.mockReturnValue(new Promise(() => {}));
+
+    const screen = render(<DreamDetailScreen />);
+
+    await waitFor(() => expect(screen.getByText('Reflect on this dream')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reflect on this dream'));
+
+    await act(async () => {
+      jest.advanceTimersByTime(850);
+      await flushMicrotasks();
+    });
+
+    expect(await screen.findByText('Reflecting on your dream...')).toBeTruthy();
+    expect(screen.getByText('Tracing its images, feelings, and inner movement.')).toBeTruthy();
   });
 });

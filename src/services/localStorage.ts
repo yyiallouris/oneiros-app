@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Dream, Interpretation, DreamDraft } from '../types/dream';
+import type { RecentSequenceReflection } from '../types/insights';
 import { logEvent } from './logger';
 
 /**
@@ -17,6 +18,7 @@ export class LocalStorage {
   private static readonly UNSYNCED_DREAMS_KEY = '@unsynced_dreams';
   private static readonly UNSYNCED_INTERPRETATIONS_KEY = '@unsynced_interpretations';
   private static readonly PATTERN_REPORTS_KEY = '@pattern_reports';
+  private static readonly RECENT_SEQUENCE_REFLECTIONS_KEY = '@recent_sequence_reflections';
   private static readonly INTERPRETATION_DEPTH_KEY = '@interpretation_depth';
   private static readonly LEGACY_MYTHIC_RESONANCE_KEY = '@mythic_resonance_enabled';
 
@@ -220,6 +222,32 @@ export class LocalStorage {
     await AsyncStorage.setItem(this.PATTERN_REPORTS_KEY, JSON.stringify(reports));
   }
 
+  // Recent Dream Field cache (scopeKey -> latest generated reflection for exact dream-id sequence)
+  static async getRecentSequenceReflections(): Promise<Record<string, RecentSequenceReflection>> {
+    try {
+      const data = await AsyncStorage.getItem(this.RECENT_SEQUENCE_REFLECTIONS_KEY);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.warn('[LocalStorage] Failed to get recent sequence reflections:', error);
+      return {};
+    }
+  }
+
+  static async getRecentSequenceReflection(
+    scopeKey: string,
+    language: string
+  ): Promise<RecentSequenceReflection | null> {
+    const cache = await this.getRecentSequenceReflections();
+    const report = cache[`${scopeKey}:${language}`] ?? cache[scopeKey];
+    return report?.language === language ? report : null;
+  }
+
+  static async saveRecentSequenceReflection(report: RecentSequenceReflection): Promise<void> {
+    const cache = await this.getRecentSequenceReflections();
+    cache[`${report.scope_key}:${report.language}`] = report;
+    await AsyncStorage.setItem(this.RECENT_SEQUENCE_REFLECTIONS_KEY, JSON.stringify(cache));
+  }
+
   // Interpretation depth (quick | standard | advanced) — local cache
   static async getInterpretationDepth(): Promise<string | null> {
     try {
@@ -244,6 +272,7 @@ export class LocalStorage {
       this.UNSYNCED_DREAMS_KEY,
       this.UNSYNCED_INTERPRETATIONS_KEY,
       this.PATTERN_REPORTS_KEY,
+      this.RECENT_SEQUENCE_REFLECTIONS_KEY,
       this.INTERPRETATION_DEPTH_KEY,
       this.LEGACY_MYTHIC_RESONANCE_KEY,
     ]);

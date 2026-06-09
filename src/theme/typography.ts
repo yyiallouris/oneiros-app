@@ -1,9 +1,8 @@
 export const typography = {
   // Font families
-  // Brand typography:
-  // - "Oneiros" wordmark / splash title uses a romanesque serif feel.
-  // - UI copy and user-generated multilingual text use Alegreya Sans for
-  //   Greek-safe, warmer letterforms that sit closer to the symbolic icons.
+  // Two-family rule:
+  // - Cormorant Garamond is reserved for the Oneiros wordmark / splash brand moment.
+  // - Alegreya Sans is the app UI and reflection font, with generous line-height for essays.
   regular: 'AlegreyaSans_400Regular',
   medium: 'AlegreyaSans_500Medium',
   semibold: 'AlegreyaSans_500Medium',
@@ -26,6 +25,17 @@ export const typography = {
     tight: 1.2,
     normal: 1.5,
     relaxed: 1.8,
+  },
+
+  // Semantic role guidance. Keep screen hierarchy restrained: brand gets the
+  // expressive serif, app UI stays sans, reflection copy breathes through line-height.
+  roles: {
+    brand: 'CormorantGaramond_600SemiBold',
+    ui: 'AlegreyaSans_400Regular',
+    uiEmphasis: 'AlegreyaSans_500Medium',
+    uiStrong: 'AlegreyaSans_700Bold',
+    reflection: 'AlegreyaSans_400Regular',
+    poeticShortTitle: 'CormorantGaramond_600SemiBold',
   },
   
   // Font weights

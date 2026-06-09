@@ -38,7 +38,8 @@ const isEmptyExtraction = (extraction: DreamExtraction): boolean =>
   extraction.thresholds.length === 0 &&
   extraction.central_conflicts.length === 0 &&
   !extraction.core_mode &&
-  extraction.amplifications.length === 0;
+  extraction.amplifications.length === 0 &&
+  !extraction.display_distillation;
 
 async function readCachedDreamMetadata(dream: Dream): Promise<DreamExtraction | null> {
   try {

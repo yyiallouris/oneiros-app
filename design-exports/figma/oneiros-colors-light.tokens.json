@@ -3,127 +3,187 @@
     "bg": {
       "primary": {
         "$type": "color",
-        "$description": "Warm Bone - main app background and splash background.",
+        "$description": "Dream Bone - main app background and splash background.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.968627451, 0.952941176, 0.941176471],
+          "components": [0.980392157, 0.968627451, 0.949019608],
           "alpha": 1,
-          "hex": "#F7F3F0"
+          "hex": "#FAF7F2"
         }
       },
       "secondary": {
         "$type": "color",
-        "$description": "Dirty Lilac Wash - secondary background wash, soft panels, and waves.",
+        "$description": "Warm Mist - secondary background wash and soft panels.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.937254902, 0.909803922, 0.945098039],
+          "components": [0.952941176, 0.933333333, 0.941176471],
           "alpha": 1,
-          "hex": "#EFE8F1"
+          "hex": "#F3EEF0"
+        }
+      },
+      "fog": {
+        "$type": "color",
+        "$description": "Faded Lilac Fog - atmospheric depth and background waves.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.929411765, 0.898039216, 0.937254902],
+          "alpha": 1,
+          "hex": "#EDE5EF"
         }
       }
     },
     "surface": {
       "paper": {
         "$type": "color",
-        "$description": "Paper Mist - cards, raised surfaces, clean panels, inputs, and search surfaces.",
+        "$description": "Card Surface - cards, raised surfaces, clean panels, inputs, and search surfaces.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [1, 0.988235294, 0.980392157],
+          "components": [1, 0.992156863, 0.976470588],
           "alpha": 1,
-          "hex": "#FFFCFA"
+          "hex": "#FFFDF9"
+        }
+      },
+      "pressed": {
+        "$type": "color",
+        "$description": "Pressed Surface - light pressed/control backgrounds.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.956862745, 0.929411765, 0.956862745],
+          "alpha": 1,
+          "hex": "#F4EDF4"
         }
       }
     },
     "border": {
       "default": {
         "$type": "color",
-        "$description": "Ash Lilac - borders, input outlines, card borders, dividers, and brand contour lines.",
+        "$description": "Hairline Border - borders, input outlines, card borders, dividers, and brand contour lines.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.866666667, 0.82745098, 0.866666667],
+          "components": [0.870588235, 0.82745098, 0.874509804],
           "alpha": 1,
-          "hex": "#DDD3DD"
+          "hex": "#DED3DF"
         }
       }
     },
     "text": {
       "primary": {
         "$type": "color",
-        "$description": "Dream Ink - primary text, titles, active tab labels/icons, and brand wordmark tone.",
+        "$description": "Deep Ink - primary text, titles, active tab labels/icons, and brand wordmark tone.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.168627451, 0.141176471, 0.188235294],
+          "components": [0.176470588, 0.141176471, 0.188235294],
           "alpha": 1,
-          "hex": "#2B2430"
+          "hex": "#2D2430"
         }
       },
       "secondary": {
         "$type": "color",
-        "$description": "Muted Plum Gray - secondary/supporting text, subtitles, and descriptions.",
+        "$description": "Muted Ink - secondary/supporting text, subtitles, and descriptions.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.333333333, 0.282352941, 0.364705882],
+          "components": [0.368627451, 0.321568627, 0.388235294],
           "alpha": 1,
-          "hex": "#55485D"
+          "hex": "#5E5263"
         }
       },
       "muted": {
         "$type": "color",
-        "$description": "Faded Plum - placeholders, metadata, muted labels, and low-priority text.",
+        "$description": "Ghost Text - placeholders, metadata, muted labels, and low-priority text.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.501960784, 0.450980392, 0.517647059],
+          "components": [0.549019608, 0.509803922, 0.564705882],
           "alpha": 1,
-          "hex": "#807384"
+          "hex": "#8C8290"
         }
       }
     },
     "accent": {
       "action": {
         "$type": "color",
-        "$description": "Deep Violet - primary buttons, selected controls, active UI states, microphone/action icons.",
+        "$description": "Night Plum - primary buttons, selected controls, active UI states, microphone/action icons.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.309803922, 0.22745098, 0.345098039],
+          "components": [0.294117647, 0.192156863, 0.345098039],
           "alpha": 1,
-          "hex": "#4F3A58"
+          "hex": "#4B3158"
         }
       },
       "symbol": {
         "$type": "color",
-        "$description": "Oracle Violet - symbol accents, section icons, subtle emphasis text, and brand glow.",
+        "$description": "Ritual Plum - symbol accents, section icons, subtle emphasis text, and brand glow.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.431372549, 0.301960784, 0.470588235],
+          "components": [0.396078431, 0.266666667, 0.435294118],
           "alpha": 1,
-          "hex": "#6E4D78"
+          "hex": "#65446F"
         }
       },
       "decorative": {
         "$type": "color",
-        "$description": "Dusty Mauve - decorative highlights, dream-count/calendar accents, non-interactive emphasis.",
+        "$description": "Soft Amethyst - decorative highlights, dream-count/calendar accents, non-interactive emphasis.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.545098039, 0.415686275, 0.576470588],
+          "components": [0.658823529, 0.545098039, 0.698039216],
           "alpha": 1,
-          "hex": "#8B6A93"
+          "hex": "#A88BB2"
         }
       },
       "disabled": {
         "$type": "color",
-        "$description": "Disabled Plum - disabled button text/state family, disabled outlines, and disabled tints.",
+        "$description": "Soft Amethyst - disabled button text/state family, disabled outlines, and disabled tints.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.592156863, 0.525490196, 0.607843137],
+          "components": [0.658823529, 0.545098039, 0.698039216],
           "alpha": 1,
-          "hex": "#97869B"
+          "hex": "#A88BB2"
+        }
+      },
+      "old-gold": {
+        "$type": "color",
+        "$description": "Old Gold - ritual highlights, calendar/sun contrast, and symbolic emphasis.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.709803922, 0.541176471, 0.290196078],
+          "alpha": 1,
+          "hex": "#B58A4A"
+        }
+      },
+      "oxidized-green": {
+        "$type": "color",
+        "$description": "Oxidized Green - grounded earth/shadow support accent.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.368627451, 0.454901961, 0.407843137],
+          "alpha": 1,
+          "hex": "#5E7468"
+        }
+      },
+      "dried-rose": {
+        "$type": "color",
+        "$description": "Dried Rose - warm symbolic contrast.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.643137255, 0.435294118, 0.470588235],
+          "alpha": 1,
+          "hex": "#A46F78"
+        }
+      },
+      "clay-brown": {
+        "$type": "color",
+        "$description": "Clay Brown - grounded clay support accent.",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.549019608, 0.419607843, 0.352941176],
+          "alpha": 1,
+          "hex": "#8C6B5A"
         }
       }
     },
     "brand": {
       "shadow": {
         "$type": "color",
-        "$description": "Night Plum - brand shadow/deep vignette, icon depth, and adaptive icon shadow treatment.",
+        "$description": "Deep Shadow Plum - brand shadow/deep vignette, icon depth, and adaptive icon shadow treatment.",
         "$value": {
           "colorSpace": "srgb",
           "components": [0.121568627, 0.101960784, 0.137254902],
@@ -133,12 +193,12 @@
       },
       "contour-soft": {
         "$type": "color",
-        "$description": "Soft Contour Lilac - soft brand contour, secondary glow, and supporting stroke tint.",
+        "$description": "Soft Amethyst - soft brand contour, secondary glow, and supporting stroke tint.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.733333333, 0.658823529, 0.749019608],
+          "components": [0.658823529, 0.545098039, 0.698039216],
           "alpha": 1,
-          "hex": "#BBA8BF"
+          "hex": "#A88BB2"
         }
       }
     },

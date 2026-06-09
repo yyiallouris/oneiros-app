@@ -72,13 +72,49 @@ describe('ai service', () => {
   });
 
   it('uses restrained extraction as UI metadata mapping', async () => {
+    const extractionJson = {
+      display_distillation: {
+        essence_title: 'Blocked red threshold',
+        essence_line: 'The dream gathers around a blocked wish to enter.',
+        dominant_lens: 'Threshold',
+        visible_anchors: [
+          {
+            label: 'red door',
+            type: 'Threshold',
+            salience: 5,
+            ui_meaning:
+              'a charged point of entry that keeps carrying more detail than the DreamDetail card should ever show in its compact anchor summary because the model kept adding explanatory prose beyond the UI limit',
+          },
+          { label: 'The red door', type: 'image', salience: 4, ui_meaning: 'duplicate should be ignored' },
+          { label: 'wanting entry', type: 'tension', salience: 4, ui_meaning: 'the pressure to cross' },
+          { label: 'blocked handle', type: 'image', salience: 3, ui_meaning: 'the door will not yield' },
+          { label: 'frustration', type: 'Feeling', salience: 3, ui_meaning: 'the felt weather of the scene' },
+          { label: 'waiting outside', type: 'archetypal echo', salience: 2, ui_meaning: 'kept at a distance' },
+          { label: 'extra anchor', type: 'image', salience: 1, ui_meaning: 'should be capped out' },
+        ],
+        main_tension: 'entry vs blockage',
+        dream_movement: 'Approaching',
+        movement_line: 'The dream approaches the threshold without crossing.',
+      },
+      symbols: ['red door'],
+      symbol_stances: [{ symbol: 'red door', stance: 'blocked, charged' }],
+      archetypes: [],
+      landscapes: [],
+      affects: ['tension'],
+      motifs: ['blocked threshold'],
+      relational_dynamics: [],
+      thresholds: ['closed door'],
+      central_conflicts: ['closed door vs wanting entry'],
+      core_mode: 'Core Tension',
+      amplifications: [],
+    };
+
     mockFetch.mockImplementation(async () =>
       apiResponse({
         choices: [
           {
             message: {
-              content:
-                '{"symbols":["red door"],"symbol_stances":[{"symbol":"red door","stance":"blocked, charged"}],"archetypes":[],"landscapes":[],"affects":["tension"],"motifs":["blocked threshold"],"relational_dynamics":[],"thresholds":["closed door"],"central_conflicts":["closed door vs wanting entry"],"core_mode":"Core Tension","amplifications":[]}',
+              content: JSON.stringify(extractionJson),
             },
             finish_reason: 'stop',
           },
@@ -86,7 +122,7 @@ describe('ai service', () => {
       })
     );
 
-    await extractDreamSymbolsAndArchetypes(
+    const extraction = await extractDreamSymbolsAndArchetypes(
       {
         id: '1',
         title: 'Small dream',
@@ -106,16 +142,34 @@ describe('ai service', () => {
       .join('\n');
     const userMsg = extractionBody.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
 
-    expect(systemText).toMatch(/map dream elements for UI metadata/i);
-    expect(systemText).toMatch(/indexing\/cataloguing, not first reading/i);
+    expect(systemText).toMatch(/map dream elements for two different purposes/i);
+    expect(systemText).toMatch(/Immediate UI display distillation/);
+    expect(systemText).toMatch(/poetic mirror, not a metadata report/);
+    expect(systemText).toMatch(/display_distillation/);
+    expect(systemText).toMatch(/visible_anchors/);
     expect(systemText).toMatch(/symbol_stances: 1–5 items, only for genuinely charged symbols/);
     expect(systemText).toMatch(/Do not infer archetypes unless strongly staged/);
     expect(systemText).toMatch(/core_mode.*null/);
-    expect(userMsg).toMatch(/Catalog this dream into UI metadata fields after the final interpretation/);
+    expect(userMsg).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(userMsg).toMatch(/Final interpretation:/);
     expect(userMsg).toMatch(/red door carries the strongest pressure/);
     expect(userMsg).toMatch(/maximum 5/);
     expect(userMsg).not.toMatch(/3–5 items/);
+    expect(extraction.display_distillation?.dominant_lens).toBe('threshold');
+    expect(extraction.display_distillation?.visible_anchors).toHaveLength(5);
+    expect(extraction.display_distillation?.visible_anchors.map((anchor) => anchor.label)).toEqual([
+      'red door',
+      'wanting entry',
+      'blocked handle',
+      'frustration',
+      'waiting outside',
+    ]);
+    expect(extraction.display_distillation?.visible_anchors[0].type).toBe('threshold');
+    expect(extraction.display_distillation?.visible_anchors[0].ui_meaning.length).toBeLessThanOrEqual(141);
+    expect(extraction.display_distillation?.visible_anchors[0].ui_meaning).toMatch(/…$/);
+    expect(extraction.display_distillation?.visible_anchors[4].type).toBe('archetypal_echo');
+    expect(extraction.display_distillation?.dream_movement).toBe('approaching');
+    expect(extraction.display_distillation?.main_tension).toBe('entry vs blockage');
   });
 
   it('includes the same universal output-language instruction for non-Greek dreams', async () => {
@@ -281,7 +335,7 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Preserve ambiguity without dissolving intensity/);
     expect(systemText).toMatch(/Some dream images carry disproportionate psychic weight/);
     expect(systemText).toMatch(/psychic gravity of images that change atmosphere/);
-    expect(systemText).toMatch(/continuous descent through the dream, not a report/);
+    expect(systemText).toMatch(/continuous movement through the dream-field, not a report/);
     expect(systemText).toMatch(/Use hidden structure/);
     expect(systemText).toMatch(/Let the dream sequence carry the form/);
     expect(systemText).toMatch(/Do not use phrases like "the dream organizes", "symbolic movement", or "charged image"/);
@@ -293,7 +347,7 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Do not create a Mythic Resonance section/);
     expect(systemText).toMatch(/Do not lecture on mythology or explain archetypal systems/);
     expect(systemText).toMatch(/## Dream Movement/);
-    expect(systemText).toMatch(/Write this as one continuous interpretive essay, 4–7 short paragraphs/);
+    expect(systemText).toMatch(/Write this as one continuous interpretive essay, 4–6 short paragraphs/);
     expect(systemText).toMatch(/without naming these as subheadings/);
     expect(systemText).toMatch(/Do not split the reading into multiple analytical sections/);
     expect(systemText).toMatch(/Let one image become the gravitational center/);
@@ -309,7 +363,8 @@ describe('ai service', () => {
     expect(systemText).toMatch(/without sounding like a diagnosis/);
     expect(systemText).toMatch(/Do not use archetype labels here/);
     expect(systemText).toMatch(/Let unresolvedness appear only if the dream itself leaves something suspended/);
-    expect(systemText).toMatch(/Length: 420–620 words/);
+    expect(systemText).toMatch(/Somatic questions should refer to the remembered dream-body or bodily tone/);
+    expect(systemText).toMatch(/Length: aim for 550–800 words/);
     const userMsg = interpretationBody.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
     expect(userMsg).toMatch(/Return to the dream sequence and charged images first/);
     expect(userMsg).toMatch(/Do not organize the reading around categories, tags, or frameworks/);
@@ -368,7 +423,7 @@ describe('ai service', () => {
     expect(retrySystemText).toMatch(/Use the Advanced mode, but with hidden structure/);
     expect(retrySystemText).toMatch(/Only use the Core heading, Dream Movement, and Reflective Questions/);
     expect(retrySystemText).toMatch(/Do not use separate headings for Charged Image, What the Dream Organizes, Symbolic Movement, or What Remains Unresolved/);
-    expect(retrySystemText).toMatch(/continuous descent through the dream sequence/);
+    expect(retrySystemText).toMatch(/compact continuous movement through the dream sequence/);
     expect(retrySystemText).toMatch(/gravitational center without naming it as a section/);
     expect(retrySystemText).toMatch(/Stay close to the dream sequence/);
     expect(retrySystemText).toMatch(/Keep the strongest image partly alive before interpreting it/);

@@ -198,9 +198,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 252, 250, 0.9)',
+    backgroundColor: colors.cardGlass,
     borderWidth: 1,
-    borderColor: 'rgba(221, 211, 221, 0.92)',
+    borderColor: colors.border,
   },
   recordButtonActive: {
     opacity: 0.92,

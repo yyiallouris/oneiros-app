@@ -4,11 +4,23 @@
  */
 
 import { StorageService } from './storageService';
-import { generatePatternInsights, type DreamExtraction, type PatternInsightDreamEntry } from './ai';
+import { LocalStorage } from './localStorage';
+import {
+  generatePatternInsights,
+  generateRecentDreamFieldReflection as generateRecentDreamFieldReflectionFromAi,
+  type DreamExtraction,
+  type PatternInsightDreamEntry,
+} from './ai';
 import type { Interpretation } from '../types/dream';
-import type { InsightsPeriod } from '../types/insights';
+import type { InsightsPeriod, RecentSequenceReflection } from '../types/insights';
 
 const MAX_DREAMS_FOR_INSIGHTS = 30;
+export const MIN_PATTERN_INSIGHT_DREAMS = 2;
+export type RecentDreamFieldCount = 2 | 3 | 5;
+
+export function canGeneratePatternReflection(interpretedDreamCount: number): boolean {
+  return interpretedDreamCount >= MIN_PATTERN_INSIGHT_DREAMS;
+}
 
 function interpretationToExtraction(i: Interpretation): DreamExtraction {
   return {
@@ -20,9 +32,42 @@ function interpretationToExtraction(i: Interpretation): DreamExtraction {
     relational_dynamics: i.relational_dynamics ?? [],
     thresholds: i.thresholds ?? [],
     central_conflicts: i.central_conflicts ?? [],
-    core_mode: i.core_mode ?? '',
+    core_mode: i.core_mode ?? null,
     amplifications: i.amplifications ?? [],
     symbol_stances: i.symbol_stances ?? [],
+  };
+}
+
+const hashString = (input: string): string => {
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+};
+
+export function getRecentSequenceScopeKey(dreamIds: string[], count: RecentDreamFieldCount): string {
+  return `recent:${count}:${hashString(dreamIds.join('|'))}`;
+}
+
+function buildRecentSequenceReport(
+  entries: PatternInsightDreamEntry[],
+  count: RecentDreamFieldCount,
+  language: string,
+  content: string
+): RecentSequenceReflection {
+  const dreamIds = entries.map((entry) => entry.dreamId);
+  const generatedAt = new Date().toISOString();
+  return {
+    id: `${getRecentSequenceScopeKey(dreamIds, count)}:${language}`,
+    scope_type: 'recent_sequence',
+    scope_key: getRecentSequenceScopeKey(dreamIds, count),
+    dream_ids: dreamIds,
+    dream_count: entries.length,
+    language,
+    content,
+    generated_at: generatedAt,
   };
 }
 
@@ -52,6 +97,7 @@ export async function getPatternInsightEntries(
     const interpretationText = firstAssistant?.content ?? '';
 
     entries.push({
+      dreamId: i.dreamId,
       date,
       extracted: interpretationToExtraction(i),
       interpretation: interpretationText,
@@ -60,6 +106,27 @@ export async function getPatternInsightEntries(
 
   entries.sort((a, b) => (a.date > b.date ? 1 : -1));
   return entries.slice(-MAX_DREAMS_FOR_INSIGHTS);
+}
+
+/**
+ * Build entries from the latest interpreted dreams only. This is intentionally
+ * separate from calendar-period reports and does not imply archive storage.
+ */
+export async function getRecentPatternInsightEntries(
+  count: RecentDreamFieldCount
+): Promise<PatternInsightDreamEntry[]> {
+  const entries = await getPatternInsightEntries(null);
+  return entries.slice(-count);
+}
+
+export async function getCachedRecentDreamFieldReflection(
+  count: RecentDreamFieldCount,
+  language: string = 'en'
+): Promise<RecentSequenceReflection | null> {
+  const entries = await getRecentPatternInsightEntries(count);
+  if (!canGeneratePatternReflection(entries.length)) return null;
+  const scopeKey = getRecentSequenceScopeKey(entries.map((entry) => entry.dreamId), count);
+  return LocalStorage.getRecentSequenceReflection(scopeKey, language);
 }
 
 /**
@@ -74,6 +141,33 @@ export async function generateMonthlyInsights(
 ): Promise<string> {
   const entries = await getPatternInsightEntries(periodFilter);
   return generatePatternInsights(entries, period, language);
+}
+
+/**
+ * Generate an ad-hoc reflection from the latest interpreted dreams.
+ * It is not persisted to the monthly pattern report archive.
+ */
+export async function generateRecentDreamFieldReflection(
+  count: RecentDreamFieldCount,
+  language: string = 'en',
+  options?: { force?: boolean }
+): Promise<string> {
+  const entries = await getRecentPatternInsightEntries(count);
+  if (!canGeneratePatternReflection(entries.length)) {
+    return language === 'el'
+      ? 'Χρειάζονται τουλάχιστον 2 ερμηνευμένα όνειρα για πρόσφατη αντανάκλαση.'
+      : 'Reflect on at least 2 dreams to generate a recent dream field reflection.';
+  }
+
+  if (!options?.force) {
+    const cached = await getCachedRecentDreamFieldReflection(count, language);
+    if (cached) return cached.content;
+  }
+
+  const content = await generateRecentDreamFieldReflectionFromAi(entries, language);
+  const report = buildRecentSequenceReport(entries, count, language, content);
+  await LocalStorage.saveRecentSequenceReflection(report);
+  return content;
 }
 
 /**

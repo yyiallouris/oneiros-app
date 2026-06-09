@@ -5,10 +5,10 @@
 All app colors live in **`src/theme/colors.ts`**. The current visual direction is:
 
 ```txt
-Warm bone / mist gray / dirty lilac
+Dream Bone / Deep Ink / dirtied plum / old-paper symbolic accents
 ```
 
-The palette should feel like paper, ash, moonlight, and a muted dream archive. Avoid returning the UI to soft wellness tones or bright decorative accent systems.
+The palette should feel like paper, ash, clay, moonlight, old gold, and a muted dream archive. Keep purple as a Jungian plum role, not a generic lavender wellness wash.
 
 **Never use hardcoded colors in components** unless the color is truly local and cannot be expressed as a reusable token.
 
@@ -16,65 +16,77 @@ The palette should feel like paper, ash, moonlight, and a muted dream archive. A
 
 | Color name | Value | Token | Usage |
 |------------|-------|-------|-------|
-| Warm bone | `#F7F3F0` | `backgrounds.primary` | Main app background, splash background |
-| Dirty lilac wash | `#EFE8F1` | `backgrounds.secondary`, `backgrounds.wave1`, `accent.light` | Secondary screen wash, soft panels, background waves |
-| Paper surface | `#FFFCFA` | `backgrounds.tertiary`, `backgrounds.card` | Raised surfaces, clean cards |
-| Ash-lilac border | `#DDD3DD` | `backgrounds.wave2`, `borders.primary`, `borders.input`, `borders.card` | Borders, dividers, wave depth |
-| Primary ink | `#2B2430` | `text.primary`, `text.title`, `brandIcon.plum` | Main text, titles, wordmark tone |
-| Muted plum-gray | `#55485D` | `text.secondary` | Supporting text |
-| Muted text | `#807384` | `text.muted` | Placeholders, subdued metadata |
-| Muted violet | `#6E4D78` | `text.accent`, `accent.symbol`, `brandIcon.glow` | Symbol accents, subtle emphasis |
-| Deep violet action | `#4F3A58` | `accent.buttonPrimary`, `accent.dark` | Buttons, selected controls, active UI |
-| Decorative violet | `#8B6A93` | `accent.primary`, `calendar.hasDreams` | Non-interactive highlights, dream-count marks |
+| Dream Bone | `#FAF7F2` | `backgrounds.primary`, `brandIcon.mist` | Main app background |
+| Warm Mist | `#F3EEF0` | `backgrounds.secondary` | Secondary screen wash, soft panels |
+| Faded Lilac Fog | `#EDE5EF` | `backgrounds.wave1`, `gradients.screenDepth` | Atmospheric depth, background waves |
+| Card Surface | `#FFFDF9` | `backgrounds.tertiary`, `backgrounds.card` | Raised surfaces, clean cards |
+| Pressed Surface | `#F4EDF4` | `accent.light` | Light pressed/control backgrounds |
+| Hairline Border | `#DED3DF` | `backgrounds.wave2`, `borders.primary`, `borders.input`, `borders.card` | Borders, dividers, wave depth |
+| Deep Ink | `#2D2430` | `text.primary`, `text.title`, `brandIcon.plum` | Main text, titles, wordmark tone |
+| Muted Ink | `#5E5263` | `text.secondary` | Supporting text |
+| Ghost Text | `#8C8290` | `text.muted`, `tabBar.iconInactive` | Placeholders, subdued metadata |
+| Night Plum | `#4B3158` | `accent.buttonPrimary`, `accent.dark` | Buttons, selected controls, active UI |
+| Night Plum Splash | `#4B3158` | `backgrounds.splash` | Native splash and in-app loading background |
+| Ritual Plum | `#65446F` | `text.accent`, `accent.symbol`, `brandIcon.glow` | Symbol accents, subtle emphasis |
+| Soft Amethyst | `#A88BB2` | `accent.primary`, `accent.buttonPrimaryDisabled`, `calendar.hasDreams` | Decorative highlights, disabled primary states |
+| Old Gold | `#B58A4A` | `accent.oldGold`, `accent.orange`, `calendar.orange` | Ritual highlights, calendar/sun contrast |
+| Oxidized Green | `#5E7468` | `accent.oxidizedGreen`, `waveTints.A` | Earth/shadow support accent |
+| Dried Rose | `#A46F78` | `accent.driedRose` | Warm symbolic contrast |
+| Clay Brown | `#8C6B5A` | `accent.clayBrown` | Grounded clay support accent |
 
 ## Main Token Groups
 
 ### Backgrounds
 
-- `backgrounds.primary`: warm bone app base.
-- `backgrounds.secondary`: dirty lilac support wash.
-- `backgrounds.tertiary`: clean paper for raised sections.
-- `backgrounds.card`: paper card surface.
+- `backgrounds.primary`: Dream Bone app base.
+- `backgrounds.secondary`: Warm Mist support wash.
+- `backgrounds.tertiary`: Card Surface for raised sections.
+- `backgrounds.splash`: Night Plum splash/loading background.
+- `backgrounds.card`: Card Surface card background.
 - `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent`: translucent paper surfaces.
-- `backgrounds.wave1`, `wave2`: muted wave/background depth.
+- `backgrounds.wave1`, `wave2`: Faded Lilac Fog and Hairline Border depth.
 - `backgrounds.overlay`, `overlayLight`, `backdrop`: ink-based overlays.
 
 ### Text
 
-- `text.primary`: primary ink.
-- `text.secondary`: muted plum-gray.
-- `text.muted`: placeholders and lower-priority metadata.
-- `text.title`: title ink.
-- `text.accent`: muted violet emphasis.
+- `text.primary`: Deep Ink.
+- `text.secondary`: Muted Ink.
+- `text.muted`: Ghost Text placeholders and lower-priority metadata.
+- `text.title`: Deep Ink title tone.
+- `text.accent`: Ritual Plum emphasis.
 - `text.white`, `text.onAccent`: text on dark/accent surfaces.
 
 ### Primary Action
 
 Change `accent.buttonPrimary` in `colors.ts` to update the main action family across the app.
 
-- `accent.buttonPrimary`: buttons, active controls, microphone, selected calendar states, send/edit icons.
-- `accent.buttonPrimaryLight`: light chip/toggle backgrounds.
+- `accent.buttonPrimary`: Night Plum buttons, active controls, microphone, selected calendar states, send/edit icons.
+- `accent.buttonPrimaryLight`: Ritual Plum light chip/toggle backgrounds.
 - `accent.buttonPrimaryLight12`: subtle action-tinted backgrounds.
 - `accent.buttonPrimary40`: action borders and toggle tracks.
 - `accent.buttonPrimary90`: solid chat/action surfaces.
 - `accent.buttonPrimaryDisabled*`: disabled primary-action states.
 
-### Decorative Accents
+### Secondary / Symbolic Accents
 
-- `accent.primary`: non-interactive decorative violet, including `calendar.hasDreams`.
-- `accent.light`: dirty lilac accent wash.
-- `accent.dark`: deep violet.
-- `accent.symbol`: symbol and nav accent tone.
-- `accent.orange`: warm calendar/sun contrast. Use sparingly.
+- `accent.primary`: Soft Amethyst non-interactive highlight, including `calendar.hasDreams`.
+- `accent.light`: Pressed Surface accent wash.
+- `accent.dark`: Night Plum.
+- `accent.symbol`: Ritual Plum symbol and nav accent tone.
+- `accent.oldGold`: ritual highlight and sun/calendar contrast.
+- `accent.oxidizedGreen`: grounded earth/shadow support accent.
+- `accent.driedRose`: warm symbolic contrast.
+- `accent.clayBrown`: grounded clay support accent.
+- `accent.orange`: Old Gold compatibility alias for calendar/sun contrast.
 
 ### Brand Icon
 
-- `brandIcon.plum`: dark icon and wordmark tone.
+- `brandIcon.plum`: Deep Ink icon and wordmark tone.
 - `brandIcon.plumShadow`: deep vignette/shadow.
-- `brandIcon.glow`: core muted-violet glow.
-- `brandIcon.contour`: primary contour/light stroke.
-- `brandIcon.contourSoft`: softer supporting contour.
-- `brandIcon.mist`: splash/light brand backdrop.
+- `brandIcon.glow`: Ritual Plum core glow.
+- `brandIcon.contour`: Hairline Border contour/light stroke.
+- `brandIcon.contourSoft`: Soft Amethyst supporting contour.
+- `brandIcon.mist`: Dream Bone splash/light brand backdrop.
 
 ### Surfaces
 
@@ -106,7 +118,7 @@ Semantic colors stay conventional:
 
 ### Gradients
 
-- `gradients.mountain*`: warm bone to dirty/ash lilac background depth.
+- `gradients.mountain*`: Dream Bone to Warm Mist/Faded Lilac Fog background depth.
 - `gradients.sunMoon*`: subtle moon/sun atmospheric wash.
 - `gradients.screen*`: full-screen atmosphere for `PsycheScreenBackground`.
 - `gradients.button*`: primary action treatment.
@@ -115,8 +127,8 @@ Semantic colors stay conventional:
 ### Calendar
 
 - `calendar.noDreams`: light paper-mist day state.
-- `calendar.hasDreams`: decorative violet from `accent.primary`.
-- `calendar.orange`: warm optional variant.
+- `calendar.hasDreams`: Soft Amethyst from `accent.primary`.
+- `calendar.orange`: Old Gold optional variant.
 
 ## Import Methods
 
@@ -165,8 +177,8 @@ const styles = StyleSheet.create({
 ```typescript
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F7F3F0',
-    color: '#2B2430',
+    backgroundColor: '#FAF7F2',
+    color: '#2D2430',
   },
 });
 ```

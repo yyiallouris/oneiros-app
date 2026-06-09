@@ -13,6 +13,9 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `syncService.flow.test.ts` | flows-05 (unsynced queue, merge, offline short-circuit) |
 | `network.flow.test.ts` | flows-05 (forced offline, subscription callback) |
 | `constants.flow.test.ts` | flows-02 / flows-06 (password length, AI message cap) |
+| `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
+| `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
+| `storageService.flow.test.ts` | flows-05 (offline-first storage orchestration) |
 
 Run only these:
 

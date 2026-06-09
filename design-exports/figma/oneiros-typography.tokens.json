@@ -3,12 +3,12 @@
     "family": {
       "display": {
         "$type": "fontFamily",
-        "$description": "Brand/display font for the Oneiros wordmark and splash title.",
+        "$description": "Brand serif reserved for the Oneiros wordmark, splash title, and rare short poetic title.",
         "$value": "Cormorant Garamond"
       },
       "body": {
         "$type": "fontFamily",
-        "$description": "Primary UI/body font. Greek-safe and used for app copy and user-generated text.",
+        "$description": "Primary UI, body, and reflection font. Greek-safe, restrained, and used across the app.",
         "$value": "Alegreya Sans"
       }
     },
@@ -25,7 +25,7 @@
       },
       "semibold": {
         "$type": "string",
-        "$description": "Cormorant Garamond semibold display style.",
+        "$description": "Alegreya Sans medium style used as restrained semibold UI emphasis.",
         "$value": "SemiBold"
       },
       "bold": {
@@ -69,7 +69,7 @@
       },
       "xl": {
         "$type": "dimension",
-        "$description": "Navigation titles, list/item titles, section titles.",
+        "$description": "Primary in-app screen titles and prominent list/item titles.",
         "$value": {
           "value": 22,
           "unit": "px"
@@ -77,7 +77,7 @@
       },
       "xxl": {
         "$type": "dimension",
-        "$description": "Screen titles and onboarding headings.",
+        "$description": "Large onboarding or exceptional headings. Avoid for routine in-app section titles.",
         "$value": {
           "value": 28,
           "unit": "px"
@@ -85,7 +85,7 @@
       },
       "xxxl": {
         "$type": "dimension",
-        "$description": "Large screen titles and lock/password screen headings.",
+        "$description": "Reserved large heading size for sparse onboarding/lock screens only.",
         "$value": {
           "value": 36,
           "unit": "px"
@@ -121,8 +121,25 @@
       },
       "relaxed": {
         "$type": "number",
-        "$description": "Relaxed line-height ratio used for long-form dream text and dense descriptions.",
+        "$description": "Relaxed line-height ratio used for dream reflections, interpretation copy, reports, and essays.",
         "$value": 1.8
+      }
+    },
+    "role": {
+      "brand": {
+        "$type": "string",
+        "$description": "Expressive serif brand moment only.",
+        "$value": "Cormorant Garamond SemiBold"
+      },
+      "ui": {
+        "$type": "string",
+        "$description": "Restrained sans for labels, navigation, inputs, buttons, and cards.",
+        "$value": "Alegreya Sans Regular/Medium/Bold"
+      },
+      "reflection": {
+        "$type": "string",
+        "$description": "Long-form reflection and report text stays in the sans family with relaxed line-height.",
+        "$value": "Alegreya Sans Regular"
       }
     },
     "letter-spacing": {

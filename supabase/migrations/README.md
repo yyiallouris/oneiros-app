@@ -12,6 +12,11 @@ Enables Row Level Security (RLS) on the `dreams` and `interpretations` tables an
 - Users can only SELECT, INSERT, UPDATE, and DELETE their own interpretations
 - All policies use `auth.uid() = user_id` to enforce ownership
 
+### `20260511120000_add_display_distillation_to_interpretations.sql`
+Adds nullable `display_distillation jsonb` to `interpretations`.
+
+This stores the immediate user-facing DreamDetail summary generated during metadata extraction: dream essence, visible anchors, main tension, and movement line. Long-term pattern metadata remains in the existing columns.
+
 ## Running Migrations
 
 ### Prerequisites

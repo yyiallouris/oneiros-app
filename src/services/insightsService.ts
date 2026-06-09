@@ -15,6 +15,10 @@ import type {
   MotifCount,
   ThresholdCount,
   CentralConflictCount,
+  AffectCount,
+  CrossCategoryPatternItem,
+  InsightsOverviewModel,
+  InsightPatternKind,
   SymbolMonthCount,
   ArchetypeMonthCount,
   InsightsPeriod,
@@ -369,6 +373,207 @@ export async function getRecurringCentralConflicts(period?: InsightsPeriod): Pro
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
   return aggregateInterpretationTerms(interpretations, dreamIds, (i) => i.central_conflicts);
+}
+
+/** Recurring affects: dominant felt tones from interpretations. */
+export async function getRecurringAffects(period?: InsightsPeriod): Promise<AffectCount[]> {
+  const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+  const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
+  const dreamIds = new Set(filtered.map((d) => d.id));
+  return aggregateInterpretationTerms(interpretations, dreamIds, (i) => i.affects);
+}
+
+/** Dreams with at least one interpretation in the period. */
+export async function getInterpretedDreamsCountForPeriod(period: InsightsPeriod): Promise<number> {
+  const dreams = await StorageService.getDreams();
+  const interpretations = await StorageService.getInterpretations();
+  const filtered = dreamsInPeriod(dreams, period);
+  const dreamIds = new Set(filtered.map((d) => d.id));
+  const interpretedDreamIds = new Set<string>();
+  interpretations.forEach((i) => {
+    if (dreamIds.has(i.dreamId)) interpretedDreamIds.add(i.dreamId);
+  });
+  return interpretedDreamIds.size;
+}
+
+const PATTERN_KIND_PRIORITY: Record<InsightPatternKind, number> = {
+  image: 0,
+  threshold: 1,
+  tension: 2,
+  motif: 3,
+  place: 4,
+  affect: 5,
+  archetypal_echo: 6,
+};
+
+const patternKindLabel = (kind: InsightPatternKind): string => {
+  switch (kind) {
+    case 'image':
+      return 'image';
+    case 'motif':
+      return 'repeating pattern';
+    case 'threshold':
+      return 'threshold';
+    case 'tension':
+      return 'inner tension';
+    case 'place':
+      return 'place';
+    case 'archetypal_echo':
+      return 'archetypal echo';
+    case 'affect':
+      return 'atmosphere';
+    default:
+      return 'pattern';
+  }
+};
+
+const joinNatural = (items: string[]): string => {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+};
+
+function toPatternItems<T extends { name: string; count: number }>(
+  items: T[],
+  kind: InsightPatternKind,
+  sectionId: CrossCategoryPatternItem['sectionId'],
+  filterType?: NonNullable<CrossCategoryPatternItem['filter']>['type']
+): CrossCategoryPatternItem[] {
+  return items.map((item) => ({
+    label: item.name,
+    kind,
+    count: item.count,
+    sectionId,
+    filter: filterType ? { type: filterType, value: item.name } : undefined,
+  }));
+}
+
+export function buildStrongestPatterns(params: {
+  images?: CrossCategoryPatternItem[];
+  motifs?: CrossCategoryPatternItem[];
+  thresholds?: CrossCategoryPatternItem[];
+  tensions?: CrossCategoryPatternItem[];
+  places?: CrossCategoryPatternItem[];
+  archetypalEchoes?: CrossCategoryPatternItem[];
+  affects?: CrossCategoryPatternItem[];
+  limit?: number;
+}): CrossCategoryPatternItem[] {
+  const all = [
+    ...(params.images ?? []),
+    ...(params.thresholds ?? []),
+    ...(params.tensions ?? []),
+    ...(params.motifs ?? []),
+    ...(params.places ?? []),
+    ...(params.affects ?? []),
+    ...(params.archetypalEchoes ?? []),
+  ].filter((item) => item.label.trim().length > 0);
+
+  const recurring = all.filter((item) => item.count >= 2);
+  const source = recurring.length > 0 ? recurring : all;
+  return source
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      const priority = PATTERN_KIND_PRIORITY[a.kind] - PATTERN_KIND_PRIORITY[b.kind];
+      if (priority !== 0) return priority;
+      return a.label.localeCompare(b.label);
+    })
+    .slice(0, params.limit ?? 5);
+}
+
+export function buildDreamFieldSummary(params: {
+  interpretedDreamsCount: number;
+  strongestPatterns: CrossCategoryPatternItem[];
+}): string {
+  const { interpretedDreamsCount, strongestPatterns } = params;
+  if (interpretedDreamsCount === 0) {
+    return 'No dream field yet. Reflect on a dream to begin seeing recurring images, places, and movements.';
+  }
+
+  if (strongestPatterns.length === 0) {
+    return 'A light field is forming, but stronger patterns need more reflected dreams.';
+  }
+
+  const recurring = strongestPatterns.filter((item) => item.count >= 2);
+  if (recurring.length === 0) {
+    return `A light field is forming around ${joinNatural(strongestPatterns.slice(0, 3).map((item) => item.label))}, but stronger patterns need more reflected dreams.`;
+  }
+
+  const imageLabels = recurring.filter((item) => item.kind === 'image').slice(0, 3).map((item) => item.label);
+  const pressure =
+    recurring.find((item) => item.kind === 'threshold') ??
+    recurring.find((item) => item.kind === 'tension') ??
+    recurring.find((item) => item.kind === 'motif') ??
+    recurring.find((item) => item.kind === 'place') ??
+    recurring.find((item) => item.kind === 'affect');
+
+  if (imageLabels.length > 0 && pressure && !imageLabels.includes(pressure.label)) {
+    return `The field gathers around ${joinNatural(imageLabels)}, with a repeated ${patternKindLabel(pressure.kind)} near ${pressure.label}.`;
+  }
+  if (imageLabels.length > 0) {
+    return `The field gathers around ${joinNatural(imageLabels)}.`;
+  }
+  if (pressure) {
+    return `The field gathers around ${pressure.label}, a recurring ${patternKindLabel(pressure.kind)} in this period.`;
+  }
+
+  return `The field gathers around ${joinNatural(recurring.slice(0, 3).map((item) => item.label))}.`;
+}
+
+export async function getInsightsOverview(period: InsightsPeriod): Promise<InsightsOverviewModel> {
+  const [
+    dreamsLoggedCount,
+    interpretedDreamsCount,
+    symbols,
+    motifs,
+    thresholds,
+    centralConflicts,
+    landscapes,
+    archetypes,
+    affects,
+  ] = await Promise.all([
+    getDreamsCountForPeriod(period),
+    getInterpretedDreamsCountForPeriod(period),
+    getRecurringSymbols(period),
+    getRecurringMotifs(period),
+    getRecurringThresholds(period),
+    getRecurringCentralConflicts(period),
+    getRecurringLandscapes(period),
+    getRecurringArchetypes(period),
+    getRecurringAffects(period),
+  ]);
+
+  const topImages = toPatternItems(symbols, 'image', 'recurring-symbols', 'symbol').slice(0, 5);
+  const topMotifs = toPatternItems(motifs, 'motif', 'symbolic-motifs', 'motif').slice(0, 5);
+  const topThresholds = toPatternItems(thresholds, 'threshold', 'thresholds').slice(0, 5);
+  const topTensions = toPatternItems(centralConflicts, 'tension', 'core-conflicts').slice(0, 5);
+  const topPlaces = toPatternItems(landscapes, 'place', 'space-landscapes', 'landscape').slice(0, 5);
+  const topArchetypalEchoes = toPatternItems(archetypes, 'archetypal_echo', 'recurring-archetypes').slice(0, 5);
+  const topAffects = toPatternItems(affects, 'affect', 'symbolic-motifs').slice(0, 5);
+  const strongestPatterns = buildStrongestPatterns({
+    images: topImages,
+    motifs: topMotifs,
+    thresholds: topThresholds,
+    tensions: topTensions,
+    places: topPlaces,
+    archetypalEchoes: topArchetypalEchoes,
+    affects: topAffects,
+  });
+
+  return {
+    dreamsLoggedCount,
+    interpretedDreamsCount,
+    topImages,
+    topMotifs,
+    topThresholds,
+    topTensions,
+    topPlaces,
+    topArchetypalEchoes,
+    topAffects,
+    strongestPatterns,
+    fieldSummary: buildDreamFieldSummary({ interpretedDreamsCount, strongestPatterns }),
+  };
 }
 
 const THIS_MONTH = new Date().toISOString().slice(0, 7);

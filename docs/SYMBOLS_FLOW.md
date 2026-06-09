@@ -1,73 +1,50 @@
-# How we handle Symbols (after recent updates)
+# Dream Metadata and Display Flow
 
 ## Summary
 
-Symbols come **from the interpretation text** (prose-based extraction), not from a separate AI call. The chips are a **strict reflection** of the text the user read.
+Dream reflection now separates two concerns:
 
----
+- **Display distillation:** the calm user-facing DreamDetail summary (`display_distillation`) with dream essence, visible anchors, and inner movement.
+- **Pattern metadata:** structured fields used for Insights and long-term reports (`symbols`, `archetypes`, `landscapes`, `affects`, `motifs`, `relational_dynamics`, `thresholds`, `central_conflicts`, `core_mode`, `amplifications`, `symbol_stances`).
 
-## 1. Extraction sources
+DreamDetail should not expose raw extraction categories as primary UI. It shows what the dream gathers around, not everything the system extracted.
 
-### Primary: `extractSymbolsAndArchetypes(aiResponse)`
-- **Input:** The AI interpretation text
-- **Source:** Only the **## Key Symbols** section — takes bullets from there
-- **Limit:** Max **4 symbols** (`MAX_SYMBOL_CHIPS = 4`)
-- **Filter:** Removes affect words (worry, fear, sadness, etc.)
+## Reflection Flow
 
-### Fallback: `extractDreamSymbolsAndArchetypes(dream)`
-- Used **only if** prose extraction returns empty
-- Separate AI call (JSON extraction) on dream content
-- Same limit: max 4 symbols
+1. `generateInitialInterpretation(dream, { depth })` returns the prose reflection.
+2. `getDreamMetadataForReflection(dream, aiResponse)` runs the structured extraction call.
+3. The extraction returns `display_distillation` plus pattern metadata.
+4. `saveInterpretation` persists the assistant message and metadata locally, then syncs remotely when possible.
 
----
+## DreamDetail Display Priority
 
-## 2. Flow in screens
+`DreamDetailScreen` uses:
 
-### DreamDetailScreen & InterpretationChatScreen
+1. `interpretation.display_distillation`, when present.
+2. `buildDreamDetailDisplayModel(dream, interpretation)` fallback for old interpretations.
 
-```
-1. AI returns aiResponse (interpretation text)
-2. proseExtracted = extractSymbolsAndArchetypes(aiResponse)
-3. If proseExtracted has symbols or archetypes:
-   → symbols = proseExtracted.symbols
-   → archetypes = filterArchetypesForDisplay(proseExtracted.archetypes, aiResponse)
-4. Otherwise (fallback):
-   → extracted = extractDreamSymbolsAndArchetypes(dream)
-   → symbols = extracted.symbols
-   → archetypes = filterArchetypesForDisplay(extracted.archetypes, aiResponse)
-5. Save: interpretation.symbols, interpretation.archetypes
-```
+The AI parser normalizes `display_distillation` defensively before storage: display enum values are lowercased/underscore-normalized, duplicate visible anchors are removed by label, anchor meanings are capped for compact UI, and visible anchors are capped at five.
 
----
+Fallback anchor priority:
 
-## 3. Limits & rules
+1. `symbol_stances`
+2. `central_conflicts`
+3. `thresholds`
+4. `relational_dynamics`
+5. `affects`
+6. latest `interpretation.symbols`
+7. stale `dream.symbols` only as final fallback
 
-| | Symbols | Archetypes |
-|---|---------|------------|
-| **Max chips** | 4 | 2 |
-| **Source** | Key Symbols section | Archetypal Dynamics section |
-| **Filter** | Affect words removed | Self-suppression if false center etc. |
+Dream-level `dream.symbols` / `dream.archetypes` are no longer shown as top-level chips on DreamDetail.
 
----
+## Insights Metadata
 
-## 4. Where they appear
+Insights and pattern reports still use full extraction metadata. The rich ontology is useful for monthly/quarterly synthesis, but it remains secondary on a single dream page.
 
-- **Dream card (symbolsCard):** `dream.symbols`, `dream.archetypes`
-- **Interpretation card:** `interpretation.symbols`, `interpretation.archetypes` ("Main symbols")
+## Files Involved
 
-*Note:* The dream is not automatically updated with symbols/archetypes when we save the interpretation. The chips you see come from the interpretation object.
-
----
-
-## 5. AI prompts (consistency)
-
-- **INTERPRETATION_FORMAT_PROMPT:** "Key Symbols (STRICT 3–4 bullets max)"
-- **EXTRACTION_SYSTEM_PROMPT:** "3–5 key symbolic elements max, prefer 2–3 most psychologically active"
-
----
-
-## 6. Files involved
-
-- `src/services/ai.ts`: `extractSymbolsAndArchetypes`, `extractDreamSymbolsAndArchetypes`, `filterArchetypesForDisplay`, `MAX_SYMBOL_CHIPS`
-- `src/screens/DreamDetailScreen.tsx`: `generateInitialAIInterpretation`, `handleUpdateInterpretation`
-- `src/screens/InterpretationChatScreen.tsx`: initial interpretation flow
+- `src/services/ai.ts`: extraction prompt, parser, `DreamExtraction`
+- `src/services/dreamDetailDisplay.ts`: DreamDetail display model and fallback reducer
+- `src/screens/DreamDetailScreen.tsx`: dream sanctuary UI
+- `src/types/dream.ts`: `DisplayDistillation` and `Interpretation`
+- `src/services/remoteStorage.ts`, `src/services/syncService.ts`: remote sync mapping

@@ -26,18 +26,25 @@ export const DESIGN_EXPORT_SCREEN_CATALOG: DesignExportScreen[] = [
   { id: 'privacy', route: 'Privacy', navigator: 'root-stack', label: 'Privacy & Legal' },
   { id: 'calendar', route: 'Calendar', navigator: 'root-stack', label: 'Dream calendar' },
   {
+    id: 'pattern-explorer',
+    route: 'PatternExplorer',
+    navigator: 'root-stack',
+    label: 'Pattern explorer',
+    notes: 'Vertical pattern explorer with strongest signals and category previews.',
+  },
+  {
     id: 'insights-journey',
     route: 'InsightsJourney',
     navigator: 'root-stack',
     label: 'Insights journey',
-    notes: 'Swipeable journey across symbols, motifs, thresholds, conflicts, archetypes, and landscapes.',
+    notes: 'Legacy swipeable journey across images, motifs, thresholds, tensions, archetypes, and places.',
   },
   {
     id: 'insights-section',
     route: 'InsightsSection',
     navigator: 'root-stack',
     label: 'Insights section',
-    notes: 'Use sectionId to capture recurring-symbols, symbolic-motifs, thresholds, core-conflicts, recurring-archetypes, space-landscapes, and pattern-recognition.',
+    notes: 'Use sectionId to capture returning images, repeating patterns, thresholds, inner tensions, archetypal echoes, dream places, and period reflection.',
   },
   {
     id: 'journal-filter',

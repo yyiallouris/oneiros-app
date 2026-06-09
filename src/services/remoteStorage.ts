@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { Dream, Interpretation, type JungianSymbol } from '../types/dream';
+import { Dream, Interpretation, type CoreMode, type DisplayDistillation, type JungianSymbol } from '../types/dream';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -34,6 +34,10 @@ function isJungianSymbol(value: string | null | undefined): value is JungianSymb
   return value === 'moon' || value === 'sun' || value === 'key' || value === 'eye' || value === 'labyrinth';
 }
 
+function isCoreMode(value: string | null | undefined): value is CoreMode {
+  return value === 'Core Tension' || value === 'Core State' || value === 'Core Shift' || value === 'Core Restoration';
+}
+
 type SymbolStanceRow = { symbol: string; stance: string };
 
 type InterpretationRow = {
@@ -51,6 +55,7 @@ type InterpretationRow = {
   core_mode?: string | null;
   amplifications?: string[];
   symbol_stances?: SymbolStanceRow[];
+  display_distillation?: DisplayDistillation | null;
   summary: string | null;
   messages: any[];
   created_at: string;
@@ -99,9 +104,10 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     relational_dynamics: row.relational_dynamics && row.relational_dynamics.length > 0 ? row.relational_dynamics : undefined,
     thresholds: row.thresholds && row.thresholds.length > 0 ? row.thresholds : undefined,
     central_conflicts: row.central_conflicts && row.central_conflicts.length > 0 ? row.central_conflicts : undefined,
-    core_mode: row.core_mode && row.core_mode.trim() ? row.core_mode : undefined,
+    core_mode: isCoreMode(row.core_mode) ? row.core_mode : undefined,
     amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
     symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
+    display_distillation: row.display_distillation ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -126,6 +132,7 @@ function mapInterpretationToRow(
     core_mode: interpretation.core_mode ?? null,
     amplifications: interpretation.amplifications,
     symbol_stances: interpretation.symbol_stances,
+    display_distillation: interpretation.display_distillation,
     summary: null,
     messages: interpretation.messages as any[],
   };

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Image, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { backgrounds, brandIcon, typography, text } from '../../theme';
+import { colors, typography } from '../../theme';
 import { DesignExportForeground } from './DesignExportForeground';
 
 interface LoadingScreenProps {
@@ -11,7 +11,8 @@ interface LoadingScreenProps {
 
 const BRUSH_WIDTH = 100;
 const BRUSH_DURATION_MS = 1500;
-const IMAGE_SCALE = 0.58; // Keep the mark prominent without crowding the title
+const MAX_EMBLEM_SIZE = 330;
+const IMAGE_SCALE = 100; // Fuller in-app brand moment after the native splash.
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
@@ -20,8 +21,8 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const contentH = screenH - insets.top - insets.bottom;
-  const imgW = Math.round(screenW * IMAGE_SCALE);
-  const imgH = Math.round(contentH * IMAGE_SCALE);
+  const imgSize = Math.min(MAX_EMBLEM_SIZE, Math.round(screenW * IMAGE_SCALE));
+  const portalOffset = -Math.round(contentH * 0.04);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -52,7 +53,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 
   const brushTranslateX = brushAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-BRUSH_WIDTH, imgW + BRUSH_WIDTH],
+    outputRange: [-BRUSH_WIDTH, imgSize + BRUSH_WIDTH],
   });
 
   return (
@@ -66,17 +67,11 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         },
       ]}
     >
-      <LinearGradient
-        colors={[backgrounds.splash, backgrounds.secondary, backgrounds.primary]}
-        start={{ x: 0.1, y: 0 }}
-        end={{ x: 0.9, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-      <DesignExportForeground style={styles.centerBox}>
-        <View style={[styles.imageWrap, { width: imgW, height: imgH }]}>
+      <DesignExportForeground style={[styles.centerBox, { transform: [{ translateY: portalOffset }] }]}>
+        <View style={[styles.imageWrap, { width: imgSize, height: imgSize }]}>
           <Image
             source={require('../../../assets/branding/splash-logo.png')}
-            style={{ width: imgW, height: imgH }}
+            style={{ width: imgSize, height: imgSize }}
             resizeMode="contain"
           />
           <Animated.View
@@ -84,14 +79,14 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
               styles.brush,
               {
                 width: BRUSH_WIDTH,
-                height: imgH,
+                height: imgSize,
                 transform: [{ translateX: brushTranslateX }],
               },
             ]}
             pointerEvents="none"
           >
             <LinearGradient
-              colors={['transparent', 'rgba(255, 255, 255, 0.55)', 'transparent']}
+              colors={['transparent', 'rgba(248, 243, 234, 0.34)', 'transparent']}
               start={{ x: 0, y: 0.5 }}
               end={{ x: 1, y: 0.5 }}
               style={StyleSheet.absoluteFill}
@@ -100,7 +95,6 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         </View>
         <View style={styles.titleWrap}>
           <Text style={styles.titleMain}>Oneiros</Text>
-          <Text style={styles.titleSub}>Dream Journal</Text>
         </View>
       </DesignExportForeground>
     </Animated.View>
@@ -110,7 +104,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: backgrounds.splash,
+    backgroundColor: colors.buttonPrimary,
   },
   centerBox: {
     flex: 1,
@@ -122,21 +116,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   titleWrap: {
-    marginTop: 12,
+    marginTop: 18,
     alignItems: 'center',
   },
   titleMain: {
     fontFamily: typography.display,
-    fontSize: 34,
-    color: brandIcon.plum,
-    letterSpacing: 0.8,
-  },
-  titleSub: {
-    fontFamily: typography.regular,
-    fontSize: 18,
-    color: text.secondary,
-    letterSpacing: 0.4,
-    marginTop: 0,
+    fontSize: 42,
+    color: '#F8F3EA',
+    letterSpacing: 1.8,
+    opacity: 0.88,
   },
   brush: {
     position: 'absolute',

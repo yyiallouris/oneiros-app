@@ -220,6 +220,7 @@ export class SyncService {
             central_conflicts: (remoteI.central_conflicts && remoteI.central_conflicts.length > 0) ? remoteI.central_conflicts : localI?.central_conflicts,
             core_mode: remoteI.core_mode && remoteI.core_mode.trim() ? remoteI.core_mode : localI?.core_mode,
             amplifications: (remoteI.amplifications && remoteI.amplifications.length > 0) ? remoteI.amplifications : localI?.amplifications,
+            display_distillation: remoteI.display_distillation ?? localI?.display_distillation,
           };
           mergedById.set(remoteI.id, merged);
         });

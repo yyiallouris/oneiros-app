@@ -72,9 +72,11 @@ const styles = StyleSheet.create({
     paddingRight: spacing.xs,
   },
   chipsTitle: {
-    fontSize: typography.sizes.md,
-    fontFamily: typography.bold,
-    color: colors.textTitle,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.medium,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   archetypeTitle: {
     fontSize: typography.sizes.xs,

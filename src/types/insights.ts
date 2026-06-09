@@ -55,6 +55,48 @@ export interface CentralConflictCount {
   count: number;
 }
 
+export interface AffectCount {
+  name: string;
+  normalizedKey: string;
+  count: number;
+}
+
+export type InsightPatternKind =
+  | 'image'
+  | 'motif'
+  | 'threshold'
+  | 'tension'
+  | 'place'
+  | 'archetypal_echo'
+  | 'affect';
+
+export type InsightPatternFilter =
+  | { type: 'symbol'; value: string }
+  | { type: 'motif'; value: string }
+  | { type: 'landscape'; value: string };
+
+export type CrossCategoryPatternItem = {
+  label: string;
+  kind: InsightPatternKind;
+  count: number;
+  sectionId: InsightsSectionId;
+  filter?: InsightPatternFilter;
+};
+
+export type InsightsOverviewModel = {
+  dreamsLoggedCount: number;
+  interpretedDreamsCount: number;
+  topImages: CrossCategoryPatternItem[];
+  topMotifs: CrossCategoryPatternItem[];
+  topThresholds: CrossCategoryPatternItem[];
+  topTensions: CrossCategoryPatternItem[];
+  topPlaces: CrossCategoryPatternItem[];
+  topArchetypalEchoes: CrossCategoryPatternItem[];
+  topAffects: CrossCategoryPatternItem[];
+  strongestPatterns: CrossCategoryPatternItem[];
+  fieldSummary: string;
+};
+
 /** Monthly symbolic overview – short reflective text (no advice) */
 export interface MonthlyOverview {
   month: string;
@@ -67,6 +109,53 @@ export interface PatternReportEntry {
   monthKey: string;
   generatedAt: string;
   text: string;
+}
+
+export type PatternReflectionScopeType = 'calendar_period' | 'recent_sequence' | 'custom_range';
+
+export type PatternReflectionScope =
+  | {
+      type: 'calendar_period';
+      period: 'month' | 'quarter';
+      startDate: string;
+      endDate: string;
+      key: string;
+    }
+  | {
+      type: 'recent_sequence';
+      dreamIds: string[];
+      count: number;
+      key: string;
+    }
+  | {
+      type: 'custom_range';
+      startDate: string;
+      endDate: string;
+      key: string;
+    };
+
+export interface PatternReflectionReport {
+  id: string;
+  scope_type: PatternReflectionScopeType;
+  scope_key: string;
+  start_date?: string;
+  end_date?: string;
+  dream_ids?: string[];
+  dream_count: number;
+  language: string;
+  content: string;
+  generated_at: string;
+}
+
+export interface RecentSequenceReflection {
+  id: string;
+  scope_type: 'recent_sequence';
+  scope_key: string;
+  dream_ids: string[];
+  dream_count: number;
+  language: string;
+  content: string;
+  generated_at: string;
 }
 
 /** Date range for insights filtering (YYYY-MM-DD) */

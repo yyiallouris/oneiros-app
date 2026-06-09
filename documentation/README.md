@@ -14,7 +14,7 @@ This folder catalogs **user journeys and technical flow paths** found in the cod
 | [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md) | Write, drafts, voice transcription, save, Journal, Dream detail/editor, Calendar |
 | [flows-05-sync-offline.md](./flows-05-sync-offline.md) | Offline-first saves, reconnect sync, logout cleanup, dev offline toggle |
 | [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md) | Initial reflection, follow-up chat, limits, `InterpretationChat` route |
-| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Insights journey vs sections, pattern reports, filters → journal |
+| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, dream-field overview, Recent Dream Field, Pattern Explorer, pattern reports, filters → journal |
 | [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md) | Contact, Privacy, support while locked out |
 | [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) | Error paths, empty states, ordering notes for test suites |
 
@@ -26,7 +26,7 @@ This folder catalogs **user journeys and technical flow paths** found in the cod
 - **Session + onboarding incomplete:** `Onboarding` (name → depth → secure).
 - **Otherwise:** `MainTabs` (Write | Journal | Insights).
 
-**Stack screens** (reachable when authenticated, in addition to the above): `DreamEditor`, `InterpretationChat`, `DreamDetail`, `Account`, `Contact`, `Privacy`, `Calendar`, `InsightsSection`, `InsightsJourney`, `JournalFilter`.
+**Stack screens** (reachable when authenticated, in addition to the above): `DreamEditor`, `InterpretationChat`, `DreamDetail`, `Account`, `Contact`, `Privacy`, `Calendar`, `InsightsSection`, `PatternExplorer`, `InsightsJourney`, `JournalFilter`.
 
 ## Automated tests
 

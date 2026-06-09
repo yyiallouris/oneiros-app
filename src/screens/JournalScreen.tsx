@@ -11,8 +11,8 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
-import { Dream } from '../types/dream';
+import { PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
 import { normalizeSymbolKey } from '../services/insightsService';
@@ -44,34 +44,54 @@ const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
 
 interface DreamCardProps {
   dream: Dream;
+  interpretation?: Interpretation;
   onPress: () => void;
 }
 
-const DreamCard = React.memo<DreamCardProps>(({ dream, onPress }) => {
-  const preview = dream.content.length > 120
-    ? dream.content.slice(0, 120) + '...'
-    : dream.content;
+const compactList = (items?: string[], count = 1): string[] =>
+  (items ?? []).map((item) => item.trim()).filter(Boolean).slice(0, count);
+
+const DreamCard = React.memo<DreamCardProps>(({ dream, interpretation, onPress }) => {
+  const preview = dream.content.replace(/\s+/g, ' ').trim();
 
   const displayTitle = dream.title || preview.split('\n')[0].slice(0, 50) + (preview.length > 50 ? '...' : '');
+  const excerpt = dream.title
+    ? preview
+    : preview.length > displayTitle.length
+      ? preview.slice(displayTitle.length).trim()
+      : preview;
+  const symbolMarker = compactList(interpretation?.symbols ?? dream.symbols, 1)[0] ?? dream.symbol;
+  const placeMarker = compactList(interpretation?.landscapes ?? dream.landscapes, 1)[0];
+  const atmosphereMarker = compactList(interpretation?.affects, 1)[0];
+  const reflected = Boolean(interpretation);
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <Card transparent style={styles.dreamCard}>
-        <View style={styles.dreamCardContent}>
-          {/* Dream Content */}
-          <View style={styles.dreamText}>
-            <View style={styles.dreamDateSeal}>
-              <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
-            </View>
-            <Text style={styles.dreamTitle} numberOfLines={1}>
-              {displayTitle}
-            </Text>
-            <Text style={styles.dreamPreview} numberOfLines={2}>
-              {dream.title ? preview : dream.content.slice(displayTitle.length)}
-            </Text>
-          </View>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.68} style={styles.dreamSlip}>
+      <View pointerEvents="none" style={styles.archiveThread} />
+      <View style={styles.dreamSlipHeader}>
+        <View style={styles.dreamDateSeal}>
+          <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
         </View>
-      </Card>
+        <Text style={[styles.reflectionState, reflected && styles.reflectionStateDone]}>
+          {reflected ? 'reflected' : 'not reflected'}
+        </Text>
+      </View>
+      <Text style={styles.dreamTitle} numberOfLines={1}>
+        {displayTitle}
+      </Text>
+      <Text style={styles.dreamPreview} numberOfLines={2}>
+        {excerpt}
+      </Text>
+      <View style={styles.markerRow}>
+        {symbolMarker ? <Text style={styles.markerText} numberOfLines={1}>image / {symbolMarker}</Text> : null}
+        {placeMarker ? <Text style={styles.markerText} numberOfLines={1}>place / {placeMarker}</Text> : null}
+        {atmosphereMarker ? (
+          <Text style={styles.markerText} numberOfLines={1}>atmosphere / {atmosphereMarker}</Text>
+        ) : null}
+        {!symbolMarker && !placeMarker && !atmosphereMarker ? (
+          <Text style={styles.markerTextMuted}>awaiting symbols</Text>
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
 });
@@ -101,6 +121,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   const [dreams, setDreams] = useState<Dream[]>([]);
   const [baseDreams, setBaseDreams] = useState<Dream[]>([]); // all dreams or filtered by symbol/landscape from Insights
   const [filteredDreams, setFilteredDreams] = useState<Dream[]>([]);
+  const [interpretationsByDreamId, setInterpretationsByDreamId] = useState<Map<string, Interpretation>>(new Map());
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,11 +139,11 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
     setIsLoading(true);
     try {
       const allDreams = await getDreams();
+      const interpretations = await getInterpretations();
+      const byDreamId = new Map(interpretations.map((i) => [i.dreamId, i]));
       let toShow = sortDreams(allDreams);
 
       if (filterSymbol || filterLandscape) {
-        const interpretations = await getInterpretations();
-        const byDreamId = new Map(interpretations.map((i) => [i.dreamId, i]));
         const filterKeySymbol = filterSymbol ? normalizeSymbolKey(filterSymbol) : '';
         const filterKeyLandscape = filterLandscape ? filterLandscape.trim().toLowerCase().replace(/\s+/g, ' ') : '';
 
@@ -148,11 +169,13 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
       setDreams(sortedAll);
       setBaseDreams(toShow);
       setFilteredDreams(toShow);
+      setInterpretationsByDreamId(byDreamId);
     } catch (error) {
       console.error('[Journal] Failed to load dreams:', error);
       setDreams([]);
       setBaseDreams([]);
       setFilteredDreams([]);
+      setInterpretationsByDreamId(new Map());
     } finally {
       setIsLoading(false);
     }
@@ -209,8 +232,12 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   }, [navigation]);
 
   const renderItem = useCallback(({ item }: { item: Dream }) => (
-    <DreamCard dream={item} onPress={() => handleDreamPress(item.id)} />
-  ), [handleDreamPress]);
+    <DreamCard
+      dream={item}
+      interpretation={interpretationsByDreamId.get(item.id)}
+      onPress={() => handleDreamPress(item.id)}
+    />
+  ), [handleDreamPress, interpretationsByDreamId]);
 
   const keyExtractor = useCallback((item: Dream) => item.id, []);
 
@@ -376,41 +403,78 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingTop: spacing.sm,
   },
-  dreamCard: {
+  dreamSlip: {
     marginBottom: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 253, 249, 0.58)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    overflow: 'hidden',
   },
-  dreamCardContent: {
+  archiveThread: {
+    position: 'absolute',
+    top: spacing.md,
+    bottom: spacing.md,
+    left: 0,
+    width: 2,
+    backgroundColor: colors.accentClayBrown,
+    opacity: 0.28,
+  },
+  dreamSlipHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  dreamText: {
-    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
   dreamDateSeal: {
     alignSelf: 'flex-start',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 3,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.fieldSurface,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    backgroundColor: colors.buttonPrimaryLight12,
   },
   dreamDate: {
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
     fontWeight: typography.weights.medium,
   },
+  reflectionState: {
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  reflectionStateDone: {
+    color: colors.accentOxidizedGreen,
+  },
   dreamTitle: {
-    fontSize: typography.sizes.xl,
-    fontFamily: typography.bold,
-    color: colors.textAccent,
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.medium,
+    color: colors.textTitle,
     marginBottom: spacing.xs,
   },
   dreamPreview: {
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
     lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+  },
+  markerRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  markerText: {
+    maxWidth: '48%',
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+  },
+  markerTextMuted: {
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    fontStyle: 'italic',
   },
   emptyStateContainer: {
     minHeight: 300,

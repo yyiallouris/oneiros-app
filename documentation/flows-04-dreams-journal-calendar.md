@@ -9,6 +9,7 @@
    - Builds or updates `Dream` with `archived: true` (so it leaves the “today’s active” slot on Write).
    - `saveDream` via `StorageService` (local + sync queue).
    - Clears draft and navigates to **`DreamDetail`** with `dreamId`.
+5. Visual treatment: the writing surface is a single notebook-like page with soft paper tint and hairline edges; nested dashboard cards are intentionally avoided on this screen.
 
 ## Regression — Write
 
@@ -22,12 +23,13 @@
 - Loads all dreams from storage; sort by date then created/updated.
 - **Search** debounced over title + content.
 - **Filter params** from route: `filterSymbol`, `filterLandscape`, `filterMotif` (from Insights — see [flows-07-insights-reports.md](./flows-07-insights-reports.md)).
+- Dream entries render as lightweight archive slips, not heavy cards. Each slip shows a small date seal, strong title, two-line excerpt, tiny symbolic markers (image/place/atmosphere when available), and reflected/not-reflected state from stored interpretations.
 - Tap dream → **`DreamDetail`**.
 - Header calendar icon → **`Calendar`**.
 
 ## Dream detail (`DreamDetailScreen`)
 
-- Shows dream card; **Jungian reflection** section (interpretation) — see [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md).
+- Shows the dream as an open page section with hairline edges rather than a heavy card; **Dream essence**, anchors, movement, and symbolic layers are presented as unboxed ritual text blocks/rows; **Jungian reflection** section (interpretation) — see [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md).
 - Header **Edit** → **`DreamEditor`** with `dreamId`.
 
 ## Dream editor (`DreamEditorScreen`)
@@ -48,4 +50,4 @@
 
 ## Symbols and archetypes on Dream detail
 
-- Tapping chips opens **info modals** (`SymbolInfoModal` / archetype info keys), not the Journal stack. Landscapes are emphasized in the Insights tab rather than this card.
+- Tapping chips opens **info modals** (`SymbolInfoModal` / archetype info keys), not the Journal stack. Landscapes are emphasized in the Insights tab rather than this Dream detail summary area.

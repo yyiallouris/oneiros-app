@@ -1,24 +1,24 @@
 import type { InsightsSectionId } from '../types/insights';
 
 export const INSIGHTS_SECTION_TITLES: Record<InsightsSectionId, string> = {
-  'recurring-symbols': 'Recurring symbols',
+  'recurring-symbols': 'Returning Images',
   'symbol-details': 'Explore symbol data',
-  'recurring-archetypes': 'Archetype trends',
-  'symbolic-motifs': 'Symbolic motifs',
+  'recurring-archetypes': 'Archetypal Echoes',
+  'symbolic-motifs': 'Repeating Patterns',
   thresholds: 'Thresholds',
-  'core-conflicts': 'Core conflicts',
-  'space-landscapes': 'Space landscapes',
-  'pattern-recognition': 'Pattern recognition',
+  'core-conflicts': 'Inner Tensions',
+  'space-landscapes': 'Dream Places',
+  'pattern-recognition': 'Period Reflection',
   collective: 'Collective dreaming',
 };
 
 export const INSIGHTS_SECTIONS: { id: InsightsSectionId; subtitle: string }[] = [
-  { id: 'recurring-symbols', subtitle: 'Your symbols · frequency (no meaning synthesis)' },
-  { id: 'recurring-archetypes', subtitle: 'Fixed list, counts only' },
-  { id: 'symbolic-motifs', subtitle: 'Imaginal shapes and recurring dream situations' },
-  { id: 'thresholds', subtitle: 'Transition points: work, travel, sleep, shelter' },
-  { id: 'core-conflicts', subtitle: 'Dynamic tensions staged as X vs Y' },
-  { id: 'space-landscapes', subtitle: 'Recurring settings and places' },
-  { id: 'pattern-recognition', subtitle: 'AI reflection on emerging patterns' },
+  { id: 'recurring-symbols', subtitle: 'Images that keep returning' },
+  { id: 'recurring-archetypes', subtitle: 'Deep structures that echo across dreams' },
+  { id: 'symbolic-motifs', subtitle: 'Recurring dream situations and shapes' },
+  { id: 'thresholds', subtitle: 'Places where the dream changes ground' },
+  { id: 'core-conflicts', subtitle: 'Tensions that keep returning' },
+  { id: 'space-landscapes', subtitle: 'Settings and places you return to' },
+  { id: 'pattern-recognition', subtitle: 'Reflection on the dream field' },
   { id: 'collective', subtitle: 'Anonymized global counts & trends only' },
 ];

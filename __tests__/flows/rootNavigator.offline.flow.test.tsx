@@ -64,6 +64,7 @@ jest.mock('../../src/screens/ContactScreen', () => () => null);
 jest.mock('../../src/screens/PrivacyScreen', () => () => null);
 jest.mock('../../src/screens/CalendarScreen', () => () => null);
 jest.mock('../../src/screens/InsightsSectionScreen', () => () => null);
+jest.mock('../../src/screens/PatternExplorerScreen', () => () => null);
 jest.mock('../../src/screens/InsightsJourneyScreen', () => () => null);
 jest.mock('../../src/screens/JournalFilterScreen', () => () => null);
 jest.mock('../../src/components/DevOfflineToggle', () => ({

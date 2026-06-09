@@ -18,107 +18,31 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Card, Button, Chip, PsycheScreenBackground, BreathingLine, PrintPatchLoader, LinoSkeletonCard, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
-  import { Animated, Dimensions } from 'react-native';
+  import { Button, PsycheScreenBackground, PrintPatchLoader, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
   import { Dream, Interpretation, ChatMessage } from '../types/dream';
   import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
   import { formatDateShort, generateId } from '../utils/date';
   import {
-    buildDreamDisplayMap,
     generateInitialInterpretation,
     sendChatMessage,
     filterArchetypesForDisplay,
     updateInterpretationElementsFromConversation,
   } from '../services/ai';
+  import { buildDreamDetailDisplayModel, type DreamDetailDisplayModel, type VisibleDreamAnchor } from '../services/dreamDetailDisplay';
   import { getDreamMetadataForReflection } from '../services/dreamMetadataPrefetchService';
-  import { getInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
+  import { getInterpretationDepth } from '../services/userSettingsService';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
-  import { isInnerStructureArchetype } from '../constants/archetypes';
-  import {
-    ARCHETYPE_SECTION_TITLES,
-    getArchetypeInfoKey,
-    type InfoModalKey,
-  } from '../constants/symbolArchetypeInfo';
   import { isOnline } from '../utils/network';
   import { OfflineMessage } from '../components/OfflineMessage';
-  import Svg, { Path, Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+  import Svg, { Path } from 'react-native-svg';
 
   type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
   type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
   type IconProps = {
     size?: number;
     color?: string;
-  };
-
-// Post-Jungian split: inner structures vs archetypal energies (same as Insights)
-  function splitArchetypes(archetypes: string[]) {
-    const core = archetypes.filter((a) => isInnerStructureArchetype(a));
-    const dynamic = archetypes.filter((a) => !isInnerStructureArchetype(a));
-    return { core, dynamic };
-  }
-
-  const CHIPS_INITIAL_COUNT = 2;
-
-  const compactUnique = (items: Array<string | undefined>, max: number): string[] => {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const item of items) {
-      const value = item?.trim();
-      if (!value) continue;
-      const key = value.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      result.push(value);
-      if (result.length >= max) break;
-    }
-    return result;
-  };
-
-  /** Chip section that collapses when there are more than CHIPS_INITIAL_COUNT items. */
-  const CollapsibleChipsSection = ({
-    title,
-    infoKey,
-    items,
-    onPressItem,
-  }: {
-    title: string;
-    infoKey: string;
-    items: string[];
-    onPressItem?: (item: string) => void;
-  }) => {
-    const [expanded, setExpanded] = useState(false);
-    if (items.length === 0) return null;
-    const hasMore = items.length > CHIPS_INITIAL_COUNT;
-    const visible = expanded || !hasMore ? items : items.slice(0, CHIPS_INITIAL_COUNT);
-    const hiddenCount = items.length - CHIPS_INITIAL_COUNT;
-    return (
-      <View style={styles.chipsSection}>
-        <SectionTitleWithInfo title={title} infoKey={infoKey as any} variant="chips" showInfo />
-        <View style={styles.chipsContainer}>
-          {visible.map((item, index) => (
-            <Chip
-              key={index}
-              label={item}
-              variant="default"
-              onPress={onPressItem ? () => onPressItem(item) : undefined}
-            />
-          ))}
-        </View>
-        {hasMore && (
-          <TouchableOpacity
-            onPress={() => setExpanded((v) => !v)}
-            style={styles.expandChipsButton}
-            activeOpacity={0.6}
-          >
-            <Text style={styles.expandChipsText}>
-              {expanded ? 'show less' : `+ ${hiddenCount} more`}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
   };
 
   // Edit icon
@@ -419,6 +343,99 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
   ChatBubble.displayName = 'ChatBubble';
 
+  const AnchorCard = React.memo<{ anchor: VisibleDreamAnchor }>(({ anchor }) => (
+    <View style={styles.anchorCard}>
+      <Text style={styles.anchorLabel}>{anchor.label}</Text>
+      {anchor.uiMeaning ? (
+        <Text style={styles.anchorMeaning} numberOfLines={2}>
+          {anchor.uiMeaning}
+        </Text>
+      ) : null}
+    </View>
+  ));
+
+  AnchorCard.displayName = 'AnchorCard';
+
+  const DreamFieldSummary = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
+    const hasEssence = Boolean(model.essenceTitle || model.essenceLine);
+    const hasMovement = Boolean(model.mainTension || model.movementLine);
+    if (!hasEssence && model.anchors.length === 0 && !hasMovement) return null;
+
+    return (
+      <View style={styles.fieldSummary}>
+        {hasEssence && (
+          <View style={styles.essenceBlock}>
+            <Text style={styles.summarySectionTitle}>Dream essence</Text>
+            {model.essenceTitle ? <Text style={styles.essenceTitle}>{model.essenceTitle}</Text> : null}
+            {model.essenceLine ? <Text style={styles.essenceLine}>{model.essenceLine}</Text> : null}
+          </View>
+        )}
+
+        {model.anchors.length > 0 && (
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summarySectionTitle}>Key anchors</Text>
+            <View style={styles.anchorGrid}>
+              {model.anchors.map((anchor, index) => (
+                <AnchorCard key={`${anchor.label}-${index}`} anchor={anchor} />
+              ))}
+            </View>
+          </View>
+        )}
+
+        {hasMovement && (
+          <View style={styles.movementBlock}>
+            <Text style={styles.summarySectionTitle}>Inner movement</Text>
+            {model.mainTension ? <Text style={styles.movementTitle}>{model.mainTension}</Text> : null}
+            {model.movementLine ? <Text style={styles.movementLine}>{model.movementLine}</Text> : null}
+          </View>
+        )}
+      </View>
+    );
+  });
+
+  DreamFieldSummary.displayName = 'DreamFieldSummary';
+
+  const SymbolicLayersAccordion = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
+    const [expanded, setExpanded] = useState(false);
+    const rows = [
+      ['Emotional weather', model.symbolicLayers.emotionalWeather],
+      ['Dream setting', model.symbolicLayers.dreamSetting],
+      ['Thresholds', model.symbolicLayers.thresholds],
+      ['Relationship field', model.symbolicLayers.relationshipField],
+      ['Repeating patterns', model.symbolicLayers.repeatingPatterns],
+      ['Inner tensions', model.symbolicLayers.innerTensions],
+      ['Archetypal echoes', model.symbolicLayers.archetypalEchoes],
+      ['Mythic parallels', model.symbolicLayers.mythicParallels],
+    ].filter(([, items]) => Array.isArray(items) && items.length > 0) as Array<[string, string[]]>;
+
+    if (rows.length === 0) return null;
+
+    return (
+      <View style={styles.symbolicLayersPanel}>
+        <TouchableOpacity
+          style={styles.symbolicLayersHeader}
+          onPress={() => setExpanded((value) => !value)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.symbolicLayersTitle}>Explore symbolic layers</Text>
+          <Text style={styles.symbolicLayersCaret}>{expanded ? '^' : 'v'}</Text>
+        </TouchableOpacity>
+        {expanded && (
+          <View style={styles.symbolicLayersBody}>
+            {rows.map(([title, items]) => (
+              <View key={title} style={styles.layerRow}>
+                <Text style={styles.layerTitle}>{title}</Text>
+                <Text style={styles.layerText}>{items.join(', ')}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  });
+
+  SymbolicLayersAccordion.displayName = 'SymbolicLayersAccordion';
+
   const DreamDetailScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<DetailRouteProp>();
@@ -434,24 +451,17 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
     const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
     const [showChat, setShowChat] = useState(false);
-    const [isInterpretationExpanded, setIsInterpretationExpanded] = useState(false);
     const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
     const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
     const [chatScrollHeight, setChatScrollHeight] = useState(0);
     const [chatScrollOffset, setChatScrollOffset] = useState(0);
     const [showOfflineMessage, setShowOfflineMessage] = useState(false);
-    const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
-    const [reflectTrigger, setReflectTrigger] = useState(0);
-    const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
 
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
 
-    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-
     useFocusEffect(
       useCallback(() => {
-        getInterpretationDepth().then(setInterpretationDepth);
         loadDreamData();
         // Clear typing state when screen gains focus
         return () => {
@@ -542,9 +552,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         const relational_dynamics = structured.relational_dynamics ?? [];
         const thresholds = structured.thresholds ?? [];
         const central_conflicts = structured.central_conflicts ?? [];
-        const core_mode = structured.core_mode?.trim() || undefined;
+        const core_mode = structured.core_mode ?? undefined;
         const amplifications = structured.amplifications ?? [];
         const symbol_stances = structured.symbol_stances ?? [];
+        const display_distillation = structured.display_distillation;
 
         if (__DEV__) {
           console.log('[DreamInterpretation] Extracted (new):', {
@@ -572,6 +583,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           core_mode,
           amplifications: amplifications.length > 0 ? amplifications : undefined,
           symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
+          display_distillation,
           dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -657,9 +669,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         const relational_dynamics = structured.relational_dynamics ?? [];
         const thresholds = structured.thresholds ?? [];
         const central_conflicts = structured.central_conflicts ?? [];
-        const core_mode = structured.core_mode?.trim() || undefined;
+        const core_mode = structured.core_mode ?? undefined;
         const amplifications = structured.amplifications ?? [];
         const symbol_stances = structured.symbol_stances ?? [];
+        const display_distillation = structured.display_distillation;
 
         if (__DEV__) {
           console.log('[DreamInterpretation] Extracted (update):', {
@@ -686,6 +699,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           core_mode,
           amplifications: amplifications.length > 0 ? amplifications : undefined,
           symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
+          display_distillation,
           dreamContentAtCreation: dream.content, // Update stored content
           updatedAt: new Date().toISOString(),
         };
@@ -877,6 +891,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
 
     const showInterpretationPreview =
       Boolean(interpretationCollapsedPreview) || Boolean(firstAssistantInterpretationText);
+    const displayModel = buildDreamDetailDisplayModel(dream, interpretation);
 
     return (
       <View style={styles.root}>
@@ -899,8 +914,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                 // This is used to prevent auto-scroll during typing in reflection section
               }}
             >
-          {/* Dream Content Card */}
-          <Card style={styles.dreamCard}>
+          {/* Dream Content */}
+          <View style={styles.dreamPage}>
             <View style={styles.dreamHeader}>
               <Text style={styles.date}>{formatDateShort(dream.date)}</Text>
             </View>
@@ -910,44 +925,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             )}
 
             <Text style={styles.content}>{dream.content}</Text>
-          </Card>
-
-          {/* Dream Symbols and Archetypes */}
-          {((dream.symbols?.length ?? 0) > 0 || (dream.archetypes?.length ?? 0) > 0) && (
-            <Card transparent style={styles.symbolsCard}>
-              {dream.symbols && dream.symbols.length > 0 && (
-                <CollapsibleChipsSection
-                  title="Symbols"
-                  infoKey="main-symbols"
-                  items={dream.symbols}
-                />
-              )}
-
-              {dream.archetypes && dream.archetypes.length > 0 && (() => {
-                const { core: dreamCore, dynamic: dreamDynamic } = splitArchetypes(dream.archetypes);
-                return (
-                  <>
-                    {dreamCore.length > 0 && (
-                      <CollapsibleChipsSection
-                        title={ARCHETYPE_SECTION_TITLES.core}
-                        infoKey="core-architecture"
-                        items={dreamCore}
-                        onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
-                      />
-                    )}
-                    {dreamDynamic.length > 0 && (
-                      <CollapsibleChipsSection
-                        title={ARCHETYPE_SECTION_TITLES.dynamic}
-                        infoKey="archetypal-states"
-                        items={dreamDynamic}
-                        onPressItem={(item) => setArchetypeModalKey(getArchetypeInfoKey(item))}
-                      />
-                    )}
-                  </>
-                );
-              })()}
-            </Card>
-          )}
+          </View>
 
           <WaveDivider />
 
@@ -957,62 +935,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               <Text style={styles.reflectionTitle}>Symbolic reflection</Text>
 
               {interpretation ? (
-                <Card transparent style={styles.interpretationCard}>
-                  {showInterpretationPreview && (
-                    <Text 
-                      style={styles.interpretationPreview}
-                      textBreakStrategy="highQuality"
-                      selectable={true}
-                      numberOfLines={isInterpretationExpanded ? undefined : 6}
-                      ellipsizeMode="tail"
-                    >
-                      {isInterpretationExpanded 
-                        ? formatMarkdownText(firstAssistantInterpretationText)
-                        : formatMarkdownText(interpretationCollapsedPreview)
-                      }
-                    </Text>
-                  )}
-
-                  {(() => {
-                    const displayMap = buildDreamDisplayMap({
-                      symbols: interpretation.symbols ?? [],
-                      archetypes: interpretation.archetypes ?? [],
-                      landscapes: interpretation.landscapes ?? [],
-                      affects: interpretation.affects ?? [],
-                      motifs: interpretation.motifs ?? [],
-                      relational_dynamics: interpretation.relational_dynamics ?? [],
-                      thresholds: interpretation.thresholds ?? [],
-                      central_conflicts: interpretation.central_conflicts ?? [],
-                      core_mode: interpretation.core_mode ?? '',
-                      amplifications: interpretation.amplifications ?? [],
-                      symbol_stances: interpretation.symbol_stances ?? [],
-                    });
-                    const chargedImageItems = compactUnique(displayMap.chargedImages.map((image) => image.label), 4);
-                    const movementItems = compactUnique(
-                      [displayMap.movement, displayMap.unresolvedPressure, displayMap.resonance],
-                      3
-                    );
-
-                    return (
-                      <>
-                        {chargedImageItems.length > 0 && (
-                          <CollapsibleChipsSection
-                            title="Charged Images"
-                            infoKey="main-symbols"
-                            items={chargedImageItems}
-                          />
-                        )}
-
-                        {movementItems.length > 0 && (
-                          <CollapsibleChipsSection
-                            title="Dream Movement"
-                            infoKey="symbolic-motifs"
-                            items={movementItems}
-                          />
-                        )}
-                      </>
-                    );
-                  })()}
+                <View style={styles.reflectionBody}>
+                  <DreamFieldSummary model={displayModel} />
 
                   {/* Action buttons */}
                   <View style={styles.actionButtonsContainer}>
@@ -1020,6 +944,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     {dream.updatedAt > interpretation.updatedAt && 
                     dream.content !== interpretation.dreamContentAtCreation && (
                       <>
+                        <Text style={styles.updateNoticeText}>
+                          The dream has changed since this reflection was written.
+                        </Text>
                         {showOfflineMessage && (
                           <OfflineMessage
                             featureName="Jungian AI interpretation"
@@ -1027,7 +954,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                           />
                         )}
                         <Button
-                          title="Update interpretation"
+                          title="Update reflection"
                           onPress={handleUpdateInterpretation}
                           variant="secondary"
                           style={[styles.conversationButton, styles.updateButton]}
@@ -1035,36 +962,38 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                       </>
                     )}
                     
-                    {/* Expand/Continue conversation button */}
-                    {!isInterpretationExpanded ? (
-                      <Button
-                        title="Expand conversation"
-                        onPress={() => {
-                          setIsInterpretationExpanded(true);
-                          // No auto-scroll - user can scroll manually if needed
-                        }}
-                        variant="secondary"
-                        style={styles.conversationButton}
-                      />
-                    ) : (
-                      <Button
-                        title="Continue exploring"
-                        onPress={() => {
-                          setShowChat(true);
-                          setIsInterpretationExpanded(false); // Reset when opening chat
-                          animateChatOpen();
-                          // No auto-scroll - ChatGPT experience
-                        }}
-                        variant="secondary"
-                        style={styles.conversationButton}
-                      />
+                    {showInterpretationPreview && (
+                      <View style={styles.reflectionPreviewSection}>
+                        <Text style={styles.summarySectionTitle}>Symbolic reflection</Text>
+                        <Text
+                          style={styles.interpretationPreview}
+                          textBreakStrategy="highQuality"
+                          selectable={true}
+                          numberOfLines={6}
+                          ellipsizeMode="tail"
+                        >
+                          {formatMarkdownText(interpretationCollapsedPreview)}
+                        </Text>
+                      </View>
                     )}
+
+                    <Button
+                      title="Continue exploring"
+                      onPress={() => {
+                        setShowChat(true);
+                        animateChatOpen();
+                      }}
+                      variant="secondary"
+                      style={styles.conversationButton}
+                    />
                   </View>
-                </Card>
+
+                  <SymbolicLayersAccordion model={displayModel} />
+                </View>
               ) : (
-                <Card transparent style={styles.noInterpretationCard}>
+                <View style={styles.noInterpretationPanel}>
                   <Text style={styles.noInterpretationText}>
-                    Ask the AI to reflect on symbols, archetypes and shadow dynamics.
+                    Let the dream be mirrored through its images, feelings, and inner movement.
                   </Text>
                   {showOfflineMessage && (
                     <OfflineMessage
@@ -1073,14 +1002,13 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     />
                   )}
                   <Button
-                    title="Reflect"
+                    title="Reflect on this dream"
                     onPress={() => {
-                      setReflectTrigger(Date.now());
                       setTimeout(() => handleAskAI(), 850);
                     }}
                     style={styles.askButton}
                   />
-                </Card>
+                </View>
               )}
             </View>
           )}
@@ -1088,10 +1016,11 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {/* Loading state */}
           {isGeneratingInitial && (
             <View style={styles.reflectionSection}>
-              <Card transparent style={styles.loadingCard}>
+              <View style={styles.loadingPanel}>
                 <PrintPatchLoader size={72} color={colors.buttonPrimary} />
-                <Text style={styles.loadingText}>Analyzing your dream...</Text>
-              </Card>
+                <Text style={styles.loadingText}>Reflecting on your dream...</Text>
+                <Text style={styles.loadingSubtext}>Tracing its images, feelings, and inner movement.</Text>
+              </View>
             </View>
           )}
 
@@ -1100,7 +1029,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             <View style={styles.chatSection}>
               <View style={styles.chatHeader}>
                 <View style={styles.chatTitleWrap}>
-                  <Text style={styles.chatTitle}>Symbolic reflection</Text>
+                  <Text style={styles.chatTitle}>Exploring the dream</Text>
                 </View>
                 <TouchableOpacity onPress={animateChatClose} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>×</Text>
@@ -1203,7 +1132,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               >
                 <TextInput
                   style={styles.input}
-                  placeholder="Ask about symbols, feelings, or patterns..."
+                  placeholder="Ask about an image, feeling, or pattern..."
                   placeholderTextColor={colors.textMuted}
                   value={inputText}
                   onChangeText={setInputText}
@@ -1244,14 +1173,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             </ScrollView>
           </DesignExportForeground>
         </KeyboardAvoidingView>
-
-        {archetypeModalKey && (
-          <SymbolInfoModal
-            visible={!!archetypeModalKey}
-            onClose={() => setArchetypeModalKey(null)}
-            contentKey={archetypeModalKey}
-          />
-        )}
       </View>
     );
   };
@@ -1285,8 +1206,14 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     editButton: {
       marginRight: spacing.md,
     },
-    dreamCard: {
+    dreamPage: {
       marginBottom: spacing.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.lg,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
+      backgroundColor: 'rgba(255, 253, 249, 0.38)',
     },
     symbolsCard: {
       marginBottom: spacing.lg,
@@ -1303,9 +1230,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       fontWeight: typography.weights.medium,
     },
     title: {
-      fontSize: typography.sizes.xxl,
-      fontFamily: typography.bold,
-      color: colors.textAccent,
+      fontSize: typography.sizes.xl,
+      fontFamily: typography.medium,
+      color: colors.textTitle,
       marginBottom: spacing.md,
     },
     content: {
@@ -1325,17 +1252,140 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       paddingBottom: spacing.xl,
     },
     reflectionTitle: {
-      fontSize: typography.sizes.xl,
-      fontFamily: typography.bold,
-      color: colors.textTitle,
+      fontSize: typography.sizes.lg,
+      fontFamily: typography.medium,
+      color: colors.textSecondary,
       marginBottom: spacing.md,
       zIndex: 1,
       position: 'relative',
     },
-    interpretationCard: {
+    reflectionBody: {
       zIndex: 1,
       position: 'relative',
       width: '100%', // Use full width
+      paddingHorizontal: spacing.xs,
+    },
+    fieldSummary: {
+      gap: spacing.md,
+      marginBottom: spacing.md,
+    },
+    essenceBlock: {
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xs,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
+    },
+    summaryBlock: {
+      marginBottom: spacing.sm,
+    },
+    summarySectionTitle: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.medium,
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      marginBottom: spacing.sm,
+    },
+    essenceTitle: {
+      fontSize: typography.sizes.lg,
+      fontFamily: typography.medium,
+      color: colors.textTitle,
+      marginBottom: spacing.xs,
+    },
+    essenceLine: {
+      fontSize: typography.sizes.md,
+      color: colors.textPrimary,
+      lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
+      maxWidth: 320,
+    },
+    anchorGrid: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.contourLineFaint,
+    },
+    anchorCard: {
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contourLineFaint,
+    },
+    anchorLabel: {
+      fontSize: typography.sizes.md,
+      fontFamily: typography.medium,
+      color: colors.textTitle,
+    },
+    anchorMeaning: {
+      marginTop: spacing.xs,
+      fontSize: typography.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    },
+    movementBlock: {
+      paddingVertical: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
+    },
+    movementTitle: {
+      fontSize: typography.sizes.md,
+      fontFamily: typography.medium,
+      color: colors.textTitle,
+      marginBottom: spacing.xs,
+    },
+    movementLine: {
+      fontSize: typography.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    },
+    reflectionPreviewSection: {
+      marginTop: spacing.md,
+    },
+    updateNoticeText: {
+      fontSize: typography.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+      marginTop: spacing.sm,
+    },
+    symbolicLayersPanel: {
+      marginTop: spacing.md,
+      paddingVertical: spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
+    },
+    symbolicLayersHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.xs,
+    },
+    symbolicLayersTitle: {
+      fontSize: typography.sizes.sm,
+      fontFamily: typography.medium,
+      color: colors.textSecondary,
+    },
+    symbolicLayersCaret: {
+      fontSize: typography.sizes.md,
+      color: colors.textMuted,
+    },
+    symbolicLayersBody: {
+      paddingTop: spacing.sm,
+      gap: spacing.sm,
+    },
+    layerRow: {
+      paddingTop: spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.contourLineFaint,
+    },
+    layerTitle: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.medium,
+      color: colors.textMuted,
+      marginBottom: 2,
+    },
+    layerText: {
+      fontSize: typography.sizes.sm,
+      color: colors.textSecondary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
     },
     chipsSection: {
       marginBottom: spacing.md,
@@ -1366,13 +1416,18 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       textAlign: 'left',
     },
     conversationButton: {
+      alignSelf: 'center',
+      width: '92%',
+      minHeight: 48,
+      borderRadius: 18,
+      paddingVertical: spacing.sm,
       marginTop: spacing.sm,
-      borderWidth: 2, // More prominent outline
-      shadowColor: colors.buttonPrimaryLight,
-      shadowOpacity: 0.3,
+      borderWidth: 1,
+      shadowColor: colors.buttonGlow,
+      shadowOpacity: 0.08,
       shadowRadius: 8,
-      shadowOffset: { width: 0, height: 2 },
-      elevation: 4,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 2,
     },
     actionButtonsContainer: {
       flexDirection: 'column',
@@ -1381,10 +1436,15 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     updateButton: {
       marginBottom: spacing.xs,
     },
-    noInterpretationCard: {
+    noInterpretationPanel: {
       alignItems: 'center',
       zIndex: 1,
       position: 'relative',
+      paddingVertical: spacing.xl,
+      paddingHorizontal: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
     },
     noInterpretationText: {
       fontSize: typography.sizes.md,
@@ -1394,16 +1454,35 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       lineHeight: typography.sizes.md * typography.lineHeights.normal,
     },
     askButton: {
-      minWidth: 200,
+      alignSelf: 'center',
+      width: '92%',
+      minHeight: 48,
+      borderRadius: 18,
+      paddingVertical: spacing.sm,
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 2,
     },
-    loadingCard: {
+    loadingPanel: {
       alignItems: 'center',
-      padding: spacing.xl,
+      paddingVertical: spacing.xl,
+      paddingHorizontal: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLineFaint,
     },
     loadingText: {
       marginTop: spacing.md,
       fontSize: typography.sizes.md,
       color: colors.textSecondary,
+    },
+    loadingSubtext: {
+      marginTop: spacing.xs,
+      fontSize: typography.sizes.sm,
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
     },
     chatSection: {
       marginTop: spacing.lg,
@@ -1423,8 +1502,8 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       borderBottomColor: colors.border,
     },
     chatTitle: {
-      fontSize: typography.sizes.lg,
-      fontFamily: typography.bold,
+      fontSize: typography.sizes.md,
+      fontFamily: typography.medium,
       color: colors.textTitle,
     },
     chatTitleWrap: {

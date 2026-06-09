@@ -28,6 +28,11 @@ export type RootStackParamList = {
     periodEnd?: string;
     periodLabel?: string;
   };
+  PatternExplorer: {
+    periodStart?: string;
+    periodEnd?: string;
+    periodLabel?: string;
+  };
   InsightsJourney: {
     initialSectionId?: InsightsSectionId;
     periodStart?: string;

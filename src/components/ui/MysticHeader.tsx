@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   title: {
-    fontFamily: typography.bold,
-    fontSize: typography.sizes.xxl,
+    fontFamily: typography.medium,
+    fontSize: typography.sizes.xl,
     color: colors.textTitle,
-    letterSpacing: 0.2,
+    letterSpacing: 0,
     textAlign: 'center',
   },
   subtitle: {

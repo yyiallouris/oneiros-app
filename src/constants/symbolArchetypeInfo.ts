@@ -121,10 +121,10 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     bulletsAfterParagraph: 2,
   },
   'core-conflicts': {
-    title: 'What are core conflicts?',
+    title: 'What are inner tensions?',
     subtitle: 'The tension the dream stages',
     paragraphs: [
-      'Core conflicts name the psychological opposition organizing the dream.',
+      'Inner tensions name the psychological opposition organizing the dream.',
       'They are written as “X vs Y” so the tension remains visible without turning into a fixed conclusion.',
       'Examples:',
       'They help reports notice repeated tensions without collapsing them into symbols or motifs.',

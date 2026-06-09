@@ -25,6 +25,9 @@ import {
   getRecurringSymbols,
   getRecurringLandscapes,
   getRecurringMotifs,
+  getInterpretedDreamsCountForPeriod,
+  buildStrongestPatterns,
+  buildDreamFieldSummary,
 } from '../../src/services/insightsService';
 import { StorageService } from '../../src/services/storageService';
 import { groupSimilarTerms } from '../../src/services/ai';
@@ -133,5 +136,96 @@ describe('insights periods & keys flow', () => {
     ]));
 
     expect(mockGroupSimilarTerms).not.toHaveBeenCalled();
+  });
+
+  it('buildStrongestPatterns sorts recurring patterns by count and category priority', () => {
+    const patterns = buildStrongestPatterns({
+      images: [{ label: 'house', kind: 'image', count: 3, sectionId: 'recurring-symbols' }],
+      thresholds: [{ label: 'closed door', kind: 'threshold', count: 3, sectionId: 'thresholds' }],
+      tensions: [{ label: 'contact vs protection', kind: 'tension', count: 4, sectionId: 'core-conflicts' }],
+      places: [{ label: 'old school', kind: 'place', count: 1, sectionId: 'space-landscapes' }],
+    });
+
+    expect(patterns.map((p) => p.label)).toEqual([
+      'contact vs protection',
+      'house',
+      'closed door',
+    ]);
+  });
+
+  it('buildDreamFieldSummary handles empty, forming, and recurring states', () => {
+    expect(buildDreamFieldSummary({ interpretedDreamsCount: 0, strongestPatterns: [] }))
+      .toContain('No dream field yet');
+
+    expect(buildDreamFieldSummary({
+      interpretedDreamsCount: 1,
+      strongestPatterns: [{ label: 'sea', kind: 'image', count: 1, sectionId: 'recurring-symbols' }],
+    })).toContain('A light field is forming around sea');
+
+    expect(buildDreamFieldSummary({
+      interpretedDreamsCount: 3,
+      strongestPatterns: [
+        { label: 'house', kind: 'image', count: 3, sectionId: 'recurring-symbols' },
+        { label: 'threshold', kind: 'threshold', count: 2, sectionId: 'thresholds' },
+      ],
+    })).toContain('The field gathers around house');
+  });
+
+  it('getInterpretedDreamsCountForPeriod counts unique interpreted dreams in period', async () => {
+    mockStorageService.getDreams.mockResolvedValue([
+      {
+        id: 'dream-1',
+        date: '2026-04-01',
+        content: 'A house.',
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
+      {
+        id: 'dream-2',
+        date: '2026-04-03',
+        content: 'A road.',
+        createdAt: '2026-04-03T00:00:00.000Z',
+        updatedAt: '2026-04-03T00:00:00.000Z',
+      },
+      {
+        id: 'dream-3',
+        date: '2026-05-01',
+        content: 'A beach.',
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z',
+      },
+    ]);
+    mockStorageService.getInterpretations.mockResolvedValue([
+      {
+        id: 'interpretation-1',
+        dreamId: 'dream-1',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
+      {
+        id: 'interpretation-2',
+        dreamId: 'dream-1',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        createdAt: '2026-04-01T00:00:00.000Z',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+      },
+      {
+        id: 'interpretation-3',
+        dreamId: 'dream-3',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        createdAt: '2026-05-01T00:00:00.000Z',
+        updatedAt: '2026-05-01T00:00:00.000Z',
+      },
+    ]);
+
+    await expect(getInterpretedDreamsCountForPeriod({ startDate: '2026-04-01', endDate: '2026-04-30' }))
+      .resolves.toBe(1);
   });
 });
