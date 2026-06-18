@@ -841,7 +841,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
             <PsycheScreenBackground waveHeight={180} />
             <DesignExportForeground fill>
               <ScrollView
-                style={styles.scrollView}
+                style={[styles.scrollView, Platform.OS === 'web' && styles.webScrollView]}
                 contentContainerStyle={styles.scrollContent}
               >
                 {/* Dream content skeleton - matches dreamCard position */}
@@ -904,7 +904,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           <DesignExportForeground fill>
             <ScrollView
               ref={scrollViewRef}
-              style={styles.scrollView}
+              style={[styles.scrollView, Platform.OS === 'web' && styles.webScrollView]}
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
               scrollEventThrottle={16}
@@ -1038,7 +1038,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               
               <ScrollView
                 ref={flatListRef}
-                style={styles.chatScrollView}
+                style={[styles.chatScrollView, Platform.OS === 'web' && styles.webScrollView]}
                 contentContainerStyle={styles.chatContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={true}
@@ -1197,6 +1197,9 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     },
     scrollView: {
       flex: 1,
+    },
+    webScrollView: {
+      overflow: 'scroll',
     },
     scrollContent: {
       paddingHorizontal: spacing.md,

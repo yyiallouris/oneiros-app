@@ -16,10 +16,10 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 | Color name | Value | Token | Usage |
 |------------|-------|-------|-------|
-| Dream Bone | `#FAF7F2` | `backgrounds.primary`, `brandIcon.mist` | Main app background |
-| Warm Mist | `#F3EEF0` | `backgrounds.secondary` | Secondary screen wash, soft panels |
-| Faded Lilac Fog | `#EDE5EF` | `backgrounds.wave1`, `gradients.screenDepth` | Atmospheric depth, background waves |
-| Card Surface | `#FFFDF9` | `backgrounds.tertiary`, `backgrounds.card` | Raised surfaces, clean cards |
+| Dusty Warm Beige | `#F4EFEB` | `backgrounds.primary` | Main app background |
+| Dusty Paper Mauve | `#F1E8E3` | `backgrounds.secondary`, `backgrounds.tertiary`, `backgrounds.card` | Secondary wash, raised surfaces, warm paper cards |
+| Dusty Top Wave | `#E6DDD8` | `backgrounds.wave1` | Top/background wave layer |
+| Dusty Lower Wave | `#E2D7D3` | `backgrounds.wave2`, `gradients.screenDepth` | Middle/lower wave depth |
 | Pressed Surface | `#F4EDF4` | `accent.light` | Light pressed/control backgrounds |
 | Hairline Border | `#DED3DF` | `backgrounds.wave2`, `borders.primary`, `borders.input`, `borders.card` | Borders, dividers, wave depth |
 | Deep Ink | `#2D2430` | `text.primary`, `text.title`, `brandIcon.plum` | Main text, titles, wordmark tone |
@@ -38,13 +38,13 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 ### Backgrounds
 
-- `backgrounds.primary`: Dream Bone app base.
-- `backgrounds.secondary`: Warm Mist support wash.
-- `backgrounds.tertiary`: Card Surface for raised sections.
+- `backgrounds.primary`: Dusty warm beige app base.
+- `backgrounds.secondary`: Dusty paper mauve support wash.
+- `backgrounds.tertiary`: Dusty paper mauve surface for raised sections.
 - `backgrounds.splash`: Night Plum splash/loading background.
-- `backgrounds.card`: Card Surface card background.
+- `backgrounds.card`: Dusty paper mauve card background.
 - `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent`: translucent paper surfaces.
-- `backgrounds.wave1`, `wave2`: Faded Lilac Fog and Hairline Border depth.
+- `backgrounds.wave1`, `wave2`: Dusty warm mauve wave layers.
 - `backgrounds.overlay`, `overlayLight`, `backdrop`: ink-based overlays.
 
 ### Text

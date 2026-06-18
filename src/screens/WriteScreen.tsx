@@ -190,9 +190,7 @@ const WriteScreen: React.FC = () => {
     <View
       style={[styles.container, { paddingBottom: insets.bottom }]}
     >
-      <PsycheScreenBackground waveHeight={220} />
-      <View pointerEvents="none" style={styles.backgroundTint} />
-      <View pointerEvents="none" style={styles.backgroundWash} />
+      <PsycheScreenBackground waveHeight={360} />
       
       <DesignExportForeground fill>
         <ScrollView
@@ -348,20 +346,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: writePalette.background,
-  },
-  backgroundTint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: writePalette.background,
-    opacity: 0.84,
-  },
-  backgroundWash: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '62%',
-    backgroundColor: writePalette.secondaryWash,
-    opacity: 0.46,
   },
   scrollView: {
     flex: 1,

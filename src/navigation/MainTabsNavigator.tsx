@@ -30,12 +30,6 @@ const TabIconFrame = ({
     {focused ? (
       <>
         <View style={styles.focusAura} />
-        <LinearGradient
-          colors={['rgba(255, 253, 249, 0.72)', 'rgba(101, 68, 111, 0.16)', 'rgba(101, 68, 111, 0)']}
-          start={{ x: 0.5, y: 0.1 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.focusCore}
-        />
       </>
     ) : null}
     <View style={[styles.iconContent, focused && styles.iconContentFocused]}>{children}</View>
@@ -193,20 +187,16 @@ const styles = StyleSheet.create({
   },
   focusAura: {
     position: 'absolute',
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 58,
+    height: 30,
+    bottom: 10,
+    borderRadius: 999,
     backgroundColor: colors.buttonPrimaryLight12,
+    opacity: 0.72,
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
-  },
-  focusCore: {
-    position: 'absolute',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
   },
   iconContent: {
     width: 52,
@@ -216,8 +206,8 @@ const styles = StyleSheet.create({
   },
   iconContentFocused: {
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     shadowOffset: { width: 0, height: 0 },
   },
   iconSvgWrap: {
@@ -226,8 +216,8 @@ const styles = StyleSheet.create({
   },
   iconSvgWrapFocused: {
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
   },
 });

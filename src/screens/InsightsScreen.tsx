@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   Alert,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -206,36 +207,15 @@ const InsightsScreen: React.FC = () => {
   );
 
   const navigateToSection = (sectionId: InsightsSectionId) => {
-    navigation.navigate('InsightsSection', {
+    const rootNavigation = navigation.getParent<StackNavigationProp<RootStackParamList>>();
+    const targetNavigation = rootNavigation ?? navigation;
+
+    targetNavigation.navigate('InsightsSection', {
       sectionId,
       periodStart: currentPeriod.startDate,
       periodEnd: currentPeriod.endDate,
       periodLabel,
     });
-  };
-
-  const navigateToPatternExplorer = () => {
-    navigation.navigate('PatternExplorer', {
-      periodStart: currentPeriod.startDate,
-      periodEnd: currentPeriod.endDate,
-      periodLabel,
-    });
-  };
-
-  const navigateToPattern = (item: CrossCategoryPatternItem) => {
-    if (item.filter?.type === 'symbol') {
-      navigation.navigate('JournalFilter', { filterSymbol: item.filter.value });
-      return;
-    }
-    if (item.filter?.type === 'motif') {
-      navigation.navigate('JournalFilter', { filterMotif: item.filter.value });
-      return;
-    }
-    if (item.filter?.type === 'landscape') {
-      navigation.navigate('JournalFilter', { filterLandscape: item.filter.value });
-      return;
-    }
-    navigateToSection(item.sectionId);
   };
 
   const selectPreset = (key: PeriodPreset) => {
@@ -341,7 +321,7 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <PsycheScreenBackground waveHeight={150} />
+        <PsycheScreenBackground waveHeight={180} />
         <DesignExportForeground fill>
           <MysticHeader title="Insights" subtitle="Patterns rising into view." />
           <View style={styles.loadingPlaceholder}>
@@ -352,14 +332,10 @@ const InsightsScreen: React.FC = () => {
     );
   }
 
-  const hasReflectedDreams = overview.interpretedDreamsCount > 0;
   const hasEnoughForReflection = overview.interpretedDreamsCount >= 2;
   const hasEnoughRecentDreams = canGeneratePatternReflection(recentAvailableCount);
   const recentScopeLabel =
     RECENT_SCOPE_OPTIONS.find((option) => option.count === recentCount)?.scopeLabel ?? 'Latest 3 reflected dreams';
-  const patternTitle = overview.strongestPatterns.some((item) => item.count >= 2)
-    ? 'Returning Patterns'
-    : 'Forming Patterns';
   const recentSections = recentReflection ? parseReflectionSections(recentReflection) : [];
   const recentCachedDate = recentCachedAt ? new Date(recentCachedAt).toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -368,12 +344,12 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={180} />
+      <PsycheScreenBackground waveHeight={240} />
       <DesignExportForeground fill>
         <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 
         <ScrollView
-          style={styles.scroll}
+          style={[styles.scroll, Platform.OS === 'web' && styles.webScroll]}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -408,7 +384,6 @@ const InsightsScreen: React.FC = () => {
 
           <Card transparent style={styles.card}>
             <Text style={styles.cardTitle}>Dream Field Overview</Text>
-            <Text style={styles.fieldSummary}>{overview.fieldSummary}</Text>
 
             <View style={styles.statRow}>
               <View style={styles.statPill}>
@@ -418,38 +393,7 @@ const InsightsScreen: React.FC = () => {
                   <Text style={styles.statLabel}>logged</Text>
                 </View>
               </View>
-              <View style={styles.statPill}>
-                <PatternRecognitionIcon size={26} color={colors.tabIconActive} />
-                <View style={styles.statTextBlock}>
-                  <Text style={styles.statValue}>{overview.interpretedDreamsCount}</Text>
-                  <Text style={styles.statLabel}>reflected</Text>
-                </View>
-              </View>
             </View>
-
-            {!hasReflectedDreams ? (
-              <View style={styles.emptyFieldBox}>
-                <Text style={styles.emptyFieldTitle}>No dream field yet</Text>
-                <Text style={styles.emptyFieldBody}>
-                  Write and reflect on 1–2 dreams to begin seeing recurring images, places, and movements.
-                </Text>
-              </View>
-            ) : (
-              <>
-                {overview.topImages.length > 0 && (
-                  <View style={styles.previewBlock}>
-                    <Text style={styles.previewLabel}>Returning images</Text>
-                    <Text style={styles.previewText}>{joinPreview(overview.topImages)}</Text>
-                  </View>
-                )}
-                {overview.topAffects.length > 0 && (
-                  <View style={styles.previewBlock}>
-                    <Text style={styles.previewLabel}>Dominant atmosphere</Text>
-                    <Text style={styles.previewText}>{joinPreview(overview.topAffects)}</Text>
-                  </View>
-                )}
-              </>
-            )}
           </Card>
 
           <Card transparent style={styles.card}>
@@ -615,44 +559,49 @@ const InsightsScreen: React.FC = () => {
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
-          <Card transparent style={styles.card}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.cardTitle}>{patternTitle}</Text>
-              <TouchableOpacity onPress={navigateToPatternExplorer} activeOpacity={0.7}>
-                <Text style={styles.headerLink}>Explore</Text>
-              </TouchableOpacity>
-            </View>
-            {overview.strongestPatterns.length === 0 ? (
-              <Text style={styles.mutedBody}>No recurring patterns are visible in this period yet.</Text>
-            ) : (
-              overview.strongestPatterns.map((item) => (
+          {/*
+            Legacy: standalone Forming/Returning Patterns card.
+            Hidden after moving the pattern entry point into the Forming Patterns grid below.
+
+            <Card transparent style={styles.card}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.cardTitle}>{patternTitle}</Text>
+                <TouchableOpacity onPress={navigateToPatternExplorer} activeOpacity={0.7}>
+                  <Text style={styles.headerLink}>Explore</Text>
+                </TouchableOpacity>
+              </View>
+              {overview.strongestPatterns.length === 0 ? (
+                <Text style={styles.mutedBody}>No recurring patterns are visible in this period yet.</Text>
+              ) : (
+                overview.strongestPatterns.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.kind}:${item.label}`}
+                    style={styles.patternRow}
+                    onPress={() => navigateToPattern(item)}
+                    activeOpacity={0.72}
+                  >
+                    <View style={styles.patternTextBlock}>
+                      <Text style={styles.patternLabel} numberOfLines={1}>{item.label}</Text>
+                      <Text style={styles.patternKind}>{kindLabel(item)}</Text>
+                    </View>
+                    <Text style={styles.patternCount}>×{item.count}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+              {overview.strongestPatterns.length > 0 && (
                 <TouchableOpacity
-                  key={`${item.kind}:${item.label}`}
-                  style={styles.patternRow}
-                  onPress={() => navigateToPattern(item)}
+                  style={styles.exploreAllButton}
+                  onPress={navigateToPatternExplorer}
                   activeOpacity={0.72}
                 >
-                  <View style={styles.patternTextBlock}>
-                    <Text style={styles.patternLabel} numberOfLines={1}>{item.label}</Text>
-                    <Text style={styles.patternKind}>{kindLabel(item)}</Text>
-                  </View>
-                  <Text style={styles.patternCount}>×{item.count}</Text>
+                  <Text style={styles.exploreAllText}>Explore all patterns</Text>
                 </TouchableOpacity>
-              ))
-            )}
-            {overview.strongestPatterns.length > 0 && (
-              <TouchableOpacity
-                style={styles.exploreAllButton}
-                onPress={navigateToPatternExplorer}
-                activeOpacity={0.72}
-              >
-                <Text style={styles.exploreAllText}>Explore all patterns</Text>
-              </TouchableOpacity>
-            )}
-          </Card>
+              )}
+            </Card>
+          */}
 
           <Card transparent style={styles.card}>
-            <Text style={styles.cardTitle}>Explore Deeper</Text>
+            <Text style={styles.cardTitle}>Forming Patterns</Text>
             <View style={styles.exploreGrid}>
               {exploreLinks.map((link) => (
                 <TouchableOpacity
@@ -686,6 +635,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   scroll: { flex: 1 },
+  webScroll: {
+    overflow: 'scroll',
+  },
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,

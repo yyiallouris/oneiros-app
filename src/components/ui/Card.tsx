@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
     height: 18,
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
-    backgroundColor: colors.white,
-    opacity: 0.1,
+    backgroundColor: colors.fieldSurface,
+    opacity: 0.18,
   },
   innerBorder: {
     ...StyleSheet.absoluteFillObject,

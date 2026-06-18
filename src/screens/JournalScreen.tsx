@@ -63,7 +63,6 @@ const DreamCard = React.memo<DreamCardProps>(({ dream, interpretation, onPress }
   const symbolMarker = compactList(interpretation?.symbols ?? dream.symbols, 1)[0] ?? dream.symbol;
   const placeMarker = compactList(interpretation?.landscapes ?? dream.landscapes, 1)[0];
   const atmosphereMarker = compactList(interpretation?.affects, 1)[0];
-  const reflected = Boolean(interpretation);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.68} style={styles.dreamSlip}>
@@ -72,9 +71,6 @@ const DreamCard = React.memo<DreamCardProps>(({ dream, interpretation, onPress }
         <View style={styles.dreamDateSeal}>
           <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
         </View>
-        <Text style={[styles.reflectionState, reflected && styles.reflectionStateDone]}>
-          {reflected ? 'reflected' : 'not reflected'}
-        </Text>
       </View>
       <Text style={styles.dreamTitle} numberOfLines={1}>
         {displayTitle}
@@ -259,7 +255,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={210} />
+      <PsycheScreenBackground waveHeight={300} />
 
       <DesignExportForeground fill>
         <MysticHeader
@@ -439,15 +435,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
     fontWeight: typography.weights.medium,
-  },
-  reflectionState: {
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  reflectionStateDone: {
-    color: colors.accentOxidizedGreen,
   },
   dreamTitle: {
     fontSize: typography.sizes.lg,

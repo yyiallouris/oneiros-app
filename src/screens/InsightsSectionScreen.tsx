@@ -10,6 +10,7 @@ import {
   Animated,
   Easing,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
@@ -241,6 +242,13 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       if (__DEV__ && sectionId === 'space-landscapes') {
         console.log('[InsightsSection] Focus — loading space-landscapes, sectionId:', sectionId);
       }
+      if (Platform.OS === 'web') {
+        const timeout = setTimeout(() => {
+          void load();
+        }, 0);
+        return () => clearTimeout(timeout);
+      }
+
       // Defer load to avoid blocking UI (embedded in FlatList or standalone)
       const task = InteractionManager.runAfterInteractions(() => load());
       return () => task.cancel();
