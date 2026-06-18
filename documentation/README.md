@@ -1,6 +1,6 @@
 # User & system flows (Oneiros)
 
-This folder catalogs **user journeys and technical flow paths** found in the codebase, grouped for onboarding, QA, and regression planning. It is derived from navigation (`RootNavigator`, tabs, stack routes), auth (`AuthScreen`, Supabase, deep links), storage/sync (`StorageService`, `SyncService`), and feature screens.
+This folder catalogs **user journeys, technical flow paths, and practical architecture maps** found in the codebase, grouped for onboarding, QA, regression planning, and AI-agent change impact analysis. It is derived from navigation (`RootNavigator`, tabs, stack routes), auth (`AuthScreen`, Supabase, deep links), storage/sync (`StorageService`, `SyncService`), AI interpretation services, theme docs, and feature screens.
 
 **Related technical doc:** symbol extraction and interpretation text are detailed in [`../docs/SYMBOLS_FLOW.md`](../docs/SYMBOLS_FLOW.md).
 
@@ -8,6 +8,7 @@ This folder catalogs **user journeys and technical flow paths** found in the cod
 
 | File | Scope |
 |------|--------|
+| [flows-00-complete-app-journey.md](./flows-00-complete-app-journey.md) | End-to-end journey from launch/login through consent, onboarding, dreams, AI, Insights, support, and logout |
 | [flows-01-app-entry-session.md](./flows-01-app-entry-session.md) | Cold start, splash/loading, session lifecycle, offline token behavior |
 | [flows-02-authentication.md](./flows-02-authentication.md) | Sign up, login, email verification, Google OAuth, forgot password, reset link → set password, login support |
 | [flows-03-onboarding-account-security.md](./flows-03-onboarding-account-security.md) | Post-login onboarding, Account settings, app biometric lock |
@@ -17,6 +18,9 @@ This folder catalogs **user journeys and technical flow paths** found in the cod
 | [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, dream-field overview, Recent Dream Field, Pattern Explorer, pattern reports, filters → journal |
 | [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md) | Contact, Privacy, support while locked out |
 | [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) | Error paths, empty states, ordering notes for test suites |
+| [architecture-app-map.md](./architecture-app-map.md) | Practical subsystem map for navigation, screens, services, storage, Supabase, AI, theme, and impact analysis |
+| [architecture-features.md](./architecture-features.md) | Feature-by-feature map of entry points, dependencies, docs/tests, platform, and deploy considerations |
+| [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction, `display_distillation`, metadata, proxy routing, sync, and tests |
 
 ## Primary navigation map (simplified)
 
@@ -40,3 +44,9 @@ This folder catalogs **user journeys and technical flow paths** found in the cod
 - `src/navigation/types.ts` — route param types.
 - `src/navigation/MainTabsNavigator.tsx` — Write / Journal / Insights tabs.
 - `src/utils/authDeepLink.ts` — magic link, recovery, OAuth tokens in URL.
+
+## AI agent onboarding
+
+Repo-local skill: [`../.codex/skills/oneiros-repo/SKILL.md`](../.codex/skills/oneiros-repo/SKILL.md).
+
+Before changing behavior, future agents should read `AGENTS.md`, this index, and the architecture map that matches the task. UI work should also check [`../src/theme/COLORS.md`](../src/theme/COLORS.md) and [`../src/theme/TYPOGRAPHY.md`](../src/theme/TYPOGRAPHY.md).

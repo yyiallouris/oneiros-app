@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
   View,
   Text,
@@ -7,9 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
-  StatusBar,
   useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -28,6 +25,8 @@ import { getRandomSymbol } from '../components/symbols';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
+const FLOATING_TAB_BAR_HEIGHT = 86;
+const SAVE_BUTTON_NAV_GAP_OFFSET = Platform.OS === 'android' ? 44 : 8;
 const writePalette = {
   background: colors.background,
   secondaryWash: colors.backgroundSecondary,
@@ -43,7 +42,6 @@ const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
-  const tabBarHeight = useBottomTabBarHeight();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [todaysDream, setTodaysDream] = useState<Dream | null>(null);
@@ -181,21 +179,16 @@ const WriteScreen: React.FC = () => {
     setIsMenuOpen(true);
   };
 
-  // Keyboard vertical offset: no header on this tab, use status bar on Android so padding is correct
-  const keyboardVerticalOffset =
-    Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
   const floatingTabBarInset = Math.max(insets.bottom, MIN_FLOATING_TAB_BOTTOM_INSET);
-  const saveBarOffset = tabBarHeight + floatingTabBarInset + spacing.sm;
+  const saveBarOffset = floatingTabBarInset + FLOATING_TAB_BAR_HEIGHT - SAVE_BUTTON_NAV_GAP_OFFSET;
   const isCompactHeight = windowHeight < 760;
   const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
   const contentInputBottomPadding = voiceButtonBottom + 28;
   const isSaveDisabled = !content.trim() || isSaving;
 
   return (
-    <KeyboardAvoidingView
+    <View
       style={[styles.container, { paddingBottom: insets.bottom }]}
-      behavior="padding"
-      keyboardVerticalOffset={keyboardVerticalOffset}
     >
       <PsycheScreenBackground waveHeight={220} />
       <View pointerEvents="none" style={styles.backgroundTint} />
@@ -347,7 +340,7 @@ const WriteScreen: React.FC = () => {
           </View>
         )}
       </DesignExportForeground>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

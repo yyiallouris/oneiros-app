@@ -11,6 +11,10 @@ These instructions apply to the whole repository.
 
 For every code, configuration, schema, flow, or UX change:
 
+- Start by checking `documentation/README.md` and the repo-local skill at `.codex/skills/oneiros-repo/SKILL.md`.
+- Use `documentation/flows-00-complete-app-journey.md` for the end-to-end app map.
+- Use `documentation/architecture-app-map.md` and `documentation/architecture-features.md` to understand feature ownership and change impact.
+- Use `documentation/architecture-interpretation.md` plus `docs/SYMBOLS_FLOW.md` for AI interpretation, extraction, `display_distillation`, and Insights metadata changes.
 - Check whether any Markdown documentation needs an update.
 - Update all relevant `.md` files in the same change, not later.
 - Prefer the existing documentation structure before adding a new file.
@@ -22,6 +26,7 @@ For every code, configuration, schema, flow, or UX change:
 Common documentation locations:
 
 - `documentation/` for product and app flows.
+- `documentation/architecture-app-map.md`, `documentation/architecture-features.md`, and `documentation/architecture-interpretation.md` for practical architecture and impact maps.
 - `docs/` for focused technical notes.
 - Root Markdown files for setup, architecture, build, auth, AI, and offline testing.
 - `supabase/functions/*/README.md` for Edge Function behavior.

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Oneiros Repo"
+  short_description: "Navigate Oneiros flows, docs, tests, AI, and Supabase."
+  brand_color: "#4B3158"
+  default_prompt: "Use $oneiros-repo to update this Oneiros app feature while keeping docs, tests, and deploy notes aligned."
+policy:
+  allow_implicit_invocation: true
