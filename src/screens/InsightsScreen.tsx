@@ -15,7 +15,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
-import { PsycheScreenBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
+import { MountainWaveBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   DreamsLoggedIcon,
@@ -62,6 +62,8 @@ type ExploreLink = {
   body: string;
   icon: React.ReactNode;
 };
+
+const INSIGHTS_MOUNTAIN_HEIGHT = 240;
 
 function periodFromPresetSync(preset: PeriodPreset): InsightsPeriod | null {
   switch (preset) {
@@ -321,7 +323,7 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <PsycheScreenBackground waveHeight={180} />
+        <MountainWaveBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
         <DesignExportForeground fill>
           <MysticHeader title="Insights" subtitle="Patterns rising into view." />
           <View style={styles.loadingPlaceholder}>
@@ -344,7 +346,7 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={240} />
+      <MountainWaveBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
       <DesignExportForeground fill>
         <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 

@@ -14,18 +14,18 @@ const baseColors = {
 // ==================== BACKGROUND COLORS ====================
 export const backgrounds = {
   // Main backgrounds
-  primary: '#F4EFEB',      // Dusty warm beige base across the app
-  secondary: '#F1E8E3',    // Dusty mauve-beige support wash
-  tertiary: '#F1E8E3',     // Dusty paper surface for raised sections
+  primary: '#F4EFEA',      // Soft warm cream base from the pre-Psyche background
+  secondary: '#EDE6DF',    // Slightly darker warm paper for cards
+  tertiary: '#F4EFE8',     // Warm paper tone for raised sections
   splash: '#4B3158',       // Night Plum behind native splash and loading mark
-  card: '#F1E8E3',         // Dusty paper card background
-  cardTransparent: 'rgba(241, 232, 227, 0.84)', // Semi-transparent card
-  cardSemiTransparent: 'rgba(241, 232, 227, 0.94)', // Stronger glass for hero surfaces
-  cardMoreTransparent: 'rgba(241, 232, 227, 0.74)', // More transparent
+  card: '#EDE6DF',         // Warm paper card background
+  cardTransparent: 'rgba(237, 230, 223, 0.7)', // Semi-transparent card
+  cardSemiTransparent: 'rgba(240, 229, 223, 0.7)', // Stronger glass for hero surfaces
+  cardMoreTransparent: 'rgba(240, 229, 223, 0.5)', // More transparent
   
   // Wave backgrounds (for gradients)
-  wave1: '#E6DDD8',        // Dusty top wave
-  wave2: '#E2D7D3',        // Deeper dusty mauve wave
+  wave1: '#DAD2C8',        // Gentle sand wave
+  wave2: '#CFC6BA',        // Deeper grounding wave
   
   // Overlays
   overlay: 'rgba(45, 36, 48, 0.16)', // Deep Ink overlay
@@ -35,9 +35,9 @@ export const backgrounds = {
 
 // ==================== WAVES (MYSTICAL TINTS) ====================
 export const waveTints = {
-  A: '#D1C5C5', // deepest dusty wave shadow
-  B: '#C8BCBC', // ash mauve-gray tint
-  accentMist: 'rgba(110, 77, 120, 0.04)', // ultra-subtle tie-in with violet accents
+  A: '#4B4266', // deep mystic indigo tint
+  B: '#6E5160', // dusky mauve-brown tint
+  accentMist: 'rgba(106, 79, 179, 0.12)', // pre-Psyche wave accent tint
 } as const;
 
 // ==================== TEXT COLORS ====================
@@ -99,27 +99,27 @@ export const brandIcon = {
   glow: '#65446F',         // Ritual Plum core glow + accent contour highlights
   contour: '#DED3DF',      // Hairline contour/light stroke
   contourSoft: '#A88BB2',  // Soft Amethyst supporting stroke tint
-  mist: '#F4EFEB',         // Dusty warm splash/light brand backdrop
+  mist: '#F4EFEA',         // Soft warm cream splash/light brand backdrop
 } as const;
 
 // ==================== BRAND SURFACES ====================
 export const surfaces = {
-  glass: 'rgba(241, 232, 227, 0.9)',        // Default dusty glass card
-  glassStrong: 'rgba(241, 232, 227, 0.96)', // Search bars / dropdowns / strong surfaces
-  glassSoft: 'rgba(241, 232, 227, 0.76)',   // Chat / atmospheric surfaces
-  field: 'rgba(241, 232, 227, 0.94)',       // Inputs and inline controls
-  nav: 'rgba(241, 232, 227, 0.94)',         // Bottom nav / header chrome
-  navBorder: 'rgba(110, 77, 120, 0.14)',    // Navigation border tone
-  edgeGlow: 'rgba(244, 239, 235, 0.76)',    // Soft warm top edge
+  glass: 'rgba(237, 230, 223, 0.7)',        // Default transparent warm paper card
+  glassStrong: 'rgba(240, 229, 223, 0.82)', // Search bars / dropdowns / strong surfaces
+  glassSoft: 'rgba(240, 229, 223, 0.5)',    // Chat / atmospheric surfaces
+  field: 'rgba(244, 239, 232, 0.9)',        // Inputs and inline controls
+  nav: 'rgba(237, 230, 223, 0.94)',         // Bottom nav / header chrome
+  navBorder: 'rgba(226, 216, 204, 0.8)',    // Navigation border tone
+  edgeGlow: 'rgba(244, 239, 234, 0.76)',    // Soft warm top edge
 } as const;
 
 // ==================== CONTOUR SYSTEM ====================
 export const contours = {
-  line: 'rgba(110, 77, 120, 0.2)',       // Main contour stroke
-  lineSoft: 'rgba(110, 77, 120, 0.12)',  // Supporting contour stroke
-  lineFaint: 'rgba(110, 77, 120, 0.07)', // Very soft full-screen texture
-  fill: 'rgba(239, 232, 241, 0.22)',     // Dirty lilac contour fill
-  glow: 'rgba(110, 77, 120, 0.12)',      // Muted violet contour glow
+  line: 'rgba(58, 47, 42, 0.16)',       // Main warm paper contour stroke
+  lineSoft: 'rgba(58, 47, 42, 0.1)',    // Supporting contour stroke
+  lineFaint: 'rgba(58, 47, 42, 0.06)',  // Very soft full-screen texture
+  fill: 'rgba(218, 210, 200, 0.22)',    // Sand contour fill
+  glow: 'rgba(106, 79, 179, 0.1)',      // Subtle plum contour glow
 } as const;
 
 // ==================== SEMANTIC COLORS ====================
@@ -142,10 +142,10 @@ export const semantic = {
 
 // ==================== BORDER COLORS ====================
 export const borders = {
-  primary: '#D8CCC8',                    // Dusty hairline border
-  input: '#D8CCC8',                      // Input border
-  divider: 'rgba(216, 204, 200, 0.64)', // Divider line
-  card: '#D8CCC8',                       // Card border
+  primary: '#E2D8CC',      // Main warm paper border
+  input: '#D8CEC2',        // Input border
+  divider: '#EAE0D4',      // Divider line
+  card: '#E2D8CC',         // Card border
 } as const;
 
 // ==================== SHADOW COLORS ====================
@@ -164,30 +164,21 @@ export const SUN_CYCLE_DURATION_MS = 60 * 1000; // 1 minute per step
 // ==================== GRADIENT COLORS ====================
 export const gradients = {
   // Mountain wave gradients
-  mountainStart: '#F4EFEB',            // Dusty warm beige
-  mountainStart90: 'rgba(244, 239, 235, 0.92)', // With opacity
-  mountainMid: '#E6DDD8',              // Dusty wave wash
-  mountainMid60: 'rgba(230, 221, 216, 0.42)',  // With opacity
-  mountainMid20: 'rgba(230, 221, 216, 0.14)',  // With opacity
-  mountainEnd: '#D1C5C5',              // Deepest dusty wave shadow
-  mountainEnd20: 'rgba(209, 197, 197, 0.14)', // With opacity
+  mountainStart: '#E8D5B7',            // Sand highlight
+  mountainStart90: 'rgba(232, 213, 183, 0.9)', // With opacity
+  mountainMid: '#DAD2C8',              // Gentle sand wave
+  mountainMid60: 'rgba(218, 210, 200, 0.6)',  // With opacity
+  mountainMid20: 'rgba(218, 210, 200, 0.2)',  // With opacity
+  mountainEnd: '#CFC6BA',              // Deeper grounding wave
+  mountainEnd20: 'rgba(207, 198, 186, 0.2)', // With opacity
   
   // Sun/Moon gradients
-  sunMoonStart: '#F1E8E3',            // Dusty support wash
-  sunMoonStart60: 'rgba(241, 232, 227, 0.42)', // With opacity
-  sunMoonMid: '#F4EFEB',              // Dusty warm beige
-  sunMoonMid40: 'rgba(244, 239, 235, 0.34)', // With opacity
-  sunMoonEnd: '#D1C5C5',              // Deepest dusty wave shadow
-  sunMoonEnd20: 'rgba(209, 197, 197, 0.14)', // With opacity
-
-  // Screen atmosphere
-  screenTop: '#F4EFEB',
-  screenMid: '#F4EFEB',
-  screenBottom: '#F1E8E3',
-  screenDepth: '#E2D7D3',
-  auraTop: 'rgba(244, 239, 235, 0.94)',
-  auraMid: 'rgba(241, 232, 227, 0.5)',
-  auraBottom: 'rgba(110, 77, 120, 0.06)',
+  sunMoonStart: '#DAD2C8',            // Gentle sand wave
+  sunMoonStart60: 'rgba(218, 210, 200, 0.42)', // With opacity
+  sunMoonMid: '#F4EFEA',              // Soft warm cream
+  sunMoonMid40: 'rgba(244, 239, 234, 0.4)', // With opacity
+  sunMoonEnd: '#CFC6BA',              // Deeper grounding wave
+  sunMoonEnd20: 'rgba(207, 198, 186, 0.18)', // With opacity
 
   // Primary action treatment
   buttonTop: '#4B3158',
@@ -196,13 +187,13 @@ export const gradients = {
   buttonGlow: 'rgba(75, 49, 88, 0.2)',
   
   // Paper/carve effect
-  paper: 'rgba(241, 232, 227, 0.94)',  // Paper color for "carve" effect
-  paperLight: 'rgba(244, 239, 235, 0.62)', // Light mist for calendar
+  paper: 'rgba(244, 239, 232, 0.9)',  // Paper color for "carve" effect
+  paperLight: 'rgba(240, 229, 223, 0.4)', // Light beige for calendar
 } as const;
 
 // ==================== CALENDAR COLORS ====================
 export const calendar = {
-  noDreams: 'rgba(241, 232, 227, 0.68)', // No dreams - light mist
+  noDreams: 'rgba(240, 229, 223, 0.4)', // No dreams - light beige
   hasDreams: accent.primary,              // Has dreams - accent color
   orange: accent.orange,                  // Warm orange variant
 } as const;

@@ -5,7 +5,7 @@
 All app colors live in **`src/theme/colors.ts`**. The current visual direction is:
 
 ```txt
-Dream Bone / Deep Ink / dirtied plum / old-paper symbolic accents
+Soft Warm Cream / Deep Ink / dirtied plum / old-paper symbolic accents
 ```
 
 The palette should feel like paper, ash, clay, moonlight, old gold, and a muted dream archive. Keep purple as a Jungian plum role, not a generic lavender wellness wash.
@@ -16,12 +16,13 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 | Color name | Value | Token | Usage |
 |------------|-------|-------|-------|
-| Dusty Warm Beige | `#F4EFEB` | `backgrounds.primary` | Main app background |
-| Dusty Paper Mauve | `#F1E8E3` | `backgrounds.secondary`, `backgrounds.tertiary`, `backgrounds.card` | Secondary wash, raised surfaces, warm paper cards |
-| Dusty Top Wave | `#E6DDD8` | `backgrounds.wave1` | Top/background wave layer |
-| Dusty Lower Wave | `#E2D7D3` | `backgrounds.wave2`, `gradients.screenDepth` | Middle/lower wave depth |
+| Soft Warm Cream | `#F4EFEA` | `backgrounds.primary`, `brandIcon.mist` | Main app background |
+| Warm Paper | `#EDE6DF` | `backgrounds.secondary`, `backgrounds.card` | Cards and secondary screen wash |
+| Warm Paper Light | `#F4EFE8` | `backgrounds.tertiary` | Raised writing/card surfaces |
+| Gentle Sand Wave | `#DAD2C8` | `backgrounds.wave1` | Atmospheric depth, background waves |
+| Deeper Grounding Wave | `#CFC6BA` | `backgrounds.wave2` | Lower/background wave depth |
 | Pressed Surface | `#F4EDF4` | `accent.light` | Light pressed/control backgrounds |
-| Hairline Border | `#DED3DF` | `backgrounds.wave2`, `borders.primary`, `borders.input`, `borders.card` | Borders, dividers, wave depth |
+| Warm Paper Border | `#E2D8CC` | `borders.primary`, `borders.card` | Borders and card edges |
 | Deep Ink | `#2D2430` | `text.primary`, `text.title`, `brandIcon.plum` | Main text, titles, wordmark tone |
 | Muted Ink | `#5E5263` | `text.secondary` | Supporting text |
 | Ghost Text | `#8C8290` | `text.muted`, `tabBar.iconInactive` | Placeholders, subdued metadata |
@@ -38,13 +39,13 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 ### Backgrounds
 
-- `backgrounds.primary`: Dusty warm beige app base.
-- `backgrounds.secondary`: Dusty paper mauve support wash.
-- `backgrounds.tertiary`: Dusty paper mauve surface for raised sections.
+- `backgrounds.primary`: Soft Warm Cream app base.
+- `backgrounds.secondary`: Warm Paper support wash.
+- `backgrounds.tertiary`: Warm Paper Light for raised writing surfaces.
 - `backgrounds.splash`: Night Plum splash/loading background.
-- `backgrounds.card`: Dusty paper mauve card background.
+- `backgrounds.card`: Warm Paper card background.
 - `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent`: translucent paper surfaces.
-- `backgrounds.wave1`, `wave2`: Dusty warm mauve wave layers.
+- `backgrounds.wave1`, `wave2`: Gentle Sand Wave and Deeper Grounding Wave.
 - `backgrounds.overlay`, `overlayLight`, `backdrop`: ink-based overlays.
 
 ### Text
@@ -84,13 +85,13 @@ Change `accent.buttonPrimary` in `colors.ts` to update the main action family ac
 - `brandIcon.plum`: Deep Ink icon and wordmark tone.
 - `brandIcon.plumShadow`: deep vignette/shadow.
 - `brandIcon.glow`: Ritual Plum core glow.
-- `brandIcon.contour`: Hairline Border contour/light stroke.
+- `brandIcon.contour`: hairline contour/light stroke.
 - `brandIcon.contourSoft`: Soft Amethyst supporting contour.
-- `brandIcon.mist`: Dream Bone splash/light brand backdrop.
+- `brandIcon.mist`: Soft Warm Cream splash/light brand backdrop.
 
 ### Surfaces
 
-- `surfaces.glass`: default translucent paper card.
+- `surfaces.glass`: default transparent warm paper card.
 - `surfaces.glassStrong`: strong search/dropdown surface.
 - `surfaces.glassSoft`: soft chat/atmospheric surface.
 - `surfaces.field`: inputs and inline controls.
@@ -103,7 +104,7 @@ Change `accent.buttonPrimary` in `colors.ts` to update the main action family ac
 - `contours.line`: main contour stroke.
 - `contours.lineSoft`: softer supporting stroke.
 - `contours.lineFaint`: very soft background texture.
-- `contours.fill`: atmospheric fill.
+- `contours.fill`: sand-toned atmospheric fill.
 - `contours.glow`: muted violet glow.
 
 ### Semantics
@@ -118,15 +119,14 @@ Semantic colors stay conventional:
 
 ### Gradients
 
-- `gradients.mountain*`: Dream Bone to Warm Mist/Faded Lilac Fog background depth.
+- `gradients.mountain*`: sand and warm-paper background depth.
 - `gradients.sunMoon*`: subtle moon/sun atmospheric wash.
-- `gradients.screen*`: full-screen atmosphere for `PsycheScreenBackground`.
 - `gradients.button*`: primary action treatment.
 - `gradients.paper`, `paperLight`: carve/paper effects.
 
 ### Calendar
 
-- `calendar.noDreams`: light paper-mist day state.
+- `calendar.noDreams`: light beige day state.
 - `calendar.hasDreams`: Soft Amethyst from `accent.primary`.
 - `calendar.orange`: Old Gold optional variant.
 
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
 ```typescript
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FAF7F2',
+    backgroundColor: '#F4EFEA',
     color: '#2D2430',
   },
 });

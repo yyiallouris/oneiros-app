@@ -1,0 +1,4 @@
+interface:
+  display_name: "Oneiros Visual QA"
+  short_description: "Oneiros screen visual QA guardrails"
+  default_prompt: "Use $oneiros-visual-qa to review this screen for seams, clipped backgrounds, and CTA/nav hierarchy before finalizing it."

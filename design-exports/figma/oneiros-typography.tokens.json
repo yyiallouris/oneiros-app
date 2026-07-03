@@ -8,30 +8,30 @@
       },
       "body": {
         "$type": "fontFamily",
-        "$description": "Primary UI, body, and reflection font. Greek-safe, restrained, and used across the app.",
-        "$value": "Alegreya Sans"
+        "$description": "Primary UI, body, and reflection font restored from the pre-Alegreya app style.",
+        "$value": "Inter"
       }
     },
     "font-style": {
       "regular": {
         "$type": "string",
-        "$description": "Alegreya Sans regular style.",
+        "$description": "Inter regular style.",
         "$value": "Regular"
       },
       "medium": {
         "$type": "string",
-        "$description": "Alegreya Sans medium style.",
+        "$description": "Inter medium style.",
         "$value": "Medium"
       },
       "semibold": {
         "$type": "string",
-        "$description": "Alegreya Sans medium style used as restrained semibold UI emphasis.",
-        "$value": "SemiBold"
+        "$description": "Inter medium style used as restrained semibold UI emphasis.",
+        "$value": "Medium"
       },
       "bold": {
         "$type": "string",
-        "$description": "Alegreya Sans bold style.",
-        "$value": "Bold"
+        "$description": "Cormorant Garamond SemiBold style used by the legacy bold token.",
+        "$value": "SemiBold"
       }
     },
     "size": {
@@ -134,12 +134,12 @@
       "ui": {
         "$type": "string",
         "$description": "Restrained sans for labels, navigation, inputs, buttons, and cards.",
-        "$value": "Alegreya Sans Regular/Medium/Bold"
+        "$value": "Inter Regular/Medium"
       },
       "reflection": {
         "$type": "string",
         "$description": "Long-form reflection and report text stays in the sans family with relaxed line-height.",
-        "$value": "Alegreya Sans Regular"
+        "$value": "Inter Regular"
       }
     },
     "letter-spacing": {

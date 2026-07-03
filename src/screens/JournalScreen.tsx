@@ -11,12 +11,14 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PsycheScreenBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+import { MountainWaveBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
 import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
 import { normalizeSymbolKey } from '../services/insightsService';
 import Svg, { Circle, Path } from 'react-native-svg';
+
+const JOURNAL_MOUNTAIN_HEIGHT = 300;
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type JournalRouteProp = RouteProp<MainTabsParamList, 'Journal'>;
@@ -255,7 +257,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <PsycheScreenBackground waveHeight={300} />
+      <MountainWaveBackground height={JOURNAL_MOUNTAIN_HEIGHT} lite />
 
       <DesignExportForeground fill>
         <MysticHeader

@@ -11,7 +11,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, WaveBackground, MountainWaveBackground, BreathingLine, DesignExportForeground } from '../components/ui';
+import { Card, Button, MountainWaveBackground, BreathingLine, DesignExportForeground } from '../components/ui';
 import { CircularCalendar } from '../components/ui/CircularCalendar';
 import { Dream } from '../types/dream';
 import { getDreams, getDreamsByDate } from '../utils/storage';

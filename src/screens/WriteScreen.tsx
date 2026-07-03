@@ -14,7 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, PsycheScreenBackground, MysticHeader, DesignExportForeground } from '../components/ui';
+import { Button, MountainWaveBackground, MysticHeader, DesignExportForeground } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -27,15 +27,15 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
 const FLOATING_TAB_BAR_HEIGHT = 86;
 const SAVE_BUTTON_NAV_GAP_OFFSET = Platform.OS === 'android' ? 44 : 8;
+const WRITE_MOUNTAIN_HEIGHT = 320;
 const writePalette = {
   background: colors.background,
   secondaryWash: colors.backgroundSecondary,
   primaryInk: colors.textPrimary,
   mutedViolet: colors.textAccent,
   border: colors.border,
-  surface: colors.backgroundTertiary,
+  surface: colors.cardGlass,
   button: colors.buttonPrimary,
-  buttonDisabled: colors.accentLight,
 } as const;
 
 const WriteScreen: React.FC = () => {
@@ -48,6 +48,7 @@ const WriteScreen: React.FC = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [mainCardBottom, setMainCardBottom] = useState<number | null>(null);
   const autoSaveTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
 
@@ -185,13 +186,14 @@ const WriteScreen: React.FC = () => {
   const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
   const contentInputBottomPadding = voiceButtonBottom + 28;
   const isSaveDisabled = !content.trim() || isSaving;
+  const mountainHeight = WRITE_MOUNTAIN_HEIGHT;
+  const mountainTop = mainCardBottom == null ? undefined : Math.max(0, mainCardBottom - mountainHeight);
 
   return (
     <View
       style={[styles.container, { paddingBottom: insets.bottom }]}
     >
-      <PsycheScreenBackground waveHeight={360} />
-      
+      <MountainWaveBackground height={mountainHeight} top={mountainTop} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scrollView}
@@ -212,7 +214,13 @@ const WriteScreen: React.FC = () => {
         {/* Entry ritual */}
         <Text style={styles.entryRitual}>Take a breath. Let the dream come back.</Text>
 
-        <View style={styles.mainCard}>
+        <View
+          style={styles.mainCard}
+          onLayout={({ nativeEvent }) => {
+            const { y, height } = nativeEvent.layout;
+            setMainCardBottom(y + height);
+          }}
+        >
           <View pointerEvents="none" style={styles.paperGrain} />
           <View pointerEvents="none" style={styles.paperRuleTop} />
           {/* Date Pill */}
@@ -273,7 +281,7 @@ const WriteScreen: React.FC = () => {
             disabled={!content.trim()}
             loading={isSaving}
             style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
-            textStyle={[styles.saveButtonText, isSaveDisabled && styles.saveButtonTextDisabled]}
+            textStyle={styles.saveButtonText}
           />
         </View>
 
@@ -388,9 +396,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.contourLineFaint,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.018,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.014,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
     elevation: 1,
     overflow: 'hidden',
   },
@@ -459,27 +467,21 @@ const styles = StyleSheet.create({
   saveButton: {
     alignSelf: 'center',
     width: '92%',
-    minHeight: 48,
+    minHeight: 46,
     borderRadius: 18,
-    backgroundColor: writePalette.button,
+    backgroundColor: colors.buttonPrimary90,
     borderColor: colors.buttonEdge,
     shadowColor: writePalette.button,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   saveButtonDisabled: {
-    backgroundColor: writePalette.buttonDisabled,
-    borderColor: writePalette.border,
-    shadowOpacity: 0,
-    elevation: 0,
+    opacity: 0.68,
   },
   saveButtonText: {
     color: colors.onAccent,
-  },
-  saveButtonTextDisabled: {
-    color: 'rgba(45, 36, 48, 0.42)',
   },
   secondaryButton: {
     marginTop: spacing.sm,

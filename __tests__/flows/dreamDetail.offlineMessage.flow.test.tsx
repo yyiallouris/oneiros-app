@@ -43,7 +43,6 @@ jest.mock('../../src/components/ui', () => {
     Chip: ({ label }: any) => <Text>{label}</Text>,
     WaveBackground: ({ children }: any) => <View>{children}</View>,
     MountainWaveBackground: ({ children }: any) => <View>{children}</View>,
-    PsycheScreenBackground: ({ children }: any) => <View>{children}</View>,
     MysticHeader: ({ title, subtitle, left, right }: any) => (
       <View>
         {left}

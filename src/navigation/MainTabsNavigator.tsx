@@ -93,9 +93,9 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         },
         tabBarBackground: () => (
           <LinearGradient
-            colors={[colors.backgroundTertiary, colors.navSurface]}
-            start={{ x: 0.18, y: 0 }}
-            end={{ x: 0.82, y: 1 }}
+            colors={[colors.backgroundSecondary, colors.navSurface]}
+            start={{ x: 0.22, y: 0 }}
+            end={{ x: 0.78, y: 1 }}
             style={styles.tabBackground}
           />
         ),
@@ -172,11 +172,11 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: colors.navBorder,
+    borderColor: colors.contourLineFaint,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
   iconFrame: {
     width: 72,
@@ -192,10 +192,10 @@ const styles = StyleSheet.create({
     bottom: 10,
     borderRadius: 999,
     backgroundColor: colors.buttonPrimaryLight12,
-    opacity: 0.72,
+    opacity: 0.44,
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 0 },
   },
   iconContent: {
@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
   },
   iconContentFocused: {
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
     shadowOffset: { width: 0, height: 0 },
   },
   iconSvgWrap: {
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
   },
   iconSvgWrapFocused: {
     shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
     shadowOffset: { width: 0, height: 1 },
   },
 });

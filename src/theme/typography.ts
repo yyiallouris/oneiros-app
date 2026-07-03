@@ -1,12 +1,12 @@
 export const typography = {
   // Font families
-  // Two-family rule:
-  // - Cormorant Garamond is reserved for the Oneiros wordmark / splash brand moment.
-  // - Alegreya Sans is the app UI and reflection font, with generous line-height for essays.
-  regular: 'AlegreyaSans_400Regular',
-  medium: 'AlegreyaSans_500Medium',
-  semibold: 'AlegreyaSans_500Medium',
-  bold: 'AlegreyaSans_700Bold',
+  // Brand typography:
+  // - "Oneiros" wordmark / splash title uses a romanesque serif feel.
+  // - UI copy stays on Inter for clarity and contrast.
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_500Medium',
+  bold: 'CormorantGaramond_600SemiBold',
   display: 'CormorantGaramond_600SemiBold',
   
   // Font sizes
@@ -31,10 +31,10 @@ export const typography = {
   // expressive serif, app UI stays sans, reflection copy breathes through line-height.
   roles: {
     brand: 'CormorantGaramond_600SemiBold',
-    ui: 'AlegreyaSans_400Regular',
-    uiEmphasis: 'AlegreyaSans_500Medium',
-    uiStrong: 'AlegreyaSans_700Bold',
-    reflection: 'AlegreyaSans_400Regular',
+    ui: 'Inter_400Regular',
+    uiEmphasis: 'Inter_500Medium',
+    uiStrong: 'CormorantGaramond_600SemiBold',
+    reflection: 'Inter_400Regular',
     poeticShortTitle: 'CormorantGaramond_600SemiBold',
   },
   
@@ -43,6 +43,6 @@ export const typography = {
     regular: '400' as const,
     medium: '500' as const,
     semibold: '500' as const,
-    bold: '700' as const,
+    bold: '600' as const,
   },
 };

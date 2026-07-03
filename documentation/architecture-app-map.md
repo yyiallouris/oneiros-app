@@ -42,7 +42,7 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 - Colors: `src/theme/colors.ts`; docs: `src/theme/COLORS.md`.
 - Typography: `src/theme/typography.ts`; docs: `src/theme/TYPOGRAPHY.md`.
-- Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `PsycheScreenBackground`, `MountainWaveBackground`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.
+- Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `MountainWaveBackground`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.
 - Visual direction: Dream Bone paper base, Deep Ink text, Night/Ritual Plum actions, Old Gold and earth accents. Avoid hardcoded colors in components unless truly local.
 - UI changes must consider both iPhone/iOS and Android safe areas, keyboard behavior, native permissions, and the absolute bottom tab bar.
 

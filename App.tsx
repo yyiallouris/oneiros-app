@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { CormorantGaramond_600SemiBold } from '@expo-google-fonts/cormorant-garamond';
-import {
-  AlegreyaSans_400Regular,
-  AlegreyaSans_500Medium,
-  AlegreyaSans_700Bold,
-} from '@expo-google-fonts/alegreya-sans';
+import { Inter_400Regular, Inter_500Medium } from '@expo-google-fonts/inter';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -25,9 +21,8 @@ SplashScreen.preventAutoHideAsync();
 export default function App() {
   const [isLoading, setIsLoading] = useState(!DESIGN_EXPORT_MODE || DESIGN_EXPORT_HOLD_SPLASH);
   const [fontsLoaded] = useFonts({
-    AlegreyaSans_400Regular,
-    AlegreyaSans_500Medium,
-    AlegreyaSans_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
     CormorantGaramond_600SemiBold,
   });
 

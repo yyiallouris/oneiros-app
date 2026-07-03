@@ -7,11 +7,20 @@ const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 interface MountainWaveBackgroundProps {
   height?: number;
+  /** Optional absolute top offset for aligning the mountain base to another element. */
+  top?: number;
+  /** Optional lift from the bottom edge when using the default bottom anchor. */
+  bottomOffset?: number;
   /** When true: same palette & 3 waves, but static tints (no 52s tint loop). Use in swipeable contexts for perf. */
   lite?: boolean;
 }
 
-const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({ height = 300, lite = false }) => {
+const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({
+  height = 300,
+  top,
+  bottomOffset = 0,
+  lite = false,
+}) => {
   const { width } = useWindowDimensions();
   const W = width + 80;
 
@@ -108,7 +117,7 @@ const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({ he
 
   return (
     <View
-      style={[styles.container, { height }]}
+      style={[styles.container, { height }, top != null ? { top } : { bottom: bottomOffset }]}
       pointerEvents="none"
       renderToHardwareTextureAndroid={Platform.OS === 'android'}
     >
@@ -132,7 +141,6 @@ export const MountainWaveBackground = React.memo(MountainWaveBackgroundInner);
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
     left: -40,
     right: -40,
     overflow: 'visible',
