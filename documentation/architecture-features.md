@@ -6,7 +6,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 
 | Feature | Entry points | Core dependencies | Update when changed |
 |---------|--------------|-------------------|---------------------|
-| App entry and loading | `App.tsx`, `LoadingScreen` | Expo splash, fonts, design export flags, safe area | flows 00/01, theme docs for visual changes |
+| App entry and loading | `App.tsx`, `LoadingScreen` | Expo splash, droplet brand assets, paper background, design export flags, safe area | flows 00/01, theme docs for visual changes |
 | Auth and recovery | `AuthScreen`, `SetPasswordScreen`, `authDeepLink.ts` | Supabase Auth, deep links, `PENDING_PASSWORD_RESET_KEY` | flows 01/02, `AUTH_SETUP.md`, `authDeepLink.flow.test.ts` |
 | Legal consent | `LegalConsentScreen`, `legalConsentService.ts` | `LEGAL_CONSENT_VERSION`, per-user AsyncStorage | flows 03/08, legal consent flow test |
 | Onboarding | `OnboardingNavigator`, onboarding screens | user settings, biometric service, onboarding service | flows 03, onboarding flow test |
@@ -30,7 +30,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 - New persisted field: update type definitions, local storage defaulting, remote mapping, sync merge, migrations, docs, and tests.
 - New AI task: update `ai.ts`, `openai-proxy` routing docs/config, failure/offline behavior, and AI tests.
 - New screen state that can fail offline: use existing offline message patterns and update flow 05 plus the feature flow.
-- New visual pattern: reuse shared UI/theme first and update theme docs when tokens or rules change.
+- New visual pattern: reuse shared UI/theme first, prefer `PaperBackground` over legacy waves, and update theme docs when tokens or rules change.
 
 ## Platform considerations
 

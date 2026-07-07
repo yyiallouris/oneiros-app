@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text } from '../../theme';
-import { MountainWaveBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import {
   getBiometricStatus,
   isBiometricEnabled,
@@ -72,7 +72,7 @@ const OnboardingSecureScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

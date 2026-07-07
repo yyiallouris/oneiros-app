@@ -30,7 +30,8 @@ jest.mock('../../src/components/ui', () => {
   const React = require('react');
   const { View, Text } = require('react-native');
   return {
-    MountainWaveBackground: ({ children }: any) => <View>{children}</View>,
+    PaperBackground: ({ children }: any) => <View>{children}</View>,
+    LegacyMountainWaveBackground: ({ children }: any) => <View>{children}</View>,
     BreathingLine: () => null,
     Card: ({ children }: any) => <View>{children}</View>,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,

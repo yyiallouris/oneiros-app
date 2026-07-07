@@ -1,6 +1,6 @@
 # App icon – spec for designer
 
-For the icon to **fill the entire space** on the phone (no white border / background).
+For the icon to feel like the Oneiros droplet on a quiet paper field, while still **filling the entire app-icon frame** on device.
 
 ---
 
@@ -8,7 +8,7 @@ For the icon to **fill the entire space** on the phone (no white border / backgr
 
 The gap may come from **rendering** (Expo/Android), not from the file:
 
-1. **Android adaptive icon** clips the icon into a **circle or squircle**. The **corners** of the square (e.g. the 4 corners) may appear as gaps if they are **transparent** in the PNG. Solution: **the entire 1024×1024 (or 1200×1200) should be filled with color** — even the corners should be covered by the Night Plum icon background color, **no transparency**.
+1. **Android adaptive icon** clips the icon into a **circle or squircle**. The **corners** of the square may appear as gaps if they are **transparent** in the PNG. Solution: the adaptive **background image must be fully filled** with the paper field, with **no transparency** at the edges.
 2. **Expo prebuild** may have stale assets. Try: `npx expo prebuild --clean` and then a new build, so that Android icon assets are regenerated from the current `icon.png`.
 
 ---
@@ -21,31 +21,31 @@ The gap may come from **rendering** (Expo/Android), not from the file:
 
 ## How to fill the frame
 
-1. **Full bleed**  
-   The graphic (waves, sun/moon, colors) must extend **to the edges** of the 1024×1024.  
-   **No** white margin, **no** transparent padding around the design.
+1. **Full bleed background**  
+   The paper background must extend **to the edges** of the 1024×1024.  
+   **No** transparent padding around the adaptive/icon background image.
 
 2. **Safe zone (Android)**  
-   Key elements (e.g. sun/moon, central logo) are best kept **inside a central circle ~66%** of the side (approx. 672px diameter at 1024px).  
+   The droplet symbol is best kept **inside a central circle ~66%** of the side (approx. 672px diameter at 1024px).  
    This way they won’t be cut off on round/squircle masks. Colors/waves can extend to the corners.
 
 3. **Background**  
-   If the icon has its own “sky” or color to the edges, **don’t leave transparency** at the edges.  
-   Fill the entire square (e.g. with Night Plum) so a white border never appears.
+   Use the paper field (`BG_paper.png`) behind the droplet for full-bleed icon outputs.  
+   Do not leave transparency at the edges of the adaptive background.
 
 ## Current Oneiros splash direction
 
 ### Native splash
 
-- Background: `#4B3158` Night Plum.
-- Emblem: warm white `#F8F3EA`.
+- Background: `#F8F3EA` warm paper.
+- Emblem: the droplet mark from `assets/branding/oneiros_logo.png`.
 - Native splash image width: around 180px (`app.json` `imageWidth`).
 - No splash text; the emblem should feel like a quiet dream portal, not a poster.
 
 ### In-app loading screen
 
 - Appears after the native splash while app resources/session state finish loading.
-- Uses the same Night Plum field, a larger emblem, and the `Oneiros` wordmark below it.
+- Uses the same paper field, a larger droplet emblem, and the `Oneiros` wordmark below it.
 - This is the fuller brand moment; the native splash stays calmer.
 
 ## Summary
@@ -53,7 +53,7 @@ The gap may come from **rendering** (Expo/Android), not from the file:
 | Correct                         | Wrong                    |
 |---------------------------------|---------------------------|
 | 1024×1024, graphic to the edges | Padding / margin around  |
-| Entire frame filled with color  | Transparency at edges     |
+| Entire background frame filled  | Transparency at edges     |
 | Key elements in central 66%     | Logo too close to corners |
 
-After export, replace `assets/icon.png` and run a new build for changes to apply.
+After changing the source assets, regenerate the outputs in `assets/branding/` and run a new build for changes to apply.

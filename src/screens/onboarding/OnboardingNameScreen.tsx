@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders } from '../../theme';
-import { MountainWaveBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import { UserService } from '../../services/userService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 
@@ -29,7 +29,7 @@ const OnboardingNameScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

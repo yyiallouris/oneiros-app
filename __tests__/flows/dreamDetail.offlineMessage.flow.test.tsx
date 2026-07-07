@@ -41,8 +41,9 @@ jest.mock('../../src/components/ui', () => {
       </TouchableOpacity>
     ),
     Chip: ({ label }: any) => <Text>{label}</Text>,
-    WaveBackground: ({ children }: any) => <View>{children}</View>,
-    MountainWaveBackground: ({ children }: any) => <View>{children}</View>,
+    PaperBackground: ({ children }: any) => <View>{children}</View>,
+    LegacyWaveBackground: ({ children }: any) => <View>{children}</View>,
+    LegacyMountainWaveBackground: ({ children }: any) => <View>{children}</View>,
     MysticHeader: ({ title, subtitle, left, right }: any) => (
       <View>
         {left}

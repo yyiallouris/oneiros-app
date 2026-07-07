@@ -1,42 +1,54 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Image, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, typography } from '../../theme';
 import { DesignExportForeground } from './DesignExportForeground';
+import { PaperBackground } from './PaperBackground';
 
 interface LoadingScreenProps {
   onComplete?: () => void;
 }
 
-const BRUSH_WIDTH = 100;
-const BRUSH_DURATION_MS = 1500;
 const MAX_EMBLEM_SIZE = 330;
-const IMAGE_SCALE = 100; // Fuller in-app brand moment after the native splash.
+const IMAGE_SCALE = 0.6;
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
   const { height: screenH, width: screenW } = useWindowDimensions();
-  const brushAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const emblemFloat = useRef(new Animated.Value(0)).current;
 
   const contentH = screenH - insets.top - insets.bottom;
   const imgSize = Math.min(MAX_EMBLEM_SIZE, Math.round(screenW * IMAGE_SCALE));
-  const portalOffset = -Math.round(contentH * 0.04);
+  const portalOffset = -Math.round(contentH * 0.03);
 
   useEffect(() => {
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(emblemFloat, {
+          toValue: 1,
+          duration: 1800,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(emblemFloat, {
+          toValue: 0,
+          duration: 1800,
+          easing: Easing.inOut(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 300,
       useNativeDriver: true,
     }).start();
 
-    Animated.timing(brushAnim, {
-      toValue: 1,
-      duration: BRUSH_DURATION_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
+    floatLoop.start();
+
+    const timeout = setTimeout(() => {
       if (!onComplete) {
         return;
       }
@@ -48,12 +60,22 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
       }).start(() => {
         onComplete?.();
       });
-    });
-  }, [brushAnim, fadeAnim]);
+    }, 1650);
 
-  const brushTranslateX = brushAnim.interpolate({
+    return () => {
+      clearTimeout(timeout);
+      floatLoop.stop();
+    };
+  }, [emblemFloat, fadeAnim, onComplete]);
+
+  const emblemTranslateY = emblemFloat.interpolate({
     inputRange: [0, 1],
-    outputRange: [-BRUSH_WIDTH, imgSize + BRUSH_WIDTH],
+    outputRange: [0, -8],
+  });
+
+  const emblemOpacity = emblemFloat.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.98, 1, 0.98],
   });
 
   return (
@@ -67,32 +89,27 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
         },
       ]}
     >
+      <PaperBackground />
       <DesignExportForeground style={[styles.centerBox, { transform: [{ translateY: portalOffset }] }]}>
-        <View style={[styles.imageWrap, { width: imgSize, height: imgSize }]}>
+        <Animated.View
+          style={[
+            styles.imageWrap,
+            {
+              width: imgSize,
+              height: imgSize,
+              opacity: emblemOpacity,
+              transform: [{ translateY: emblemTranslateY }],
+            },
+          ]}
+          testID="loading-logo-wrap"
+        >
           <Image
             source={require('../../../assets/branding/splash-logo.png')}
             style={{ width: imgSize, height: imgSize }}
             resizeMode="contain"
+            testID="loading-logo"
           />
-          <Animated.View
-            style={[
-              styles.brush,
-              {
-                width: BRUSH_WIDTH,
-                height: imgSize,
-                transform: [{ translateX: brushTranslateX }],
-              },
-            ]}
-            pointerEvents="none"
-          >
-            <LinearGradient
-              colors={['transparent', 'rgba(248, 243, 234, 0.34)', 'transparent']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={StyleSheet.absoluteFill}
-            />
-          </Animated.View>
-        </View>
+        </Animated.View>
         <View style={styles.titleWrap}>
           <Text style={styles.titleMain}>Oneiros</Text>
         </View>
@@ -104,7 +121,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.buttonPrimary,
+    backgroundColor: colors.background,
   },
   centerBox: {
     flex: 1,
@@ -122,14 +139,8 @@ const styles = StyleSheet.create({
   titleMain: {
     fontFamily: typography.display,
     fontSize: 42,
-    color: '#F8F3EA',
+    color: colors.textPrimary,
     letterSpacing: 1.8,
-    opacity: 0.88,
-  },
-  brush: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    overflow: 'hidden',
+    opacity: 0.9,
   },
 });

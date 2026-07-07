@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Card, Button, MountainWaveBackground, DesignExportForeground } from '../components/ui';
+import { Card, Button, PaperBackground, DesignExportForeground } from '../components/ui';
 import { CRISIS_NOTICE, LEGAL_CONSENT_ITEMS, WELLNESS_DISCLAIMER } from '../constants/legal';
 import { setLegalConsentAccepted } from '../services/legalConsentService';
 import { RootStackParamList } from '../navigation/types';
@@ -36,7 +36,7 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

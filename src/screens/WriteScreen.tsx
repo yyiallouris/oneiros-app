@@ -14,7 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, MountainWaveBackground, MysticHeader, DesignExportForeground } from '../components/ui';
+import { Button, PaperBackground, MysticHeader, DesignExportForeground } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -193,7 +193,7 @@ const WriteScreen: React.FC = () => {
     <View
       style={[styles.container, { paddingBottom: insets.bottom }]}
     >
-      <MountainWaveBackground height={mountainHeight} top={mountainTop} lite />
+      <PaperBackground height={mountainHeight} top={mountainTop} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scrollView}

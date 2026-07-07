@@ -14,14 +14,14 @@ const baseColors = {
 // ==================== BACKGROUND COLORS ====================
 export const backgrounds = {
   // Main backgrounds
-  primary: '#F4EFEA',      // Soft warm cream base from the pre-Psyche background
-  secondary: '#EDE6DF',    // Slightly darker warm paper for cards
-  tertiary: '#F4EFE8',     // Warm paper tone for raised sections
-  splash: '#4B3158',       // Night Plum behind native splash and loading mark
-  card: '#EDE6DF',         // Warm paper card background
-  cardTransparent: 'rgba(237, 230, 223, 0.7)', // Semi-transparent card
-  cardSemiTransparent: 'rgba(240, 229, 223, 0.7)', // Stronger glass for hero surfaces
-  cardMoreTransparent: 'rgba(240, 229, 223, 0.5)', // More transparent
+  primary: '#F8F3EA',      // Base paper field behind the new BG_paper texture
+  secondary: '#F3ECE2',    // Soft paper card wash
+  tertiary: '#FCF7F0',     // Raised quiet paper tone
+  splash: '#F8F3EA',       // Native splash now sits on warm paper instead of plum
+  card: '#F3ECE2',         // Warm paper card background
+  cardTransparent: 'rgba(243, 236, 226, 0.78)', // Semi-transparent paper card
+  cardSemiTransparent: 'rgba(255, 253, 249, 0.86)', // Stronger parchment surface
+  cardMoreTransparent: 'rgba(255, 253, 249, 0.62)', // More transparent parchment layer
   
   // Wave backgrounds (for gradients)
   wave1: '#DAD2C8',        // Gentle sand wave
@@ -104,13 +104,13 @@ export const brandIcon = {
 
 // ==================== BRAND SURFACES ====================
 export const surfaces = {
-  glass: 'rgba(237, 230, 223, 0.7)',        // Default transparent warm paper card
-  glassStrong: 'rgba(240, 229, 223, 0.82)', // Search bars / dropdowns / strong surfaces
-  glassSoft: 'rgba(240, 229, 223, 0.5)',    // Chat / atmospheric surfaces
-  field: 'rgba(244, 239, 232, 0.9)',        // Inputs and inline controls
-  nav: 'rgba(237, 230, 223, 0.94)',         // Bottom nav / header chrome
-  navBorder: 'rgba(226, 216, 204, 0.8)',    // Navigation border tone
-  edgeGlow: 'rgba(244, 239, 234, 0.76)',    // Soft warm top edge
+  glass: 'rgba(243, 236, 226, 0.78)',       // Default transparent paper card
+  glassStrong: 'rgba(255, 253, 249, 0.88)', // Search bars / dropdowns / strong surfaces
+  glassSoft: 'rgba(255, 253, 249, 0.58)',   // Chat / atmospheric surfaces
+  field: 'rgba(252, 247, 240, 0.94)',       // Inputs and inline controls
+  nav: 'rgba(255, 253, 249, 0.86)',         // Floating bottom nav parchment shelf
+  navBorder: 'rgba(222, 211, 223, 0.35)',   // Navigation border tone
+  edgeGlow: 'rgba(255, 253, 249, 0.72)',    // Soft warm top edge
 } as const;
 
 // ==================== CONTOUR SYSTEM ====================
@@ -150,7 +150,7 @@ export const borders = {
 
 // ==================== SHADOW COLORS ====================
 export const shadows = {
-  primary: 'rgba(45, 36, 48, 0.08)',  // Main shadow
+  primary: 'rgba(45, 36, 48, 0.1)',   // Main shadow
   card: 'rgba(45, 36, 48, 0.1)',      // Card shadow
   button: 'rgba(75, 49, 88, 0.18)',   // Button shadow
   overlay: 'rgba(45, 36, 48, 0.2)',   // Overlay shadow

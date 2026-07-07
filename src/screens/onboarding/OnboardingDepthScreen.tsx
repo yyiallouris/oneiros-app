@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius } from '../../theme';
-import { MountainWaveBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import { setInterpretationDepth, type InterpretationDepth } from '../../services/userSettingsService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { AI_REFLECTION_NOTICE } from '../../constants/legal';
@@ -31,7 +31,7 @@ const OnboardingDepthScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

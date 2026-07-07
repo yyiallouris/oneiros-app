@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { WaveBackground, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import {
@@ -134,7 +134,7 @@ const AccountScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

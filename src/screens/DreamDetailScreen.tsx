@@ -18,7 +18,7 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Button, MountainWaveBackground, PrintPatchLoader, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+  import { Button, PaperBackground, PrintPatchLoader, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
   import { Dream, Interpretation, ChatMessage } from '../types/dream';
@@ -839,7 +839,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
+            <PaperBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
             <DesignExportForeground fill>
               <ScrollView
                 style={[styles.scrollView, Platform.OS === 'web' && styles.webScrollView]}
@@ -866,7 +866,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       return (
         <View style={styles.root}>
           <View style={styles.container}>
-            <MountainWaveBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
+            <PaperBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
             <DesignExportForeground style={styles.errorContainer}>
               <Text style={styles.errorText}>Dream not found</Text>
             </DesignExportForeground>
@@ -901,7 +901,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
-          <MountainWaveBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
+          <PaperBackground height={DREAM_DETAIL_MOUNTAIN_HEIGHT} lite />
           <DesignExportForeground fill>
             <ScrollView
               ref={scrollViewRef}

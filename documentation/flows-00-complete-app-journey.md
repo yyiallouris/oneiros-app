@@ -5,8 +5,10 @@ This is the end-to-end Oneiros path for agents who need the whole product shape 
 ## 1. Launch and route gate
 
 1. `App.tsx` loads brand fonts, hides the native splash, then shows `LoadingScreen`.
-2. `RootNavigator` initializes storage and auth deep links in parallel.
-3. Supabase session state decides the first root route:
+2. Native splash now uses the droplet symbol only on a warm paper field.
+3. `LoadingScreen` continues the same paper-first entry moment with the droplet logo plus the `Oneiros` wordmark.
+4. `RootNavigator` initializes storage and auth deep links in parallel.
+5. Supabase session state decides the first root route:
    - No session: `Auth` plus `LoginSupport`.
    - Pending password reset: `SetPassword`.
    - Biometric lock enabled and not unlocked this foreground: `BiometricLock`.
@@ -29,6 +31,8 @@ Related docs: [flows-02-authentication.md](./flows-02-authentication.md), [flows
 ## 3. Main tabs and primary work
 
 Main app tabs are `Write`, `Journal`, and `Insights`.
+
+- Bottom navigation now renders as a floating parchment shelf over the paper background with explicit active/inactive PNG icon pairs.
 
 - `WriteScreen`: user records today’s dream, auto-saves a draft, optionally appends voice transcription, saves locally first, clears the draft, then opens `DreamDetail`.
 - `DreamDetailScreen`: shows the dream, generates or displays the Jungian reflection, presents `display_distillation`, supports inline follow-up chat, editing, regeneration, deletion/reset paths, and offline guards for AI actions.

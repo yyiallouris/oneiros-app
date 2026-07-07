@@ -18,7 +18,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { BreathingLine, ThreadDrift, DesignExportForeground } from '../components/ui';
+import { BreathingLine, ThreadDrift, DesignExportForeground, PaperBackground } from '../components/ui';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
@@ -619,6 +619,7 @@ const InterpretationChatScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
+      <PaperBackground />
       <DesignExportForeground fill>
         {/* Chat Messages */}
         <FlatList

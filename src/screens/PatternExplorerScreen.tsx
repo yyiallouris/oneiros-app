@@ -10,7 +10,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
-import { MountainWaveBackground, BreathingLine, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, BreathingLine, Card, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -191,7 +191,7 @@ const PatternExplorerScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <MountainWaveBackground height={260} lite />
+        <PaperBackground height={260} lite />
         <DesignExportForeground fill>
           <View style={styles.loadingPlaceholder}>
             <BreathingLine width={100} height={2} color={colors.textMuted} />
@@ -203,7 +203,7 @@ const PatternExplorerScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

@@ -5,10 +5,10 @@
 All app colors live in **`src/theme/colors.ts`**. The current visual direction is:
 
 ```txt
-Soft Warm Cream / Deep Ink / dirtied plum / old-paper symbolic accents
+Textured warm paper / Deep Ink / plum actions / old-paper symbolic accents
 ```
 
-The palette should feel like paper, ash, clay, moonlight, old gold, and a muted dream archive. Keep purple as a Jungian plum role, not a generic lavender wellness wash.
+The palette should feel like a quiet parchment field with soft paper variation behind the UI, not a flat cream fill and not a glossy wellness app wash. Keep purple as a Jungian plum role, not a generic lavender mood board.
 
 **Never use hardcoded colors in components** unless the color is truly local and cannot be expressed as a reusable token.
 
@@ -16,9 +16,9 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 | Color name | Value | Token | Usage |
 |------------|-------|-------|-------|
-| Soft Warm Cream | `#F4EFEA` | `backgrounds.primary`, `brandIcon.mist` | Main app background |
-| Warm Paper | `#EDE6DF` | `backgrounds.secondary`, `backgrounds.card` | Cards and secondary screen wash |
-| Warm Paper Light | `#F4EFE8` | `backgrounds.tertiary` | Raised writing/card surfaces |
+| Soft Warm Paper | `#F8F3EA` | `backgrounds.primary`, `brandIcon.mist` | Main app base behind `BG_paper.png` |
+| Paper Wash | `#F3ECE2` | `backgrounds.secondary`, `backgrounds.card` | Cards and secondary screen wash |
+| Raised Paper Light | `#FCF7F0` | `backgrounds.tertiary` | Raised writing/card surfaces |
 | Gentle Sand Wave | `#DAD2C8` | `backgrounds.wave1` | Atmospheric depth, background waves |
 | Deeper Grounding Wave | `#CFC6BA` | `backgrounds.wave2` | Lower/background wave depth |
 | Pressed Surface | `#F4EDF4` | `accent.light` | Light pressed/control backgrounds |
@@ -27,7 +27,7 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 | Muted Ink | `#5E5263` | `text.secondary` | Supporting text |
 | Ghost Text | `#8C8290` | `text.muted`, `tabBar.iconInactive` | Placeholders, subdued metadata |
 | Night Plum | `#4B3158` | `accent.buttonPrimary`, `accent.dark` | Buttons, selected controls, active UI |
-| Night Plum Splash | `#4B3158` | `backgrounds.splash` | Native splash and in-app loading background |
+| Warm Paper Splash | `#F8F3EA` | `backgrounds.splash` | Native splash field behind the droplet mark |
 | Ritual Plum | `#65446F` | `text.accent`, `accent.symbol`, `brandIcon.glow` | Symbol accents, subtle emphasis |
 | Soft Amethyst | `#A88BB2` | `accent.primary`, `accent.buttonPrimaryDisabled`, `calendar.hasDreams` | Decorative highlights, disabled primary states |
 | Old Gold | `#B58A4A` | `accent.oldGold`, `accent.orange`, `calendar.orange` | Ritual highlights, calendar/sun contrast |
@@ -39,13 +39,13 @@ The palette should feel like paper, ash, clay, moonlight, old gold, and a muted 
 
 ### Backgrounds
 
-- `backgrounds.primary`: Soft Warm Cream app base.
-- `backgrounds.secondary`: Warm Paper support wash.
-- `backgrounds.tertiary`: Warm Paper Light for raised writing surfaces.
-- `backgrounds.splash`: Night Plum splash/loading background.
-- `backgrounds.card`: Warm Paper card background.
+- `backgrounds.primary`: warm paper app base used under `BG_paper.png`.
+- `backgrounds.secondary`: paper wash support tone.
+- `backgrounds.tertiary`: raised paper tone for lighter sections.
+- `backgrounds.splash`: warm paper splash/loading background.
+- `backgrounds.card`: warm paper card background.
 - `backgrounds.cardTransparent`, `cardSemiTransparent`, `cardMoreTransparent`: translucent paper surfaces.
-- `backgrounds.wave1`, `wave2`: Gentle Sand Wave and Deeper Grounding Wave.
+- `backgrounds.wave1`, `wave2`: legacy wave tones kept only for legacy components/reference.
 - `backgrounds.overlay`, `overlayLight`, `backdrop`: ink-based overlays.
 
 ### Text
@@ -92,11 +92,11 @@ Change `accent.buttonPrimary` in `colors.ts` to update the main action family ac
 ### Surfaces
 
 - `surfaces.glass`: default transparent warm paper card.
-- `surfaces.glassStrong`: strong search/dropdown surface.
-- `surfaces.glassSoft`: soft chat/atmospheric surface.
+- `surfaces.glassStrong`: stronger parchment surface for search/dropdowns.
+- `surfaces.glassSoft`: softer chat/atmospheric surface.
 - `surfaces.field`: inputs and inline controls.
-- `surfaces.nav`: bottom nav/header chrome.
-- `surfaces.navBorder`: navigation outline.
+- `surfaces.nav`: floating parchment bottom-nav shelf.
+- `surfaces.navBorder`: soft lilac-paper navigation outline.
 - `surfaces.edgeGlow`: subtle paper edge glow.
 
 ### Contours
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
 
 | What | File / export |
 |------|---------------|
-| Main app base | `colors.ts` -> `backgrounds.primary` |
+| Main app base | `colors.ts` -> `backgrounds.primary` plus `assets/backgrounds/BG_paper.png` |
 | Secondary wash | `colors.ts` -> `backgrounds.secondary` |
 | Text | `colors.ts` -> `text.*` |
 | Buttons / mic / active controls | `colors.ts` -> `accent.buttonPrimary` |
@@ -195,6 +195,12 @@ const styles = StyleSheet.create({
 | Borders | `colors.ts` -> `borders.*` |
 | Screen atmosphere | `colors.ts` -> `gradients.screen*` |
 | Brand splash/icon palette | `colors.ts` -> `brandIcon.*` |
+
+## Paper Background
+
+- The app now uses `assets/backgrounds/BG_paper.png` as the shared full-screen field through `PaperBackground`.
+- Keep the background quiet: do not layer new global waves, fog, mountains, or glossy gradients on top of it.
+- `LegacyWaveBackground` and `LegacyMountainWaveBackground` remain in the repo only as legacy fallback/reference components.
 
 ## Adding Colors
 

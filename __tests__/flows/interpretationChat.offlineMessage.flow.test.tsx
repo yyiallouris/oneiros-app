@@ -27,6 +27,7 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('../../src/components/ui', () => ({
   BreathingLine: () => null,
   ThreadDrift: () => null,
+  PaperBackground: ({ children }: any) => children,
   DesignExportForeground: ({ children }: any) => children,
 }));
 

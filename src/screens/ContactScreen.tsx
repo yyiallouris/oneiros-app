@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { WaveBackground, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
 import { sendContactMessage } from '../services/contact';
 import { RootStackParamList } from '../navigation/types';
 
@@ -50,7 +50,7 @@ const ContactScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={0}
     >
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground style={styles.content}>
         <Text style={styles.title}>Contact us</Text>
         <Text style={styles.subtitle}>

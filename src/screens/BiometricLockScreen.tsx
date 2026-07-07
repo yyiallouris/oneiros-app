@@ -7,7 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
-import { Button, WaveBackground, DesignExportForeground } from '../components/ui';
+import { Button, PaperBackground, DesignExportForeground } from '../components/ui';
 import { requireBiometricUnlock, getBiometricStatus, getBiometricLabel } from '../services/biometricAuthService';
 import { BiometricUnlockContext } from '../navigation/RootNavigator';
 
@@ -47,7 +47,7 @@ const BiometricLockScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={styles.header}>
           <View style={styles.titleRow}>

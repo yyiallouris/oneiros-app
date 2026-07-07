@@ -17,7 +17,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
-import { MountainWaveBackground, BreathingLine, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
+import { PaperBackground, BreathingLine, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -310,7 +310,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   if (loading) {
     return (
       <View style={[styles.container, embedded && styles.containerTransparent]}>
-        {!embedded && <MountainWaveBackground height={260} lite />}
+        {!embedded && <PaperBackground height={260} lite />}
         <DesignExportForeground style={styles.centered}>
           <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
         </DesignExportForeground>
@@ -320,7 +320,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
 
   return (
     <View style={[styles.container, embedded && styles.containerTransparent]}>
-      {!embedded && <MountainWaveBackground height={260} lite />}
+      {!embedded && <PaperBackground height={260} lite />}
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

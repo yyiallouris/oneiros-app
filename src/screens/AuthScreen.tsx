@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, WaveBackground, DesignExportForeground } from '../components/ui';
+import { Button, Card, PaperBackground, DesignExportForeground } from '../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
@@ -504,7 +504,7 @@ const AuthScreen: React.FC = () => {
         behavior="padding"
         keyboardVerticalOffset={0}
       >
-        <WaveBackground />
+        <PaperBackground />
         <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
             <Text style={styles.title}>Reset password</Text>
@@ -572,7 +572,7 @@ const AuthScreen: React.FC = () => {
         behavior="padding"
         keyboardVerticalOffset={0}
       >
-        <WaveBackground />
+        <PaperBackground />
         <DesignExportForeground style={[styles.inner, { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.lg }]}>
           <View style={styles.header}>
             <Text style={styles.title}>Verify your email</Text>
@@ -629,7 +629,7 @@ const AuthScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={0}
     >
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

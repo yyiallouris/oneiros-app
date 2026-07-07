@@ -15,7 +15,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
-import { MountainWaveBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   DreamsLoggedIcon,
@@ -323,7 +323,7 @@ const InsightsScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <MountainWaveBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
+        <PaperBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
         <DesignExportForeground fill>
           <MysticHeader title="Insights" subtitle="Patterns rising into view." />
           <View style={styles.loadingPlaceholder}>
@@ -346,7 +346,7 @@ const InsightsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
+      <PaperBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
       <DesignExportForeground fill>
         <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 

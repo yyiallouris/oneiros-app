@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, DesignExportForeground } from '../components/ui';
+import { Card, Button, DesignExportForeground, PaperBackground } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreamById, saveDream, deleteDream } from '../utils/storage';
 import { formatDate, toISODate, generateId } from '../utils/date';
@@ -137,6 +137,7 @@ const DreamEditorScreen: React.FC = () => {
       behavior="padding"
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
+      <PaperBackground />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scrollView}

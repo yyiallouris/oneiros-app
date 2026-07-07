@@ -1,65 +1,47 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Platform, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image, ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabsParamList } from './types';
 import WriteScreen from '../screens/WriteScreen';
 import JournalScreen from '../screens/JournalScreen';
 import InsightsScreen from '../screens/InsightsScreen';
 import { colors, typography } from '../theme';
-import WriteTabIcon from '../assets/tab-icons/write_tab.svg';
-import JournalTabIcon from '../assets/tab-icons/journal_tab.svg';
-import InsightsTabIcon from '../assets/tab-icons/insights_tab.svg';
 import { IS_DESIGN_EXPORT_BACKGROUND_ONLY } from '../designExport';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
+const TAB_ICON_SIZE = 33;
 
-// Minimum bottom inset so tab bar stays above Android navigation bar when
-// system insets are 0 or small (edge-to-edge). Android nav bar is typically 48dp.
-const MIN_TAB_BAR_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
+const TAB_ICONS = {
+  Write: {
+    active: require('../assets/tab-icons/write_active.png'),
+    inactive: require('../assets/tab-icons/write_inactive.png'),
+  },
+  Journal: {
+    active: require('../assets/tab-icons/journal_active.png'),
+    inactive: require('../assets/tab-icons/journal_inactive.png'),
+  },
+  Insights: {
+    active: require('../assets/tab-icons/inighsts_active.png'),
+    inactive: require('../assets/tab-icons/inisghts_inactive.png'),
+  },
+} satisfies Record<keyof MainTabsParamList, { active: ImageSourcePropType; inactive: ImageSourcePropType }>;
 
-const TabIconFrame = ({
+const TabPngIcon = ({
   focused,
-  children,
+  source,
+  testID,
 }: {
   focused: boolean;
-  children: React.ReactNode;
+  source: ImageSourcePropType;
+  testID: string;
 }) => (
   <View style={styles.iconFrame}>
-    {focused ? (
-      <>
-        <View style={styles.focusAura} />
-      </>
-    ) : null}
-    <View style={[styles.iconContent, focused && styles.iconContentFocused]}>{children}</View>
-  </View>
-);
-
-const TabSvgIcon = ({
-  focused,
-  Icon,
-  width = 30,
-  height = 30,
-  scale = 1,
-}: {
-  focused: boolean;
-  Icon: React.ComponentType<any>;
-  width?: number;
-  height?: number;
-  scale?: number;
-}) => (
-  <View
-    style={[
-      styles.iconSvgWrap,
-      focused && styles.iconSvgWrapFocused,
-      { transform: [{ scale: focused ? scale * 1.04 : scale }] },
-    ]}
-  >
-    <Icon
-      width={width}
-      height={height}
-      style={{ opacity: focused ? 1 : 0.72 }}
+    <Image
+      source={source}
+      style={[styles.iconImage, focused && styles.iconImageFocused]}
+      resizeMode="contain"
+      testID={testID}
     />
   </View>
 );
@@ -70,7 +52,7 @@ export interface MainTabsNavigatorProps {
 
 export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRouteName }) => {
   const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, MIN_TAB_BAR_BOTTOM_INSET);
+  const bottomInset = insets.bottom + 14;
 
   return (
     <Tab.Navigator
@@ -79,25 +61,20 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          left: 16,
-          right: 16,
+          left: 24,
+          right: 24,
           bottom: bottomInset,
           backgroundColor: 'transparent',
           borderTopWidth: 0,
-          paddingTop: 6,
-          paddingBottom: 8,
-          height: 86,
-          borderRadius: 24,
-          elevation: 0,
+          paddingTop: 8,
+          paddingBottom: 10,
+          height: 82,
+          borderRadius: 35,
+          elevation: 10,
           display: IS_DESIGN_EXPORT_BACKGROUND_ONLY ? 'none' : 'flex',
         },
         tabBarBackground: () => (
-          <LinearGradient
-            colors={[colors.backgroundSecondary, colors.navSurface]}
-            start={{ x: 0.22, y: 0 }}
-            end={{ x: 0.78, y: 1 }}
-            style={styles.tabBackground}
-          />
+          <View style={styles.tabBackground} testID="tab-bar-paper-background" />
         ),
         tabBarItemStyle: {
           paddingVertical: 2,
@@ -117,15 +94,11 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         component={WriteScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIconFrame focused={focused}>
-              <TabSvgIcon
-                focused={focused}
-                Icon={WriteTabIcon}
-                width={28}
-                height={34}
-                scale={1}
-              />
-            </TabIconFrame>
+            <TabPngIcon
+              focused={focused}
+              source={focused ? TAB_ICONS.Write.active : TAB_ICONS.Write.inactive}
+              testID={focused ? 'tab-icon-write-active' : 'tab-icon-write-inactive'}
+            />
           ),
         }}
       />
@@ -134,15 +107,11 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         component={JournalScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIconFrame focused={focused}>
-              <TabSvgIcon
-                focused={focused}
-                Icon={JournalTabIcon}
-                width={28}
-                height={34}
-                scale={1.4}
-              />
-            </TabIconFrame>
+            <TabPngIcon
+              focused={focused}
+              source={focused ? TAB_ICONS.Journal.active : TAB_ICONS.Journal.inactive}
+              testID={focused ? 'tab-icon-journal-active' : 'tab-icon-journal-inactive'}
+            />
           ),
         }}
       />
@@ -151,15 +120,11 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         component={InsightsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabIconFrame focused={focused}>
-              <TabSvgIcon
-                focused={focused}
-                Icon={InsightsTabIcon}
-                width={28}
-                height={34}
-                scale={1.4}
-              />
-            </TabIconFrame>
+            <TabPngIcon
+              focused={focused}
+              source={focused ? TAB_ICONS.Insights.active : TAB_ICONS.Insights.inactive}
+              testID={focused ? 'tab-icon-insights-active' : 'tab-icon-insights-inactive'}
+            />
           ),
         }}
       />
@@ -170,54 +135,26 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
 const styles = StyleSheet.create({
   tabBackground: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: 35,
     borderWidth: 1,
-    borderColor: colors.contourLineFaint,
-    shadowColor: colors.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    borderColor: 'rgba(222, 211, 223, 0.35)',
+    backgroundColor: 'rgba(255, 253, 249, 0.86)',
+    shadowColor: '#2D2430',
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
   },
   iconFrame: {
-    width: 72,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 24,
-  },
-  focusAura: {
-    position: 'absolute',
-    width: 58,
-    height: 30,
-    bottom: 10,
-    borderRadius: 999,
-    backgroundColor: colors.buttonPrimaryLight12,
-    opacity: 0.44,
-    shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  iconContent: {
-    width: 52,
-    height: 52,
+    width: 60,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconContentFocused: {
-    shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 0 },
+  iconImage: {
+    width: TAB_ICON_SIZE,
+    height: TAB_ICON_SIZE,
   },
-  iconSvgWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconSvgWrapFocused: {
-    shadowColor: colors.buttonPrimary,
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
+  iconImageFocused: {
+    transform: [{ translateY: -1 }],
   },
 });

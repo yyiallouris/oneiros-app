@@ -1,8 +1,9 @@
 export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';
-export { WaveBackground } from './WaveBackground';
-export { MountainWaveBackground } from './MountainWaveBackground';
+export { PaperBackground } from './PaperBackground';
+export { LegacyWaveBackground } from './WaveBackground';
+export { LegacyMountainWaveBackground } from './MountainWaveBackground';
 export { MysticHeader } from './MysticHeader';
 export { SunDisc } from './SunDisc';
 export { SkyGlowBand } from './SkyGlowBand';

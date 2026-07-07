@@ -3,12 +3,14 @@
 ## Happy path — first launch
 
 1. `App.tsx` shows `LoadingScreen` until `onComplete`; native splash is hidden immediately.
-2. `RootNavigator` mounts. In parallel:
+2. Native splash is symbol-only on a warm paper background.
+3. In-app loading uses the same paper field with the droplet logo and `Oneiros` wordmark while session/bootstrap completes.
+4. `RootNavigator` mounts. In parallel:
    - `StorageService.initialize()` runs (user change detection, local clear if user switched).
    - Cold-start auth deep links are polled (`Linking.getInitialURL` with retries) for `oneiros-dream-journal://` and processed via `processAuthDeepLink`.
-3. `supabase.auth.getSession()` sets initial session.
-4. If session exists: load `PENDING_PASSWORD_RESET_KEY`, sync biometric preference from remote, load onboarding completion for current user.
-5. User lands on the appropriate root (see `documentation/README.md` gating table).
+5. `supabase.auth.getSession()` sets initial session.
+6. If session exists: load `PENDING_PASSWORD_RESET_KEY`, sync biometric preference from remote, load onboarding completion for current user.
+7. User lands on the appropriate root (see `documentation/README.md` gating table).
 
 ## Session while offline (regression-critical)
 

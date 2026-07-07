@@ -15,7 +15,7 @@ interface MountainWaveBackgroundProps {
   lite?: boolean;
 }
 
-const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({
+const LegacyMountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({
   height = 300,
   top,
   bottomOffset = 0,
@@ -136,7 +136,7 @@ const MountainWaveBackgroundInner: React.FC<MountainWaveBackgroundProps> = ({
   );
 };
 
-export const MountainWaveBackground = React.memo(MountainWaveBackgroundInner);
+export const LegacyMountainWaveBackground = React.memo(LegacyMountainWaveBackgroundInner);
 
 const styles = StyleSheet.create({
   container: {

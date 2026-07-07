@@ -11,7 +11,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { MountainWaveBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+import { PaperBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
 import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
@@ -257,7 +257,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={JOURNAL_MOUNTAIN_HEIGHT} lite />
+      <PaperBackground height={JOURNAL_MOUNTAIN_HEIGHT} lite />
 
       <DesignExportForeground fill>
         <MysticHeader

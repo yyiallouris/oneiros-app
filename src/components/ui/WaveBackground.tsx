@@ -3,7 +3,7 @@ import { View, StyleSheet, useWindowDimensions, Animated, Platform } from 'react
 import Svg, { Path } from 'react-native-svg';
 import { colors } from '../../theme';
 
-const WaveBackgroundInner: React.FC = () => {
+const LegacyWaveBackgroundInner: React.FC = () => {
   const { width } = useWindowDimensions();
   const W = width + 60;
 
@@ -65,7 +65,7 @@ const WaveBackgroundInner: React.FC = () => {
   );
 };
 
-export const WaveBackground = React.memo(WaveBackgroundInner);
+export const LegacyWaveBackground = React.memo(LegacyWaveBackgroundInner);
 
 const styles = StyleSheet.create({
   container: {

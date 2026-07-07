@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { WaveBackground, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
 import { PRIVACY_SECTIONS } from '../constants/legal';
 import { RootStackParamList } from '../navigation/types';
 
@@ -14,7 +14,7 @@ const PrivacyScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}

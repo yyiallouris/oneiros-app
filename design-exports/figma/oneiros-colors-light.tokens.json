@@ -3,22 +3,22 @@
     "bg": {
       "primary": {
         "$type": "color",
-        "$description": "Dream Bone - main app background and splash background.",
+        "$description": "Warm paper field - main app background and native splash background.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.980392157, 0.968627451, 0.949019608],
+          "components": [0.97254902, 0.952941176, 0.917647059],
           "alpha": 1,
-          "hex": "#FAF7F2"
+          "hex": "#F8F3EA"
         }
       },
       "secondary": {
         "$type": "color",
-        "$description": "Warm Mist - secondary background wash and soft panels.",
+        "$description": "Paper wash - secondary background wash and soft panels.",
         "$value": {
           "colorSpace": "srgb",
-          "components": [0.952941176, 0.933333333, 0.941176471],
+          "components": [0.952941176, 0.925490196, 0.88627451],
           "alpha": 1,
-          "hex": "#F3EEF0"
+          "hex": "#F3ECE2"
         }
       },
       "fog": {

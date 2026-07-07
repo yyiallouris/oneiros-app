@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { WaveBackground, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
 import { sendSupportRequest } from '../services/supportRequest';
 import { logEvent, logError } from '../services/logger';
 
@@ -64,7 +64,7 @@ const LoginSupportScreen: React.FC = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
-      <WaveBackground />
+      <PaperBackground />
       <DesignExportForeground style={styles.content}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backRow}>
           <Text style={styles.backText}>← Back</Text>

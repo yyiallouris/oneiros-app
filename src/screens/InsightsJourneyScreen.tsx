@@ -11,7 +11,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text } from '../theme';
-import { MountainWaveBackground, DesignExportForeground } from '../components/ui';
+import { PaperBackground, DesignExportForeground } from '../components/ui';
 import { InsightsSectionScreen } from './InsightsSectionScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
@@ -80,7 +80,7 @@ const InsightsJourneyScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <MountainWaveBackground height={260} lite />
+      <PaperBackground height={260} lite />
       <DesignExportForeground fill>
         <View style={styles.caption}>
           <Text style={styles.captionText} numberOfLines={1}>
