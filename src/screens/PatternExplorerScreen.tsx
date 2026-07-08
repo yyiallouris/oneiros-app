@@ -10,7 +10,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
-import { PaperBackground, BreathingLine, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, DesignExportForeground, LoadingState } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -194,7 +194,7 @@ const PatternExplorerScreen: React.FC = () => {
         <PaperBackground height={260} lite />
         <DesignExportForeground fill>
           <View style={styles.loadingPlaceholder}>
-            <BreathingLine width={100} height={2} color={colors.textMuted} />
+            <LoadingState preset="loadSection" context="inline" />
           </View>
         </DesignExportForeground>
       </View>

@@ -11,7 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, PaperBackground, DesignExportForeground } from '../components/ui';
+import { Button, Card, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
@@ -102,12 +102,16 @@ const SetPasswordScreen: React.FC = () => {
               accessibilityHint="Re-enter your new password to confirm"
             />
           </View>
-          <Button
-            title="Set password"
-            onPress={handleSetPassword}
+          <ActionLoadingSlot
             loading={isLoading}
-            style={styles.primaryButton}
-          />
+            loadingProps={{ preset: 'setPassword', style: styles.primaryButton }}
+          >
+            <Button
+              title="Set password"
+              onPress={handleSetPassword}
+              style={styles.primaryButton}
+            />
+          </ActionLoadingSlot>
         </Card>
       </DesignExportForeground>
     </KeyboardAvoidingView>

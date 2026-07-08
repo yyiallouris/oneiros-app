@@ -14,7 +14,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, PaperBackground, MysticHeader, DesignExportForeground } from '../components/ui';
+import { Button, PaperBackground, MysticHeader, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
 import { formatDate, getTodayDate, generateId } from '../utils/date';
@@ -185,7 +185,7 @@ const WriteScreen: React.FC = () => {
   const isCompactHeight = windowHeight < 760;
   const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
   const contentInputBottomPadding = voiceButtonBottom + 28;
-  const isSaveDisabled = !content.trim() || isSaving;
+  const isSaveInactive = !content.trim();
   const mountainHeight = WRITE_MOUNTAIN_HEIGHT;
   const mountainTop = mainCardBottom == null ? undefined : Math.max(0, mainCardBottom - mountainHeight);
 
@@ -275,14 +275,19 @@ const WriteScreen: React.FC = () => {
             },
           ]}
         >
-          <Button
-            title={todaysDream ? 'Update dream' : 'Save dream'}
-            onPress={handleSaveDream}
-            disabled={!content.trim()}
+          <ActionLoadingSlot
             loading={isSaving}
-            style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
-            textStyle={styles.saveButtonText}
-          />
+            loadingProps={{ preset: 'saveDream', style: styles.saveButton }}
+          >
+            <Button
+              title={todaysDream ? 'Update dream' : 'Save dream'}
+              onPress={handleSaveDream}
+              disabled={isSaveInactive}
+              size="compact"
+              style={[styles.saveButton, isSaveInactive && styles.saveButtonDisabled]}
+              textStyle={styles.saveButtonText}
+            />
+          </ActionLoadingSlot>
         </View>
 
         {/* Side menu */}

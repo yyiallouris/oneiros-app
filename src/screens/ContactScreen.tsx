@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Button, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { sendContactMessage } from '../services/contact';
 import { RootStackParamList } from '../navigation/types';
 
@@ -81,12 +81,16 @@ const ContactScreen: React.FC = () => {
           />
         </View>
 
-        <Button
-          title="Send"
-          onPress={handleSubmit}
+        <ActionLoadingSlot
           loading={isSending}
-          disabled={!message.trim()}
-        />
+          loadingProps={{ preset: 'sendSupport' }}
+        >
+          <Button
+            title="Send"
+            onPress={handleSubmit}
+            disabled={!message.trim()}
+          />
+        </ActionLoadingSlot>
       </DesignExportForeground>
     </KeyboardAvoidingView>
   );

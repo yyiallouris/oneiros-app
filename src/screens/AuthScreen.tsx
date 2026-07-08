@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, PaperBackground, DesignExportForeground } from '../components/ui';
+import { Button, Card, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
@@ -530,22 +530,30 @@ const AuthScreen: React.FC = () => {
                     editable={!isLoading}
                   />
                 </View>
-                <Button
-                  title="Send reset link"
-                  onPress={handleForgotPassword}
+                <ActionLoadingSlot
                   loading={isLoading}
-                  style={styles.primaryButton}
-                />
+                  loadingProps={{ preset: 'authSubmit', message: 'Sending reset link…', style: styles.primaryButton }}
+                >
+                  <Button
+                    title="Send reset link"
+                    onPress={handleForgotPassword}
+                    style={styles.primaryButton}
+                  />
+                </ActionLoadingSlot>
               </>
             ) : (
               <>
-                <Button
-                  title={forgotPasswordCooldown > 0 ? `Resend link (${forgotPasswordCooldown}s)` : 'Resend link'}
-                  onPress={handleResendForgotPassword}
+                <ActionLoadingSlot
                   loading={isLoading}
-                  disabled={forgotPasswordCooldown > 0}
-                  style={styles.primaryButton}
-                />
+                  loadingProps={{ preset: 'authSubmit', message: 'Sending reset link…', style: styles.primaryButton }}
+                >
+                  <Button
+                    title={forgotPasswordCooldown > 0 ? `Resend link (${forgotPasswordCooldown}s)` : 'Resend link'}
+                    onPress={handleResendForgotPassword}
+                    disabled={forgotPasswordCooldown > 0}
+                    style={styles.primaryButton}
+                  />
+                </ActionLoadingSlot>
               </>
             )}
             <TouchableOpacity
@@ -595,12 +603,16 @@ const AuthScreen: React.FC = () => {
                 editable={!isVerifying}
               />
             </View>
-            <Button
-              title="Verify"
-              onPress={handleVerifyCode}
+            <ActionLoadingSlot
               loading={isVerifying}
-              style={styles.primaryButton}
-            />
+              loadingProps={{ preset: 'authSubmit', message: 'Verifying your email…', style: styles.primaryButton }}
+            >
+              <Button
+                title="Verify"
+                onPress={handleVerifyCode}
+                style={styles.primaryButton}
+              />
+            </ActionLoadingSlot>
             <TouchableOpacity
               onPress={handleResendCode}
               disabled={isResending || resendCooldown > 0}
@@ -760,13 +772,21 @@ const AuthScreen: React.FC = () => {
             </View>
           )}
 
-          <Button
-            title={mode === 'login' ? 'Sign in' : 'Create account'}
-            onPress={handleAuth}
+          <ActionLoadingSlot
             loading={isLoading}
-            disabled={mode === 'signup' && (password !== verifyPassword || !verifyPassword.trim())}
-            style={styles.primaryButton}
-          />
+            loadingProps={{
+              preset: 'authSubmit',
+              message: mode === 'login' ? 'Signing in…' : 'Creating your account…',
+              style: styles.primaryButton,
+            }}
+          >
+            <Button
+              title={mode === 'login' ? 'Sign in' : 'Create account'}
+              onPress={handleAuth}
+              disabled={mode === 'signup' && (password !== verifyPassword || !verifyPassword.trim())}
+              style={styles.primaryButton}
+            />
+          </ActionLoadingSlot>
 
           {mode === 'login' && (
             <TouchableOpacity onPress={openForgotPassword} style={styles.forgotPasswordLink}>
@@ -784,7 +804,6 @@ const AuthScreen: React.FC = () => {
             title="Continue with Google"
             onPress={handleGoogleAuth}
             variant="secondary"
-            loading={isLoading}
             disabled={isLoading}
           />
           <TouchableOpacity
@@ -886,7 +905,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modeButtonActive: {
-    backgroundColor: colors.buttonPrimary,
+    backgroundColor: colors.buttonPrimary90,
+    borderWidth: 1,
+    borderColor: colors.buttonEdge,
   },
   modeButtonText: {
     fontSize: typography.sizes.sm,

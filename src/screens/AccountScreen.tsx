@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, Button, DesignExportForeground } from '../components/ui';
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import {
@@ -157,9 +157,11 @@ const AccountScreen: React.FC = () => {
             autoCapitalize="words"
             autoCorrect={false}
           />
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveName} activeOpacity={0.7}>
-            <Text style={styles.saveButtonText}>{savedHint ? 'Saved' : 'Save'}</Text>
-          </TouchableOpacity>
+          <Button
+            title={savedHint ? 'Saved' : 'Save'}
+            onPress={handleSaveName}
+            style={styles.saveButton}
+          />
         </Card>
 
         <Card style={styles.card}>
@@ -286,15 +288,9 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: spacing.lg,
     alignSelf: 'flex-start',
-    backgroundColor: colors.buttonPrimary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-  },
-  saveButtonText: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.onAccent ?? colors.white,
+    minHeight: 44,
   },
   depthRow: {
     flexDirection: 'row',

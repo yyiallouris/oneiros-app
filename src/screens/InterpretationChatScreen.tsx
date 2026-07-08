@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  ActivityIndicator,
   Alert,
   Clipboard,
 } from 'react-native';
@@ -18,7 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { BreathingLine, ThreadDrift, DesignExportForeground, PaperBackground } from '../components/ui';
+import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
@@ -582,8 +581,7 @@ const InterpretationChatScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <DesignExportForeground style={styles.loadingContainer}>
-          <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
-          <Text style={styles.loadingText}>Loading dream...</Text>
+          <LoadingState preset="loadDream" />
         </DesignExportForeground>
       </View>
     );
@@ -603,8 +601,7 @@ const InterpretationChatScreen: React.FC = () => {
     return (
       <View style={styles.container}>
         <DesignExportForeground style={styles.loadingContainer}>
-          <ThreadDrift size={60} color={colors.buttonPrimary} />
-          <Text style={styles.loadingText}>Analyzing your dream...</Text>
+          <LoadingState preset="analyzeDream" />
         </DesignExportForeground>
       </View>
     );
@@ -731,17 +728,22 @@ const InterpretationChatScreen: React.FC = () => {
             }}
             disabled={isLoading || reflectionLimitReached}
           />
-          <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading || reflectionLimitReached) && styles.sendButtonDisabled]}
+          <PrimaryIconButton
+            inactive={!inputText.trim() || isLoading || reflectionLimitReached}
             onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
             disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
+            loading={isLoading}
+            testID="chat-send-button"
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <SendIcon size={20} color={colors.white} />
-            )}
-          </TouchableOpacity>
+            <SendIcon
+              size={20}
+              color={
+                !inputText.trim() || reflectionLimitReached
+                  ? colors.buttonPrimaryDisabled
+                  : colors.white
+              }
+            />
+          </PrimaryIconButton>
         </View>
       </TouchableOpacity>
       </DesignExportForeground>
@@ -759,11 +761,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
-  },
-  loadingText: {
-    marginTop: spacing.md,
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
   },
   chatContent: {
     padding: spacing.md,
@@ -880,17 +877,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: spacing.sm,
-  },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.buttonPrimary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
   },
   errorContainer: {
     flex: 1,

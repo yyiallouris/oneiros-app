@@ -11,7 +11,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PaperBackground, MysticHeader, BreathingLine, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+import { PaperBackground, MysticHeader, LinoSkeletonCard, DesignExportForeground, LoadingState } from '../components/ui';
 import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
@@ -300,7 +300,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
           {/* Breathing line below search bar */}
           {isLoading && (
             <View style={styles.headerLoader}>
-              <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
+              <LoadingState preset="loadJournal" />
             </View>
           )}
         </View>

@@ -22,8 +22,11 @@ Use this skill before changing the Oneiros app. The goal is to keep agents align
 
 Before editing UI, check the existing visual system:
 
-- Colors: `src/theme/colors.ts` and `src/theme/COLORS.md`.
-- Typography: `src/theme/typography.ts` and `src/theme/TYPOGRAPHY.md`.
+- Design index: `src/theme/DESIGN.md`
+- Colors: `src/theme/colors.ts` and `src/theme/COLORS.md`
+- Buttons: `src/theme/buttons.ts`
+- Loading: `src/theme/loading.ts` and `src/theme/LOADING.md`
+- Typography: `src/theme/typography.ts` and `src/theme/TYPOGRAPHY.md`
 - Shared UI: `src/components/ui/`.
 
 Prefer existing tokens and shared components. If a token, type role, visual rule, or shared UI behavior changes, update the matching theme doc in the same change.

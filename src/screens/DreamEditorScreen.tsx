@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, DesignExportForeground, PaperBackground } from '../components/ui';
+import { Card, Button, DesignExportForeground, PaperBackground, ActionLoadingSlot } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreamById, saveDream, deleteDream } from '../utils/storage';
 import { formatDate, toISODate, generateId } from '../utils/date';
@@ -191,23 +191,31 @@ const DreamEditorScreen: React.FC = () => {
             },
           ]}
         >
-          <Button
-            title={dream ? 'Save Changes' : 'Save Dream'}
-            onPress={handleSave}
-            disabled={!content.trim()}
+          <ActionLoadingSlot
             loading={isSaving}
-            style={styles.saveButton}
-          />
+            loadingProps={{ preset: 'saveDream', style: styles.saveButton }}
+          >
+            <Button
+              title={dream ? 'Save Changes' : 'Save Dream'}
+              onPress={handleSave}
+              disabled={!content.trim()}
+              style={styles.saveButton}
+            />
+          </ActionLoadingSlot>
 
           {dream && (
-            <Button
-              title="Delete Dream"
-              onPress={handleDelete}
-              variant="ghost"
-              style={styles.deleteButton}
-              textStyle={styles.deleteButtonText}
+            <ActionLoadingSlot
               loading={isDeleting}
-            />
+              loadingProps={{ preset: 'deleteDream', style: styles.deleteButton }}
+            >
+              <Button
+                title="Delete Dream"
+                onPress={handleDelete}
+                variant="ghost"
+                style={styles.deleteButton}
+                textStyle={styles.deleteButtonText}
+              />
+            </ActionLoadingSlot>
           )}
         </View>
       </DesignExportForeground>

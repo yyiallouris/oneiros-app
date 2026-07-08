@@ -15,7 +15,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
-import { PaperBackground, MysticHeader, BreathingLine, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
 import {
   ArchetypesIcon,
   DreamsLoggedIcon,
@@ -327,7 +327,7 @@ const InsightsScreen: React.FC = () => {
         <DesignExportForeground fill>
           <MysticHeader title="Insights" subtitle="Patterns rising into view." />
           <View style={styles.loadingPlaceholder}>
-            <BreathingLine width={100} height={2} color={colors.textMuted} />
+            <LoadingState preset="loadSection" context="inline" />
           </View>
         </DesignExportForeground>
       </View>
@@ -434,30 +434,33 @@ const InsightsScreen: React.FC = () => {
             </View>
 
             <View style={styles.recentActionRow}>
-              <TouchableOpacity
-                style={[
-                  styles.recentGenerateButton,
-                  (recentGenerating || !hasEnoughRecentDreams) && styles.recentGenerateButtonDisabled,
-                ]}
-                onPress={() => handleGenerateRecentReflection(false)}
-                disabled={recentGenerating}
-                activeOpacity={0.78}
-              >
-                <Text style={styles.recentGenerateText}>
-                  {recentGenerating ? 'Reflecting…' : recentCachedDate ? 'View recent reflection' : 'Reflect on recent dreams'}
-                </Text>
-              </TouchableOpacity>
-              {!recentGenerating && (
-                <TouchableOpacity
-                  style={styles.recentLanguageChip}
-                  onPress={() => setRecentLanguagePickerOpen((open) => !open)}
-                  activeOpacity={0.78}
-                >
-                  <Text style={styles.recentLanguageChipText}>
-                    {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === recentLanguage)?.display ?? 'EN'}
-                  </Text>
-                  <Text style={[styles.periodArrow, recentLanguagePickerOpen && styles.periodArrowUp]}>▾</Text>
-                </TouchableOpacity>
+              {recentGenerating ? (
+                <LoadingState preset="recentReflection" style={styles.recentGenerateButton} />
+              ) : (
+                <>
+                  <Button
+                    title={
+                      recentCachedDate
+                        ? 'View recent reflection'
+                        : 'Reflect on recent dreams'
+                    }
+                    onPress={() => handleGenerateRecentReflection(false)}
+                    disabled={!hasEnoughRecentDreams}
+                    size="compact"
+                    style={styles.recentGenerateButton}
+                    textStyle={styles.recentGenerateText}
+                  />
+                  <TouchableOpacity
+                    style={styles.recentLanguageChip}
+                    onPress={() => setRecentLanguagePickerOpen((open) => !open)}
+                    activeOpacity={0.78}
+                  >
+                    <Text style={styles.recentLanguageChipText}>
+                      {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === recentLanguage)?.display ?? 'EN'}
+                    </Text>
+                    <Text style={[styles.periodArrow, recentLanguagePickerOpen && styles.periodArrowUp]}>▾</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
 
@@ -517,13 +520,6 @@ const InsightsScreen: React.FC = () => {
                 <Text style={styles.emptyFieldBody}>
                   There are not enough reflected dreams for this recent scope yet.
                 </Text>
-              </View>
-            )}
-
-            {recentGenerating && (
-              <View style={styles.recentLoadingBox}>
-                <BreathingLine width={96} height={2} color={colors.buttonPrimary} />
-                <Text style={styles.mutedBody}>Listening for what is moving now…</Text>
               </View>
             )}
 
@@ -881,15 +877,7 @@ const styles = StyleSheet.create({
   },
   recentGenerateButton: {
     flex: 1,
-    minHeight: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.buttonPrimary,
-  },
-  recentGenerateButtonDisabled: {
-    opacity: 0.58,
   },
   recentGenerateText: {
     fontSize: typography.sizes.sm,
@@ -938,17 +926,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.buttonPrimary,
     fontWeight: typography.weights.semibold,
-  },
-  recentLoadingBox: {
-    minHeight: 92,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.md,
-    marginTop: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.fieldSurface,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
   },
   recentReportCard: {
     marginTop: spacing.lg,

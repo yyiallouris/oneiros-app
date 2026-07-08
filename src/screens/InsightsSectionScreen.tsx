@@ -17,7 +17,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
-import { PaperBackground, BreathingLine, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
+import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
 import {
   ArchetypesIcon,
   MotifsIcon,
@@ -182,7 +182,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [patternLanguagePickerOpen, setPatternLanguagePickerOpen] = useState(false);
   const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
-  const patternSkeletonShimmer = useRef(new Animated.Value(0)).current;
   const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
 
   const load = useCallback(async () => {
@@ -269,29 +268,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
     }
   }, [displayedReportText]);
 
-  // Pattern skeleton: shimmer while generating
-  useEffect(() => {
-    if (!patternInsightGenerating) return;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(patternSkeletonShimmer, {
-          toValue: 1,
-          duration: 1800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(patternSkeletonShimmer, {
-          toValue: 0,
-          duration: 1800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [patternInsightGenerating]);
-
   // When showing space-landscapes with empty list after load, refetch once (fixes wrong sectionId on nav)
   useEffect(() => {
     if (sectionId === 'space-landscapes' && landscapes.length === 0 && !loading) {
@@ -312,7 +288,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       <View style={[styles.container, embedded && styles.containerTransparent]}>
         {!embedded && <PaperBackground height={260} lite />}
         <DesignExportForeground style={styles.centered}>
-          <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
+          <LoadingState preset="loadSection" />
         </DesignExportForeground>
       </View>
     );
@@ -879,15 +855,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 </View>
               )}
 
+              {!patternInsightGenerating && (
               <TouchableOpacity
                 style={[
                   styles.patternGenerateRow,
-                  (patternInsightGenerating ||
-                    !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]
-                  ) && styles.patternGenerateRowDisabled,
+                  !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]
+                    && styles.patternGenerateRowDisabled,
                 ]}
                 onPress={async () => {
-                  if (patternInsightGenerating) return;
                   const online = await isOnline();
                   if (!online) {
                     Alert.alert(
@@ -957,30 +932,27 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     setPatternInsightGenerating(false);
                   }
                 }}
-                disabled={patternInsightGenerating}
+                disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]}
                 activeOpacity={0.8}
               >
-                <Text style={styles.patternGenerateLabel}>
-                  {patternInsightGenerating ? 'Generating…' : 'Generate reflection'}
-                </Text>
-                {!patternInsightGenerating && (
-                  <TouchableOpacity
-                    style={styles.patternLanguageChip}
-                    onPress={() => {
-                      setPatternMonthPickerOpen(false);
-                      setPatternLanguagePickerOpen((o) => !o);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.patternLanguageChipText}>
-                      {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === patternLanguage)?.display ?? 'EN'}
-                    </Text>
-                    <Text style={[styles.patternMonthChevron, patternLanguagePickerOpen && styles.patternMonthChevronUp]}>
-                      ▾
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <Text style={styles.patternGenerateLabel}>Generate reflection</Text>
+                <TouchableOpacity
+                  style={styles.patternLanguageChip}
+                  onPress={() => {
+                    setPatternMonthPickerOpen(false);
+                    setPatternLanguagePickerOpen((o) => !o);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.patternLanguageChipText}>
+                    {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === patternLanguage)?.display ?? 'EN'}
+                  </Text>
+                  <Text style={[styles.patternMonthChevron, patternLanguagePickerOpen && styles.patternMonthChevronUp]}>
+                    ▾
+                  </Text>
+                </TouchableOpacity>
               </TouchableOpacity>
+              )}
 
               {patternLanguagePickerOpen && (
                 <ScrollView style={styles.patternLanguageDropdown} nestedScrollEnabled>
@@ -1022,50 +994,10 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
             )}
 
             {patternInsightGenerating && (
-              <View style={styles.patternSkeleton}>
-                {[1, 2, 3].map((i) => (
-                  <View key={i} style={styles.patternSkeletonBlock}>
-                    <Animated.View
-                      style={[
-                        styles.patternSkeletonLine,
-                        styles.patternSkeletonTitle,
-                        {
-                          opacity: patternSkeletonShimmer.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.28, 0.5],
-                          }),
-                          backgroundColor: colors.wave1,
-                        },
-                      ]}
-                    />
-                    <Animated.View
-                      style={[
-                        styles.patternSkeletonLine,
-                        {
-                          backgroundColor: colors.wave2,
-                          opacity: patternSkeletonShimmer.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.25, 0.45],
-                          }),
-                        },
-                      ]}
-                    />
-                    <Animated.View
-                      style={[
-                        styles.patternSkeletonLine,
-                        styles.patternSkeletonLineShort,
-                        {
-                          backgroundColor: colors.wave2,
-                          opacity: patternSkeletonShimmer.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0.2, 0.4],
-                          }),
-                        },
-                      ]}
-                    />
-                  </View>
-                ))}
-              </View>
+              <>
+                <LoadingState preset="recentReflection" style={styles.patternLoadingState} />
+                <ContentSkeleton />
+              </>
             )}
 
             {displayedReportText !== null && !patternInsightGenerating && (
@@ -1656,28 +1588,8 @@ const styles = StyleSheet.create({
     color: text.muted,
     lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
   },
-  patternSkeleton: {
-    marginTop: spacing.lg,
-    paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-  },
-  patternSkeletonBlock: {
-    marginBottom: spacing.xl,
-  },
-  patternSkeletonLine: {
-    height: 14,
-    borderRadius: 2,
-    marginBottom: spacing.sm,
-    width: '100%',
-  },
-  patternSkeletonTitle: {
-    width: '45%',
-    height: 12,
-    marginBottom: spacing.md,
-  },
-  patternSkeletonLineShort: {
-    width: '88%',
+  patternLoadingState: {
+    marginTop: spacing.md,
   },
   body: {
     fontSize: typography.sizes.sm,

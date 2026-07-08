@@ -7,7 +7,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
-import { Button, PaperBackground, DesignExportForeground } from '../components/ui';
+import { Button, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { requireBiometricUnlock, getBiometricStatus, getBiometricLabel } from '../services/biometricAuthService';
 import { BiometricUnlockContext } from '../navigation/RootNavigator';
 
@@ -58,12 +58,16 @@ const BiometricLockScreen: React.FC = () => {
             Use {label} to open your journal.
           </Text>
         </View>
-        <Button
-          title={`Unlock with ${label}`}
-          onPress={handleUnlock}
+        <ActionLoadingSlot
           loading={unlocking}
-          style={styles.button}
-        />
+          loadingProps={{ preset: 'biometricUnlock', style: styles.button }}
+        >
+          <Button
+            title={`Unlock with ${label}`}
+            onPress={handleUnlock}
+            style={styles.button}
+          />
+        </ActionLoadingSlot>
         <TouchableOpacity
           onPress={() => navigation.navigate('LoginSupport')}
           style={styles.supportLink}

@@ -5,13 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Card, Button, PaperBackground, BreathingLine, DesignExportForeground } from '../components/ui';
+import { Card, Button, PaperBackground, DesignExportForeground, LoadingState } from '../components/ui';
 import { CircularCalendar } from '../components/ui/CircularCalendar';
 import { Dream } from '../types/dream';
 import { getDreams, getDreamsByDate } from '../utils/storage';
@@ -141,7 +140,7 @@ const CalendarScreen: React.FC = () => {
 
             {isLoadingDayDreams ? (
               <View style={styles.loadingContainer}>
-                <BreathingLine width={120} height={2} color={colors.buttonPrimary} />
+                <LoadingState preset="loadDayDreams" />
               </View>
             ) : dreamsForSelectedDate.length > 0 ? (
               <View>

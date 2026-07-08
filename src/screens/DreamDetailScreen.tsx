@@ -9,7 +9,6 @@
     KeyboardAvoidingView,
     Platform,
     StatusBar,
-    ActivityIndicator,
     Alert,
     Clipboard,
   } from 'react-native';
@@ -18,7 +17,7 @@
   import { useSafeAreaInsets } from 'react-native-safe-area-context';
   import { RootStackParamList } from '../navigation/types';
   import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Button, PaperBackground, PrintPatchLoader, LinoSkeletonCard, DesignExportForeground } from '../components/ui';
+  import { Button, PaperBackground, LoadingState, LinoSkeletonCard, DesignExportForeground, PrimaryIconButton } from '../components/ui';
   import { PhasedTypingText } from '../components/ui/PhasedTypingText';
   import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
   import { Dream, Interpretation, ChatMessage } from '../types/dream';
@@ -1017,11 +1016,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
           {/* Loading state */}
           {isGeneratingInitial && (
             <View style={styles.reflectionSection}>
-              <View style={styles.loadingPanel}>
-                <PrintPatchLoader size={72} color={colors.buttonPrimary} />
-                <Text style={styles.loadingText}>Reflecting on your dream...</Text>
-                <Text style={styles.loadingSubtext}>Tracing its images, feelings, and inner movement.</Text>
-              </View>
+              <LoadingState preset="dreamReflection" style={styles.loadingPanel} />
             </View>
           )}
 
@@ -1157,17 +1152,22 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     disabled={isLoading || reflectionLimitReached}
                   />
                 </View>
-                <TouchableOpacity
-                  style={[styles.sendButton, (!inputText.trim() || isLoading || reflectionLimitReached) && styles.sendButtonDisabled]}
+                <PrimaryIconButton
+                  inactive={!inputText.trim() || isLoading || reflectionLimitReached}
                   onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
                   disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
+                  loading={isLoading}
+                  testID="dream-detail-send-button"
                 >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color={colors.white} />
-                  ) : (
-                    <SendIcon size={20} color={colors.white} />
-                  )}
-                </TouchableOpacity>
+                  <SendIcon
+                    size={20}
+                    color={
+                      !inputText.trim() || reflectionLimitReached
+                        ? colors.buttonPrimaryDisabled
+                        : colors.white
+                    }
+                  />
+                </PrimaryIconButton>
               </TouchableOpacity>
             </View>
           )}
@@ -1469,24 +1469,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       elevation: 2,
     },
     loadingPanel: {
-      alignItems: 'center',
-      paddingVertical: spacing.xl,
-      paddingHorizontal: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.contourLineFaint,
-    },
-    loadingText: {
-      marginTop: spacing.md,
-      fontSize: typography.sizes.md,
-      color: colors.textSecondary,
-    },
-    loadingSubtext: {
-      marginTop: spacing.xs,
-      fontSize: typography.sizes.sm,
-      color: colors.textMuted,
-      textAlign: 'center',
-      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+      width: '100%',
     },
     chatSection: {
       marginTop: spacing.lg,
@@ -1631,23 +1614,6 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     },
     inputActionSpacer: {
       marginRight: spacing.sm,
-    },
-    sendButton: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.buttonPrimary,
-      borderWidth: 1,
-      borderColor: colors.buttonEdge,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: colors.buttonGlow,
-      shadowOpacity: 0.24,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-    },
-    sendButtonDisabled: {
-      opacity: 0.5,
     },
     skeletonCardStyle: {
       marginBottom: 0, // No extra margin, matches actual card spacing

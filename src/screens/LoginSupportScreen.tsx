@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Button, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { sendSupportRequest } from '../services/supportRequest';
 import { logEvent, logError } from '../services/logger';
 
@@ -102,12 +102,16 @@ const LoginSupportScreen: React.FC = () => {
           />
         </View>
 
-        <Button
-          title="Send"
-          onPress={handleSubmit}
+        <ActionLoadingSlot
           loading={isSending}
-          disabled={!email.trim() || !message.trim()}
-        />
+          loadingProps={{ preset: 'sendSupport' }}
+        >
+          <Button
+            title="Send"
+            onPress={handleSubmit}
+            disabled={!email.trim() || !message.trim()}
+          />
+        </ActionLoadingSlot>
       </DesignExportForeground>
     </KeyboardAvoidingView>
   );

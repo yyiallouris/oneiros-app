@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Card, Button, PaperBackground, DesignExportForeground } from '../components/ui';
+import { Card, Button, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { CRISIS_NOTICE, LEGAL_CONSENT_ITEMS, WELLNESS_DISCLAIMER } from '../constants/legal';
 import { setLegalConsentAccepted } from '../services/legalConsentService';
 import { RootStackParamList } from '../navigation/types';
@@ -69,13 +69,17 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
             </TouchableOpacity>
           ))}
 
-          <Button
-            title="I understand and agree"
-            onPress={handleAccept}
-            disabled={!allChecked}
+          <ActionLoadingSlot
             loading={saving}
-            style={styles.primaryButton}
-          />
+            loadingProps={{ preset: 'consentSave', style: styles.primaryButton }}
+          >
+            <Button
+              title="I understand and agree"
+              onPress={handleAccept}
+              disabled={!allChecked}
+              style={styles.primaryButton}
+            />
+          </ActionLoadingSlot>
           <TouchableOpacity
             onPress={() => navigation.navigate('Privacy')}
             style={styles.linkButton}
