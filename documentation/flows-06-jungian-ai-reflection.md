@@ -6,6 +6,7 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 
 - **Interpretation depth** and **Mythic Resonance** from `userSettingsService` (Account screen).
 - Constants in `constants/interpretation.ts` (e.g. `MAX_AI_RESPONSES`).
+- Backend entitlement and quota enforcement now exists in `ai-entitlements-gateway`, but the current DreamDetail / InterpretationChat screens are not yet cut over to it.
 
 ## Happy path — first reflection
 
@@ -14,6 +15,20 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 3. `generateInitialInterpretation` → AI text.
 4. `getDreamMetadataForReflection` → structured extraction with `display_distillation` plus pattern metadata (see [`docs/SYMBOLS_FLOW.md`](../docs/SYMBOLS_FLOW.md)).
 5. `saveInterpretation` persists messages + metadata; syncs in background when logged in.
+
+## Backend quota model (ready, not yet the live screen path)
+
+- `ai-entitlements-gateway` supports:
+  - `dream_reflection_generate`
+  - `dream_reflection_regenerate`
+  - `dream_followup_reply`
+- Interpretation rows can now store:
+  - `reflection_origin`
+  - `chat_replies_used`
+  - `chat_replies_limit`
+  - origin quota / entitlement references
+- Free-origin reflections stay eligible for their own 5 follow-up replies.
+- Paid-origin reflections become read-only when paid entitlement lapses.
 
 Advanced mode reads as continuous movement through the dream-field, not a forced descent. It targets denser 550–800 word depth and keeps somatic questions tied to the remembered dream-body rather than exercises.
 

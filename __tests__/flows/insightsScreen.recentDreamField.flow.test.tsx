@@ -28,7 +28,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 
 jest.mock('../../src/components/ui', () => {
   const React = require('react');
-  const { View, Text } = require('react-native');
+  const { View, Text, TouchableOpacity } = require('react-native');
   return {
     PaperBackground: ({ children }: any) => <View>{children}</View>,
     LegacyMountainWaveBackground: ({ children }: any) => <View>{children}</View>,
@@ -40,17 +40,24 @@ jest.mock('../../src/components/ui', () => {
     ),
     BreathingLine: () => null,
     Card: ({ children }: any) => <View>{children}</View>,
+    Button: ({ title, onPress, disabled }: any) => (
+      <TouchableOpacity onPress={onPress} disabled={disabled}>
+        <Text>{title}</Text>
+      </TouchableOpacity>
+    ),
     DesignExportForeground: ({ children }: any) => <View>{children}</View>,
+    LoadingState: () => <Text>Loading</Text>,
   };
 });
 
 jest.mock('../../src/components/icons/InsightsIcons', () => ({
-  ArchetypesIcon: () => null,
-  DreamsLoggedIcon: () => null,
-  MotifsIcon: () => null,
+  ArchetypalEnergiesIcon: () => null,
+  DreamPlacesIcon: () => null,
+  InnerTensionsIcon: () => null,
   PatternRecognitionIcon: () => null,
-  PlacesIcon: () => null,
-  SymbolsIcon: () => null,
+  RepeatingPatternsIcon: () => null,
+  ReturningImagesIcon: () => null,
+  ThresholdsIcon: () => null,
 }));
 
 jest.mock('../../src/services/insightsService', () => ({
@@ -113,9 +120,14 @@ describe('InsightsScreen Recent Dream Field flow', () => {
   it('shows Recent Dream Field with Last 3 as the default scope', async () => {
     const screen = render(<InsightsScreen />);
 
-    await waitFor(() => expect(screen.getByText('Recent Dream Field')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Reflect on recent dreams')).toBeTruthy());
+    expect(screen.getByText('Recent Dream Field')).toBeTruthy();
+    expect(screen.queryByText('Dream Field Overview')).toBeNull();
+    expect(screen.queryByText('This month in your dreams')).toBeNull();
+    expect(screen.getByText('Returning Images')).toBeTruthy();
+    expect(screen.queryByText('Images that keep returning')).toBeNull();
+    expect(screen.queryByText('English')).toBeNull();
     expect(screen.getByText('Latest 3 reflected dreams')).toBeTruthy();
-    expect(screen.getByText('Reflect on recent dreams')).toBeTruthy();
   });
 
   it('switches recent scope between Last 2 and Last 5', async () => {

@@ -12,9 +12,9 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 | Shared UI/theme | `src/components/ui/*`, `src/theme/*` | Paper-first visual system, typography, spacing, reusable surfaces |
 | Local data | `src/services/localStorage.ts` | AsyncStorage-only persistence and queues |
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
-| Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports |
+| Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
 | AI | `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Reflection, chat, extraction, grouping, pattern essays |
-| Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, transcription |
+| Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
 
 ## Navigation contract
 
@@ -34,7 +34,8 @@ Route params live in `src/navigation/types.ts`. Update this file, flow docs, and
 - `Dream`: saved locally and remotely; app UI treats dream content as sensitive.
 - `Interpretation`: AI messages plus symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, symbol stances, and `display_distillation`.
 - `PatternReportEntry` / recent sequence reflection: Insights reports and caches.
-- User settings: interpretation depth, mythic resonance, biometric preference.
+- User settings: interpretation depth, Insights report language, mythic resonance, biometric preference, and persisted timezone for calendar-based backend quota logic. Insights report language is currently device-local via `patternInsightLanguageService`.
+- Billing domain: `billing_accounts`, `subscription_entitlements`, `subscription_transactions`, `billing_webhook_events`, `quota_buckets`, `quota_events`, and `ai_generation_artifacts`.
 
 Local storage is the first write target. Remote Supabase is best-effort/background unless a feature explicitly needs online access.
 
@@ -49,7 +50,7 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Supabase and deployment map
 
-- Tables touched by app code include `dreams`, `interpretations`, `pattern_reports`, `user_settings`, and `contact_messages`.
+- Tables touched by app code now include `dreams`, `interpretations`, `pattern_reports`, `user_settings`, `contact_messages`, and the backend-owned billing / quota tables.
 - Schema changes require a migration under `supabase/migrations/`, README updates, and a final `supabase db push` note.
 - Edge Function behavior changes require the relevant `supabase/functions/<name>/README.md` update and a final deploy command note.
 - AI provider/model routing lives in `supabase/functions/openai-proxy/task-config.ts`; after changing it, deploy `openai-proxy`.
@@ -61,5 +62,6 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 - Sync/storage changes: update flow 05, `ARCHITECTURE.md`, storage/sync flow tests, and Supabase notes when remote shape changes.
 - AI interpretation changes: update flow 06, `docs/SYMBOLS_FLOW.md`, [architecture-interpretation.md](./architecture-interpretation.md), AI tests, and schema/function docs if persistence or routing changes.
 - Insights changes: update flow 07, feature architecture docs, period/key/pattern tests, and report storage docs.
+- Subscription / quota backend changes: update flow 10, account deletion behavior, billing function READMEs, quota tests, and deployment notes for Apple / Google store integration.
 - Support/legal/account changes: update flow 08, setup docs or function READMEs when backend behavior changes.
 - Shared UI/theme changes: update `src/theme/COLORS.md` or `src/theme/TYPOGRAPHY.md`; run relevant UI tests or note why E2E was skipped.

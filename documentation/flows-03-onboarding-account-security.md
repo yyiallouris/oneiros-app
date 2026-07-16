@@ -22,6 +22,7 @@ Reachable from **Write** tab → menu → Account.
 
 - **Profile:** “Name or nickname” → `UserService.setDisplayName`; brief “Saved” then navigate to **Write** tab.
 - **Dream analysis — level:** `quick` | `standard` | `advanced` (stored via `userSettingsService`).
+- **Insights language:** selects the language for Recent Dream Field and Period Reflection; persisted locally and applied by both Insights flows.
 - **Mythic Resonance:** toggle only relevant when depth is **advanced**; persisted remotely/local settings.
 - **Security — Lock app with Face ID / fingerprint:** `enableBiometric` / `disableBiometric`; synced with remote profile (see `biometricAuthService`).
 

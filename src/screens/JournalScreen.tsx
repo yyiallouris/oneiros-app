@@ -6,6 +6,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -17,6 +18,7 @@ import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
 import { normalizeSymbolKey } from '../services/insightsService';
 import Svg, { Circle, Path } from 'react-native-svg';
+const calendarActionIcon = require('../assets/icons/action_icons/calendar_icon.png');
 
 const JOURNAL_MOUNTAIN_HEIGHT = 300;
 
@@ -31,8 +33,8 @@ const SearchIcon = ({ size = 20, color = colors.textSecondary }) => (
   </Svg>
 );
 
-// Calendar icon for header
-const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
+// Legacy inline calendar icon kept as a fallback reference while the PNG asset is active.
+const LegacyCalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
@@ -43,6 +45,21 @@ const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
     />
   </Svg>
 );
+
+const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => {
+  if (!calendarActionIcon) {
+    return <LegacyCalendarIcon size={size} color={color} />;
+  }
+
+  return (
+    <Image
+      source={calendarActionIcon}
+      style={{ width: size, height: size }}
+      resizeMode="contain"
+      accessibilityIgnoresInvertColors
+    />
+  );
+};
 
 interface DreamCardProps {
   dream: Dream;
@@ -265,7 +282,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
           subtitle="Dreams remembered and ready to return."
           right={
             <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-              <CalendarIcon size={24} />
+              <CalendarIcon size={30} />
             </TouchableOpacity>
           }
         />

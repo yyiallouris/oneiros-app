@@ -8,6 +8,12 @@ import { PaperBackground, Card, Button, DesignExportForeground } from '../compon
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import {
+  getPatternInsightLanguage,
+  setPatternInsightLanguage,
+  type PatternInsightLanguageCode,
+} from '../services/patternInsightLanguageService';
+import { PATTERN_INSIGHT_LANGUAGES } from '../constants/patternInsightLanguages';
+import {
   getBiometricStatus,
   isBiometricEnabled,
   enableBiometric,
@@ -30,6 +36,8 @@ const AccountScreen: React.FC = () => {
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [interpretationDepth, setInterpretationDepthState] = useState<InterpretationDepth>('standard');
+  const [patternInsightLanguage, setPatternInsightLanguageState] = useState<PatternInsightLanguageCode>('en');
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
   const [biometricSupported, setBiometricSupported] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
@@ -44,6 +52,9 @@ const AccountScreen: React.FC = () => {
       });
       getInterpretationDepth().then((depth) => {
         if (mounted) setInterpretationDepthState(depth);
+      });
+      getPatternInsightLanguage().then((language) => {
+        if (mounted) setPatternInsightLanguageState(language);
       });
       getBiometricStatus().then((status) => {
         if (mounted) {
@@ -77,6 +88,12 @@ const AccountScreen: React.FC = () => {
   const handleDepthSelect = useCallback((depth: InterpretationDepth) => {
     setInterpretationDepthState(depth);
     setInterpretationDepth(depth);
+  }, []);
+
+  const handlePatternLanguageSelect = useCallback((language: PatternInsightLanguageCode) => {
+    setPatternInsightLanguageState(language);
+    setLanguagePickerOpen(false);
+    void setPatternInsightLanguage(language);
   }, []);
 
   const handleBiometricToggle = useCallback(async (value: boolean) => {
@@ -183,6 +200,50 @@ const AccountScreen: React.FC = () => {
               {interpretationDepth === opt.value && <Text style={styles.depthCheck}>✓</Text>}
             </TouchableOpacity>
           ))}
+        </Card>
+
+        <Card style={styles.card}>
+          <Text style={styles.sectionLabel}>Insights language</Text>
+          <Text style={styles.fieldLabel}>
+            Language used for Recent Dream Field and Period Reflection.
+          </Text>
+          <TouchableOpacity
+            style={styles.languageTrigger}
+            onPress={() => setLanguagePickerOpen((open) => !open)}
+            activeOpacity={0.72}
+          >
+            <Text style={styles.languageTriggerText}>
+              {PATTERN_INSIGHT_LANGUAGES.find((language) => language.code === patternInsightLanguage)?.name ?? 'English'}
+            </Text>
+            <Text style={styles.languageTriggerCode}>
+              {PATTERN_INSIGHT_LANGUAGES.find((language) => language.code === patternInsightLanguage)?.display ?? 'EN'}
+            </Text>
+          </TouchableOpacity>
+          {languagePickerOpen && (
+            <View style={styles.languageDropdown}>
+              {PATTERN_INSIGHT_LANGUAGES.map((language) => (
+                <TouchableOpacity
+                  key={language.code}
+                  style={[
+                    styles.languageOption,
+                    patternInsightLanguage === language.code && styles.languageOptionActive,
+                  ]}
+                  onPress={() => handlePatternLanguageSelect(language.code)}
+                  activeOpacity={0.72}
+                >
+                  <Text
+                    style={[
+                      styles.languageOptionText,
+                      patternInsightLanguage === language.code && styles.languageOptionTextActive,
+                    ]}
+                  >
+                    {language.name} ({language.display})
+                  </Text>
+                  {patternInsightLanguage === language.code && <Text style={styles.depthCheck}>✓</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </Card>
 
         {biometricSupported && (
@@ -326,6 +387,54 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     color: colors.buttonPrimary,
     marginLeft: spacing.sm,
+  },
+  languageTrigger: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: borders.primary,
+    backgroundColor: colors.background,
+  },
+  languageTriggerText: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    fontWeight: typography.weights.medium,
+  },
+  languageTriggerCode: {
+    fontSize: typography.sizes.sm,
+    color: colors.buttonPrimary,
+    fontWeight: typography.weights.semibold,
+  },
+  languageDropdown: {
+    marginTop: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: borders.primary,
+    overflow: 'hidden',
+  },
+  languageOption: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borders.primary,
+  },
+  languageOptionActive: {
+    backgroundColor: colors.buttonPrimaryLight12,
+  },
+  languageOptionText: {
+    fontSize: typography.sizes.sm,
+    color: colors.textPrimary,
+  },
+  languageOptionTextActive: {
+    color: colors.buttonPrimary,
+    fontWeight: typography.weights.semibold,
   },
   biometricRow: {
     flexDirection: 'row',

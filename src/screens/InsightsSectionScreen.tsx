@@ -12,33 +12,19 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
 import {
-  ArchetypesIcon,
-  MotifsIcon,
-  PlacesIcon,
-  SymbolsIcon,
+  ArchetypalEnergiesIcon,
+  DreamPlacesIcon,
+  InnerTensionsIcon,
+  RepeatingPatternsIcon,
+  ReturningImagesIcon,
+  ThresholdsIcon,
 } from '../components/icons/InsightsIcons';
-
-const SECTION_ICON_SIZE = 80;
-const SECTION_ICON_COLOR = colors.textAccent;
-const SectionSymbolsIcon = () => (
-  <SymbolsIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
-);
-const SectionMotifsIcon = () => (
-  <MotifsIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
-);
-const SectionArchetypesIcon = () => (
-  <ArchetypesIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
-);
-const SectionPlacesIcon = () => (
-  <PlacesIcon size={SECTION_ICON_SIZE} color={SECTION_ICON_COLOR} />
-);
 import type {
   InsightsSectionId,
   InsightsPeriod,
@@ -57,6 +43,11 @@ import {
   getSymbolClusters,
   symbolHasAssociations,
   getAssociationsForSymbol,
+  getPeriodThisMonth,
+  getPeriodLastMonth,
+  getPeriodLastNMonths,
+  getPeriodAllTime,
+  getPeriodLabel,
 } from '../services/insightsService';
 import {
   generateMonthlyInsights,
@@ -78,10 +69,8 @@ import {
 import { UserService } from '../services/userService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
 import {
-  PATTERN_INSIGHT_LANGUAGES,
-  DEFAULT_PATTERN_INSIGHT_LANGUAGE,
-  PATTERN_INSIGHT_LANGUAGE_KEY,
-} from '../constants/patternInsightLanguages';
+  getPatternInsightLanguage,
+} from '../services/patternInsightLanguageService';
 import { getInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import { isInnerStructureArchetype } from '../constants/archetypes';
 import {
@@ -94,8 +83,78 @@ import { isOnline } from '../utils/network';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
+type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
 
+const SECTION_ICON_SIZE = 112;
+const SectionReturningImagesIcon = () => (
+  <ReturningImagesIcon size={SECTION_ICON_SIZE} />
+);
+const SectionRepeatingPatternsIcon = () => (
+  <RepeatingPatternsIcon size={SECTION_ICON_SIZE} />
+);
+const SectionThresholdsIcon = () => (
+  <ThresholdsIcon size={SECTION_ICON_SIZE} />
+);
+const SectionInnerTensionsIcon = () => (
+  <InnerTensionsIcon size={SECTION_ICON_SIZE} />
+);
+const SectionArchetypalEnergiesIcon = () => (
+  <ArchetypalEnergiesIcon size={SECTION_ICON_SIZE} />
+);
+const SectionDreamPlacesIcon = () => (
+  <DreamPlacesIcon size={SECTION_ICON_SIZE} />
+);
 const TOP_THEMES_LIMIT = 5;
+const FORMING_PATTERN_SECTION_IDS: InsightsSectionId[] = [
+  'recurring-symbols',
+  'symbolic-motifs',
+  'thresholds',
+  'core-conflicts',
+  'space-landscapes',
+  'recurring-archetypes',
+];
+const PERIOD_PRESETS: { key: PeriodPreset; label: string }[] = [
+  { key: 'this_month', label: 'This month' },
+  { key: 'last_month', label: 'Last month' },
+  { key: 'last_3_months', label: 'Last 3 months' },
+  { key: 'last_6_months', label: 'Last 6 months' },
+  { key: 'all_time', label: 'All time' },
+];
+
+function periodFromPresetSync(preset: PeriodPreset): InsightsPeriod | null {
+  switch (preset) {
+    case 'this_month':
+      return getPeriodThisMonth();
+    case 'last_month':
+      return getPeriodLastMonth();
+    case 'last_3_months':
+      return getPeriodLastNMonths(3);
+    case 'last_6_months':
+      return getPeriodLastNMonths(6);
+    case 'all_time':
+      return null;
+    default:
+      return getPeriodThisMonth();
+  }
+}
+
+function inferPresetFromPeriod(period: InsightsPeriod | undefined, label?: string): PeriodPreset {
+  if (label === 'All time') return 'all_time';
+  if (!period) return 'this_month';
+
+  const candidates: Array<[PeriodPreset, InsightsPeriod]> = [
+    ['this_month', getPeriodThisMonth()],
+    ['last_month', getPeriodLastMonth()],
+    ['last_3_months', getPeriodLastNMonths(3)],
+    ['last_6_months', getPeriodLastNMonths(6)],
+  ];
+
+  const match = candidates.find(([, candidate]) =>
+    candidate.startDate === period.startDate && candidate.endDate === period.endDate
+  );
+
+  return match?.[0] ?? 'this_month';
+}
 
 /** Format YYYY-MM-DD for pattern report subtitle (e.g. "5 Jan 2025"). */
 function formatPatternDate(isoDate: string): string {
@@ -128,15 +187,31 @@ export type InsightsSectionScreenProps = {
 };
 
 const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props) => {
-  const { embedded, overrideSectionId, overridePeriod } = props;
+  const { embedded, overrideSectionId, overridePeriod, overridePeriodLabel } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
   const sectionId = (embedded && overrideSectionId != null) ? overrideSectionId : (route.params?.sectionId ?? 'recurring-symbols');
-  const period: InsightsPeriod | undefined = (embedded && overridePeriod != null)
+  const routePeriod: InsightsPeriod | undefined = (embedded && overridePeriod != null)
     ? overridePeriod
     : (route.params?.periodStart != null && route.params?.periodEnd != null
         ? { startDate: route.params.periodStart, endDate: route.params.periodEnd }
         : undefined);
+  const routePeriodLabel = (embedded && overridePeriodLabel != null)
+    ? overridePeriodLabel
+    : route.params?.periodLabel;
+  const [sectionPeriodPreset, setSectionPeriodPreset] = useState<PeriodPreset>(() =>
+    inferPresetFromPeriod(routePeriod, routePeriodLabel)
+  );
+  const [sectionPeriod, setSectionPeriod] = useState<InsightsPeriod>(() =>
+    routePeriod ?? getPeriodThisMonth()
+  );
+  const [periodExpanded, setPeriodExpanded] = useState(false);
+  const periodDropdownOpacity = useRef(new Animated.Value(0)).current;
+  const period = embedded ? (routePeriod ?? getPeriodThisMonth()) : sectionPeriod;
+  const periodLabel = embedded
+    ? (routePeriodLabel ?? getPeriodLabel(period))
+    : (sectionPeriodPreset === 'all_time' ? 'All time' : getPeriodLabel(sectionPeriod));
+  const showSectionPeriodPicker = !embedded && FORMING_PATTERN_SECTION_IDS.includes(sectionId);
   const [loading, setLoading] = useState(true);
   const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
@@ -178,11 +253,74 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [patternReportMeta, setPatternReportMeta] = useState<{ monthKey: string; dreamCount: number; startDate: string; endDate: string } | null>(null);
   /** When user tapped Generate and there were 0 entries for this month, show empty state. */
   const [patternEmptyForMonthKey, setPatternEmptyForMonthKey] = useState<string | null>(null);
-  const [patternLanguage, setPatternLanguage] = useState(DEFAULT_PATTERN_INSIGHT_LANGUAGE);
-  const [patternLanguagePickerOpen, setPatternLanguagePickerOpen] = useState(false);
+  const [patternLanguage, setPatternLanguage] = useState('en');
   const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
+
+  useEffect(() => {
+    if (!embedded) {
+      setSectionPeriod(routePeriod ?? getPeriodThisMonth());
+      setSectionPeriodPreset(inferPresetFromPeriod(routePeriod, routePeriodLabel));
+      setPeriodExpanded(false);
+      periodDropdownOpacity.setValue(1);
+    }
+  }, [
+    embedded,
+    route.params?.periodEnd,
+    route.params?.periodLabel,
+    route.params?.periodStart,
+    sectionId,
+    routePeriodLabel,
+    periodDropdownOpacity,
+  ]);
+
+  useEffect(() => {
+    if (periodExpanded) {
+      periodDropdownOpacity.setValue(0);
+      Animated.timing(periodDropdownOpacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [periodExpanded, periodDropdownOpacity]);
+
+  useEffect(() => {
+    if (!embedded && showSectionPeriodPicker) {
+      navigation.setParams({
+        sectionId,
+        periodStart: period.startDate,
+        periodEnd: period.endDate,
+        periodLabel,
+      });
+    }
+  }, [embedded, navigation, period.endDate, period.startDate, periodLabel, sectionId, showSectionPeriodPicker]);
+
+  const selectPeriodPreset = useCallback(async (preset: PeriodPreset) => {
+    const nextPeriod =
+      preset === 'all_time'
+        ? await getPeriodAllTime()
+        : periodFromPresetSync(preset) ?? getPeriodThisMonth();
+    setSectionPeriodPreset(preset);
+    setSectionPeriod(nextPeriod);
+
+    const closeDropdown = () => {
+      setPeriodExpanded(false);
+      periodDropdownOpacity.setValue(1);
+    };
+    const fallback = setTimeout(closeDropdown, 250);
+    Animated.timing(periodDropdownOpacity, {
+      toValue: 0,
+      duration: 180,
+      easing: Easing.in(Easing.ease),
+      useNativeDriver: true,
+    }).start(() => {
+      clearTimeout(fallback);
+      closeDropdown();
+    });
+  }, [periodDropdownOpacity]);
 
   const load = useCallback(async () => {
     const currentSectionId = sectionId;
@@ -216,8 +354,8 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
         const data = await getCollectiveInsights();
         setCollective(data);
       } else if (currentSectionId === 'pattern-recognition') {
-        const storedLang = await AsyncStorage.getItem(PATTERN_INSIGHT_LANGUAGE_KEY);
-        if (storedLang) setPatternLanguage(storedLang);
+        const storedLang = await getPatternInsightLanguage();
+        setPatternLanguage(storedLang);
         setPatternSelectedMonthKey((prev) => prev);
         const userId = await UserService.getCurrentUserId();
         let reports: Record<string, { generatedAt: string; text: string }>;
@@ -303,6 +441,45 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+        {showSectionPeriodPicker && (
+          <View style={styles.sectionPeriodWrap}>
+            <Text style={styles.sectionPeriodKicker}>Viewing period</Text>
+            <TouchableOpacity
+              style={styles.sectionPeriodTrigger}
+              onPress={() => setPeriodExpanded((open) => !open)}
+              activeOpacity={0.72}
+            >
+              <Text style={styles.sectionPeriodTriggerLabel}>{periodLabel}</Text>
+              <Text style={[styles.sectionPeriodArrow, periodExpanded && styles.sectionPeriodArrowUp]}>▾</Text>
+            </TouchableOpacity>
+            {periodExpanded && (
+              <Animated.View style={[styles.sectionPeriodDropdown, { opacity: periodDropdownOpacity }]}>
+                {PERIOD_PRESETS.map(({ key, label }) => (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.sectionPeriodOption,
+                      sectionPeriodPreset === key && styles.sectionPeriodOptionActive,
+                    ]}
+                    onPress={() => {
+                      void selectPeriodPreset(key);
+                    }}
+                    activeOpacity={0.72}
+                  >
+                    <Text
+                      style={[
+                        styles.sectionPeriodOptionText,
+                        sectionPeriodPreset === key && styles.sectionPeriodOptionTextActive,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </Animated.View>
+            )}
+          </View>
+        )}
         {/* Returning images: split into recurring (count ≥ 2) and visited once */}
         {sectionId === 'recurring-symbols' && (() => {
           const recurring = symbols.filter((s) => s.count >= 2);
@@ -310,7 +487,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={styles.section}>
               <View style={styles.sectionIcon}>
-                <SectionSymbolsIcon />
+                <SectionReturningImagesIcon />
               </View>
               {symbols.length === 0 ? (
                 <Text style={styles.empty}>No images yet. Get dream interpretations to see returning images.</Text>
@@ -520,7 +697,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={styles.section}>
               <View style={styles.sectionIcon}>
-                <SectionMotifsIcon />
+                <SectionRepeatingPatternsIcon />
               </View>
               {motifs.length === 0 ? (
                 <Text style={styles.empty}>No repeating patterns yet. Get dream interpretations to see recurring dream situations.</Text>
@@ -579,7 +756,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={styles.section}>
               <View style={styles.sectionIcon}>
-                <SectionMotifsIcon />
+                <SectionThresholdsIcon />
               </View>
               {thresholds.length === 0 ? (
                 <Text style={styles.empty}>No thresholds yet. Interpret dreams to see recurring transition points.</Text>
@@ -628,7 +805,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={styles.section}>
               <View style={styles.sectionIcon}>
-                <SectionMotifsIcon />
+                <SectionInnerTensionsIcon />
               </View>
               {centralConflicts.length === 0 ? (
                 <Text style={styles.empty}>No inner tensions yet. Interpret dreams to see the tensions they stage.</Text>
@@ -677,7 +854,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={styles.section}>
               <View style={styles.sectionIcon}>
-                <SectionPlacesIcon />
+                <SectionDreamPlacesIcon />
               </View>
               {landscapes.length === 0 ? (
                 <Text style={styles.empty}>No dream places yet. Get dream interpretations to see recurring settings and places.</Text>
@@ -737,7 +914,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           return (
             <View style={[styles.section, styles.sectionNoTopPadding]}>
               <View style={styles.sectionIcon}>
-                <SectionArchetypesIcon />
+                <SectionArchetypalEnergiesIcon />
               </View>
               {archetypes.length === 0 ? (
                 <Text style={styles.empty}>No archetypes yet. Get dream interpretations to see recurring archetypes.</Text>
@@ -812,7 +989,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               <TouchableOpacity
                 style={styles.patternMonthRow}
                 onPress={() => {
-                  setPatternLanguagePickerOpen(false);
                   setPatternMonthPickerOpen((o) => !o);
                 }}
                 activeOpacity={0.8}
@@ -936,51 +1112,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 activeOpacity={0.8}
               >
                 <Text style={styles.patternGenerateLabel}>Generate reflection</Text>
-                <TouchableOpacity
-                  style={styles.patternLanguageChip}
-                  onPress={() => {
-                    setPatternMonthPickerOpen(false);
-                    setPatternLanguagePickerOpen((o) => !o);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.patternLanguageChipText}>
-                    {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === patternLanguage)?.display ?? 'EN'}
-                  </Text>
-                  <Text style={[styles.patternMonthChevron, patternLanguagePickerOpen && styles.patternMonthChevronUp]}>
-                    ▾
-                  </Text>
-                </TouchableOpacity>
               </TouchableOpacity>
-              )}
-
-              {patternLanguagePickerOpen && (
-                <ScrollView style={styles.patternLanguageDropdown} nestedScrollEnabled>
-                  {PATTERN_INSIGHT_LANGUAGES.map((lang) => (
-                    <TouchableOpacity
-                      key={lang.code}
-                      style={[
-                        styles.patternMonthOption,
-                        patternLanguage === lang.code && styles.patternMonthOptionActive,
-                      ]}
-                      onPress={async () => {
-                        setPatternLanguage(lang.code);
-                        setPatternLanguagePickerOpen(false);
-                        await AsyncStorage.setItem(PATTERN_INSIGHT_LANGUAGE_KEY, lang.code);
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <Text
-                        style={[
-                          styles.patternMonthOptionText,
-                          patternLanguage === lang.code && styles.patternMonthOptionTextActive,
-                        ]}
-                      >
-                        {lang.name} ({lang.display})
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
               )}
             </View>
 
@@ -1128,6 +1260,64 @@ const styles = StyleSheet.create({
   },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  sectionPeriodWrap: {
+    marginBottom: spacing.lg,
+  },
+  sectionPeriodKicker: {
+    fontSize: typography.sizes.xs,
+    color: text.muted,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
+  sectionPeriodTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+    backgroundColor: colors.cardGlassStrong,
+  },
+  sectionPeriodTriggerLabel: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+    fontWeight: typography.weights.medium,
+  },
+  sectionPeriodArrow: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    marginLeft: spacing.sm,
+  },
+  sectionPeriodArrowUp: {
+    transform: [{ rotate: '180deg' }],
+  },
+  sectionPeriodDropdown: {
+    marginTop: spacing.xs,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.contourLineFaint,
+    backgroundColor: colors.cardGlassStrong,
+    overflow: 'hidden',
+  },
+  sectionPeriodOption: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  sectionPeriodOptionActive: {
+    backgroundColor: colors.buttonPrimaryLight,
+  },
+  sectionPeriodOptionText: {
+    fontSize: typography.sizes.md,
+    color: colors.textPrimary,
+  },
+  sectionPeriodOptionTextActive: {
+    color: colors.buttonPrimary,
+    fontWeight: typography.weights.medium,
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -1420,7 +1610,6 @@ const styles = StyleSheet.create({
   patternGenerateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
@@ -1432,28 +1621,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.buttonPrimary,
     fontWeight: typography.weights.medium,
-  },
-  patternLanguageChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    backgroundColor: colors.buttonPrimaryLight12,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.buttonPrimary40,
-  },
-  patternLanguageChipText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.buttonPrimary,
-    marginRight: spacing.xs,
-  },
-  patternLanguageDropdown: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    paddingVertical: spacing.xs,
-    maxHeight: 220,
   },
   patternArchiveSection: {
     marginTop: spacing.lg,

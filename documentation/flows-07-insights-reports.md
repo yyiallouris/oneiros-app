@@ -1,15 +1,14 @@
-# Insights, periods, dream-field overview, pattern reports, journal drill-down
+# Insights, periods, recent dream field, pattern reports, journal drill-down
 
 ## Insights tab (`InsightsScreen`)
 
-- **Period presets:** This month, Last month, Last 3 / 6 months, All time.
-- “All time” resolves period asynchronously via `getPeriodAllTime()`; others use fixed date ranges.
-- Loads a computed dream-field overview via `getInsightsOverview(period)`: logged dreams, reflected dreams, top images, motifs, thresholds, tensions, places, archetypal echoes, affects, strongest cross-category patterns, and a deterministic field summary.
+- The landing screen no longer exposes a top-level period dropdown.
+- It loads the current-month insights overview via `getInsightsOverview(getPeriodThisMonth())` to preview the active field and the forming-pattern entry points.
 
 ### Main structure and navigation
 
-- **Dream Field Overview:** summary + logged/reflected counts + top images/affects.
-- **Recent Dream Field:** living reflection on the latest interpreted dreams; default Last 3, selectable Last 2 / Last 3 / Last 5; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections.
+- **Legacy hidden:** the old Dream Field Overview summary block is kept behind a legacy gate in `InsightsScreen` and is no longer part of the active Insights layout.
+- **Recent Dream Field:** living reflection on the latest interpreted dreams; default Last 3, selectable Last 2 / Last 3 / Last 5; uses the global Insights language selected in Account; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections.
 - **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports.
 - **Returning Patterns:** unified strongest patterns across categories.
   - Images → **`JournalFilter`** with `filterSymbol`.
@@ -28,7 +27,10 @@
 
 ## Insights section (`InsightsSectionScreen`)
 
-Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators; small interactive controls such as language chips remain contained.
+Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Insight report language is configured from Account rather than inside report screens.
+
+- **Forming pattern period picker:** `Returning Images`, `Repeating Patterns`, `Thresholds`, `Inner Tensions`, `Dream Places`, and `Archetypal Echoes` now own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place.
+- **Insights icon refresh:** the Period Reflection entry and the six forming-pattern categories now render from the supplied PNG icon set. The shared icon renderer crops the transparent source canvases to their visible artwork bounds, and the previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
 
 Per `sectionId`:
 
@@ -36,9 +38,19 @@ Per `sectionId`:
 - **Repeating Patterns / Dream Places:** similar aggregations; journal links with `filterMotif` / `filterLandscape`. Single/other items are collapsed by default.
 - **Thresholds / Inner Tensions:** recurring transition points and tensions; single crossings/tensions are collapsed by default.
 - **Archetypal Echoes:** lower-hierarchy archetypal recurrence display.
-- **Period Reflection:** AI **monthly / quarterly** reflective reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; current month uses month-to-date entries while report keys stay weekly via `getReportKeyForGeneration`; language picker (`PATTERN_INSIGHT_LANGUAGES`); saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered).
-- **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateRecentDreamFieldReflection`; requires at least 2 interpreted dreams; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
+- **Period Reflection:** AI **monthly / quarterly** reflective reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; current month uses month-to-date entries while report keys stay weekly via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered).
+- **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateRecentDreamFieldReflection`; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
 - **Collective:** `getCollectiveInsights()` — currently **placeholder** empty aggregates (`insightsService` TODO).
+
+## Backend entitlement model (ready, not yet the active screen path)
+
+- Recent Dream Field now has a backend quota contract: paid-only, 10 generations per billing cycle, cache reuse for exact same sequence + language.
+- Period Reflection now has a backend cadence contract:
+  - paid-only
+  - at least 2 reflected dreams
+  - current month = month-to-date, max 1 generation per calendar week, plus at least 1 new reflected dream since the last current-month generation
+  - finished months = immutable archived artifact per month scope
+- Backend artifacts live in `ai_generation_artifacts` and period reflections are mirrored into `pattern_reports` for compatibility.
 
 ### Online checks
 
@@ -52,6 +64,7 @@ Per `sectionId`:
 
 - Aggregations use **local dreams** and interpretations. Full pattern metadata remains available for Insights: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances.
 - `display_distillation` is for immediate DreamDetail presentation only; monthly/quarterly reports and recent reflections continue to synthesize from full metadata and interpretation excerpts.
+- The new backend gateway assumes remote dream + interpretation data is available; until FE cutover, current Insights generation still originates from local-first services.
 - **Regression:** insights empty until user has reflections with extracted fields; changing period changes all section data.
 
 ## Calendar + insights

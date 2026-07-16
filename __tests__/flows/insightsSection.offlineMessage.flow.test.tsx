@@ -6,19 +6,23 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert, InteractionManager } from 'react-native';
 
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 const mockGetCurrentUserId = jest.fn();
 const mockGetPatternReports = jest.fn();
 const mockGetInterpretationDepth = jest.fn();
 const mockIsOnline = jest.fn();
+const mockGetRecurringSymbols = jest.fn();
+let mockRouteParams: Record<string, unknown> = { sectionId: 'pattern-recognition' };
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
   useNavigation: () => ({
     navigate: mockNavigate,
+    setParams: mockSetParams,
     setOptions: jest.fn(),
   }),
   useRoute: () => ({
-    params: { sectionId: 'pattern-recognition' },
+    params: mockRouteParams,
   }),
   useFocusEffect: (callback: () => void) => {
     const React = require('react');
@@ -34,6 +38,8 @@ jest.mock('../../src/components/ui', () => {
     LegacyMountainWaveBackground: ({ children }: any) => <View>{children}</View>,
     BreathingLine: () => null,
     Card: ({ children }: any) => <View>{children}</View>,
+    LoadingState: () => <Text>Loading</Text>,
+    ContentSkeleton: () => <Text>Skeleton</Text>,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
     SymbolInfoModal: () => null,
     DesignExportForeground: ({ children }: any) => <View>{children}</View>,
@@ -43,18 +49,22 @@ jest.mock('../../src/components/ui', () => {
 jest.mock('../../src/components/icons/InsightsIcons', () => {
   const React = require('react');
   return {
-    SymbolsIcon: () => null,
-    MotifsIcon: () => null,
-    ArchetypesIcon: () => null,
-    PlacesIcon: () => null,
+    ArchetypalEnergiesIcon: () => null,
+    DreamPlacesIcon: () => null,
+    InnerTensionsIcon: () => null,
+    RepeatingPatternsIcon: () => null,
+    ReturningImagesIcon: () => null,
+    ThresholdsIcon: () => null,
   };
 });
 
 jest.mock('../../src/services/insightsService', () => ({
-  getRecurringSymbols: jest.fn().mockResolvedValue([]),
+  getRecurringSymbols: (...args: unknown[]) => mockGetRecurringSymbols(...args),
   getRecurringArchetypes: jest.fn().mockResolvedValue([]),
   getRecurringLandscapes: jest.fn().mockResolvedValue([]),
   getRecurringMotifs: jest.fn().mockResolvedValue([]),
+  getRecurringThresholds: jest.fn().mockResolvedValue([]),
+  getRecurringCentralConflicts: jest.fn().mockResolvedValue([]),
   getCollectiveInsights: jest.fn().mockResolvedValue({
     topSymbolsThisMonth: [],
     archetypeTrends: [],
@@ -62,6 +72,21 @@ jest.mock('../../src/services/insightsService', () => ({
   getSymbolClusters: jest.fn().mockReturnValue([]),
   symbolHasAssociations: jest.fn().mockReturnValue(false),
   getAssociationsForSymbol: jest.fn().mockReturnValue([]),
+  getPeriodThisMonth: jest.fn().mockReturnValue({ startDate: '2026-07-01', endDate: '2026-07-31' }),
+  getPeriodLastMonth: jest.fn().mockReturnValue({ startDate: '2026-06-01', endDate: '2026-06-30' }),
+  getPeriodLastNMonths: jest.fn((count: number) => {
+    if (count === 3) return { startDate: '2026-05-01', endDate: '2026-07-31' };
+    if (count === 6) return { startDate: '2026-02-01', endDate: '2026-07-31' };
+    return { startDate: '2026-07-01', endDate: '2026-07-31' };
+  }),
+  getPeriodAllTime: jest.fn().mockResolvedValue({ startDate: '2026-01-01', endDate: '2026-07-31' }),
+  getPeriodLabel: jest.fn((period: { startDate: string; endDate: string }) => {
+    if (period.startDate === '2026-07-01' && period.endDate === '2026-07-31') return 'This month';
+    if (period.startDate === '2026-06-01' && period.endDate === '2026-06-30') return 'Last month';
+    if (period.startDate === '2026-05-01' && period.endDate === '2026-07-31') return 'Last 3 months';
+    if (period.startDate === '2026-02-01' && period.endDate === '2026-07-31') return 'Last 6 months';
+    return 'Custom period';
+  }),
 }));
 
 jest.mock('../../src/services/patternInsightsService', () => ({
@@ -131,6 +156,7 @@ import InsightsSectionScreen from '../../src/screens/InsightsSectionScreen';
 describe('InsightsSection offline message flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = { sectionId: 'pattern-recognition' };
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((callback: any) => {
@@ -143,6 +169,7 @@ describe('InsightsSection offline message flow', () => {
     mockGetPatternReports.mockResolvedValue({});
     mockGetInterpretationDepth.mockResolvedValue('standard');
     mockIsOnline.mockResolvedValue(false);
+    mockGetRecurringSymbols.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -153,6 +180,7 @@ describe('InsightsSection offline message flow', () => {
     const screen = render(<InsightsSectionScreen />);
 
     await waitFor(() => expect(screen.getByText('Generate reflection')).toBeTruthy());
+    expect(screen.queryByText('English')).toBeNull();
 
     fireEvent.press(screen.getByText('Generate reflection'));
 
@@ -162,6 +190,37 @@ describe('InsightsSection offline message flow', () => {
         'Generating reflection requires an internet connection. Please check your connection and try again.',
         [{ text: 'OK' }]
       );
+    });
+  });
+
+  it('lets forming pattern sections own the period picker and reloads when the period changes', async () => {
+    mockRouteParams = {
+      sectionId: 'recurring-symbols',
+      periodStart: '2026-07-01',
+      periodEnd: '2026-07-31',
+      periodLabel: 'This month',
+    };
+
+    const screen = render(<InsightsSectionScreen />);
+
+    await waitFor(() => expect(screen.getByText('Viewing period')).toBeTruthy());
+    expect(screen.getByText('This month')).toBeTruthy();
+
+    fireEvent.press(screen.getByText('This month'));
+    fireEvent.press(screen.getByText('Last month'));
+
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalledWith({
+        sectionId: 'recurring-symbols',
+        periodStart: '2026-06-01',
+        periodEnd: '2026-06-30',
+        periodLabel: 'Last month',
+      });
+    });
+
+    expect(mockGetRecurringSymbols).toHaveBeenCalledWith({
+      startDate: '2026-06-01',
+      endDate: '2026-06-30',
     });
   });
 });

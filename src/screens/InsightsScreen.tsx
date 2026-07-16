@@ -1,35 +1,30 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Animated,
-  Easing,
   Alert,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
 import {
-  ArchetypesIcon,
-  DreamsLoggedIcon,
-  MotifsIcon,
+  ArchetypalEnergiesIcon,
+  DreamPlacesIcon,
+  InnerTensionsIcon,
   PatternRecognitionIcon,
-  PlacesIcon,
-  SymbolsIcon,
+  RepeatingPatternsIcon,
+  ReturningImagesIcon,
+  ThresholdsIcon,
 } from '../components/icons/InsightsIcons';
 import {
   getInsightsOverview,
   getPeriodThisMonth,
-  getPeriodLastMonth,
-  getPeriodLastNMonths,
-  getPeriodAllTime,
   getPeriodLabel,
 } from '../services/insightsService';
 import {
@@ -39,56 +34,24 @@ import {
   getRecentPatternInsightEntries,
   type RecentDreamFieldCount,
 } from '../services/patternInsightsService';
-import {
-  DEFAULT_PATTERN_INSIGHT_LANGUAGE,
-  PATTERN_INSIGHT_LANGUAGES,
-  PATTERN_INSIGHT_LANGUAGE_KEY,
-} from '../constants/patternInsightLanguages';
+import { getPatternInsightLanguage } from '../services/patternInsightLanguageService';
 import { isOnline } from '../utils/network';
 import type {
   CrossCategoryPatternItem,
   InsightsOverviewModel,
-  InsightsPeriod,
   InsightsSectionId,
 } from '../types/insights';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
-type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
-
 type ExploreLink = {
   sectionId: InsightsSectionId;
   title: string;
-  body: string;
   icon: React.ReactNode;
 };
 
 const INSIGHTS_MOUNTAIN_HEIGHT = 240;
-
-function periodFromPresetSync(preset: PeriodPreset): InsightsPeriod | null {
-  switch (preset) {
-    case 'this_month':
-      return getPeriodThisMonth();
-    case 'last_month':
-      return getPeriodLastMonth();
-    case 'last_3_months':
-      return getPeriodLastNMonths(3);
-    case 'last_6_months':
-      return getPeriodLastNMonths(6);
-    case 'all_time':
-      return null;
-    default:
-      return getPeriodThisMonth();
-  }
-}
-
-const PRESETS: { key: PeriodPreset; label: string }[] = [
-  { key: 'this_month', label: 'This month' },
-  { key: 'last_month', label: 'Last month' },
-  { key: 'last_3_months', label: 'Last 3 months' },
-  { key: 'last_6_months', label: 'Last 6 months' },
-  { key: 'all_time', label: 'All time' },
-];
+const SHOW_LEGACY_DREAM_FIELD_OVERVIEW = false;
 
 const EMPTY_OVERVIEW: InsightsOverviewModel = {
   dreamsLoggedCount: 0,
@@ -125,9 +88,6 @@ const kindLabel = (item: CrossCategoryPatternItem): string => {
   }
 };
 
-const joinPreview = (items: CrossCategoryPatternItem[]): string =>
-  items.slice(0, 3).map((item) => item.label).join(' · ');
-
 const RECENT_SCOPE_OPTIONS: { count: RecentDreamFieldCount; label: string; scopeLabel: string }[] = [
   { count: 2, label: 'Last 2', scopeLabel: 'Latest 2 reflected dreams' },
   { count: 3, label: 'Last 3', scopeLabel: 'Latest 3 reflected dreams' },
@@ -149,10 +109,6 @@ function parseReflectionSections(raw: string): { title: string; body: string }[]
 
 const InsightsScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('this_month');
-  const [periodExpanded, setPeriodExpanded] = useState(false);
-  const dropdownOpacity = useRef(new Animated.Value(0)).current;
-  const [currentPeriod, setCurrentPeriod] = useState<InsightsPeriod>(() => getPeriodThisMonth());
   const [overview, setOverview] = useState<InsightsOverviewModel>(EMPTY_OVERVIEW);
   const [loading, setLoading] = useState(true);
   const [recentCount, setRecentCount] = useState<RecentDreamFieldCount>(3);
@@ -161,51 +117,32 @@ const InsightsScreen: React.FC = () => {
   const [recentCachedAt, setRecentCachedAt] = useState<string | null>(null);
   const [recentGenerating, setRecentGenerating] = useState(false);
   const [recentEmpty, setRecentEmpty] = useState(false);
-  const [recentLanguage, setRecentLanguage] = useState(DEFAULT_PATTERN_INSIGHT_LANGUAGE);
-  const [recentLanguagePickerOpen, setRecentLanguagePickerOpen] = useState(false);
-
-  useEffect(() => {
-    if (periodExpanded) {
-      dropdownOpacity.setValue(0);
-      Animated.timing(dropdownOpacity, {
-        toValue: 1,
-        duration: 220,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [periodExpanded, dropdownOpacity]);
-
-  const periodLabel =
-    periodPreset === 'all_time' ? 'All time' : getPeriodLabel(currentPeriod);
+  const [recentLanguage, setRecentLanguage] = useState('en');
+  const currentPeriod = getPeriodThisMonth();
+  const periodLabel = getPeriodLabel(currentPeriod);
 
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
       setLoading(true);
       (async () => {
-        const p =
-          periodPreset === 'all_time'
-            ? await getPeriodAllTime()
-            : periodFromPresetSync(periodPreset) ?? getPeriodThisMonth();
-        const storedLanguage = await AsyncStorage.getItem(PATTERN_INSIGHT_LANGUAGE_KEY);
-        const effectiveLanguage = storedLanguage ?? recentLanguage;
+        const p = getPeriodThisMonth();
+        const effectiveLanguage = await getPatternInsightLanguage();
         const [nextOverview, recentEntries, cachedRecent] = await Promise.all([
           getInsightsOverview(p),
           getRecentPatternInsightEntries(5),
           getCachedRecentDreamFieldReflection(recentCount, effectiveLanguage),
         ]);
         if (!mounted) return;
-        setCurrentPeriod(p);
         setOverview(nextOverview);
         setRecentAvailableCount(recentEntries.length);
-        if (storedLanguage) setRecentLanguage(storedLanguage);
+        setRecentLanguage(effectiveLanguage);
         setRecentCachedAt(cachedRecent?.generated_at ?? null);
       })().finally(() => {
         if (mounted) setLoading(false);
       });
       return () => { mounted = false; };
-    }, [periodPreset])
+    }, [])
   );
 
   const navigateToSection = (sectionId: InsightsSectionId) => {
@@ -217,24 +154,6 @@ const InsightsScreen: React.FC = () => {
       periodStart: currentPeriod.startDate,
       periodEnd: currentPeriod.endDate,
       periodLabel,
-    });
-  };
-
-  const selectPreset = (key: PeriodPreset) => {
-    setPeriodPreset(key);
-    const closeDropdown = () => {
-      setPeriodExpanded(false);
-      dropdownOpacity.setValue(1);
-    };
-    const fallback = setTimeout(closeDropdown, 250);
-    Animated.timing(dropdownOpacity, {
-      toValue: 0,
-      duration: 180,
-      easing: Easing.in(Easing.ease),
-      useNativeDriver: true,
-    }).start(() => {
-      clearTimeout(fallback);
-      closeDropdown();
     });
   };
 
@@ -285,38 +204,32 @@ const InsightsScreen: React.FC = () => {
     {
       sectionId: 'recurring-symbols',
       title: 'Returning Images',
-      body: joinPreview(overview.topImages) || 'Images that keep returning',
-      icon: <SymbolsIcon size={32} color={colors.tabIconActive} />,
+      icon: <ReturningImagesIcon size={42} />,
     },
     {
       sectionId: 'symbolic-motifs',
       title: 'Repeating Patterns',
-      body: joinPreview(overview.topMotifs) || 'Recurring dream situations',
-      icon: <MotifsIcon size={32} color={colors.tabIconActive} />,
+      icon: <RepeatingPatternsIcon size={42} />,
     },
     {
       sectionId: 'thresholds',
       title: 'Thresholds',
-      body: joinPreview(overview.topThresholds) || 'Places where the dream changes ground',
-      icon: <MotifsIcon size={32} color={colors.tabIconActive} />,
+      icon: <ThresholdsIcon size={42} />,
     },
     {
       sectionId: 'core-conflicts',
       title: 'Inner Tensions',
-      body: joinPreview(overview.topTensions) || 'Tensions that keep returning',
-      icon: <MotifsIcon size={32} color={colors.tabIconActive} />,
+      icon: <InnerTensionsIcon size={42} />,
     },
     {
       sectionId: 'space-landscapes',
       title: 'Dream Places',
-      body: joinPreview(overview.topPlaces) || 'Settings you return to',
-      icon: <PlacesIcon size={32} color={colors.tabIconActive} />,
+      icon: <DreamPlacesIcon size={42} />,
     },
     {
       sectionId: 'recurring-archetypes',
       title: 'Archetypal Echoes',
-      body: joinPreview(overview.topArchetypalEchoes) || 'Deep structures and echoes',
-      icon: <ArchetypesIcon size={32} color={colors.tabIconActive} />,
+      icon: <ArchetypalEnergiesIcon size={42} />,
     },
   ];
 
@@ -355,48 +268,20 @@ const InsightsScreen: React.FC = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.tagline}>{periodLabel} in your dreams</Text>
+          {SHOW_LEGACY_DREAM_FIELD_OVERVIEW && (
+            <Card transparent style={styles.card}>
+              <Text style={styles.cardTitle}>Dream Field Overview</Text>
 
-          <View style={styles.periodSelectorWrap}>
-            <TouchableOpacity
-              style={styles.periodTrigger}
-              onPress={() => setPeriodExpanded((e) => !e)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.periodTriggerLabel}>{periodLabel}</Text>
-              <Text style={[styles.periodArrow, periodExpanded && styles.periodArrowUp]}>▾</Text>
-            </TouchableOpacity>
-            {periodExpanded && (
-              <Animated.View style={[styles.periodDropdown, { opacity: dropdownOpacity }]}>
-                {PRESETS.map(({ key, label }) => (
-                  <TouchableOpacity
-                    key={key}
-                    style={[styles.periodOption, periodPreset === key && styles.periodOptionActive]}
-                    onPress={() => selectPreset(key)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.periodOptionText, periodPreset === key && styles.periodOptionTextActive]}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </Animated.View>
-            )}
-          </View>
-
-          <Card transparent style={styles.card}>
-            <Text style={styles.cardTitle}>Dream Field Overview</Text>
-
-            <View style={styles.statRow}>
-              <View style={styles.statPill}>
-                <DreamsLoggedIcon size={26} color={colors.tabIconActive} />
-                <View style={styles.statTextBlock}>
-                  <Text style={styles.statValue}>{overview.dreamsLoggedCount}</Text>
-                  <Text style={styles.statLabel}>logged</Text>
+              <View style={styles.statRow}>
+                <View style={styles.statPill}>
+                  <View style={styles.legacyOverviewBadge}>
+                    <Text style={styles.legacyOverviewCount}>{overview.dreamsLoggedCount}</Text>
+                    <Text style={styles.legacyOverviewLabel}>logged</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </Card>
+            </Card>
+          )}
 
           <Card transparent style={styles.card}>
             <View style={styles.sectionHeaderRow}>
@@ -450,51 +335,9 @@ const InsightsScreen: React.FC = () => {
                     style={styles.recentGenerateButton}
                     textStyle={styles.recentGenerateText}
                   />
-                  <TouchableOpacity
-                    style={styles.recentLanguageChip}
-                    onPress={() => setRecentLanguagePickerOpen((open) => !open)}
-                    activeOpacity={0.78}
-                  >
-                    <Text style={styles.recentLanguageChipText}>
-                      {PATTERN_INSIGHT_LANGUAGES.find((l) => l.code === recentLanguage)?.display ?? 'EN'}
-                    </Text>
-                    <Text style={[styles.periodArrow, recentLanguagePickerOpen && styles.periodArrowUp]}>▾</Text>
-                  </TouchableOpacity>
                 </>
               )}
             </View>
-
-            {recentLanguagePickerOpen && (
-              <View style={styles.recentLanguageDropdown}>
-                {PATTERN_INSIGHT_LANGUAGES.map((lang) => (
-                  <TouchableOpacity
-                    key={lang.code}
-                    style={[
-                      styles.periodOption,
-                      recentLanguage === lang.code && styles.periodOptionActive,
-                    ]}
-                    onPress={async () => {
-                      setRecentLanguage(lang.code);
-                      setRecentLanguagePickerOpen(false);
-                      const cached = await getCachedRecentDreamFieldReflection(recentCount, lang.code);
-                      setRecentReflection(null);
-                      setRecentCachedAt(cached?.generated_at ?? null);
-                      await AsyncStorage.setItem(PATTERN_INSIGHT_LANGUAGE_KEY, lang.code);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.periodOptionText,
-                        recentLanguage === lang.code && styles.periodOptionTextActive,
-                      ]}
-                    >
-                      {lang.name} ({lang.display})
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
 
             {recentCachedDate && !recentReflection && !recentGenerating && (
               <View style={styles.recentCacheRow}>
@@ -541,7 +384,7 @@ const InsightsScreen: React.FC = () => {
             activeOpacity={0.78}
           >
             <View style={styles.reflectionIcon}>
-              <PatternRecognitionIcon size={46} color={colors.tabIconActive} />
+              <PatternRecognitionIcon size={72} />
             </View>
             <View style={styles.reflectionContent}>
               <Text style={styles.cardTitle}>Period Reflection</Text>
@@ -609,8 +452,7 @@ const InsightsScreen: React.FC = () => {
                   activeOpacity={0.72}
                 >
                   <View style={styles.exploreIcon}>{link.icon}</View>
-                  <Text style={styles.exploreTitle} numberOfLines={1}>{link.title}</Text>
-                  <Text style={styles.exploreBody} numberOfLines={2}>{link.body}</Text>
+                  <Text style={styles.exploreTitle} numberOfLines={2}>{link.title}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -639,64 +481,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxxl,
-  },
-  tagline: {
-    fontSize: typography.sizes.md,
-    color: colors.textAccent,
-    marginBottom: spacing.md,
-    fontStyle: 'italic',
-  },
-  periodSelectorWrap: {
-    marginBottom: spacing.xl,
-  },
-  periodTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.cardGlassStrong,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
-  },
-  periodTriggerLabel: {
-    fontSize: typography.sizes.md,
-    color: colors.textPrimary,
-    fontWeight: typography.weights.medium,
-  },
-  periodArrow: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
-    marginLeft: spacing.sm,
-  },
-  periodArrowUp: {
-    transform: [{ rotate: '180deg' }],
-  },
-  periodDropdown: {
-    marginTop: spacing.xs,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
-    backgroundColor: colors.cardGlassStrong,
-    overflow: 'hidden',
-  },
-  periodOption: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  periodOptionActive: {
-    backgroundColor: colors.buttonPrimaryLight,
-  },
-  periodOptionText: {
-    fontSize: typography.sizes.md,
-    color: colors.textPrimary,
-  },
-  periodOptionTextActive: {
-    color: colors.buttonPrimary,
-    fontWeight: typography.weights.medium,
   },
   card: {
     marginBottom: spacing.xl,
@@ -730,15 +514,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.contourLineFaint,
   },
-  statTextBlock: {
-    marginLeft: spacing.sm,
+  legacyOverviewBadge: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
-  statValue: {
+  legacyOverviewCount: {
     fontSize: typography.sizes.lg,
     fontFamily: typography.medium,
     color: colors.textTitle,
   },
-  statLabel: {
+  legacyOverviewLabel: {
     fontSize: typography.sizes.xs,
     color: text.secondary,
     textTransform: 'uppercase',
@@ -786,12 +572,8 @@ const styles = StyleSheet.create({
     borderColor: colors.contourLineFaint,
   },
   reflectionIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.fieldSurface,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    width: 78,
+    height: 78,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -883,32 +665,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.onAccent,
     fontWeight: typography.weights.semibold,
-  },
-  recentLanguageChip: {
-    minHeight: 46,
-    minWidth: 74,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
-    backgroundColor: colors.fieldSurface,
-  },
-  recentLanguageChipText: {
-    fontSize: typography.sizes.sm,
-    color: colors.textPrimary,
-    fontWeight: typography.weights.semibold,
-    marginRight: spacing.xs,
-  },
-  recentLanguageDropdown: {
-    marginTop: spacing.sm,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
-    backgroundColor: colors.cardGlassStrong,
-    overflow: 'hidden',
   },
   recentCacheRow: {
     marginTop: spacing.sm,
@@ -1007,22 +763,21 @@ const styles = StyleSheet.create({
     borderColor: colors.contourLineFaint,
   },
   exploreIcon: {
-    width: 38,
-    height: 38,
+    width: 48,
+    height: 48,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   exploreTitle: {
+    width: '100%',
     fontSize: typography.sizes.sm,
+    lineHeight: typography.sizes.sm * 1.3,
     color: colors.textTitle,
     fontWeight: typography.weights.semibold,
+    textAlign: 'center',
     marginBottom: spacing.xs,
-  },
-  exploreBody: {
-    fontSize: typography.sizes.xs,
-    color: text.secondary,
-    lineHeight: typography.sizes.xs * 1.35,
   },
 });
 

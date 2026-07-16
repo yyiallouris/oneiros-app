@@ -15,9 +15,10 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 | [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md) | Write, drafts, voice transcription, save, Journal, Dream detail/editor, Calendar |
 | [flows-05-sync-offline.md](./flows-05-sync-offline.md) | Offline-first saves, reconnect sync, logout cleanup, dev offline toggle |
 | [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md) | Initial reflection, follow-up chat, limits, `InterpretationChat` route |
-| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, dream-field overview, Recent Dream Field, Pattern Explorer, pattern reports, filters → journal |
+| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Recent Dream Field, Pattern Explorer, pattern reports, filters → journal |
 | [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md) | Contact, Privacy, support while locked out |
 | [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) | Error paths, empty states, ordering notes for test suites |
+| [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Backend subscription model, entitlement source of truth, quota rules, and AI gateway contract |
 | [architecture-app-map.md](./architecture-app-map.md) | Practical subsystem map for navigation, screens, services, storage, Supabase, AI, theme, and impact analysis |
 | [architecture-features.md](./architecture-features.md) | Feature-by-feature map of entry points, dependencies, docs/tests, platform, and deploy considerations |
 | [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction, `display_distillation`, metadata, proxy routing, sync, and tests |

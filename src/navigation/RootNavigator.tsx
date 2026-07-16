@@ -73,6 +73,7 @@ const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
 
 const MAIN_TAB_ROUTE_NAMES = ['Write', 'Journal', 'Insights'] as const;
 const ONBOARDING_ROUTE_NAMES = ['OnboardingName', 'OnboardingDepth', 'OnboardingSecure'] as const;
+const SHOW_DEV_OFFLINE_TOGGLE = false;
 
 const isRootRouteName = (route: string): route is keyof RootStackParamList =>
   ROOT_ROUTE_NAMES.includes(route as keyof RootStackParamList);
@@ -848,7 +849,7 @@ export const RootNavigator: React.FC = () => {
           }}
         />
           </Stack.Navigator>
-          {!IS_DESIGN_EXPORT_BACKGROUND_ONLY && <DevOfflineToggle />}
+          {!IS_DESIGN_EXPORT_BACKGROUND_ONLY && SHOW_DEV_OFFLINE_TOGGLE && <DevOfflineToggle />}
         </NavigationContainer>
       </BiometricUnlockContext.Provider>
     </PendingPasswordResetContext.Provider>

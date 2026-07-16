@@ -57,9 +57,9 @@ describe('theme color system', () => {
     expect(tabsSource).toContain("source={focused ? TAB_ICONS.Write.active : TAB_ICONS.Write.inactive}");
     expect(tabsSource).toContain("source={focused ? TAB_ICONS.Journal.active : TAB_ICONS.Journal.inactive}");
     expect(tabsSource).toContain("source={focused ? TAB_ICONS.Insights.active : TAB_ICONS.Insights.inactive}");
-    expect(tabsSource).toContain("require('../assets/tab-icons/write_active.png')");
-    expect(tabsSource).toContain("require('../assets/tab-icons/journal_active.png')");
-    expect(tabsSource).toContain("require('../assets/tab-icons/inighsts_active.png')");
+    expect(tabsSource).toContain("require('../assets/icons/tab-icons/write_active.png')");
+    expect(tabsSource).toContain("require('../assets/icons/tab-icons/journal_active.png')");
+    expect(tabsSource).toContain("require('../assets/icons/tab-icons/inighsts_active.png')");
     expect(tabsSource).not.toContain('LinearGradient');
     expect(tabsSource).not.toContain('write_tab.svg');
     expect(tabsSource).not.toContain('journal_tab.svg');

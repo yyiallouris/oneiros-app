@@ -1,32 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { colors, spacing, typography } from '../../theme';
 import { logEvent } from '../../services/logger';
 import { startRecording, stopRecording, getRecordingStatus, cleanupRecording } from '../../utils/voiceRecording';
 import { transcribeAudio } from '../../utils/voiceRecording';
-import MicrophoneAltIcon from '../../assets/icons/microphone-alt.svg';
+const micPlayIcon = require('../../assets/icons/action_icons/mic_play.png');
+const micStopIcon = require('../../assets/icons/action_icons/mic_stop.png');
 
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
   disabled?: boolean;
   surface?: 'plain' | 'field';
 }
-
-interface IconProps {
-  size?: number;
-  color?: string;
-}
-
-// Stop icon
-const StopIcon = ({ size = 24, color = colors.white }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M6 6h12v12H6z"
-      fill={color}
-    />
-  </Svg>
-);
 
 // Hard cap on recording length to avoid very large files / timeouts.
 // Allow up to ~3 minutes per clip; on very slow networks this might still hit timeouts.
@@ -157,7 +142,6 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
     <View style={styles.container}>
       {isRecording && (
         <View style={styles.durationContainer}>
-          <View style={styles.recordingIndicator} />
           <Text style={styles.durationText}>{formatDuration(duration)}</Text>
         </View>
       )}
@@ -171,13 +155,24 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         onPress={handlePress}
         disabled={disabled || isTranscribing}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        testID="voice-record-button"
       >
         {isTranscribing ? (
           <ActivityIndicator size="small" color={colors.buttonPrimary} />
         ) : isRecording ? (
-          <StopIcon size={18} color={colors.error || '#FF3B30'} />
+          <Image
+            source={micStopIcon}
+            style={styles.stopIconImage}
+            resizeMode="contain"
+            testID="voice-record-stop-icon"
+          />
         ) : (
-          <MicrophoneAltIcon width={24} height={24} />
+          <Image
+            source={micPlayIcon}
+            style={styles.playIconImage}
+            resizeMode="contain"
+            testID="voice-record-play-icon"
+          />
         )}
       </TouchableOpacity>
     </View>
@@ -198,9 +193,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.cardGlass,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   recordButtonActive: {
     opacity: 0.92,
@@ -208,17 +202,18 @@ const styles = StyleSheet.create({
   recordButtonDisabled: {
     opacity: 0.45,
   },
+  playIconImage: {
+    width: 29,
+    height: 29,
+  },
+  stopIconImage: {
+    width: 40,
+    height: 40,
+  },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.xs,
-  },
-  recordingIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.error || '#FF3B30',
-    marginRight: spacing.xs,
   },
   durationText: {
     fontSize: typography.sizes.sm,

@@ -1,0 +1,133 @@
+# Subscriptions, entitlements, and quota-backed AI access
+
+This document describes the backend subscription system that now exists for Oneiros. It is intentionally **backend-first**: current mobile screens still use legacy client-side AI entrypoints until frontend purchase and quota UX is wired to these endpoints.
+
+## Plan model
+
+- **Free**
+  - Unlimited calendar / dream entry access.
+  - 1 dream reflection every rolling 7 days.
+  - That free reflection keeps its own 5 follow-up assistant replies.
+- **Paid (`paid_monthly`)**
+  - Price target: **EUR 4.99 / month** through store subscriptions.
+  - 60 dream reflections per paid billing cycle.
+  - 5 follow-up assistant replies per reflected dream.
+  - 10 Recent Dream Field generations per paid billing cycle.
+  - Period reflections are paid-only and cadence-gated rather than counted against the 60 or 10 quotas.
+
+## Source of truth
+
+- Store ownership is normalized in Supabase:
+  - `billing_accounts`
+  - `subscription_entitlements`
+  - `subscription_transactions`
+  - `billing_webhook_events`
+  - `quota_buckets`
+  - `quota_events`
+  - `ai_generation_artifacts`
+- Apple and Google are the active launch authorities.
+- The backend is provider-agnostic at the interface level, but the concrete v1 adapters verify directly against:
+  - Apple App Store Server API
+  - Google Play Developer API + RTDN
+
+## App-facing backend contract
+
+### `subscription-status`
+
+- Authenticated function.
+- Returns:
+  - `plan_code`
+  - `entitlement_state`
+  - `current_period_start`
+  - `current_period_end`
+  - stable purchase-linking identifiers:
+    - `app_account_token`
+    - `google_obfuscated_account_id`
+  - feature quota summaries for dream reflections, Recent Dream Field, and period reflection cadence metadata.
+
+### `billing-register-purchase`
+
+- Authenticated function.
+- Accepts:
+  - Apple signed transaction info
+  - Google purchase token payload
+- Verifies with the store, binds the purchase to the user-linked store identifier, writes transaction history, and upserts the normalized entitlement snapshot immediately.
+
+### `ai-entitlements-gateway`
+
+- Authenticated function.
+- Supported actions:
+  - `dream_reflection_generate`
+  - `dream_reflection_regenerate`
+  - `dream_followup_reply`
+  - `recent_dream_field_generate`
+  - `period_reflection_generate`
+- Every request must carry an idempotency key.
+- The gateway owns:
+  - quota reservation
+  - quota commit / release
+  - paid-access checks
+  - cache reuse via `ai_generation_artifacts`
+  - server-side calls into `openai-proxy`
+
+## Store webhook ingestion
+
+### `billing-apple-notifications`
+
+- Public webhook endpoint for App Store Server Notifications.
+- Dedupes by notification id in `billing_webhook_events`.
+- Re-fetches authoritative purchase state from Apple before updating entitlement rows.
+
+### `billing-google-rtdn`
+
+- Public webhook endpoint for Google Play RTDN push deliveries.
+- Dedupes by Pub/Sub `messageId` in `billing_webhook_events`.
+- Re-fetches authoritative subscription state from Google Play before updating entitlement rows.
+
+## Quota rules
+
+### Dream reflections
+
+- Free users get 1 rolling-7-day bucket.
+- Paid users get a 60-use billing-cycle bucket.
+- A new initial reflection or a full regenerate/update consumes 1 dream-reflection slot.
+- Follow-up assistant replies do **not** consume the 60-use paid bucket.
+
+### Dream follow-up chat
+
+- Each reflection stores:
+  - `reflection_origin`
+  - `chat_replies_used`
+  - `chat_replies_limit`
+  - origin quota / entitlement references
+- Free-origin reflections keep their 5 replies even after the weekly free gate closes.
+- Paid-origin reflections become read-only if paid access lapses.
+
+### Recent Dream Field
+
+- Paid-only.
+- 10 generations per paid billing cycle.
+- Exact same dream-sequence scope + language reuses the cached artifact instead of spending quota again.
+
+### Period reflection
+
+- Paid-only.
+- Minimum 2 reflected dreams in the requested scope.
+- **Current month**
+  - month-to-date only
+  - max 1 generation per calendar week
+  - require at least 1 new reflected dream since the last current-month generation
+- **Finished months**
+  - immutable once generated for that month scope
+  - same-language reruns reuse the cached artifact
+
+## Persistence notes
+
+- Premium outputs remain readable after lapse through `ai_generation_artifacts`.
+- Period reflections are mirrored to `pattern_reports` for compatibility with existing Insights storage.
+- `user_settings.time_zone` is the persisted timezone used for calendar-based quota and current-month cadence logic. Fallback is `UTC`.
+
+## Rollout note
+
+- Legacy mobile flows are intentionally unchanged in this change set.
+- Until frontend purchase / entitlement screens switch to these endpoints, current client-side AI flows remain the visible app path and are not yet fully backend-enforced.

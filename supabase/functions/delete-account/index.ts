@@ -4,6 +4,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
 const USER_TABLES = [
+  "ai_generation_artifacts",
+  "quota_events",
+  "quota_buckets",
+  "subscription_transactions",
+  "subscription_entitlements",
+  "billing_accounts",
   "pattern_reports",
   "user_settings",
   "interpretations",

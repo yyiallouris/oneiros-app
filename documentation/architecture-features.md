@@ -18,7 +18,8 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 | AI interpretation and chat | `DreamDetailScreen`, `InterpretationChatScreen`, `ai.ts` | OpenAI/proxy, extraction, metadata cache, interpretation sync | flow 06, architecture interpretation, AI/display tests |
 | Insights overview | `InsightsScreen`, `insightsService.ts` | local dreams, interpretations, grouping cache, period math | flow 07, insights/key/grouping tests |
 | Pattern reports | `InsightsSectionScreen`, `patternInsightsService.ts`, `remoteStorage.ts` | AI pattern generation, report keys, languages, remote/local report storage | flow 07, pattern tests, Supabase notes if persistence changes |
-| Account settings | `AccountScreen`, `userSettingsService.ts` | display name, depth, mythic resonance, biometrics, deletion | flows 03/08, user settings/storage tests |
+| Subscription and quotas | `supabase/functions/subscription-status`, `billing-register-purchase`, `billing-apple-notifications`, `billing-google-rtdn`, `ai-entitlements-gateway` | store verification, entitlement normalization, SQL quota RPCs, billing artifacts, account deletion | flow 10, billing/quota tests, Supabase deploy notes |
+| Account settings | `AccountScreen`, `userSettingsService.ts`, `patternInsightLanguageService.ts` | display name, depth, Insights language, mythic resonance, biometrics, deletion | flows 03/08, user settings/storage tests |
 | Contact and support | `ContactScreen`, `LoginSupportScreen`, support/contact services | Supabase functions/tables, Postmark/Resend configuration | flow 08, function READMEs, deploy notes |
 | Privacy/legal notice | `PrivacyScreen`, `constants/legal.ts` | product legal copy and support routes | flow 08, setup/legal docs if public behavior changes |
 | Offline sync | `StorageService`, `SyncService`, `LocalStorage`, `network.ts` | AsyncStorage queues, Supabase CRUD, dev offline toggle | flow 05, `ARCHITECTURE.md`, sync/storage/network tests |

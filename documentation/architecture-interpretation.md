@@ -39,6 +39,23 @@ The alternate `InterpretationChatScreen` mirrors this conceptual flow but is not
 - Pattern insight and recent dream-field essay generation.
 - Semantic grouping for symbols, motifs, and landscapes.
 
+## Backend entitlement gateway
+
+The repository now also contains a backend-first AI entitlement layer in Supabase Edge Functions:
+
+- `subscription-status`
+- `billing-register-purchase`
+- `ai-entitlements-gateway`
+- store webhook ingestion via Apple + Google
+
+Important rollout boundary:
+
+- Current mobile screens still call the legacy client AI services.
+- The backend gateway is the future server-owned path for quota-controlled generation and already persists:
+  - reflection origin (`free_weekly` / `paid_cycle`)
+  - follow-up reply counters
+  - premium cached artifacts for Recent Dream Field and period reflections
+
 `src/services/dreamMetadataPrefetchService.ts` adds extraction caching keyed by dream content hash so repeated metadata work can be avoided when the dream has not changed.
 
 ## Persistence and sync
@@ -48,6 +65,7 @@ The alternate `InterpretationChatScreen` mirrors this conceptual flow but is not
 - Remote mapping: `remoteStorage.ts` maps `display_distillation` and all metadata to/from Supabase rows.
 - Merge behavior: `SyncService.fetchAndMergeInterpretations()` preserves local display distillation/metadata when remote rows are missing newer optional fields.
 - Database schema history lives in `supabase/migrations/`, especially the interpretation metadata migrations.
+- Backend quota and entitlement history now lives in `subscription_entitlements`, `subscription_transactions`, `quota_buckets`, `quota_events`, and `ai_generation_artifacts`.
 
 If adding a persisted interpretation field, update all of these together: `src/types/dream.ts`, AI parser/prompt, DreamDetail or Insights consumers, `remoteStorage.ts`, `syncService.ts` merge behavior, a Supabase migration, migration README, flow docs, and tests.
 

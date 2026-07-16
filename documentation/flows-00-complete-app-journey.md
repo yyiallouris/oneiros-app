@@ -24,7 +24,7 @@ Related docs: [flows-01-app-entry-session.md](./flows-01-app-entry-session.md), 
 - Recovery links set `PENDING_PASSWORD_RESET_KEY`; `SetPasswordScreen` clears it after `supabase.auth.updateUser`.
 - `LegalConsentScreen` must be accepted per user and consent version before entering onboarding or tabs.
 - `OnboardingNavigator` runs name, interpretation depth, and optional biometric lock setup.
-- `AccountScreen` later lets the user update display name, interpretation depth, mythic resonance, biometric app lock, privacy routes, and account deletion.
+- `AccountScreen` later lets the user update display name, interpretation depth, mythic resonance, biometric app lock, privacy routes, and account deletion. Subscription entitlement status and purchase linking now also have a backend contract, even though the in-app purchase UI is not wired yet.
 
 Related docs: [flows-02-authentication.md](./flows-02-authentication.md), [flows-03-onboarding-account-security.md](./flows-03-onboarding-account-security.md), [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md).
 
@@ -39,6 +39,7 @@ Main app tabs are `Write`, `Journal`, and `Insights`.
 - `JournalScreen`: archive/search/filter view of dreams. Filters can come from Insights via `JournalFilterScreen`.
 - `CalendarScreen`: day-level dream map; opens existing dreams or creates a dated dream through `DreamEditorScreen`.
 - `InsightsScreen`: period overview, recent dream-field reflection, recurring patterns, Pattern Explorer, and entry to category detail screens.
+- Backend-only subscription enforcement now exists for reflection, follow-up chat, Recent Dream Field, and period reflections through Supabase Edge Functions and SQL quota ledgers, but current screens still use the legacy client AI path until frontend work switches over.
 
 Related docs: [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md), [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md), [flows-07-insights-reports.md](./flows-07-insights-reports.md).
 
@@ -68,6 +69,7 @@ Related docs: [flows-08-support-legal-contact.md](./flows-08-support-legal-conta
 - Dream save/edit/delete affects Write, Journal, Calendar, DreamDetail, sync queues, remote storage, and Insights aggregations.
 - AI reflection changes affect DreamDetail, `InterpretationChatScreen`, metadata extraction, Insights, remote schema, AI proxy config, and offline messaging.
 - Insights changes affect period math, filter routes, pattern reports, local caches, remote reports, and flow tests.
+- Subscription / billing backend changes affect store purchase binding, quota ledgers, period-reflection archival, account deletion, and future account / paywall UI work.
 - UI theme changes affect `src/theme/COLORS.md`, `src/theme/TYPOGRAPHY.md`, shared UI components, design exports, iPhone/iOS and Android visual behavior.
 
 Use [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) as the checklist before closing behavior work.

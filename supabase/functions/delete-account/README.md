@@ -7,4 +7,13 @@ Required env:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-The function must be deployed with JWT verification enabled. It resolves the caller from the incoming bearer token, deletes rows with `user_id` from Oneiros-owned tables, then calls the Supabase Auth Admin delete-user endpoint.
+The function resolves the caller from the incoming bearer token, deletes rows with `user_id` from Oneiros-owned tables, then calls the Supabase Auth Admin delete-user endpoint.
+
+User-owned billing tables now included in deletion:
+
+- `billing_accounts`
+- `subscription_entitlements`
+- `subscription_transactions`
+- `quota_buckets`
+- `quota_events`
+- `ai_generation_artifacts`

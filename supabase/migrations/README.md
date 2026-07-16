@@ -17,6 +17,30 @@ Adds nullable `display_distillation jsonb` to `interpretations`.
 
 This stores the immediate user-facing DreamDetail summary generated during metadata extraction: dream essence, visible anchors, main tension, and movement line. Long-term pattern metadata remains in the existing columns.
 
+### `20260710130000_create_billing_domain.sql`
+Creates the backend billing / entitlement domain:
+
+- `billing_accounts`
+- `subscription_entitlements`
+- `subscription_transactions`
+- `billing_webhook_events`
+- `quota_buckets`
+- `quota_events`
+- `ai_generation_artifacts`
+
+Also extends:
+
+- `interpretations` with reflection origin and follow-up reply counters
+- `user_settings` with `time_zone`
+
+Adds SQL RPC helpers for:
+
+- `billing_ensure_account`
+- `billing_reserve_quota`
+- `billing_commit_quota`
+- `billing_release_quota`
+- `billing_subscription_status`
+
 ## Running Migrations
 
 ### Prerequisites

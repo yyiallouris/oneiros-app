@@ -15,16 +15,16 @@ const WRITE_TAB_ICON_SIZE = 40;
 
 const TAB_ICONS = {
   Write: {
-    active: require('../assets/tab-icons/write_active.png'),
-    inactive: require('../assets/tab-icons/write_inactive.png'),
+    active: require('../assets/icons/tab-icons/write_active.png'),
+    inactive: require('../assets/icons/tab-icons/write_inactive.png'),
   },
   Journal: {
-    active: require('../assets/tab-icons/journal_active.png'),
-    inactive: require('../assets/tab-icons/journal_inactive.png'),
+    active: require('../assets/icons/tab-icons/journal_active.png'),
+    inactive: require('../assets/icons/tab-icons/journal_inactive.png'),
   },
   Insights: {
-    active: require('../assets/tab-icons/inighsts_active.png'),
-    inactive: require('../assets/tab-icons/inisghts_inactive.png'),
+    active: require('../assets/icons/tab-icons/inighsts_active.png'),
+    inactive: require('../assets/icons/tab-icons/inisghts_inactive.png'),
   },
 } satisfies Record<keyof MainTabsParamList, { active: ImageSourcePropType; inactive: ImageSourcePropType }>;
 

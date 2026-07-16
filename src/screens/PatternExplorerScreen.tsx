@@ -12,10 +12,12 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, Card, DesignExportForeground, LoadingState } from '../components/ui';
 import {
-  ArchetypesIcon,
-  MotifsIcon,
-  PlacesIcon,
-  SymbolsIcon,
+  ArchetypalEnergiesIcon,
+  DreamPlacesIcon,
+  InnerTensionsIcon,
+  RepeatingPatternsIcon,
+  ReturningImagesIcon,
+  ThresholdsIcon,
 } from '../components/icons/InsightsIcons';
 import {
   getInsightsOverview,
@@ -139,7 +141,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'recurring-symbols',
       items: overview.topImages,
       emptyText: 'No returning images in this period yet.',
-      icon: <SymbolsIcon size={34} color={colors.tabIconActive} />,
+      icon: <ReturningImagesIcon size={58} />,
     },
     {
       id: 'motifs',
@@ -148,7 +150,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'symbolic-motifs',
       items: overview.topMotifs,
       emptyText: 'No repeating patterns in this period yet.',
-      icon: <MotifsIcon size={34} color={colors.tabIconActive} />,
+      icon: <RepeatingPatternsIcon size={58} />,
     },
     {
       id: 'thresholds',
@@ -157,7 +159,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'thresholds',
       items: overview.topThresholds,
       emptyText: 'No thresholds in this period yet.',
-      icon: <MotifsIcon size={34} color={colors.tabIconActive} />,
+      icon: <ThresholdsIcon size={58} />,
     },
     {
       id: 'tensions',
@@ -166,7 +168,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'core-conflicts',
       items: overview.topTensions,
       emptyText: 'No inner tensions in this period yet.',
-      icon: <MotifsIcon size={34} color={colors.tabIconActive} />,
+      icon: <InnerTensionsIcon size={58} />,
     },
     {
       id: 'places',
@@ -175,7 +177,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'space-landscapes',
       items: overview.topPlaces,
       emptyText: 'No dream places in this period yet.',
-      icon: <PlacesIcon size={34} color={colors.tabIconActive} />,
+      icon: <DreamPlacesIcon size={58} />,
     },
     {
       id: 'echoes',
@@ -184,7 +186,7 @@ const PatternExplorerScreen: React.FC = () => {
       sectionId: 'recurring-archetypes',
       items: overview.topArchetypalEchoes,
       emptyText: 'No archetypal echoes in this period yet.',
-      icon: <ArchetypesIcon size={34} color={colors.tabIconActive} />,
+      icon: <ArchetypalEnergiesIcon size={58} />,
     },
   ];
 
@@ -318,12 +320,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   categoryIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.fieldSurface,
-    borderWidth: 1,
-    borderColor: colors.contourLineFaint,
+    width: 64,
+    height: 64,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

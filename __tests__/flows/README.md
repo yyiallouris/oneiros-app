@@ -16,6 +16,8 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
 | `storageService.flow.test.ts` | flows-05 (offline-first storage orchestration) |
+| `subscriptionBilling.policy.flow.test.ts` | flows-10 (quota math, monthly cadence, cache/read-only rules) |
+| `subscriptionBilling.runtime.flow.test.ts` | flows-10 (purchase persistence, webhook dedupe, reserve/commit/release orchestration) |
 
 Run only these:
 
