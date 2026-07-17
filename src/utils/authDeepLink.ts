@@ -7,18 +7,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
+import {
+  isNewOAuthUser,
+  parseAuthSessionTokens,
+  resolveAuthOAuthProviderFromUser,
+  type AuthOAuthProviderId,
+} from './authOAuth';
 
 const SCHEME = 'oneiros-dream-journal://';
 
-/** True if user was just created (brand new), not returning. Used for OAuth welcome messaging. */
-export function isNewGoogleUser(user: { identities?: unknown[]; created_at?: string } | null | undefined): boolean {
-  if (!user) return false;
-  const identities = user.identities ?? [];
-  const createdAt = user.created_at;
-  if (identities.length > 1) return false; // Linked account (e.g. email+Google) → returning
-  if (!createdAt) return false;
-  return Date.now() - new Date(createdAt).getTime() < 60_000; // Created in last 60s → new
-}
+/** @deprecated Use isNewOAuthUser from authOAuth. */
+export const isNewGoogleUser = isNewOAuthUser;
 
 /** Redact tokens for safe logging (keep structure: path, param names, type=recovery) */
 export function redactAuthUrl(url: string | null): string {
@@ -66,7 +65,7 @@ function getParamsFromUrl(url: string): Record<string, string> {
 }
 
 export type ProcessAuthDeepLinkResult =
-  | { handled: true; isRecovery?: boolean; isOAuth?: boolean; isNewUser?: boolean }
+  | { handled: true; isRecovery?: boolean; isOAuth?: boolean; isNewUser?: boolean; provider?: AuthOAuthProviderId }
   | { handled: false; error?: string; isErrorUrl?: boolean };
 
 /**
@@ -83,7 +82,7 @@ export async function processAuthDeepLink(url: string): Promise<ProcessAuthDeepL
   if (errorCode) {
     console.log('[Auth] OAuth error URL (stale/cancelled/linking):', errorCode);
     // Don't show error alerts: user cancelled, or Supabase handles linking automatically.
-    // Automatic linking links Google to existing email account when same email (default).
+    // Automatic linking can connect OAuth providers to an existing verified email account.
     return { handled: false, isErrorUrl: true };
   }
 
@@ -91,7 +90,6 @@ export async function processAuthDeepLink(url: string): Promise<ProcessAuthDeepL
 
   const tokenHash = getParam(url, 'token_hash');
   const typeParam = getParam(url, 'type');
-  const { query, hash } = parseParams(url);
 
   // 1) Email confirmation / recovery: token_hash + type → verifyOtp
   if (tokenHash && typeParam) {
@@ -124,19 +122,9 @@ export async function processAuthDeepLink(url: string): Promise<ProcessAuthDeepL
   }
 
   // 2) Session in URL: access_token + refresh_token (OAuth or post-verify redirect from Supabase)
-  let accessToken: string | null = params.access_token ?? null;
-  let refreshToken: string | null = params.refresh_token ?? null;
-  if (!accessToken && (query || hash)) {
-    const qp = new URLSearchParams(query || hash);
-    accessToken = accessToken ?? qp.get('access_token');
-    refreshToken = refreshToken ?? qp.get('refresh_token');
-  }
-  if (!accessToken) {
-    const tokenMatch = url.match(/access_token=([^&#]+)/);
-    const refreshMatch = url.match(/refresh_token=([^&#]+)/);
-    accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1].replace(/\+/g, ' ')) : null;
-    refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1].replace(/\+/g, ' ')) : null;
-  }
+  const parsedTokens = parseAuthSessionTokens(url);
+  const accessToken = params.access_token ?? parsedTokens.accessToken;
+  const refreshToken = params.refresh_token ?? parsedTokens.refreshToken;
 
   if (accessToken && refreshToken) {
     const isRecovery = getParam(url, 'type') === 'recovery';
@@ -162,8 +150,9 @@ export async function processAuthDeepLink(url: string): Promise<ProcessAuthDeepL
       if (isRecovery) return { handled: true, isRecovery: true };
       await new Promise((r) => setTimeout(r, 200)); // Let session propagate
       const { data: userData } = await supabase.auth.getUser();
-      const isNewUser = isNewGoogleUser(userData.user);
-      return { handled: true, isOAuth: true, isNewUser };
+      const isNewUser = isNewOAuthUser(userData.user);
+      const provider = resolveAuthOAuthProviderFromUser(userData.user);
+      return { handled: true, isOAuth: true, isNewUser, provider };
     } catch (e: any) {
       console.error('[Auth] setSession failed', e);
       logError('auth_deeplink_session_error', e, {});

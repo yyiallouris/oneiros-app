@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
 import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
-import { PRIVACY_SECTIONS } from '../constants/legal';
+import { LEGAL_LINKS, PRIVACY_SECTIONS } from '../constants/legal';
 import { RootStackParamList } from '../navigation/types';
 
 type NavProp = StackNavigationProp<RootStackParamList, 'Privacy'>;
@@ -68,8 +68,37 @@ const PrivacyScreen: React.FC = () => {
             </View>
           </View>
 
+          {(LEGAL_LINKS.privacyPolicyUrl || LEGAL_LINKS.termsUrl) && (
+            <View style={styles.hostedLinksBox}>
+              <Text style={styles.requestTitle}>Full legal documents</Text>
+              <Text style={styles.requestText}>
+                Review the hosted legal documents before using Oneiros in production.
+              </Text>
+              <View style={styles.requestActions}>
+                {LEGAL_LINKS.privacyPolicyUrl && (
+                  <TouchableOpacity
+                    style={styles.hostedLinkButton}
+                    onPress={() => Linking.openURL(LEGAL_LINKS.privacyPolicyUrl!)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.requestButtonText}>Privacy Policy</Text>
+                  </TouchableOpacity>
+                )}
+                {LEGAL_LINKS.termsUrl && (
+                  <TouchableOpacity
+                    style={styles.hostedLinkButton}
+                    onPress={() => Linking.openURL(LEGAL_LINKS.termsUrl!)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.requestButtonText}>Terms of Use</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
+
           <Text style={styles.footer}>
-            This in-app notice is a product summary and should be supported by a full hosted Privacy Policy and Terms of Use before public release.
+            This in-app notice is a product summary. Public releases must also provide hosted Privacy Policy and Terms of Use URLs in the relevant store console.
           </Text>
           </Card>
         </ScrollView>
@@ -167,6 +196,22 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: semantic.errorDark,
+  },
+  hostedLinksBox: {
+    backgroundColor: colors.fieldSurface,
+    borderWidth: 1,
+    borderColor: colors.contourLineSoft,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  hostedLinkButton: {
+    borderWidth: 1,
+    borderColor: colors.buttonPrimary40,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.cardBackground,
   },
   footer: {
     fontSize: typography.sizes.xs,

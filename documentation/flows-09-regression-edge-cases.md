@@ -10,7 +10,8 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 - [ ] OTP invalid / expired → error; resend rate limit.
 - [ ] Forgot password → resend cooldown; invalid email submission.
 - [ ] Recovery link used twice / stale → verify error path.
-- [ ] Google OAuth dismiss with no session → “cancelled” path.
+- [ ] Apple sign-in on physical iPhone → success, cancel, and Supabase provider disabled/error states.
+- [ ] Google / Discord OAuth dismiss with no session → provider-specific “cancelled” path.
 - [ ] Offline at login → network error handling.
 
 ## Onboarding & lock
@@ -37,6 +38,7 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 
 - [ ] Offline: cannot start reflection; offline banner behavior.
 - [ ] Online: API error restores chat input where implemented.
+- [ ] Proxy auth: missing/expired Supabase session cannot forward dream/chat payloads to `openai-proxy`.
 - [ ] Max assistant responses reached → no further sends.
 - [ ] Regenerate interpretation after editing dream text.
 
@@ -47,9 +49,15 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 - [ ] Collective section: placeholder empty state until backend exists.
 - [ ] Journey swipe through all four sections with same period label in header/caption.
 
+## Legal / release
+
+- [ ] Privacy screen opens hosted Privacy Policy and Terms URLs when configured.
+- [ ] App Store Connect privacy labels match account data, dream/user content, voice audio, support messages, and AI subprocessors.
+- [ ] iPad screenshots prepared if `ios.supportsTablet` stays true.
+
 ## Automated tests today
 
-- `e2e/login.e2e.ts` — Detox: auth screen visible, Sign in / Continue with Google labels.
+- `e2e/login.e2e.ts` — Detox: auth screen visible, Sign in / Continue with Google / Continue with Discord labels. Apple sign-in still needs physical iPhone/TestFlight validation.
 - `__tests__/` — unit tests for AI client and Supabase helper; expand e2e as product stabilizes.
 
 ## Deep links (manual)

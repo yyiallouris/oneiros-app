@@ -10,7 +10,7 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 |------|--------|
 | [flows-00-complete-app-journey.md](./flows-00-complete-app-journey.md) | End-to-end journey from launch/login through consent, onboarding, dreams, AI, Insights, support, and logout |
 | [flows-01-app-entry-session.md](./flows-01-app-entry-session.md) | Cold start, splash/loading, session lifecycle, offline token behavior |
-| [flows-02-authentication.md](./flows-02-authentication.md) | Sign up, login, email verification, Google OAuth, forgot password, reset link → set password, login support |
+| [flows-02-authentication.md](./flows-02-authentication.md) | Sign up, login, email verification, Apple/Google/Discord sign-in, forgot password, reset link → set password, login support |
 | [flows-03-onboarding-account-security.md](./flows-03-onboarding-account-security.md) | Post-login onboarding, Account settings, app biometric lock |
 | [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md) | Write, drafts, voice transcription, save, Journal, Dream detail/editor, Calendar |
 | [flows-05-sync-offline.md](./flows-05-sync-offline.md) | Offline-first saves, reconnect sync, logout cleanup, dev offline toggle |

@@ -27,8 +27,21 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('../../src/components/ui', () => ({
   BreathingLine: () => null,
   ThreadDrift: () => null,
+  LoadingState: ({ preset }: any) => {
+    const { Text } = require('react-native');
+    return <Text>{preset}</Text>;
+  },
   PaperBackground: ({ children }: any) => children,
   DesignExportForeground: ({ children }: any) => children,
+  PrimaryIconButton: ({ onPress, accessibilityLabel }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity } = require('react-native');
+    return (
+      <TouchableOpacity onPress={onPress} accessibilityLabel={accessibilityLabel}>
+        <Text>{accessibilityLabel ?? 'icon button'}</Text>
+      </TouchableOpacity>
+    );
+  },
 }));
 
 jest.mock('../../src/components/ui/PhasedTypingText', () => ({

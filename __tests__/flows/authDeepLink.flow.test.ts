@@ -44,7 +44,8 @@ jest.mock('../../src/services/logger', () => ({
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PENDING_PASSWORD_RESET_KEY } from '../../src/constants/auth';
-import { processAuthDeepLink, redactAuthUrl, isNewGoogleUser } from '../../src/utils/authDeepLink';
+import { processAuthDeepLink, redactAuthUrl } from '../../src/utils/authDeepLink';
+import { isNewOAuthUser } from '../../src/utils/authOAuth';
 
 describe('authDeepLink flow', () => {
   beforeEach(() => {
@@ -70,15 +71,15 @@ describe('authDeepLink flow', () => {
     });
   });
 
-  describe('isNewGoogleUser', () => {
+  describe('isNewOAuthUser', () => {
     it('returns false for null user', () => {
-      expect(isNewGoogleUser(null)).toBe(false);
+      expect(isNewOAuthUser(null)).toBe(false);
     });
 
     it('returns true for single identity created within 60s', () => {
       const now = new Date().toISOString();
       expect(
-        isNewGoogleUser({
+        isNewOAuthUser({
           identities: [{}],
           created_at: now,
         })
@@ -87,7 +88,7 @@ describe('authDeepLink flow', () => {
 
     it('returns false when multiple identities (linked account)', () => {
       expect(
-        isNewGoogleUser({
+        isNewOAuthUser({
           identities: [{}, {}],
           created_at: new Date().toISOString(),
         })
@@ -151,7 +152,7 @@ describe('authDeepLink flow', () => {
         Promise.resolve({
         data: {
           user: {
-            identities: [{}],
+            identities: [{ provider: 'discord' }],
             created_at: new Date(Date.now() - 120_000).toISOString(),
           },
         },
@@ -161,7 +162,7 @@ describe('authDeepLink flow', () => {
       const url =
         'oneiros-dream-journal://auth#access_token=a2&refresh_token=r2';
       const result = await processAuthDeepLink(url);
-      expect(result).toMatchObject({ handled: true, isOAuth: true, isNewUser: false });
+      expect(result).toMatchObject({ handled: true, isOAuth: true, isNewUser: false, provider: 'discord' });
     });
   });
 });

@@ -2,6 +2,19 @@
 
 OpenAI Chat Completions proxy (+ optional Anthropic fallback). Keys on the server.
 
+## Auth boundary
+
+This function is intentionally deployed with `verify_jwt = false` so CORS
+preflight and custom error formatting stay under function control, but the
+handler itself requires a valid Supabase user before it reads or forwards any
+AI payload. Mobile clients must send:
+
+- `apikey`: Supabase anon key
+- `Authorization`: `Bearer <user access token>`
+
+Missing or invalid user auth returns `401` and no dream/chat content is sent to
+OpenAI or Anthropic.
+
 ## Πού διαλέγω provider + model ανά task
 
 **Ένα αρχείο στο repo:**

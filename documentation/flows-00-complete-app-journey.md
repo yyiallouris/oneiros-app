@@ -20,7 +20,7 @@ Related docs: [flows-01-app-entry-session.md](./flows-01-app-entry-session.md), 
 
 ## 2. Auth, consent, and onboarding
 
-- `AuthScreen` handles email login, email signup with OTP or magic link confirmation, forgot-password link requests, and Google OAuth.
+- `AuthScreen` handles email login, email signup with OTP or magic link confirmation, forgot-password link requests, native Apple sign-in on iOS, and Google/Discord OAuth.
 - Recovery links set `PENDING_PASSWORD_RESET_KEY`; `SetPasswordScreen` clears it after `supabase.auth.updateUser`.
 - `LegalConsentScreen` must be accepted per user and consent version before entering onboarding or tabs.
 - `OnboardingNavigator` runs name, interpretation depth, and optional biometric lock setup.
@@ -57,7 +57,7 @@ Related docs: [flows-05-sync-offline.md](./flows-05-sync-offline.md), [../ARCHIT
 
 - Authenticated contact goes through `ContactScreen` and `sendContactMessage`.
 - Signed-out or locked support goes through `LoginSupportScreen` and the `support-request` function.
-- Privacy and legal text lives in `PrivacyScreen` and `constants/legal.ts`.
+- Privacy and legal text lives in `PrivacyScreen` and `constants/legal.ts`; hosted Privacy Policy and Terms URLs are configurable for public release.
 - Account deletion invokes the `delete-account` Supabase Edge Function, clears local storage, then signs out.
 - Write menu is the visible logout entry point.
 

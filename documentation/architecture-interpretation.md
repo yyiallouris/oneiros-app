@@ -72,6 +72,7 @@ If adding a persisted interpretation field, update all of these together: `src/t
 ## AI proxy and provider routing
 
 - Client config can call OpenAI-compatible APIs directly or the Supabase `openai-proxy`.
+- Production `openai-proxy` calls require a valid Supabase user bearer token before the function reads or forwards dream/chat payloads. CORS preflight remains unauthenticated.
 - When using `openai-proxy`, the client sends a task hint; provider and model routing are centralized in `supabase/functions/openai-proxy/task-config.ts`.
 - Task names include interpretation, chat follow-up, dream extraction, conversation element update, semantic grouping, pattern insights, and compact retry flows.
 - Changing provider/model routing requires updating `supabase/functions/openai-proxy/README.md` when behavior changes and deploying with `supabase functions deploy openai-proxy`.

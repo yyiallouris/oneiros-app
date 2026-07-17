@@ -39,12 +39,15 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 
 - Cooldown (~60s); handles rate-limit errors by extending cooldown.
 
-## Google OAuth
+## Social sign-in: Apple, Google, and Discord
 
-1. `signInWithOAuth` with `skipBrowserRedirect: true` + `WebBrowser.openAuthSessionAsync`.
-2. Tokens extracted from redirect URL → `setSession`, or fallback session poll after dismiss.
-3. If user dismisses browser, short wait + `getSession` (deep link may still complete).
-4. **New vs returning** Google user: `isNewGoogleUser` (created_at within ~60s, single identity) → different welcome alert.
+1. On iOS, user can choose **Continue with Apple**. The app uses native Apple authentication, hashes a nonce for the Apple request, then sends the returned identity token to Supabase with `signInWithIdToken`.
+2. User can choose **Continue with Google** or **Continue with Discord** from login or sign up mode.
+3. Browser OAuth uses `signInWithOAuth` with the selected provider, `skipBrowserRedirect: true`, and `WebBrowser.openAuthSessionAsync`.
+4. Tokens extracted from redirect URL → `setSession`, or fallback session poll after dismiss.
+5. If user dismisses browser, short wait + `getSession` (deep link may still complete).
+6. **New vs returning** social user: `isNewOAuthUser` (created_at within ~60s, single identity) → different welcome alert.
+7. Provider-specific cancel/error copy uses the selected provider label. Deep-link completion uses provider identity metadata when Supabase returns it, otherwise falls back to generic signed-in copy.
 
 ## Deep link error URLs
 
@@ -65,5 +68,6 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 - Sign up → OTP wrong → OTP correct.
 - Sign up → only magic link, no OTP.
 - Forgot password → link expired / wrong → error path.
-- Google cancel vs success vs “dismiss but session from deep link”.
+- Apple cancel vs success on iOS.
+- Google / Discord cancel vs success vs “dismiss but session from deep link”.
 - Set password: mismatch, too short, network timeout (`SetPasswordScreen` has ~15s timeout).

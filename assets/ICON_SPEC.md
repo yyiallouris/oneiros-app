@@ -39,7 +39,7 @@ The gap may come from **rendering** (Expo/Android), not from the file:
 
 - Background: `#F8F3EA` warm paper.
 - Emblem: the droplet mark from `assets/branding/oneiros_logo.png`.
-- Native splash image width: around 180px (`app.json` `imageWidth`).
+- Native splash image width: around 180px (`app.config.js` `expo-splash-screen` `imageWidth`).
 - No splash text; the emblem should feel like a quiet dream portal, not a poster.
 
 ### In-app loading screen

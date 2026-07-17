@@ -1,8 +1,72 @@
 import 'dotenv/config';
-import appJson from './app.json';
 
 // EAS project ID — required for EAS linking and builds; do not remove
 const EAS_PROJECT_ID = 'b81471aa-9f89-4729-8bf3-5ec9e8ec62e9';
+
+const baseExpoConfig = {
+  name: 'Oneiros',
+  slug: 'oneiros-app',
+  version: '1.0.0',
+  orientation: 'portrait',
+  icon: './assets/branding/icon-ios.png',
+  userInterfaceStyle: 'light',
+  newArchEnabled: false,
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: 'com.oneirosdreamjournal.app',
+    icon: './assets/branding/icon-ios.png',
+    buildNumber: '1',
+    usesAppleSignIn: true,
+  },
+  android: {
+    icon: './assets/branding/icon-android-legacy.png',
+    adaptiveIcon: {
+      foregroundImage: './assets/branding/icon-android-foreground.png',
+      backgroundImage: './assets/branding/icon-android-background.png',
+      monochromeImage: './assets/branding/icon-android-monochrome.png',
+    },
+    edgeToEdgeEnabled: true,
+    predictiveBackGestureEnabled: false,
+    package: 'com.oneirosdreamjournal.app',
+    versionCode: 1,
+  },
+  scheme: 'oneiros-dream-journal',
+  web: {
+    favicon: './assets/favicon.png',
+  },
+  plugins: [
+    'expo-font',
+    'expo-web-browser',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#F8F3EA',
+        image: './assets/branding/splash-lockup.png',
+        imageWidth: 180,
+      },
+    ],
+    [
+      'expo-local-authentication',
+      {
+        faceIDPermission: 'Allow Oneiros to use Face ID to sign in.',
+      },
+    ],
+    [
+      'expo-secure-store',
+      {
+        faceIDPermission: 'Allow Oneiros to use Face ID to sign in.',
+      },
+    ],
+    [
+      'expo-av',
+      {
+        microphonePermission:
+          'Allow Oneiros to use your microphone for optional dream voice journaling and transcription.',
+      },
+    ],
+  ],
+  extra: {},
+};
 
 const env = process.env;
 
@@ -20,7 +84,7 @@ const getEnv = (keys, fallback = '') => {
   return fallback;
 };
 
-const scheme = getEnv(['APP_SCHEME'], appJson.expo?.scheme || 'oneiros-dream-journal');
+const scheme = getEnv(['APP_SCHEME'], baseExpoConfig.scheme || 'oneiros-dream-journal');
 
 const extraFromEnv = {
   openaiApiKey: getEnv(['EXPO_PUBLIC_OPENAI_API_KEY', 'OPENAI_API_KEY'], ''),
@@ -36,28 +100,29 @@ const extraFromEnv = {
     ['EXPO_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'],
     ''
   ),
+  privacyPolicyUrl: getEnv(['EXPO_PUBLIC_PRIVACY_POLICY_URL', 'PRIVACY_POLICY_URL'], ''),
+  termsUrl: getEnv(['EXPO_PUBLIC_TERMS_URL', 'TERMS_URL'], ''),
 };
 
-// Static export so EAS CLI can read/write projectId during linking (function export breaks modifyConfigAsync)
-const projectId = appJson.expo?.projectId ?? EAS_PROJECT_ID;
+// Static project id so EAS CLI can read the linked project from extra.eas.
+const projectId = baseExpoConfig.extra?.eas?.projectId ?? EAS_PROJECT_ID;
 
 export default {
-  ...appJson.expo,
-  projectId,
+  ...baseExpoConfig,
   scheme,
   ios: {
-    ...appJson.expo?.ios,
+    ...baseExpoConfig.ios,
     infoPlist: {
-      ...appJson.expo?.ios?.infoPlist,
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
-    ...appJson.expo?.android,
+    ...baseExpoConfig.android,
     // Resize window when keyboard opens so KeyboardAvoidingView can keep focused input visible
     softwareKeyboardLayoutMode: 'resize',
   },
   extra: {
+    ...baseExpoConfig.extra,
     ...extraFromEnv,
     eas: { projectId },
   },

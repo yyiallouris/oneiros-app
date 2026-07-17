@@ -21,24 +21,13 @@ Then restart Expo (`expo start -c`) so the config is rebuilt.
 
 ### Notes
 - `app.config.js` reads these env vars and injects them into `expo.extra`.
-- `app.json` no longer stores secrets.
--
+- Static Expo config also lives in `app.config.js`; there is no separate `app.json`.
 
 ### Option 3: Custom GPT Endpoint
 
 If you have a custom GPT or assistant API endpoint, you can configure it:
 
-```json
-{
-  "expo": {
-    "extra": {
-      "openaiApiKey": "sk-your-api-key",
-      "customGptEndpoint": "https://api.your-custom-gpt.com/v1/chat/completions",
-      "gptModel": "your-custom-model-name"
-    }
-  }
-}
-```
+Set `EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT` in `.env` or as an EAS secret. Production builds should point at the Supabase `openai-proxy` function rather than direct OpenAI.
 
 ## Getting Your OpenAI API Key
 
@@ -54,7 +43,7 @@ If you have a custom GPT or assistant API endpoint, you can configure it:
    - Click **"Create new secret key"**
    - Give it a name (e.g., "Dream Journal App")
    - **Important**: Copy the key immediately - it starts with `sk-` and you won't see it again!
-5. **Add it to your app**: Paste it in `app.json` under `extra.openaiApiKey`
+5. **Add it to local development**: put it in `.env` as `EXPO_PUBLIC_OPENAI_API_KEY`. Do not use a client OpenAI key in production builds.
 
 ## Using Your Custom GPT (Dream Weaver)
 
@@ -90,7 +79,7 @@ After configuring your API key:
 
 ## Troubleshooting
 
-- **"API key not configured"**: Check that your key is set correctly in `app.json` or `.env`
+- **"API key not configured"**: Check that your key is set correctly in `.env` for local dev, or that production uses `EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT`.
 - **API errors**: Verify your API key is valid and has credits
 - **Custom endpoint not working**: Ensure the endpoint follows OpenAI's API format
 

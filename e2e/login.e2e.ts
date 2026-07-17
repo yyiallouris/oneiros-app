@@ -10,7 +10,11 @@ describe('Auth flow', () => {
 
   it('shows auth screen and buttons', async () => {
     await expect(element(by.text('Sign in'))).toBeVisible();
+    if (device.getPlatform() === 'ios') {
+      await expect(element(by.text('Continue with Apple'))).toBeVisible();
+    }
     await expect(element(by.text('Continue with Google'))).toBeVisible();
+    await expect(element(by.text('Continue with Discord'))).toBeVisible();
   });
 
   it('opens forgot password screen', async () => {

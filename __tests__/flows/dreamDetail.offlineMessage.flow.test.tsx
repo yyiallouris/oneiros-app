@@ -55,6 +55,17 @@ jest.mock('../../src/components/ui', () => {
     BreathingLine: () => null,
     PrintPatchLoader: () => null,
     LinoSkeletonCard: () => null,
+    LoadingState: ({ preset }: any) => (
+      <View>
+        <Text>{preset === 'dreamReflection' ? 'Reflecting on your dream...' : 'Loading...'}</Text>
+        {preset === 'dreamReflection' ? <Text>Tracing its images, feelings, and inner movement.</Text> : null}
+      </View>
+    ),
+    PrimaryIconButton: ({ onPress, accessibilityLabel }: any) => (
+      <TouchableOpacity onPress={onPress} accessibilityLabel={accessibilityLabel}>
+        <Text>{accessibilityLabel ?? 'icon button'}</Text>
+      </TouchableOpacity>
+    ),
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
     SymbolInfoModal: () => null,
     DesignExportForeground: ({ children }: any) => <View>{children}</View>,

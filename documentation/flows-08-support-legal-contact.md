@@ -9,9 +9,12 @@
 ## Privacy & Legal (`PrivacyScreen`)
 
 - Reachable from Write **menu**.
-- Plain-language notice covering journal data, sensitive information, AI processing, limited operational access, user controls, and emergency boundaries.
+- Plain-language notice frames Oneiros as a private, protected dream journal for wellness and self-inquiry, while preserving legal boundaries for non-clinical use.
+- Notice covers journal data, sensitive information, AI processing, limited operational access, user controls, and emergency boundaries.
+- Hosted Privacy Policy and Terms links are read from `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`; when configured, the screen opens those URLs from the legal notice.
+- Public store-review pages live under `site/` and are served by Vercel: `/privacy`, `/terms`, and `/support`.
 - Data export and fallback account deletion requests route to `ContactScreen` with prefilled request text.
-- Product summary only; hosted Privacy Policy / Terms should exist before public release.
+- Product summary only; hosted Privacy Policy / Terms must exist before public release and be configured for EAS/store builds.
 
 ## Account deletion (`AccountScreen`, `delete-account` edge function)
 
@@ -24,11 +27,12 @@
 
 - Authenticated users must accept the current legal consent version before entering onboarding or the main app.
 - Consent is stored per user with version + timestamp (`legalConsentService`).
-- User confirms age 18+, wellness-only use, sensitive-data processing, and AI-output limitations.
+- User confirms age 18+, wellness/self-inquiry-only use, sensitive-data processing, AI-output limitations, and emergency/crisis boundaries.
+- Consent copy uses a protected-space tone but keeps explicit statements that Oneiros is not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.
 
 ## AI disclaimers
 
-- `DreamDetailScreen` and `InterpretationChatScreen` show compact notices near AI reflections.
+- Shared AI notices describe reflections as AI-assisted symbolic material for journaling and self-inquiry, not therapy, diagnosis, crisis support, medical care, or professional advice.
 - Chat input and quick prompts avoid implying the AI has authoritative answers.
 
 ## Login support (`LoginSupportScreen`)
@@ -42,3 +46,4 @@
 - Support form network failure → error alert, stays on screen.
 - Back navigation from LoginSupport returns to Auth or Lock screen as expected.
 - Legal consent is isolated per user and does not leak across accounts.
+- Legal copy flow test protects the core consent/privacy boundaries without locking the app to exact phrasing.

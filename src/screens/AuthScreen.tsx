@@ -16,6 +16,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
@@ -26,7 +28,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
-import { processAuthDeepLink, isNewGoogleUser } from '../utils/authDeepLink';
+import { processAuthDeepLink } from '../utils/authDeepLink';
+import {
+  AUTH_APPLE_PROVIDER,
+  AUTH_OAUTH_PROVIDERS,
+  getAuthOAuthProviderLabel,
+  isNewOAuthUser,
+  parseAuthSessionTokens,
+  type AuthOAuthProviderConfig,
+  type AuthOAuthProviderId,
+} from '../utils/authOAuth';
 import { DESIGN_EXPORT_AUTH_MODE, DESIGN_EXPORT_MODE } from '../designExport';
 
 // Complete OAuth session in browser
@@ -36,6 +47,30 @@ type Mode = 'login' | 'signup';
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 const AUTH_REQUEST_TIMEOUT_MS = 25_000;
+const APPLE_NONCE_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+
+const authDebugLog = (...args: unknown[]) => {
+  if (__DEV__) console.log(...args);
+};
+
+const authDebugError = (...args: unknown[]) => {
+  if (__DEV__) console.error(...args);
+};
+
+const createAppleNonce = (length = 32): string => {
+  const getRandomBytes = (Crypto as typeof Crypto & { getRandomBytes?: (byteCount: number) => Uint8Array }).getRandomBytes;
+  const bytes = getRandomBytes ? getRandomBytes(length) : new Uint8Array(length).map(() => Math.floor(Math.random() * 256));
+  return Array.from(bytes, (byte) => APPLE_NONCE_CHARSET[byte % APPLE_NONCE_CHARSET.length]).join('');
+};
+
+const showOAuthSuccessAlert = (providerId: AuthOAuthProviderId | undefined, isNewUser: boolean | undefined) => {
+  const providerLabel = getAuthOAuthProviderLabel(providerId);
+  if (isNewUser) {
+    Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
+    return;
+  }
+  Alert.alert('Welcome back!', providerLabel ? `You're signed in with ${providerLabel}.` : "You're signed in.");
+};
 
 const AuthScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -60,6 +95,7 @@ const AuthScreen: React.FC = () => {
   const [forgotPasswordCooldown, setForgotPasswordCooldown] = useState(0);
 
   const lastProcessedUrlRef = React.useRef<string | null>(null);
+
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
       if (!url?.startsWith('oneiros-dream-journal://')) return;
@@ -77,11 +113,7 @@ const AuthScreen: React.FC = () => {
         if (result.isRecovery) {
           Alert.alert('Reset link verified', 'Set your new password on the next screen.');
         } else if (result.isOAuth) {
-          if (result.isNewUser) {
-            Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
-          } else {
-            Alert.alert('Welcome back!', "You're signed in with Google.");
-          }
+          showOAuthSuccessAlert(result.provider, result.isNewUser);
         } else {
           Alert.alert("You're all set!", 'Your email is verified. Welcome!');
         }
@@ -143,7 +175,7 @@ const AuthScreen: React.FC = () => {
         });
         const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
         if (error) {
-          console.error('[Auth] signIn error details', error);
+          authDebugError('[Auth] signIn error details', error);
           // Unverified email: show verification screen so they can enter code or use magic link
           const msg = error.message ?? '';
           const isUnverified =
@@ -161,7 +193,7 @@ const AuthScreen: React.FC = () => {
           }
           return;
         }
-        console.log('[Auth] signIn success', { user: data?.user?.id });
+        authDebugLog('[Auth] signIn success', { user: data?.user?.id });
         logEvent('auth_login_success', { email: email.trim().toLowerCase() });
       } else {
         const normalizedEmail = email.trim().toLowerCase();
@@ -174,10 +206,10 @@ const AuthScreen: React.FC = () => {
         });
         const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
         if (error) {
-          console.error('[Auth] signUp error details', error);
+          authDebugError('[Auth] signUp error details', error);
           throw error;
         }
-        console.log('[Auth] signUp success', { user: data?.user?.id });
+        authDebugLog('[Auth] signUp success', { user: data?.user?.id });
         logEvent('auth_signup_success', { email: normalizedEmail });
         // When email confirmation is enabled, Supabase returns user but no session until verified
         if (data?.user && !data?.session) {
@@ -352,10 +384,10 @@ const AuthScreen: React.FC = () => {
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleOAuthProvider = async (provider: AuthOAuthProviderConfig) => {
     setIsLoading(true);
-    logEvent('auth_google_start', { mode });
-    console.log('[Auth] Starting Google OAuth flow...');
+    logEvent(`${provider.eventPrefix}_start`, { mode });
+    authDebugLog(`[Auth] Starting ${provider.label} OAuth flow...`);
 
     try {
       // Build redirect URL that works in Expo Go (proxy) and in standalone (scheme)
@@ -363,10 +395,10 @@ const AuthScreen: React.FC = () => {
         scheme: 'oneiros-dream-journal',
         path: 'auth/callback',
       });
-      console.log('[Auth] Redirect URL:', redirectUrl);
+      authDebugLog('[Auth] Redirect URL:', redirectUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: provider.id,
         options: {
           redirectTo: redirectUrl,
           skipBrowserRedirect: true,
@@ -374,100 +406,64 @@ const AuthScreen: React.FC = () => {
       });
 
       if (error) {
-        console.error('[Auth] OAuth error:', error);
+        authDebugError('[Auth] OAuth error:', error);
         throw error;
       }
 
-      console.log('[Auth] OAuth URL received:', data?.url ? 'Yes' : 'No');
+      authDebugLog('[Auth] OAuth URL received:', data?.url ? 'Yes' : 'No');
       if (!data?.url) {
-        console.error('[Auth] No OAuth URL received');
-        setIsLoading(false);
-        throw new Error('Failed to start Google sign-in');
+        authDebugError('[Auth] No OAuth URL received');
+        throw new Error(`Failed to start ${provider.label} sign-in`);
       }
 
-      console.log('[Auth] Opening browser with OAuth URL...');
+      authDebugLog('[Auth] Opening browser with OAuth URL...');
 
       // Use WebBrowser.openAuthSessionAsync (works reliably with Expo Go)
       const authResult = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
-      console.log('[Auth] Auth session result type:', authResult.type);
+      authDebugLog('[Auth] Auth session result type:', authResult.type);
       if ('url' in authResult && authResult.url) {
-        console.log('[Auth] Auth session returned URL');
+        authDebugLog('[Auth] Auth session returned URL');
       }
 
       if (authResult.type === 'success' && 'url' in authResult && authResult.url) {
         // Try to extract tokens from the returned URL
-        let accessToken: string | null = null;
-        let refreshToken: string | null = null;
         const url = authResult.url;
-
-        // Hash fragment
-        if (url.includes('#')) {
-          const hashPart = url.split('#')[1];
-          const hashParams = new URLSearchParams(hashPart);
-          accessToken = hashParams.get('access_token');
-          refreshToken = hashParams.get('refresh_token');
-        }
-
-        // Query params
-        if (!accessToken && url.includes('?')) {
-          const queryPart = url.split('?')[1].split('#')[0];
-          const queryParams = new URLSearchParams(queryPart);
-          accessToken = queryParams.get('access_token');
-          refreshToken = queryParams.get('refresh_token');
-        }
-
-        // Regex fallback
-        if (!accessToken) {
-          const tokenMatch = url.match(/access_token=([^&]+)/);
-          const refreshMatch = url.match(/refresh_token=([^&]+)/);
-          accessToken = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
-          refreshToken = refreshMatch ? decodeURIComponent(refreshMatch[1]) : null;
-        }
+        const { accessToken, refreshToken } = parseAuthSessionTokens(url);
 
         if (accessToken && refreshToken) {
-          console.log('[Auth] Setting session from auth session URL...');
+          authDebugLog('[Auth] Setting session from auth session URL...');
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
           if (sessionError) {
-            console.error('[Auth] Session error:', sessionError);
+            authDebugError('[Auth] Session error:', sessionError);
             throw sessionError;
           }
 
-          console.log('[Auth] Session set successfully');
-          logEvent('auth_google_success', { mode, source: 'auth_session_url' });
+          authDebugLog('[Auth] Session set successfully');
+          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'auth_session_url' });
           const { data: userData } = await supabase.auth.getUser();
-          const isNewUser = isNewGoogleUser(userData.user);
-          if (isNewUser) {
-            Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
-          } else {
-            Alert.alert('Welcome back!', "You're signed in with Google.");
-          }
-          setIsLoading(false);
+          const isNewUser = isNewOAuthUser(userData.user);
+          showOAuthSuccessAlert(provider.id, isNewUser);
         } else {
-          console.log('[Auth] No tokens in URL, checking session fallback...');
+          authDebugLog('[Auth] No tokens in URL, checking session fallback...');
           // Give Supabase a moment to process the code and create the session
           await new Promise((resolve) => setTimeout(resolve, 1200));
           const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
           if (sessionError) {
-            console.error('[Auth] Session fetch error:', sessionError.message);
+            authDebugError('[Auth] Session fetch error:', sessionError.message);
           }
           if (sessionData?.session) {
-            console.log('[Auth] Session found via fallback session check');
-            logEvent('auth_google_success', { mode, source: 'session_fallback' });
+            authDebugLog('[Auth] Session found via fallback session check');
+            logEvent(`${provider.eventPrefix}_success`, { mode, source: 'session_fallback' });
             const { data: userData } = await supabase.auth.getUser();
-            const isNewUser = isNewGoogleUser(userData.user);
-            if (isNewUser) {
-              Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
-            } else {
-              Alert.alert('Welcome back!', "You're signed in with Google.");
-            }
-            setIsLoading(false);
+            const isNewUser = isNewOAuthUser(userData.user);
+            showOAuthSuccessAlert(provider.id, isNewUser);
           } else {
-            throw new Error('No session created from Google sign-in.');
+            throw new Error(`No session created from ${provider.label} sign-in.`);
           }
         }
       } else if (authResult.type === 'dismiss' || authResult.type === 'cancel') {
@@ -476,22 +472,74 @@ const AuthScreen: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData?.session) {
-          logEvent('auth_google_success', { mode, source: 'dismiss_then_session' });
+          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'dismiss_then_session' });
           // Deep link handler shows the success alert; no duplicate here
         } else {
-          logEvent('auth_google_cancel', { mode });
-          Alert.alert('Sign-in cancelled', 'Google sign-in was cancelled.');
+          logEvent(`${provider.eventPrefix}_cancel`, { mode });
+          Alert.alert('Sign-in cancelled', `${provider.label} sign-in was cancelled.`);
         }
-        setIsLoading(false);
       } else {
-        console.error('[Auth] Unexpected auth session result:', authResult.type);
-        Alert.alert('Sign-in error', 'Google sign-in did not complete. Please try again.');
-        setIsLoading(false);
+        authDebugError('[Auth] Unexpected auth session result:', authResult.type);
+        Alert.alert('Sign-in error', `${provider.label} sign-in did not complete. Please try again.`);
       }
     } catch (error: any) {
-      console.error('[Auth] Google OAuth error:', error);
-      logError('auth_google_error', error, { mode });
-      Alert.alert('Google sign-in error', error.message || 'Something went wrong. Please try again.');
+      authDebugError(`[Auth] ${provider.label} OAuth error:`, error);
+      logError(`${provider.eventPrefix}_error`, error, { mode });
+      Alert.alert(`${provider.label} sign-in error`, error.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppleAuth = async () => {
+    if (Platform.OS !== 'ios') return;
+
+    setIsLoading(true);
+    logEvent(`${AUTH_APPLE_PROVIDER.eventPrefix}_start`, { mode });
+
+    try {
+      const isAvailable = await AppleAuthentication.isAvailableAsync();
+      if (!isAvailable) {
+        throw new Error('Apple sign-in is not available on this device.');
+      }
+
+      const nonce = createAppleNonce();
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        nonce
+      );
+
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+
+      if (!credential.identityToken) {
+        throw new Error('Apple did not return a sign-in token.');
+      }
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+        nonce,
+      });
+
+      if (error) throw error;
+
+      logEvent(`${AUTH_APPLE_PROVIDER.eventPrefix}_success`, { mode });
+      showOAuthSuccessAlert('apple', isNewOAuthUser(data.user));
+    } catch (error: any) {
+      if (error?.code === 'ERR_REQUEST_CANCELED') {
+        logEvent(`${AUTH_APPLE_PROVIDER.eventPrefix}_cancel`, { mode });
+        return;
+      }
+
+      logError(`${AUTH_APPLE_PROVIDER.eventPrefix}_error`, error, { mode });
+      Alert.alert('Apple sign-in error', error?.message || 'Something went wrong. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -794,18 +842,33 @@ const AuthScreen: React.FC = () => {
             </TouchableOpacity>
           )}
 
-          {/* Google OAuth */}
+          {/* Social OAuth */}
           <View style={styles.dividerRow}>
             <View style={styles.divider} />
             <Text style={styles.dividerText}>or</Text>
             <View style={styles.divider} />
           </View>
-          <Button
-            title="Continue with Google"
-            onPress={handleGoogleAuth}
-            variant="secondary"
-            disabled={isLoading}
-          />
+          {Platform.OS === 'ios' && (
+            <View pointerEvents={isLoading ? 'none' : 'auto'} style={isLoading ? styles.oauthDisabled : undefined}>
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={borderRadius.md}
+                style={styles.appleButton}
+                onPress={handleAppleAuth}
+              />
+            </View>
+          )}
+          {AUTH_OAUTH_PROVIDERS.map((provider, index) => (
+            <Button
+              key={provider.id}
+              title={provider.buttonTitle}
+              onPress={() => handleOAuthProvider(provider)}
+              variant="secondary"
+              disabled={isLoading}
+              style={(index > 0 || Platform.OS === 'ios') ? styles.oauthButtonSpacing : undefined}
+            />
+          ))}
           <TouchableOpacity
             onPress={() => navigation.navigate('Privacy')}
             style={styles.legalLink}
@@ -980,6 +1043,17 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sm,
     fontSize: typography.sizes.xs,
     color: colors.textMuted,
+  },
+  oauthButtonSpacing: {
+    marginTop: spacing.sm,
+  },
+  appleButton: {
+    width: '100%',
+    height: 48,
+    marginTop: spacing.xs,
+  },
+  oauthDisabled: {
+    opacity: 0.6,
   },
   switchModeText: {
     fontSize: typography.sizes.sm,

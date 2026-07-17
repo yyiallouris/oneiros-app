@@ -5,7 +5,10 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | Test file | Maps to doc |
 |-----------|----------------|
 | `authDeepLink.flow.test.ts` | flows-02 (deep links, recovery, OAuth URL handling) |
+| `authOAuth.flow.test.ts` | flows-02 (Apple/Google/Discord provider config, OAuth token parsing, new-user detection) |
 | `onboardingService.flow.test.ts` | flows-03 (per-user onboarding flag) |
+| `legalCopy.flow.test.ts` | flows-08 (consent/privacy/AI disclaimer boundary wording) |
+| `legalSite.flow.test.ts` | flows-08 / release docs (public landing, privacy, and terms pages for store review) |
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, collective placeholder) |
 | `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering) |
 | `symbolTaxonomy.flow.test.ts` | flows-07 (safe labels, archetype taxonomy, modal key mapping, date labels) |
@@ -13,6 +16,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `syncService.flow.test.ts` | flows-05 (unsynced queue, merge, offline short-circuit) |
 | `network.flow.test.ts` | flows-05 (forced offline, subscription callback) |
 | `constants.flow.test.ts` | flows-02 / flows-06 (password length, AI message cap) |
+| `openaiProxySecurity.flow.test.ts` | architecture-interpretation / openai-proxy README (authenticated AI proxy boundary) |
 | `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
 | `storageService.flow.test.ts` | flows-05 (offline-first storage orchestration) |

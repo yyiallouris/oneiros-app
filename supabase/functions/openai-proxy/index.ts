@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { HttpError } from "../_shared/http.ts";
+import { requireUser } from "../_shared/supabase.ts";
 import { normalizeTask, type OneirosTask } from "./ai-routing.ts";
 import { getTaskAiConfig, type TaskAiEntry } from "./task-config.ts";
 
@@ -241,6 +243,7 @@ function responseFromAnthropicSuccess(
     task: string;
     requestedModel: unknown;
     appVersion: string;
+    userId: string;
     messageCount: number;
     usedFallback: boolean;
     upstreamMs?: number;
@@ -271,6 +274,7 @@ function responseFromAnthropicSuccess(
     provider: "anthropic",
     status: 200,
     appVersion: log.appVersion,
+    userId: log.userId,
     messageCount: log.messageCount,
     usage,
     usedFallback: log.usedFallback,
@@ -355,6 +359,13 @@ const corsHeaders = {
     "x-request-id, x-ai-provider, x-ai-model",
 };
 
+function proxyJsonError(message: string, status: number): Response {
+  return new Response(
+    JSON.stringify({ error: { message } }),
+    { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
+}
+
 serve(async (req: Request) => {
   console.log("[openai-proxy] Function called", {
     method: req.method,
@@ -367,7 +378,12 @@ serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (req.method !== "POST") {
+    return proxyJsonError("Method not allowed", 405);
+  }
+
   try {
+    const { userId } = await requireUser(req);
     const requestId = req.headers.get("x-request-id") || `req_${Date.now()}`;
     const appVersion = req.headers.get("x-app-version") || "unknown";
     const dreamId = req.headers.get("x-dream-id")?.trim() || null;
@@ -418,6 +434,7 @@ serve(async (req: Request) => {
             task: task ?? "unrouted",
             requestedModel: model,
             appVersion,
+          userId,
             messageCount: messages.length,
             usedFallback: true,
             upstreamMs: openAIUpstreamMs + fallbackUpstreamMs,
@@ -442,6 +459,7 @@ serve(async (req: Request) => {
           provider: "openai",
           status: oaResponse.status,
           appVersion,
+          userId,
           messageCount: messages.length,
           usage,
           upstreamMs: openAIUpstreamMs,
@@ -470,6 +488,7 @@ serve(async (req: Request) => {
           invalidBody: ev.reason,
           status: oaResponse.status,
           appVersion,
+          userId,
           upstreamMs: openAIUpstreamMs,
         });
         return new Response(responseText, {
@@ -493,6 +512,7 @@ serve(async (req: Request) => {
         provider: "openai",
         status: oaResponse.status,
         appVersion,
+        userId,
         messageCount: messages.length,
         usage,
         upstreamMs: openAIUpstreamMs,
@@ -551,6 +571,7 @@ serve(async (req: Request) => {
         provider: "anthropic",
         status: ar.status,
         appVersion,
+        userId,
         upstreamMs: anthropicUpstreamMs,
       });
       return new Response(raw, {
@@ -599,6 +620,7 @@ serve(async (req: Request) => {
       provider: "anthropic",
       status: 200,
       appVersion,
+      userId,
       messageCount: messages.length,
       usage,
       upstreamMs: anthropicUpstreamMs,
@@ -616,10 +638,12 @@ serve(async (req: Request) => {
       },
     });
   } catch (error) {
+    if (error instanceof HttpError) {
+      console.error("[openai-proxy]", error.message, error.details ?? "");
+      return proxyJsonError(error.status === 401 ? "Unauthorized" : error.message, error.status);
+    }
+
     console.error("[openai-proxy] Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: { message: "Internal server error" } }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return proxyJsonError("Internal server error", 500);
   }
 });
