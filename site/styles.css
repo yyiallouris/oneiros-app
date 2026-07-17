@@ -66,25 +66,13 @@ a {
   text-decoration: none;
 }
 
-.brand-mark {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--line);
+.brand-logo {
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.72), transparent 28%),
-    linear-gradient(160deg, var(--paper-light), var(--paper-deep));
-  display: grid;
-  place-items: center;
-}
-
-.brand-mark::before {
-  content: "";
-  width: 13px;
-  height: 20px;
-  border-radius: 12px 12px 14px 14px;
-  background: var(--plum);
-  transform: rotate(15deg);
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(45, 36, 48, 0.14));
 }
 
 .brand-name {

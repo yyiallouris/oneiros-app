@@ -19,7 +19,10 @@ describe('public legal site', () => {
     expect(fs.existsSync(path.join(siteRoot, 'privacy/index.html'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'terms/index.html'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'support/index.html'))).toBe(true);
+    expect(fs.existsSync(path.join(siteRoot, 'assets/oneiros_logo.png'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'sitemap.xml'))).toBe(true);
+
+    expect(readSiteFile('index.html')).toContain('/assets/oneiros_logo.png');
   });
 
   it('keeps the privacy page aligned with sensitive dream, AI, voice, support, and deletion disclosures', () => {
