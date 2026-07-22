@@ -56,6 +56,11 @@ type InterpretationRow = {
   amplifications?: string[];
   symbol_stances?: SymbolStanceRow[];
   display_distillation?: DisplayDistillation | null;
+  reflection_origin?: 'free_weekly' | 'paid_cycle' | null;
+  chat_replies_used?: number | null;
+  chat_replies_limit?: number | null;
+  origin_quota_event_id?: string | null;
+  origin_entitlement_id?: string | null;
   summary: string | null;
   messages: any[];
   created_at: string;
@@ -108,6 +113,11 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
     symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
     display_distillation: row.display_distillation ?? undefined,
+    reflection_origin: row.reflection_origin ?? undefined,
+    chat_replies_used: row.chat_replies_used ?? undefined,
+    chat_replies_limit: row.chat_replies_limit ?? undefined,
+    origin_quota_event_id: row.origin_quota_event_id ?? undefined,
+    origin_entitlement_id: row.origin_entitlement_id ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -133,6 +143,11 @@ function mapInterpretationToRow(
     amplifications: interpretation.amplifications,
     symbol_stances: interpretation.symbol_stances,
     display_distillation: interpretation.display_distillation,
+    reflection_origin: interpretation.reflection_origin ?? null,
+    chat_replies_used: interpretation.chat_replies_used ?? null,
+    chat_replies_limit: interpretation.chat_replies_limit ?? null,
+    origin_quota_event_id: interpretation.origin_quota_event_id ?? null,
+    origin_entitlement_id: interpretation.origin_entitlement_id ?? null,
     summary: null,
     messages: interpretation.messages as any[],
   };
@@ -232,6 +247,48 @@ export async function remoteGetInterpretations(): Promise<Interpretation[] | nul
   }
   logEvent('remote_get_interpretations_success', { count: data.length });
   return (data as InterpretationRow[]).map(mapInterpretationRowToInterpretation);
+}
+
+export async function remoteGetInterpretationByDreamId(
+  dreamId: string
+): Promise<Interpretation | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('interpretations')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('dream_id', dreamId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) logError('remote_get_interpretation_by_dream_id_error', error, { dreamId });
+    return null;
+  }
+
+  return mapInterpretationRowToInterpretation(data as InterpretationRow);
+}
+
+export async function remoteGetInterpretationById(
+  interpretationId: string
+): Promise<Interpretation | null> {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('interpretations')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('id', interpretationId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) logError('remote_get_interpretation_by_id_error', error, { interpretationId });
+    return null;
+  }
+
+  return mapInterpretationRowToInterpretation(data as InterpretationRow);
 }
 
 export async function remoteSaveInterpretation(

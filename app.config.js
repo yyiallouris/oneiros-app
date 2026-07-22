@@ -64,6 +64,7 @@ const baseExpoConfig = {
           'Allow Oneiros to use your microphone for optional dream voice journaling and transcription.',
       },
     ],
+    'expo-iap',
   ],
   extra: {},
 };
@@ -102,6 +103,26 @@ const extraFromEnv = {
   ),
   privacyPolicyUrl: getEnv(['EXPO_PUBLIC_PRIVACY_POLICY_URL', 'PRIVACY_POLICY_URL'], ''),
   termsUrl: getEnv(['EXPO_PUBLIC_TERMS_URL', 'TERMS_URL'], ''),
+  appleSubscriptionMonthlyProductId: getEnv(
+    ['EXPO_PUBLIC_APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID', 'APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID'],
+    'oneiros_premium_monthly'
+  ),
+  appleSubscriptionYearlyProductId: getEnv(
+    ['EXPO_PUBLIC_APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID', 'APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID'],
+    'oneiros_premium_yearly'
+  ),
+  googleSubscriptionProductId: getEnv(
+    ['EXPO_PUBLIC_GOOGLE_SUBSCRIPTION_PRODUCT_ID', 'GOOGLE_SUBSCRIPTION_PRODUCT_ID'],
+    'oneiros_premium'
+  ),
+  googleSubscriptionMonthlyBasePlanId: getEnv(
+    ['EXPO_PUBLIC_GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID', 'GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID'],
+    'monthly'
+  ),
+  googleSubscriptionYearlyBasePlanId: getEnv(
+    ['EXPO_PUBLIC_GOOGLE_SUBSCRIPTION_YEARLY_BASE_PLAN_ID', 'GOOGLE_SUBSCRIPTION_YEARLY_BASE_PLAN_ID'],
+    'yearly'
+  ),
 };
 
 // Static project id so EAS CLI can read the linked project from extra.eas.
@@ -127,4 +148,3 @@ export default {
     eas: { projectId },
   },
 };
-

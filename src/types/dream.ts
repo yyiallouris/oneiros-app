@@ -92,6 +92,11 @@ export interface Interpretation {
   symbol_stances?: { symbol: string; stance: string }[];
   /** Minimal user-facing dream-field summary for DreamDetail. */
   display_distillation?: DisplayDistillation;
+  reflection_origin?: 'free_weekly' | 'paid_cycle';
+  chat_replies_used?: number;
+  chat_replies_limit?: number;
+  origin_quota_event_id?: string | null;
+  origin_entitlement_id?: string | null;
   createdAt: string;
   updatedAt: string;
   dreamContentAtCreation?: string; // Store the dream content when interpretation was created

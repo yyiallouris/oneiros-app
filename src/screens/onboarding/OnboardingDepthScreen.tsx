@@ -22,11 +22,11 @@ const OnboardingDepthScreen: React.FC = () => {
 
   const handleContinue = useCallback(async () => {
     await setInterpretationDepth(interpretationDepth);
-    navigation.navigate('OnboardingSecure');
+    navigation.navigate('OnboardingSubscription');
   }, [interpretationDepth, navigation]);
 
   const handleSkip = useCallback(() => {
-    navigation.navigate('OnboardingSecure');
+    navigation.navigate('OnboardingSubscription');
   }, [navigation]);
 
   return (

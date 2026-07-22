@@ -64,7 +64,15 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       activeOpacity={0.7}
     >
-      <Text style={[...variantStyles.text, textStyle]}>{title}</Text>
+      <Text
+        style={[...variantStyles.text, textStyle]}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        adjustsFontSizeToFit
+        minimumFontScale={0.9}
+      >
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };

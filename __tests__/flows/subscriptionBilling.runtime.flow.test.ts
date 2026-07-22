@@ -71,6 +71,40 @@ describe('subscription billing runtime flow', () => {
     expect(calls).toEqual(['account', 'transaction', 'entitlement']);
   });
 
+  it('persists yearly purchases without changing the runtime orchestration order', async () => {
+    const calls: string[] = [];
+    const yearlyPurchase: VerifiedPurchase = {
+      ...purchase,
+      planCode: 'paid_yearly',
+      productId: 'oneiros.yearly',
+      transactionKey: 'apple:tx-yearly',
+      externalTransactionId: 'tx-yearly',
+      currentPeriodEnd: '2027-07-10T10:00:00.000Z',
+    };
+    const yearlySnapshot: EntitlementSnapshot = {
+      ...snapshot,
+      planCode: 'paid_yearly',
+      productId: 'oneiros.yearly',
+      latestTransactionId: 'tx-yearly',
+      currentPeriodEnd: '2027-07-10T10:00:00.000Z',
+    };
+    const port = {
+      ensureBillingAccount: jest.fn(async () => {
+        calls.push('account');
+      }),
+      upsertTransaction: jest.fn(async () => {
+        calls.push('transaction');
+      }),
+      upsertEntitlement: jest.fn(async () => {
+        calls.push('entitlement');
+      }),
+    };
+
+    await persistVerifiedPurchase(port, yearlyPurchase, yearlySnapshot);
+
+    expect(calls).toEqual(['account', 'transaction', 'entitlement']);
+  });
+
   it('short-circuits duplicate Apple webhook events before any persistence work', async () => {
     const port = {
       ensureBillingAccount: jest.fn(),

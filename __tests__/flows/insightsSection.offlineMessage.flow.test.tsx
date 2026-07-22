@@ -12,7 +12,10 @@ const mockGetPatternReports = jest.fn();
 const mockGetInterpretationDepth = jest.fn();
 const mockIsOnline = jest.fn();
 const mockGetRecurringSymbols = jest.fn();
+const mockGenerateEntitledPeriodReflection = jest.fn();
+const mockPurchasePlan = jest.fn();
 let mockRouteParams: Record<string, unknown> = { sectionId: 'pattern-recognition' };
+let mockHasPaidAccess = true;
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -57,6 +60,22 @@ jest.mock('../../src/components/icons/InsightsIcons', () => {
     ThresholdsIcon: () => null,
   };
 });
+
+jest.mock('../../src/components/subscription/PremiumUpsellModal', () => ({
+  PremiumUpsellModal: ({
+    visible,
+    source,
+    displayMode,
+  }: {
+    visible: boolean;
+    source: string;
+    displayMode?: string;
+  }) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? <Text>{`Paywall:${source}:${displayMode ?? 'compare'}`}</Text> : null;
+  },
+}));
 
 jest.mock('../../src/services/insightsService', () => ({
   getRecurringSymbols: (...args: unknown[]) => mockGetRecurringSymbols(...args),
@@ -128,6 +147,21 @@ jest.mock('../../src/utils/network', () => ({
   isOnline: (...args: unknown[]) => mockIsOnline(...args),
 }));
 
+jest.mock('../../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    status: { hasPaidAccess: mockHasPaidAccess },
+    products: [],
+    purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
+  }),
+}));
+
+jest.mock('../../src/services/entitledAiService', () => ({
+  EntitlementError: class EntitlementError extends Error {
+    premiumRequired = true;
+  },
+  generateEntitledPeriodReflection: (...args: unknown[]) => mockGenerateEntitledPeriodReflection(...args),
+}));
+
 jest.mock('../../src/constants/safeLabels', () => ({
   toSafeSymbolLabel: (value: string) => value,
 }));
@@ -156,6 +190,7 @@ import InsightsSectionScreen from '../../src/screens/InsightsSectionScreen';
 describe('InsightsSection offline message flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasPaidAccess = true;
     mockRouteParams = { sectionId: 'pattern-recognition' };
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
@@ -191,6 +226,16 @@ describe('InsightsSection offline message flow', () => {
         [{ text: 'OK' }]
       );
     });
+  });
+
+  it('opens the premium paywall when a free user taps a locked pattern reflection', async () => {
+    mockHasPaidAccess = false;
+    const screen = render(<InsightsSectionScreen />);
+
+    await waitFor(() => expect(screen.getByText('Unlock Premium')).toBeTruthy());
+    fireEvent.press(screen.getByText('Unlock Premium'));
+
+    expect(screen.getByText('Paywall:period_reflection:premium_only')).toBeTruthy();
   });
 
   it('lets forming pattern sections own the period picker and reloads when the period changes', async () => {

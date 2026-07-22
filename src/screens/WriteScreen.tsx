@@ -307,6 +307,16 @@ const WriteScreen: React.FC = () => {
               <View style={styles.menuTop}>
                 <Text style={styles.menuTitle}>Menu</Text>
                 <TouchableOpacity
+                  style={[styles.menuItem, styles.menuItemSection]}
+                  onPress={() => {
+                    setIsMenuOpen(false);
+                    navigation.navigate('Subscription');
+                  }}
+                >
+                  <Text style={styles.menuItemEyebrow}>Subscription</Text>
+                  <Text style={styles.menuItemText}>Subscription & Billing</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => {
                     setIsMenuOpen(false);
@@ -531,6 +541,16 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     paddingVertical: spacing.sm,
+  },
+  menuItemSection: {
+    marginBottom: spacing.xs,
+  },
+  menuItemEyebrow: {
+    fontSize: typography.sizes.xs,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+    marginBottom: spacing.xs / 2,
   },
   menuItemBottom: {
     paddingVertical: spacing.sm,

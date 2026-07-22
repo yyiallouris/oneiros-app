@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,23 +18,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
+import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
-import {
-  generateInitialInterpretation,
-  sendChatMessage,
-  filterArchetypesForDisplay,
-  updateInterpretationElementsFromConversation,
-} from '../services/ai';
-import { getDreamMetadataForReflection } from '../services/dreamMetadataPrefetchService';
+import { updateInterpretationElementsFromConversation } from '../services/ai';
 import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
-import { MAX_AI_RESPONSES } from '../constants/interpretation';
+import { MAX_FOLLOW_UP_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
+import { useSubscription } from '../providers/SubscriptionProvider';
+import { EntitlementError, generateEntitledDreamReflection, generateEntitledFollowupReply } from '../services/entitledAiService';
+import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
+import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
 type ChatRouteProp = RouteProp<RootStackParamList, 'InterpretationChat'>;
@@ -310,6 +309,7 @@ const InterpretationChatScreen: React.FC = () => {
   const route = useRoute<ChatRouteProp>();
   const { dreamId } = route.params;
   const insets = useSafeAreaInsets();
+  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
 
   const [dream, setDream] = useState<Dream | null>(null);
   const [interpretation, setInterpretation] = useState<Interpretation | null>(null);
@@ -322,8 +322,18 @@ const InterpretationChatScreen: React.FC = () => {
   const [showOfflineMessage, setShowOfflineMessage] = useState(false);
   const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
   const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+  const [upsellVisible, setUpsellVisible] = useState(false);
+  const [upsellSource, setUpsellSource] = useState<PremiumGateSource>('followup');
 
   const flatListRef = useRef<FlatList>(null);
+  const premiumPlan = useMemo(
+    () =>
+      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
+      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+    [billingInterval, products]
+  );
+  const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
   useEffect(() => {
     loadData();
@@ -393,81 +403,38 @@ const InterpretationChatScreen: React.FC = () => {
     try {
       console.log('[ChatScreen] Generating initial interpretation...');
       const depth = await getInterpretationDepth();
-
-      const aiResponse = await generateInitialInterpretation(dreamData, { depth });
-      console.log('[ChatScreen] Got response from API, length:', aiResponse.length);
-
-      // Keep metadata extraction as a separate model call over the full dream text.
-      let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
-      try {
-        structured = await getDreamMetadataForReflection(dreamData, aiResponse);
-      } catch {
-        Alert.alert('Network error', 'Please check your connection and try again.');
-        return;
-      }
-
-      const aiMessage: ChatMessage = {
-        id: generateId(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date().toISOString(),
-      };
-
-      const symbols = structured.symbols ?? [];
-      const landscapes = structured.landscapes ?? [];
-      const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-      const affects = structured.affects ?? [];
-      const motifs = structured.motifs ?? [];
-      const relational_dynamics = structured.relational_dynamics ?? [];
-      const thresholds = structured.thresholds ?? [];
-      const central_conflicts = structured.central_conflicts ?? [];
-      const core_mode = structured.core_mode ?? undefined;
-      const amplifications = structured.amplifications ?? [];
-      const symbol_stances = structured.symbol_stances ?? [];
-      const display_distillation = structured.display_distillation;
-
-      if (__DEV__) {
-        console.log('[DreamInterpretation] Extracted (chat):', {
-          symbolsCount: symbols.length,
-          landscapesCount: landscapes.length,
-          affectsCount: affects.length,
-          motifsCount: motifs.length,
-          thresholdsCount: thresholds.length,
-          centralConflictsCount: central_conflicts.length,
-          core_mode,
-        });
-      }
-      const newInterpretation: Interpretation = {
-        id: generateId(),
-        dreamId: dreamData.id,
-        messages: [aiMessage],
-        symbols,
-        archetypes,
-        landscapes: landscapes.length > 0 ? landscapes : undefined,
-        affects: affects.length > 0 ? affects : undefined,
-        motifs: motifs.length > 0 ? motifs : undefined,
-        relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
-        thresholds: thresholds.length > 0 ? thresholds : undefined,
-        central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
-        core_mode,
-        amplifications: amplifications.length > 0 ? amplifications : undefined,
-        symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-        display_distillation,
-        dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await saveInterpretation(newInterpretation);
+      const newInterpretation = await generateEntitledDreamReflection(
+        dreamData,
+        depth,
+        'dream_reflection_generate'
+      );
       setInterpretation(newInterpretation);
-      setMessages([aiMessage]);
+      setMessages(newInterpretation.messages);
       // Start typing animation
-      setTypingMessageId(aiMessage.id);
+      setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
     } catch (error: any) {
       console.error('[ChatScreen] Error generating interpretation:', error);
-      const errorMessage = error?.message || 'Failed to generate interpretation. Please try again.';
-      Alert.alert('Error', errorMessage);
-      // Don't set messages, so user can try again
+      if (error instanceof EntitlementError) {
+        setUpsellSource('account');
+        Alert.alert(
+          'Reflection unavailable',
+          error.message,
+          error.premiumRequired || error.reason === 'free_weekly_reflection_unavailable'
+            ? [
+                { text: 'Not now', style: 'cancel' },
+                {
+                  text: 'See Premium',
+                  onPress: () => {
+                    setUpsellVisible(true);
+                  },
+                },
+              ]
+            : [{ text: 'OK' }]
+        );
+      } else {
+        const errorMessage = error?.message || 'Failed to generate interpretation. Please try again.';
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setIsGeneratingInitial(false);
     }
@@ -476,10 +443,18 @@ const InterpretationChatScreen: React.FC = () => {
   const assistantMessages = useMemo(() => messages.filter((m) => m.role === 'assistant'), [messages]);
   const assistantCount = assistantMessages.length;
   const lastAssistant = assistantMessages[assistantMessages.length - 1] ?? null;
-  const reflectionLimitReached = assistantCount >= MAX_AI_RESPONSES;
+  const followupRepliesUsed = interpretation?.chat_replies_used ?? Math.max(assistantCount - 1, 0);
+  const followupRepliesLimit = interpretation?.chat_replies_limit ?? MAX_FOLLOW_UP_RESPONSES;
+  const reflectionLimitReached = followupRepliesUsed >= followupRepliesLimit;
+  const premiumReflectionReadOnly = interpretation?.reflection_origin === 'paid_cycle' && !hasPaidAccess;
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || !dream || !interpretation || isLoading) return;
+    if (premiumReflectionReadOnly) {
+      setUpsellSource('followup');
+      setUpsellVisible(true);
+      return;
+    }
     if (reflectionLimitReached) return;
 
     // Check if online before proceeding
@@ -517,29 +492,12 @@ const InterpretationChatScreen: React.FC = () => {
     }, 100);
 
     try {
-      // Use real API call - pass the original messages array (before adding user message)
-      // since the API expects the conversation history without the new user message
-      const aiResponse = await sendChatMessage(dream, messages, messageContent);
+      const updatedInterpretationBase = await generateEntitledFollowupReply(interpretation.id, messageContent);
+      const updatedMessages = updatedInterpretationBase.messages;
 
-      const aiMessage: ChatMessage = {
-        id: generateId(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date().toISOString(),
-      };
-
-      const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
       // Start typing animation
-      setTypingMessageId(aiMessage.id);
-
-      // Update interpretation
-      const updatedInterpretationBase: Interpretation = {
-        ...interpretation,
-        messages: updatedMessages,
-        updatedAt: new Date().toISOString(),
-      };
-      await saveInterpretation(updatedInterpretationBase);
+      setTypingMessageId(updatedMessages[updatedMessages.length - 1]?.id ?? null);
       setInterpretation(updatedInterpretationBase);
 
       const updatedInterpretation = await updateInterpretationElementsFromConversation(
@@ -565,9 +523,16 @@ const InterpretationChatScreen: React.FC = () => {
       setMessages(messages);
       // Restore the input text so user can retry
       setInputText(savedInputText);
-      // Show informative error message
-      const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
-      Alert.alert('Error', errorMessage);
+      if (error instanceof EntitlementError) {
+        if (error.premiumRequired || error.readOnlyAfterLapse) {
+          setUpsellSource('followup');
+          setUpsellVisible(true);
+        }
+        Alert.alert('Follow-up unavailable', error.message);
+      } else {
+        const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
+        Alert.alert('Error', errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -627,7 +592,7 @@ const InterpretationChatScreen: React.FC = () => {
           maxToRenderPerBatch={10}
           windowSize={5}
           renderItem={({ item }) => {
-            const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
+            const isLastAssistantAtLimit = item.role === 'assistant' && reflectionLimitReached && item.id === lastAssistant?.id;
             return (
               <ChatBubble
                 message={item}
@@ -691,11 +656,12 @@ const InterpretationChatScreen: React.FC = () => {
       )}
 
       {/* Limit message — appears when user taps the disabled input to try to write */}
-      {reflectionLimitReached && showLimitMessageOnTap && (
+      {(reflectionLimitReached || premiumReflectionReadOnly) && showLimitMessageOnTap && (
         <View style={styles.limitReachedContainer}>
           <Text style={styles.limitReachedText}>
-            This reflection has reached its natural depth.
-            You can continue tomorrow or start a new dream.
+            {premiumReflectionReadOnly
+              ? getReadOnlyLapseMessage()
+              : 'This reflection has reached its natural depth. You can continue tomorrow or start a new dream.'}
           </Text>
         </View>
       )}
@@ -707,8 +673,19 @@ const InterpretationChatScreen: React.FC = () => {
           { paddingBottom: Math.max(insets.bottom, spacing.md) },
           reflectionLimitReached && styles.inputContainerDisabled,
         ]}
-        activeOpacity={reflectionLimitReached ? 0.9 : 1}
-        onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : undefined}
+        activeOpacity={reflectionLimitReached || premiumReflectionReadOnly ? 0.9 : 1}
+        onPress={
+          reflectionLimitReached || premiumReflectionReadOnly
+            ? () => {
+                if (premiumReflectionReadOnly) {
+                  setUpsellSource('followup');
+                  setUpsellVisible(true);
+                } else {
+                  setShowLimitMessageOnTap(true);
+                }
+              }
+            : undefined
+        }
       >
         <TextInput
           style={styles.input}
@@ -718,27 +695,38 @@ const InterpretationChatScreen: React.FC = () => {
           onChangeText={setInputText}
           multiline
           maxLength={3000}
-          editable={!reflectionLimitReached}
-          pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
+          editable={!reflectionLimitReached && !premiumReflectionReadOnly}
+          pointerEvents={reflectionLimitReached || premiumReflectionReadOnly ? 'none' : 'auto'}
         />
         <View style={styles.inputActions}>
           <VoiceRecordButton
             onTranscriptionComplete={(text) => {
               setInputText((prev) => (prev ? `${prev} ${text}` : text));
             }}
-            disabled={isLoading || reflectionLimitReached}
+            disabled={isLoading || reflectionLimitReached || premiumReflectionReadOnly}
           />
           <PrimaryIconButton
-            inactive={!inputText.trim() || isLoading || reflectionLimitReached}
-            onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
-            disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
+            inactive={!inputText.trim() || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
+            onPress={
+              reflectionLimitReached || premiumReflectionReadOnly
+                ? () => {
+                    if (premiumReflectionReadOnly) {
+                      setUpsellSource('followup');
+                      setUpsellVisible(true);
+                    } else {
+                      setShowLimitMessageOnTap(true);
+                    }
+                  }
+                : handleSendMessage
+            }
+            disabled={reflectionLimitReached || premiumReflectionReadOnly ? false : (!inputText.trim() || isLoading)}
             loading={isLoading}
             testID="chat-send-button"
           >
             <SendIcon
               size={20}
               color={
-                !inputText.trim() || reflectionLimitReached
+                !inputText.trim() || reflectionLimitReached || premiumReflectionReadOnly
                   ? colors.buttonPrimaryDisabled
                   : colors.white
               }
@@ -746,6 +734,23 @@ const InterpretationChatScreen: React.FC = () => {
           </PrimaryIconButton>
         </View>
       </TouchableOpacity>
+      <PremiumUpsellModal
+        visible={upsellVisible}
+        source={upsellSource}
+        billingInterval={billingInterval}
+        premiumPlan={premiumPlan}
+        displayMode="premium_only"
+        upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+        upgradeDisabled={purchasingPlanCode !== null}
+        onClose={() => setUpsellVisible(false)}
+        onIntervalChange={setBillingInterval}
+        onUpgrade={async () => {
+          const started = await purchasePlan(billingInterval, upsellSource);
+          if (started) {
+            setUpsellVisible(false);
+          }
+        }}
+      />
       </DesignExportForeground>
     </KeyboardAvoidingView>
   );

@@ -1,6 +1,6 @@
 # Subscriptions, entitlements, and quota-backed AI access
 
-This document describes the backend subscription system that now exists for Oneiros. It is intentionally **backend-first**: current mobile screens still use legacy client-side AI entrypoints until frontend purchase and quota UX is wired to these endpoints.
+This document describes the subscription, entitlement, quota, and mobile paywall system now active in Oneiros.
 
 ## Plan model
 
@@ -8,12 +8,40 @@ This document describes the backend subscription system that now exists for Onei
   - Unlimited calendar / dream entry access.
   - 1 dream reflection every rolling 7 days.
   - That free reflection keeps its own 5 follow-up assistant replies.
-- **Paid (`paid_monthly`)**
+- **Paid monthly (`paid_monthly`)**
   - Price target: **EUR 4.99 / month** through store subscriptions.
+- **Paid yearly (`paid_yearly`)**
+  - Price target: **EUR 47.88 / year** shown as **EUR 3.99 / month equivalent** with a simple **Save EUR 12 / year** badge.
+- **Both paid plans**
   - 60 dream reflections per paid billing cycle.
   - 5 follow-up assistant replies per reflected dream.
   - 10 Recent Dream Field generations per paid billing cycle.
   - Period reflections are paid-only and cadence-gated rather than counted against the 60 or 10 quotas.
+  - Same entitlements and quota rules; only the billing period differs.
+
+## Mobile UX surfaces
+
+- **Onboarding**
+  - Plan selection now sits between interpretation depth and security.
+  - Free and Premium cards are shown in a reusable horizontal carousel with Premium as the default visible card.
+  - The dot/line pagination indicator sits above the cards.
+  - The monthly / yearly switch is hidden whenever the free card is the active visible card.
+  - User can continue with Free or start native purchase directly from the Premium card.
+- **Subscription**
+  - Permanent manage-subscription destination.
+  - Shows the full plan comparison without usage statistics or quota counters on the screen itself.
+  - Uses the same top-positioned dot/line pagination indicator as onboarding.
+  - Uses one contextual bottom action only: `Manage` for active paid access, `Restore purchases` for free/lapsed, or helper copy when native IAP is unavailable.
+- **Account**
+  - Profile/settings surface with only a compact subscription summary row that deep-links into `Subscription`.
+- **Write menu**
+  - Includes a dedicated **Subscription & Billing** entry that routes into `Subscription`.
+- **Premium taps**
+  - Free-plan taps on Recent Dream Field, Period Reflection, premium regenerate, and premium follow-up surfaces open the reusable paywall in premium-only mode.
+  - No fake urgency, hidden pricing, or “most popular” framing.
+- **Native runtime requirement**
+  - Restore / manage subscription actions require a development build or store build.
+  - Expo Go / unsupported runtimes show explanatory helper copy instead of broken native IAP actions.
 
 ## Source of truth
 
@@ -43,7 +71,7 @@ This document describes the backend subscription system that now exists for Onei
   - stable purchase-linking identifiers:
     - `app_account_token`
     - `google_obfuscated_account_id`
-  - feature quota summaries for dream reflections, Recent Dream Field, and period reflection cadence metadata.
+  - feature quota summaries for dream reflections and Recent Dream Field.
 
 ### `billing-register-purchase`
 
@@ -69,6 +97,19 @@ This document describes the backend subscription system that now exists for Onei
   - paid-access checks
   - cache reuse via `ai_generation_artifacts`
   - server-side calls into `openai-proxy`
+
+## Native store setup
+
+- **Apple**
+  - One subscription group.
+  - Two auto-renewables:
+    - `oneiros_premium_monthly`
+    - `oneiros_premium_yearly`
+- **Google**
+  - One subscription product: `oneiros_premium`
+  - Two base plans:
+    - `monthly`
+    - `yearly`
 
 ## Store webhook ingestion
 
@@ -127,7 +168,12 @@ This document describes the backend subscription system that now exists for Onei
 - Period reflections are mirrored to `pattern_reports` for compatibility with existing Insights storage.
 - `user_settings.time_zone` is the persisted timezone used for calendar-based quota and current-month cadence logic. Fallback is `UTC`.
 
-## Rollout note
+## Live cutover notes
 
-- Legacy mobile flows are intentionally unchanged in this change set.
-- Until frontend purchase / entitlement screens switch to these endpoints, current client-side AI flows remain the visible app path and are not yet fully backend-enforced.
+- Gated mobile AI actions now call `ai-entitlements-gateway`:
+  - `dream_reflection_generate`
+  - `dream_reflection_regenerate`
+  - `dream_followup_reply`
+  - `recent_dream_field_generate`
+  - `period_reflection_generate`
+- Premium artifacts remain readable after lapse, but paid-origin chat and paid generation paths become read-only until renewal.

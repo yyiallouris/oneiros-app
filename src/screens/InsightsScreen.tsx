@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
+import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ArchetypalEnergiesIcon,
   DreamPlacesIcon,
@@ -36,11 +37,15 @@ import {
 } from '../services/patternInsightsService';
 import { getPatternInsightLanguage } from '../services/patternInsightLanguageService';
 import { isOnline } from '../utils/network';
+import { useSubscription } from '../providers/SubscriptionProvider';
+import { generateEntitledRecentDreamField, EntitlementError } from '../services/entitledAiService';
+import { getFallbackPlan, getTargetPlanForInterval } from '../services/subscriptionService';
 import type {
   CrossCategoryPatternItem,
   InsightsOverviewModel,
   InsightsSectionId,
 } from '../types/insights';
+import type { BillingInterval } from '../types/subscription';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -109,6 +114,7 @@ function parseReflectionSections(raw: string): { title: string; body: string }[]
 
 const InsightsScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
   const [overview, setOverview] = useState<InsightsOverviewModel>(EMPTY_OVERVIEW);
   const [loading, setLoading] = useState(true);
   const [recentCount, setRecentCount] = useState<RecentDreamFieldCount>(3);
@@ -118,8 +124,17 @@ const InsightsScreen: React.FC = () => {
   const [recentGenerating, setRecentGenerating] = useState(false);
   const [recentEmpty, setRecentEmpty] = useState(false);
   const [recentLanguage, setRecentLanguage] = useState('en');
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+  const [upsellVisible, setUpsellVisible] = useState(false);
   const currentPeriod = getPeriodThisMonth();
   const periodLabel = getPeriodLabel(currentPeriod);
+  const premiumPlan = useMemo(
+    () =>
+      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
+      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+    [billingInterval, products]
+  );
+  const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
   useFocusEffect(
     useCallback(() => {
@@ -164,7 +179,19 @@ const InsightsScreen: React.FC = () => {
     setRecentCachedAt(null);
   };
 
+  const handleRecentScopePress = (count: RecentDreamFieldCount) => {
+    if (!hasPaidAccess) {
+      setUpsellVisible(true);
+      return;
+    }
+    selectRecentCount(count);
+  };
+
   const handleGenerateRecentReflection = async (force = false) => {
+    if (!hasPaidAccess) {
+      setUpsellVisible(true);
+      return;
+    }
     if (recentGenerating) return;
     const online = await isOnline();
     if (!online) {
@@ -188,11 +215,17 @@ const InsightsScreen: React.FC = () => {
     setRecentGenerating(true);
     setRecentReflection(null);
     try {
-      const result = await generateRecentDreamFieldReflection(recentCount, recentLanguage, { force });
+      const result = force
+        ? await generateRecentDreamFieldReflection(recentCount, recentLanguage, { force: true })
+        : await generateEntitledRecentDreamField(recentCount, recentLanguage);
       setRecentReflection(result);
       const cached = await getCachedRecentDreamFieldReflection(recentCount, recentLanguage);
       setRecentCachedAt(cached?.generated_at ?? new Date().toISOString());
     } catch (e: any) {
+      if (e instanceof EntitlementError && e.premiumRequired) {
+        setUpsellVisible(true);
+        return;
+      }
       const msg = e?.message || 'Something went wrong. Please try again.';
       Alert.alert('Error', msg);
     } finally {
@@ -286,56 +319,65 @@ const InsightsScreen: React.FC = () => {
           <Card transparent style={styles.card}>
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.cardTitle}>Recent Dream Field</Text>
-              <Text style={styles.recentAvailable}>
-                {recentAvailableCount} reflected
-              </Text>
+              {hasPaidAccess ? (
+                <Text style={styles.recentAvailable}>{`${recentAvailableCount} reflected`}</Text>
+              ) : null}
             </View>
             <Text style={styles.reflectionBody}>
               A reflection on the latest dreams you’ve explored.
             </Text>
-            <Text style={styles.recentScopeLabel}>{recentScopeLabel}</Text>
+            <Text style={[styles.recentScopeLabel, !hasPaidAccess && styles.recentScopeLabelLocked]}>
+              {recentScopeLabel}
+            </Text>
 
             <View style={styles.recentScopeRow}>
-              {RECENT_SCOPE_OPTIONS.map((option) => (
-                <TouchableOpacity
-                  key={option.count}
-                  style={[
-                    styles.recentScopeChip,
-                    recentCount === option.count && styles.recentScopeChipActive,
-                  ]}
-                  onPress={() => selectRecentCount(option.count)}
-                  activeOpacity={0.72}
-                >
-                  <Text
+              {RECENT_SCOPE_OPTIONS.map((option) => {
+                const isActive = hasPaidAccess && recentCount === option.count;
+                return (
+                  <TouchableOpacity
+                    key={option.count}
                     style={[
-                      styles.recentScopeChipText,
-                      recentCount === option.count && styles.recentScopeChipTextActive,
+                      styles.recentScopeChip,
+                      isActive && styles.recentScopeChipActive,
+                      !hasPaidAccess && styles.recentScopeChipLocked,
                     ]}
+                    onPress={() => handleRecentScopePress(option.count)}
+                    activeOpacity={0.72}
                   >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.recentScopeChipText,
+                        isActive && styles.recentScopeChipTextActive,
+                        !hasPaidAccess && styles.recentScopeChipTextLocked,
+                      ]}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <View style={styles.recentActionRow}>
               {recentGenerating ? (
                 <LoadingState preset="recentReflection" style={styles.recentGenerateButton} />
+              ) : !hasPaidAccess ? (
+                <TouchableOpacity
+                  onPress={() => handleGenerateRecentReflection(false)}
+                  activeOpacity={0.72}
+                  style={styles.recentLockedCtaWrap}
+                >
+                  <Text style={styles.reflectionCta}>Unlock Premium</Text>
+                </TouchableOpacity>
               ) : (
-                <>
-                  <Button
-                    title={
-                      recentCachedDate
-                        ? 'View recent reflection'
-                        : 'Reflect on recent dreams'
-                    }
-                    onPress={() => handleGenerateRecentReflection(false)}
-                    disabled={!hasEnoughRecentDreams}
-                    size="compact"
-                    style={styles.recentGenerateButton}
-                    textStyle={styles.recentGenerateText}
-                  />
-                </>
+                <Button
+                  title={recentCachedDate ? 'View recent reflection' : 'Reflect on recent dreams'}
+                  onPress={() => handleGenerateRecentReflection(false)}
+                  disabled={!hasEnoughRecentDreams}
+                  size="compact"
+                  style={styles.recentGenerateButton}
+                  textStyle={styles.recentGenerateText}
+                />
               )}
             </View>
 
@@ -345,24 +387,6 @@ const InsightsScreen: React.FC = () => {
                 <TouchableOpacity onPress={() => handleGenerateRecentReflection(true)} activeOpacity={0.7}>
                   <Text style={styles.recentCacheAction}>Regenerate</Text>
                 </TouchableOpacity>
-              </View>
-            )}
-
-            {!hasEnoughRecentDreams && (
-              <View style={styles.emptyFieldBox}>
-                <Text style={styles.emptyFieldTitle}>A recent field is forming</Text>
-                <Text style={styles.emptyFieldBody}>
-                  Reflect on at least 2 dreams to generate a recent dream field reflection.
-                </Text>
-              </View>
-            )}
-
-            {recentEmpty && hasEnoughRecentDreams && (
-              <View style={styles.emptyFieldBox}>
-                <Text style={styles.emptyFieldTitle}>A recent field is forming</Text>
-                <Text style={styles.emptyFieldBody}>
-                  There are not enough reflected dreams for this recent scope yet.
-                </Text>
               </View>
             )}
 
@@ -379,8 +403,14 @@ const InsightsScreen: React.FC = () => {
           </Card>
 
           <TouchableOpacity
-            style={styles.reflectionCard}
-            onPress={() => navigateToSection('pattern-recognition')}
+            style={[styles.reflectionCard, !hasPaidAccess && styles.lockedCard]}
+            onPress={() => {
+              if (!hasPaidAccess) {
+                setUpsellVisible(true);
+                return;
+              }
+              navigateToSection('pattern-recognition');
+            }}
             activeOpacity={0.78}
           >
             <View style={styles.reflectionIcon}>
@@ -389,12 +419,14 @@ const InsightsScreen: React.FC = () => {
             <View style={styles.reflectionContent}>
               <Text style={styles.cardTitle}>Period Reflection</Text>
               <Text style={styles.reflectionBody}>
-                {hasEnoughForReflection
+                {!hasPaidAccess
+                  ? 'Premium unlocks month-to-date and archived period reflections with clear cadence and saved reports.'
+                  : hasEnoughForReflection
                   ? 'Generate or revisit a symbolic essay on this period’s dream field.'
                   : 'Reflect on at least 2 dreams in this period to generate a meaningful period reflection.'}
               </Text>
               <Text style={styles.reflectionCta}>
-                {hasEnoughForReflection ? 'Open reflection' : 'View reflection space'}
+                {!hasPaidAccess ? 'Unlock Premium' : hasEnoughForReflection ? 'Open reflection' : 'View reflection space'}
               </Text>
             </View>
             <Text style={styles.chevron}>›</Text>
@@ -458,6 +490,23 @@ const InsightsScreen: React.FC = () => {
             </View>
           </Card>
         </ScrollView>
+        <PremiumUpsellModal
+          visible={upsellVisible}
+          source="insights"
+          billingInterval={billingInterval}
+          premiumPlan={premiumPlan}
+          displayMode="premium_only"
+          upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+          upgradeDisabled={purchasingPlanCode !== null}
+          onClose={() => setUpsellVisible(false)}
+          onIntervalChange={setBillingInterval}
+          onUpgrade={async () => {
+            const started = await purchasePlan(billingInterval, 'insights');
+            if (started) {
+              setUpsellVisible(false);
+            }
+          }}
+        />
       </DesignExportForeground>
     </View>
   );
@@ -530,23 +579,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0,
   },
-  emptyFieldBox: {
-    marginTop: spacing.sm,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.buttonPrimaryLight12,
-  },
-  emptyFieldTitle: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
-    color: colors.textTitle,
-    marginBottom: spacing.xs,
-  },
-  emptyFieldBody: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
-    lineHeight: typography.sizes.sm * 1.45,
-  },
   previewBlock: {
     marginTop: spacing.md,
   },
@@ -570,6 +602,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardGlassStrong,
     borderWidth: 1,
     borderColor: colors.contourLineFaint,
+  },
+  lockedCard: {
+    opacity: 0.94,
   },
   reflectionIcon: {
     width: 78,
@@ -622,6 +657,9 @@ const styles = StyleSheet.create({
     color: colors.textAccent,
     fontWeight: typography.weights.semibold,
   },
+  recentScopeLabelLocked: {
+    color: text.muted,
+  },
   recentScopeRow: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -643,6 +681,11 @@ const styles = StyleSheet.create({
     borderColor: colors.buttonPrimary,
     backgroundColor: colors.buttonPrimaryLight12,
   },
+  recentScopeChipLocked: {
+    borderColor: colors.contourLine,
+    backgroundColor: colors.fieldSurface,
+    opacity: 0.72,
+  },
   recentScopeChipText: {
     fontSize: typography.sizes.sm,
     color: text.secondary,
@@ -651,15 +694,26 @@ const styles = StyleSheet.create({
   recentScopeChipTextActive: {
     color: colors.buttonPrimary,
   },
+  recentScopeChipTextLocked: {
+    color: text.muted,
+  },
   recentActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     marginTop: spacing.xs,
   },
+  recentLockedCtaWrap: {
+    width: '100%',
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
+  },
   recentGenerateButton: {
     flex: 1,
     borderRadius: borderRadius.md,
+  },
+  recentGenerateButtonLocked: {
+    opacity: 0.96,
   },
   recentGenerateText: {
     fontSize: typography.sizes.sm,

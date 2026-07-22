@@ -57,6 +57,21 @@ export const accent = {
   clayBrown: '#8C6B5A',
 } as const;
 
+/** Subscription plan CTAs use their own palette and do not affect shared app buttons. */
+export const subscriptionButtons = {
+  premiumBackground: '#4B3158',
+  premiumBackgroundPressed: '#3F294A',
+  premiumText: '#FFFDF9',
+  premiumBorder: 'rgba(255, 255, 255, 0.10)',
+  premiumShadow: 'rgba(45, 36, 48, 0.16)',
+  freeBackground: '#E6DFE8',
+  freeBackgroundPressed: '#D9D1DC',
+  freeText: '#4B3158',
+  freeTextPressed: '#432C50',
+  freeBorder: '#D4CAD7',
+  freeShadow: 'rgba(45, 36, 48, 0.08)',
+} as const;
+
 export const surfaces = {
   glass: 'rgba(243, 236, 226, 0.78)',
   glassStrong: 'rgba(255, 253, 249, 0.88)',
@@ -143,6 +158,7 @@ export type ColorKey = keyof typeof colors;
 export type BackgroundKey = keyof typeof backgrounds;
 export type TextKey = keyof typeof text;
 export type AccentKey = keyof typeof accent;
+export type SubscriptionButtonKey = keyof typeof subscriptionButtons;
 export type SemanticKey = keyof typeof semantic;
 export type BorderKey = keyof typeof borders;
 export type ShadowKey = keyof typeof shadows;

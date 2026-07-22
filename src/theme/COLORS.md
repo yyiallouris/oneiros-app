@@ -19,6 +19,8 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 | Ritual Plum | `#65446F` | `text.accent` |
 | Night Plum | `#4B3158` | `accent.buttonPrimary` |
 | Soft Amethyst | `#A88BB2` | `accent.buttonPrimaryDisabled` |
+| Subscription Premium | `#4B3158` | `subscriptionButtons.premiumBackground` |
+| Subscription Free | `#E6DFE8` | `subscriptionButtons.freeBackground` |
 | Old Gold | `#B58A4A` | `accent.oldGold` |
 | Clay Brown | `#8C6B5A` | `accent.clayBrown` |
 | Paper border | `#E2D8CC` | `borders.primary` |
@@ -52,6 +54,17 @@ Styles: **`buttons.ts`**. Loading: **`loading.ts`**.
 - **Write Save dream exception:** same plum active colors + `opacity: 0.68` when empty — see `WriteScreen`
 
 Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`
+
+### Subscription buttons
+
+Styles: **`SubscriptionPlanCard.tsx`**. These tokens are a separate CTA category for subscription plan cards only; changing them must not alter shared app buttons in `buttons.ts`.
+
+- Premium default: `premiumBackground` (`#4B3158`) + `premiumText` (`#FFFDF9`)
+- Premium pressed: `premiumBackgroundPressed` (`#3F294A`)
+- Premium border/shadow: `premiumBorder` (`rgba(255, 255, 255, 0.10)`) + `premiumShadow` (`rgba(45, 36, 48, 0.16)`)
+- Free default: `freeBackground` (`#E6DFE8`) + `freeText` (`#4B3158`)
+- Free pressed: `freeBackgroundPressed` (`#D9D1DC`) + `freeTextPressed` (`#432C50`)
+- Free border/shadow: `freeBorder` (`#D4CAD7`) + `freeShadow` (`rgba(45, 36, 48, 0.08)`)
 
 ### Contours
 

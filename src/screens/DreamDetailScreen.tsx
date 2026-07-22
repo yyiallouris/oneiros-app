@@ -1,49 +1,48 @@
-  import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-  import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    TextInput,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
-    Alert,
-    Clipboard,
-  } from 'react-native';
-  import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-  import { StackNavigationProp } from '@react-navigation/stack';
-  import { useSafeAreaInsets } from 'react-native-safe-area-context';
-  import { RootStackParamList } from '../navigation/types';
-  import { colors, spacing, typography, borderRadius } from '../theme';
-  import { Button, PaperBackground, LoadingState, LinoSkeletonCard, DesignExportForeground, PrimaryIconButton } from '../components/ui';
-  import { PhasedTypingText } from '../components/ui/PhasedTypingText';
-  import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
-  import { Dream, Interpretation, ChatMessage } from '../types/dream';
-  import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
-  import { formatDateShort, generateId } from '../utils/date';
-  import {
-    generateInitialInterpretation,
-    sendChatMessage,
-    filterArchetypesForDisplay,
-    updateInterpretationElementsFromConversation,
-  } from '../services/ai';
-  import { buildDreamDetailDisplayModel, type DreamDetailDisplayModel, type VisibleDreamAnchor } from '../services/dreamDetailDisplay';
-  import { getDreamMetadataForReflection } from '../services/dreamMetadataPrefetchService';
-  import { getInterpretationDepth } from '../services/userSettingsService';
-import { MAX_AI_RESPONSES } from '../constants/interpretation';
-  import { isOnline } from '../utils/network';
-  import { OfflineMessage } from '../components/OfflineMessage';
-  import Svg, { Path } from 'react-native-svg';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  Alert,
+  Clipboard,
+} from 'react-native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RootStackParamList } from '../navigation/types';
+import { colors, spacing, typography, borderRadius } from '../theme';
+import { Button, PaperBackground, LoadingState, LinoSkeletonCard, DesignExportForeground, PrimaryIconButton } from '../components/ui';
+import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
+import { PhasedTypingText } from '../components/ui/PhasedTypingText';
+import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
+import { Dream, Interpretation, ChatMessage } from '../types/dream';
+import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
+import { formatDateShort, generateId } from '../utils/date';
+import { updateInterpretationElementsFromConversation } from '../services/ai';
+import { buildDreamDetailDisplayModel, type DreamDetailDisplayModel, type VisibleDreamAnchor } from '../services/dreamDetailDisplay';
+import { getInterpretationDepth } from '../services/userSettingsService';
+import { MAX_FOLLOW_UP_RESPONSES } from '../constants/interpretation';
+import { isOnline } from '../utils/network';
+import { OfflineMessage } from '../components/OfflineMessage';
+import Svg, { Path } from 'react-native-svg';
+import { useSubscription } from '../providers/SubscriptionProvider';
+import { EntitlementError, generateEntitledDreamReflection, generateEntitledFollowupReply } from '../services/entitledAiService';
+import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
+import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
-  type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
-  type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
-  const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
-  type IconProps = {
-    size?: number;
-    color?: string;
-  };
+type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
+type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
+const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
+type IconProps = {
+  size?: number;
+  color?: string;
+};
 
   // Edit icon
   const EditIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
@@ -441,6 +440,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const route = useRoute<DetailRouteProp>();
     const { dreamId } = route.params;
     const insets = useSafeAreaInsets();
+    const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
 
     const [dream, setDream] = useState<Dream | null>(null);
     const [interpretation, setInterpretation] = useState<Interpretation | null>(null);
@@ -456,9 +456,19 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const [chatScrollHeight, setChatScrollHeight] = useState(0);
     const [chatScrollOffset, setChatScrollOffset] = useState(0);
     const [showOfflineMessage, setShowOfflineMessage] = useState(false);
+    const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+    const [upsellVisible, setUpsellVisible] = useState(false);
+    const [upsellSource, setUpsellSource] = useState<PremiumGateSource>('followup');
 
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
+    const premiumPlan = useMemo(
+      () =>
+        products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
+        getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+      [billingInterval, products]
+    );
+    const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
     useFocusEffect(
       useCallback(() => {
@@ -524,75 +534,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       setIsGeneratingInitial(true);
       try {
         await saveDream(dreamData);
-
         const depth = await getInterpretationDepth();
-        const aiResponse = await generateInitialInterpretation(dreamData, { depth });
+        const newInterpretation = await generateEntitledDreamReflection(
+          dreamData,
+          depth,
+          'dream_reflection_generate'
+        );
 
-        // Keep metadata extraction as a separate model call over the full dream text.
-        let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
-        try {
-          structured = await getDreamMetadataForReflection(dreamData, aiResponse);
-        } catch {
-          Alert.alert('Network error', 'Please check your connection and try again.');
-          return;
-        }
-
-        const aiMessage: ChatMessage = {
-          id: generateId(),
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date().toISOString(),
-        };
-
-        const symbols = structured.symbols ?? [];
-        const landscapes = structured.landscapes ?? [];
-        const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-        const affects = structured.affects ?? [];
-        const motifs = structured.motifs ?? [];
-        const relational_dynamics = structured.relational_dynamics ?? [];
-        const thresholds = structured.thresholds ?? [];
-        const central_conflicts = structured.central_conflicts ?? [];
-        const core_mode = structured.core_mode ?? undefined;
-        const amplifications = structured.amplifications ?? [];
-        const symbol_stances = structured.symbol_stances ?? [];
-        const display_distillation = structured.display_distillation;
-
-        if (__DEV__) {
-          console.log('[DreamInterpretation] Extracted (new):', {
-            symbolsCount: symbols.length,
-            landscapesCount: landscapes.length,
-            affectsCount: affects.length,
-            motifsCount: motifs.length,
-            thresholdsCount: thresholds.length,
-            centralConflictsCount: central_conflicts.length,
-            core_mode,
-          });
-        }
-        const newInterpretation: Interpretation = {
-          id: generateId(),
-          dreamId: dreamData.id,
-          messages: [aiMessage],
-          symbols,
-          archetypes,
-          landscapes: landscapes.length > 0 ? landscapes : undefined,
-          affects: affects.length > 0 ? affects : undefined,
-          motifs: motifs.length > 0 ? motifs : undefined,
-          relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
-          thresholds: thresholds.length > 0 ? thresholds : undefined,
-          central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
-          core_mode,
-          amplifications: amplifications.length > 0 ? amplifications : undefined,
-          symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-          display_distillation,
-          dreamContentAtCreation: dreamData.content, // Store content to detect if only title changed
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        await saveInterpretation(newInterpretation);
         setInterpretation(newInterpretation);
-        setMessages([aiMessage]);
-        setTypingMessageId(aiMessage.id);
+        setMessages(newInterpretation.messages);
+        setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
         
         // Show chat - replaces reflection section
         setShowChat(true);
@@ -604,8 +555,21 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         // This provides ChatGPT-like experience where content appears and user scrolls when ready
       } catch (error: any) {
         console.error('[DreamDetail] Error generating interpretation:', error);
-        const errorMessage = error?.message || 'Failed to generate interpretation. Please try again.';
-        Alert.alert('Error', errorMessage);
+        if (error instanceof EntitlementError) {
+          Alert.alert(
+            'Reflection unavailable',
+            error.message,
+            error.premiumRequired || error.reason === 'free_weekly_reflection_unavailable'
+              ? [
+                  { text: 'Not now', style: 'cancel' },
+                  { text: 'See Premium', onPress: () => setUpsellVisible(true) },
+                ]
+              : [{ text: 'OK' }]
+          );
+        } else {
+          const errorMessage = error?.message || 'Failed to generate interpretation. Please try again.';
+          Alert.alert('Error', errorMessage);
+        }
       } finally {
         setIsGeneratingInitial(false);
       }
@@ -630,6 +594,12 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const handleUpdateInterpretation = async () => {
       if (!dream || !interpretation) return;
 
+      if (!hasPaidAccess) {
+        setUpsellSource('regenerate');
+        setUpsellVisible(true);
+        return;
+      }
+
       // Check if online before proceeding
       const online = await isOnline();
       if (!online) {
@@ -643,71 +613,15 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       setIsGeneratingInitial(true);
       try {
         const depth = await getInterpretationDepth();
-        const aiResponse = await generateInitialInterpretation(dream, { depth });
+        const updatedInterpretation = await generateEntitledDreamReflection(
+          dream,
+          depth,
+          'dream_reflection_regenerate'
+        );
 
-        // Keep metadata extraction as a separate model call over the full dream text.
-        let structured: Awaited<ReturnType<typeof getDreamMetadataForReflection>>;
-        try {
-          structured = await getDreamMetadataForReflection(dream, aiResponse);
-        } catch {
-          Alert.alert('Network error', 'Please check your connection and try again.');
-          return;
-        }
-
-        const aiMessage: ChatMessage = {
-          id: generateId(),
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date().toISOString(),
-        };
-
-        const symbols = structured.symbols ?? [];
-        const landscapes = structured.landscapes ?? [];
-        const archetypes = filterArchetypesForDisplay(structured.archetypes ?? [], aiResponse);
-        const affects = structured.affects ?? [];
-        const motifs = structured.motifs ?? [];
-        const relational_dynamics = structured.relational_dynamics ?? [];
-        const thresholds = structured.thresholds ?? [];
-        const central_conflicts = structured.central_conflicts ?? [];
-        const core_mode = structured.core_mode ?? undefined;
-        const amplifications = structured.amplifications ?? [];
-        const symbol_stances = structured.symbol_stances ?? [];
-        const display_distillation = structured.display_distillation;
-
-        if (__DEV__) {
-          console.log('[DreamInterpretation] Extracted (update):', {
-            symbolsCount: symbols.length,
-            landscapesCount: landscapes.length,
-            affectsCount: affects.length,
-            motifsCount: motifs.length,
-            thresholdsCount: thresholds.length,
-            centralConflictsCount: central_conflicts.length,
-            core_mode,
-          });
-        }
-        const updatedInterpretation: Interpretation = {
-          ...interpretation,
-          messages: [aiMessage],
-          symbols,
-          archetypes,
-          landscapes: landscapes.length > 0 ? landscapes : undefined,
-          affects: affects.length > 0 ? affects : undefined,
-          motifs: motifs.length > 0 ? motifs : undefined,
-          relational_dynamics: relational_dynamics.length > 0 ? relational_dynamics : undefined,
-          thresholds: thresholds.length > 0 ? thresholds : undefined,
-          central_conflicts: central_conflicts.length > 0 ? central_conflicts : undefined,
-          core_mode,
-          amplifications: amplifications.length > 0 ? amplifications : undefined,
-          symbol_stances: symbol_stances.length > 0 ? symbol_stances : undefined,
-          display_distillation,
-          dreamContentAtCreation: dream.content, // Update stored content
-          updatedAt: new Date().toISOString(),
-        };
-
-        await saveInterpretation(updatedInterpretation);
         setInterpretation(updatedInterpretation);
-        setMessages([aiMessage]);
-        setTypingMessageId(aiMessage.id);
+        setMessages(updatedInterpretation.messages);
+        setTypingMessageId(updatedInterpretation.messages[0]?.id ?? null);
 
         // Show chat
         setShowChat(true);
@@ -716,8 +630,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         // Don't auto-scroll - ChatGPT experience: content appears, user scrolls when ready
       } catch (error: any) {
         console.error('[DreamDetail] Error updating interpretation:', error);
-        const errorMessage = error?.message || 'Failed to update interpretation. Please try again.';
-        Alert.alert('Error', errorMessage);
+        if (error instanceof EntitlementError) {
+          if (error.premiumRequired || error.readOnlyAfterLapse) {
+            setUpsellSource('regenerate');
+            setUpsellVisible(true);
+          }
+          Alert.alert('Reflection unavailable', error.message);
+        } else {
+          const errorMessage = error?.message || 'Failed to update interpretation. Please try again.';
+          Alert.alert('Error', errorMessage);
+        }
       } finally {
         setIsGeneratingInitial(false);
       }
@@ -726,10 +648,18 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
     const assistantMessages = useMemo(() => messages.filter((m) => m.role === 'assistant'), [messages]);
     const assistantCount = assistantMessages.length;
     const lastAssistant = assistantMessages[assistantMessages.length - 1] ?? null;
-    const reflectionLimitReached = assistantCount >= MAX_AI_RESPONSES;
+    const followupRepliesUsed = interpretation?.chat_replies_used ?? Math.max(assistantCount - 1, 0);
+    const followupRepliesLimit = interpretation?.chat_replies_limit ?? MAX_FOLLOW_UP_RESPONSES;
+    const reflectionLimitReached = followupRepliesUsed >= followupRepliesLimit;
+    const premiumReflectionReadOnly = interpretation?.reflection_origin === 'paid_cycle' && !hasPaidAccess;
 
     const handleSendMessage = async () => {
       if (!inputText.trim() || !dream || !interpretation || isLoading) return;
+      if (premiumReflectionReadOnly) {
+        setUpsellSource('followup');
+        setUpsellVisible(true);
+        return;
+      }
       if (reflectionLimitReached) return;
 
       const online = await isOnline();
@@ -764,27 +694,11 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
       }, 100);
 
       try {
-        // Use real API call - pass the original messages array (before adding user message)
-        // since the API expects the conversation history without the new user message
-        const aiResponse = await sendChatMessage(dream, messages, messageContent);
+        const updatedInterpretationBase = await generateEntitledFollowupReply(interpretation.id, messageContent);
+        const updatedMessages = updatedInterpretationBase.messages;
 
-        const aiMessage: ChatMessage = {
-          id: generateId(),
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date().toISOString(),
-        };
-
-        const updatedMessages = [...newMessages, aiMessage];
         setMessages(updatedMessages);
-        setTypingMessageId(aiMessage.id);
-
-        const updatedInterpretationBase: Interpretation = {
-          ...interpretation,
-          messages: updatedMessages,
-          updatedAt: new Date().toISOString(),
-        };
-        await saveInterpretation(updatedInterpretationBase);
+        setTypingMessageId(updatedMessages[updatedMessages.length - 1]?.id ?? null);
         setInterpretation(updatedInterpretationBase);
 
         const updatedInterpretation = await updateInterpretationElementsFromConversation(
@@ -810,9 +724,16 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
         setMessages(messages);
         // Restore the input text so user can retry
         setInputText(savedInputText);
-        // Show informative error message
-        const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
-        Alert.alert('Error', errorMessage);
+        if (error instanceof EntitlementError) {
+          if (error.premiumRequired || error.readOnlyAfterLapse) {
+            setUpsellSource('followup');
+            setUpsellVisible(true);
+          }
+          Alert.alert('Follow-up unavailable', error.message);
+        } else {
+          const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
+          Alert.alert('Error', errorMessage);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -1066,7 +987,7 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                 }}
               >
                 {messages.map((item) => {
-                  const isLastAssistantAtLimit = item.role === 'assistant' && assistantCount === MAX_AI_RESPONSES && item.id === lastAssistant?.id;
+                  const isLastAssistantAtLimit = item.role === 'assistant' && reflectionLimitReached && item.id === lastAssistant?.id;
                   return (
                   <ChatBubble
                     key={item.id}
@@ -1097,11 +1018,12 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               </ScrollView>
 
               {/* Limit message — appears when user taps the disabled input to try to write */}
-              {reflectionLimitReached && showLimitMessageOnTap && (
+              {(reflectionLimitReached || premiumReflectionReadOnly) && showLimitMessageOnTap && (
                 <View style={styles.limitReachedContainer}>
                   <Text style={styles.limitReachedText}>
-                    This reflection has reached its natural depth.
-                    You can continue tomorrow or start a new dream.
+                    {premiumReflectionReadOnly
+                      ? getReadOnlyLapseMessage()
+                      : 'This reflection has reached its natural depth. You can continue tomorrow or start a new dream.'}
                   </Text>
                 </View>
               )}
@@ -1123,8 +1045,19 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                   { paddingBottom: Math.max(insets.bottom, spacing.lg) },
                   reflectionLimitReached && styles.inputContainerDisabled,
                 ]}
-                activeOpacity={reflectionLimitReached ? 0.9 : 1}
-                onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : undefined}
+                activeOpacity={reflectionLimitReached || premiumReflectionReadOnly ? 0.9 : 1}
+                onPress={
+                  reflectionLimitReached || premiumReflectionReadOnly
+                    ? () => {
+                        if (premiumReflectionReadOnly) {
+                          setUpsellSource('followup');
+                          setUpsellVisible(true);
+                        } else {
+                          setShowLimitMessageOnTap(true);
+                        }
+                      }
+                    : undefined
+                }
               >
                 <TextInput
                   style={styles.input}
@@ -1134,10 +1067,10 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                   onChangeText={setInputText}
                   multiline
                   maxLength={3000}
-                  editable={!reflectionLimitReached}
-                  pointerEvents={reflectionLimitReached ? 'none' : 'auto'}
+                  editable={!reflectionLimitReached && !premiumReflectionReadOnly}
+                  pointerEvents={reflectionLimitReached || premiumReflectionReadOnly ? 'none' : 'auto'}
                   onFocus={() => {
-                    if (!reflectionLimitReached) {
+                    if (!reflectionLimitReached && !premiumReflectionReadOnly) {
                       setTimeout(() => {
                         scrollViewRef.current?.scrollToEnd({ animated: true });
                       }, 100);
@@ -1149,20 +1082,31 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
                     onTranscriptionComplete={(text) => {
                       setInputText((prev) => (prev ? `${prev} ${text}` : text));
                     }}
-                    disabled={isLoading || reflectionLimitReached}
+                    disabled={isLoading || reflectionLimitReached || premiumReflectionReadOnly}
                   />
                 </View>
                 <PrimaryIconButton
-                  inactive={!inputText.trim() || isLoading || reflectionLimitReached}
-                  onPress={reflectionLimitReached ? () => setShowLimitMessageOnTap(true) : handleSendMessage}
-                  disabled={reflectionLimitReached ? false : (!inputText.trim() || isLoading)}
+                  inactive={!inputText.trim() || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
+                  onPress={
+                    reflectionLimitReached || premiumReflectionReadOnly
+                      ? () => {
+                          if (premiumReflectionReadOnly) {
+                            setUpsellSource('followup');
+                            setUpsellVisible(true);
+                          } else {
+                            setShowLimitMessageOnTap(true);
+                          }
+                        }
+                      : handleSendMessage
+                  }
+                  disabled={reflectionLimitReached || premiumReflectionReadOnly ? false : (!inputText.trim() || isLoading)}
                   loading={isLoading}
                   testID="dream-detail-send-button"
                 >
                   <SendIcon
                     size={20}
                     color={
-                      !inputText.trim() || reflectionLimitReached
+                      !inputText.trim() || reflectionLimitReached || premiumReflectionReadOnly
                         ? colors.buttonPrimaryDisabled
                         : colors.white
                     }
@@ -1171,6 +1115,23 @@ import { MAX_AI_RESPONSES } from '../constants/interpretation';
               </TouchableOpacity>
             </View>
           )}
+          <PremiumUpsellModal
+            visible={upsellVisible}
+            source={upsellSource}
+            billingInterval={billingInterval}
+            premiumPlan={premiumPlan}
+            displayMode="premium_only"
+            upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+            upgradeDisabled={purchasingPlanCode !== null}
+            onClose={() => setUpsellVisible(false)}
+            onIntervalChange={setBillingInterval}
+            onUpgrade={async () => {
+              const started = await purchasePlan(billingInterval, upsellSource);
+              if (started) {
+                setUpsellVisible(false);
+              }
+            }}
+          />
             </ScrollView>
           </DesignExportForeground>
         </KeyboardAvoidingView>

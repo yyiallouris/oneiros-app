@@ -60,6 +60,7 @@ jest.mock('../../src/screens/SetPasswordScreen', () => () => null);
 jest.mock('../../src/screens/BiometricLockScreen', () => () => null);
 jest.mock('../../src/screens/LegalConsentScreen', () => () => null);
 jest.mock('../../src/screens/AccountScreen', () => () => null);
+jest.mock('../../src/screens/SubscriptionScreen', () => () => null);
 jest.mock('../../src/screens/ContactScreen', () => () => null);
 jest.mock('../../src/screens/PrivacyScreen', () => () => null);
 jest.mock('../../src/screens/CalendarScreen', () => () => null);

@@ -3,6 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { OnboardingStackParamList } from './types';
 import OnboardingNameScreen from '../screens/onboarding/OnboardingNameScreen';
 import OnboardingDepthScreen from '../screens/onboarding/OnboardingDepthScreen';
+import OnboardingSubscriptionScreen from '../screens/onboarding/OnboardingSubscriptionScreen';
 import OnboardingSecureScreen from '../screens/onboarding/OnboardingSecureScreen';
 import { colors } from '../theme';
 
@@ -28,6 +29,7 @@ const OnboardingNavigator: React.FC<OnboardingNavigatorProps> = ({ onComplete, i
       >
         <Stack.Screen name="OnboardingName" component={OnboardingNameScreen} />
         <Stack.Screen name="OnboardingDepth" component={OnboardingDepthScreen} />
+        <Stack.Screen name="OnboardingSubscription" component={OnboardingSubscriptionScreen} />
         <Stack.Screen name="OnboardingSecure" component={OnboardingSecureScreen} />
       </Stack.Navigator>
     </OnboardingCompleteContext.Provider>

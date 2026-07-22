@@ -14,6 +14,7 @@ import SetPasswordScreen from '../screens/SetPasswordScreen';
 import BiometricLockScreen from '../screens/BiometricLockScreen';
 import { isBiometricEnabled, syncBiometricFromRemote } from '../services/biometricAuthService';
 import AccountScreen from '../screens/AccountScreen';
+import SubscriptionScreen from '../screens/SubscriptionScreen';
 import OnboardingNavigator from './OnboardingNavigator';
 import { hasCompletedOnboarding } from '../services/onboardingService';
 import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
@@ -62,6 +63,7 @@ const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
   'InterpretationChat',
   'DreamDetail',
   'Account',
+  'Subscription',
   'Contact',
   'Privacy',
   'Calendar',
@@ -72,7 +74,7 @@ const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
 ];
 
 const MAIN_TAB_ROUTE_NAMES = ['Write', 'Journal', 'Insights'] as const;
-const ONBOARDING_ROUTE_NAMES = ['OnboardingName', 'OnboardingDepth', 'OnboardingSecure'] as const;
+const ONBOARDING_ROUTE_NAMES = ['OnboardingName', 'OnboardingDepth', 'OnboardingSubscription', 'OnboardingSecure'] as const;
 const SHOW_DEV_OFFLINE_TOGGLE = false;
 
 const isRootRouteName = (route: string): route is keyof RootStackParamList =>
@@ -196,6 +198,17 @@ const DesignExportRootNavigator: React.FC = () => {
                 headerShadowVisible: false,
                 headerTintColor: colors.textPrimary,
                 headerTitle: 'Account',
+              }}
+            />
+            <Stack.Screen
+              name="Subscription"
+              component={SubscriptionScreen}
+              options={{
+                headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+                headerStyle: { backgroundColor: colors.background },
+                headerShadowVisible: false,
+                headerTintColor: colors.textPrimary,
+                headerTitle: 'Subscription & Billing',
               }}
             />
             <Stack.Screen
@@ -739,6 +752,17 @@ export const RootNavigator: React.FC = () => {
             headerShadowVisible: false,
             headerTintColor: colors.textPrimary,
             headerTitle: 'Account',
+          }}
+        />
+        <Stack.Screen
+          name="Subscription"
+          component={SubscriptionScreen}
+          options={{
+            headerShown: !IS_DESIGN_EXPORT_BACKGROUND_ONLY,
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.textPrimary,
+            headerTitle: 'Subscription & Billing',
           }}
         />
         <Stack.Screen

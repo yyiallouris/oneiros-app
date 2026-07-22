@@ -4,6 +4,7 @@ import type { InsightsSectionId } from '../types/insights';
 export type OnboardingStackParamList = {
   OnboardingName: undefined;
   OnboardingDepth: undefined;
+  OnboardingSubscription: undefined;
   OnboardingSecure: undefined;
 };
 
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   InterpretationChat: { dreamId: string };
   DreamDetail: { dreamId: string };
   Account: undefined;
+  Subscription: undefined;
   Contact: { initialSubject?: string; initialMessage?: string } | undefined;
   Privacy: undefined;
   Calendar: { initialDate?: string } | undefined;

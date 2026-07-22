@@ -63,12 +63,40 @@ npm test
 # Only flow-oriented tests (faster feedback while iterating)
 npm run test:flows
 
+# Live Supabase / AI proxy smoke tests (manual, quota/network dependent)
+npm run test:live-ai
+
+# Live crafted-dream quality smoke (manual, authenticated, consumes AI quota)
+npm run test:live-ai-quality
+
 # Single file
 JEST_DISABLE_WATCHMAN=1 npx jest __tests__/flows/authDeepLink.flow.test.ts --watchman=false
 
 # Detox (Android example; requires prior detox build)
 npm run detox:build:android && npm run detox:test:android
 ```
+
+## 4.1 Live AI / Supabase smoke checks
+
+Use `npm run test:live-ai` when you need to verify deployed credentials and network wiring, not just deterministic mocks.
+
+The suite is guarded by `RUN_LIVE_AI_TESTS=1` and reads local environment / `.env` values without printing secrets. It checks:
+
+- Supabase URL + anon key reach the Supabase auth health endpoint.
+- `EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT` reaches the deployed `openai-proxy`.
+- Unauthenticated proxy calls are rejected before provider work, proving the auth boundary is active.
+- If `LIVE_SUPABASE_ACCESS_TOKEN` is set to a valid signed-in Supabase user JWT, or `LIVE_SUPABASE_EMAIL` + `LIVE_SUPABASE_PASSWORD` are set for a test user, a tiny authenticated `semantic_grouping` request verifies the server-side AI provider key and proxy routing return parseable JSON.
+
+Without live Supabase auth material, the authenticated provider-key check is skipped. That means Supabase/proxy reachability is verified, but OpenAI/Anthropic server secrets are not fully verified.
+
+Use `npm run test:live-ai-quality` for a deeper manual smoke. It signs in the same way, sends a crafted dream through the deployed `openai-proxy`, generates a compact post-Jungian reflection, runs live extraction, and checks:
+
+- The reflection names the dream's core images and movement.
+- The language stays hypothetical, symbolic, non-clinical, and non-advisory.
+- `display_distillation` has a usable essence and 3-5 visible anchors.
+- Insights metadata includes expected symbols, landscapes, thresholds, motifs, symbol stances, and bounded conflicts.
+
+This quality smoke is not a substitute for human review of the prose, but it catches obvious provider/prompt regressions and broken extraction contracts against a real model.
 
 ## 5. Minimum checklist before closing a task
 

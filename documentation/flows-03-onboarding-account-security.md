@@ -2,10 +2,18 @@
 
 ## Post-login onboarding (`OnboardingNavigator`)
 
-Order: **OnboardingName** → **OnboardingDepth** → **OnboardingSecure**.
+Order: **OnboardingName** → **OnboardingDepth** → **OnboardingSubscription** → **OnboardingSecure**.
 
 - **Name:** display name capture; continues to depth.
 - **Depth:** interpretation depth preference (journey into app expectations).
+- **Subscription:** explicit plan choice before security.
+  - Free remains explicit: unlimited entries, 1 reflection every 7 days, and 5 follow-up replies on that free reflection.
+  - Premium offers monthly and yearly billing with the same paid entitlements; only the billing window differs.
+  - Plan cards are presented in a horizontal carousel rather than a stacked comparison block, with Premium shown first and Free available by swiping left.
+  - The dot/line pagination indicator sits above the cards.
+  - The monthly / yearly pricing switch is hidden whenever the free card is the active visible card.
+  - Native purchase starts directly from the Premium card, while `Continue with Free` proceeds directly.
+  - “Decide later” language now points to the dedicated Subscription destination rather than Account.
 - **Secure:** optional **biometric app lock** (enable/disable with device prompt); **Finish** or **Skip** both call `setOnboardingCompleted()` then parent `onComplete()` → `MainTabs`.
 
 Persistence: `hasCompletedOnboarding` / `setOnboardingCompleted` in `onboardingService.ts` — keyed per **user id** in AsyncStorage.
@@ -16,9 +24,28 @@ Persistence: `hasCompletedOnboarding` / `setOnboardingCompleted` in `onboardingS
 - Returning user same device: onboarding skipped if flag true for that user id.
 - User A logs out, User B logs in: onboarding state is per user id.
 
+## Subscription screen (`Subscription`)
+
+Reachable from **Write** tab → menu → **Subscription & Billing** or from the compact subscription row inside **Account**.
+
+- Permanent manage-subscription destination.
+- Shows the full plan comparison without usage statistics or quota counters on the screen itself.
+- The dot/line pagination indicator sits above the cards.
+- Monthly / yearly switch appears only when the premium card is the active visible card.
+- Bottom action is contextual:
+  - active paid access → `Manage`
+  - free or lapsed → `Restore purchases`
+  - unsupported runtime (for example Expo Go) → helper message instead of broken native actions
+- Free and Premium cards use the same comparison carousel as onboarding, with Premium visible first by default.
+
 ## Account screen (`Account`)
 
-Reachable from **Write** tab → menu → Account.
+Reachable from **Write** tab → menu → **Account**.
+
+- **Subscription:** compact status row only.
+  - Shows current plan state and renewal / lapse messaging.
+  - Tapping the row deep-links into **Subscription**.
+  - No plan cards, quota grids, restore buttons, or purchase CTAs live inside Account anymore.
 
 - **Profile:** “Name or nickname” → `UserService.setDisplayName`; brief “Saved” then navigate to **Write** tab.
 - **Dream analysis — level:** `quick` | `standard` | `advanced` (stored via `userSettingsService`).
@@ -38,3 +65,10 @@ Reachable from **Write** tab → menu → Account.
 - Enable during onboarding vs Account — both paths.
 - Permission denied / unsupported hardware — section visibility and error alerts.
 - Logout: biometric preference **not** cleared locally in a way that loses remote toggle; next login restores from remote (`syncBiometricFromRemote` in `RootNavigator`).
+
+## Regression — subscription surfaces
+
+- New onboarding path is name → depth → subscription → secure.
+- Paid users who already have access are pushed onward instead of lingering on the subscription step.
+- Subscription is the long-term restore / manage / renew destination.
+- Account stays a settings surface with only a compact subscription entry.

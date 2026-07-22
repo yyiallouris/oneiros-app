@@ -46,7 +46,7 @@ export function hasPaidAccess(params: {
   at?: Date;
 }): boolean {
   const at = params.at ?? new Date();
-  if (params.planCode !== 'paid_monthly') return false;
+  if (params.planCode !== 'paid_monthly' && params.planCode !== 'paid_yearly') return false;
   if (!params.entitlementState || !['active', 'grace_period', 'billing_retry'].includes(params.entitlementState)) {
     return false;
   }

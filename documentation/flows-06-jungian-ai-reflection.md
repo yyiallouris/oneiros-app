@@ -6,17 +6,17 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 
 - **Interpretation depth** and **Mythic Resonance** from `userSettingsService` (Account screen).
 - Constants in `constants/interpretation.ts` (e.g. `MAX_AI_RESPONSES`).
-- Backend entitlement and quota enforcement now exists in `ai-entitlements-gateway`, but the current DreamDetail / InterpretationChat screens are not yet cut over to it.
+- Dream reflection, regenerate, and follow-up chat now run through `ai-entitlements-gateway`.
 
 ## Happy path — first reflection
 
 1. User opens dream with no interpretation (or stale handling per screen logic).
 2. User triggers **generate** / initial reflection (online required — see below).
-3. `generateInitialInterpretation` → AI text.
-4. `getDreamMetadataForReflection` → structured extraction with `display_distillation` plus pattern metadata (see [`docs/SYMBOLS_FLOW.md`](../docs/SYMBOLS_FLOW.md)).
-5. `saveInterpretation` persists messages + metadata; syncs in background when logged in.
+3. Client sends `dream_reflection_generate` with a client idempotency key.
+4. `ai-entitlements-gateway` reserves quota, calls `openai-proxy`, persists the canonical interpretation, and commits or releases quota.
+5. Client reloads the canonical interpretation from remote storage and mirrors it locally.
 
-## Backend quota model (ready, not yet the live screen path)
+## Backend quota model (live screen path)
 
 - `ai-entitlements-gateway` supports:
   - `dream_reflection_generate`
@@ -48,8 +48,9 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 ## Follow-up chat (same screen)
 
 - Inline chat after initial assistant message.
-- `sendChatMessage` with history; updates interpretation messages locally + sync.
-- **Assistant message cap:** when `assistantCount >= MAX_AI_RESPONSES`, further sends blocked (UI reflects limit).
+- Follow-ups send `dream_followup_reply` through the entitlement gateway.
+- Limit comes from `chat_replies_used` and `chat_replies_limit`, with a 5-reply fallback.
+- Paid-origin reflections become read-only after lapse and route to renewal / premium upsell messaging.
 
 ## Offline behavior
 
@@ -58,7 +59,9 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 
 ## Regenerate / update interpretation
 
-- User can request an updated reflection (e.g. after editing dream — flows in `DreamDetailScreen`); this regenerates the reflection and structured metadata, including `display_distillation`.
+- User can request an updated reflection after editing the dream.
+- Regenerate maps to `dream_reflection_regenerate`.
+- Regenerate is treated as a premium action, so free users and lapsed paid users are routed to the premium upsell / renewal state.
 
 ## Delete interpretation
 
@@ -66,12 +69,15 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 
 ## `InterpretationChatScreen`
 
-- Parallel implementation: dream load, interpretation load, generate, chat, offline checks, voice button.
+- Parallel implementation: dream load, interpretation load, gateway-based generate/chat, offline checks, voice button, and premium lapse read-only handling.
 - For regression: if product wires navigation here later, mirror tests from DreamDetail.
 
 ## Regression ideas
 
 - Reflection with each depth level + mythic on/off (advanced only).
-- Hit message limit → send disabled / messaging.
+- Gateway reflection success: committed response reloads the canonical remote interpretation and mirrors it locally.
+- Metadata prefetch: unchanged dream content reuses cached extraction, changed content re-extracts, and in-flight prefetches are deduped.
+- Hit follow-up limit → send disabled / messaging.
+- Paid-origin reflection after lapse → read-only messaging + premium upsell.
 - Network drop mid-request → error alert, input restored where implemented.
-- Interpretation sync: create on device A, login device B → merge (depends on remote storage).
+- Interpretation sync: create on device A, login device B → merge `display_distillation`, `symbol_stances`, and long-term metadata without dropping local-only optional fields.

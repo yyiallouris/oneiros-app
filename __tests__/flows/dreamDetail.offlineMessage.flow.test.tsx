@@ -9,6 +9,9 @@ const mockSetOptions = jest.fn();
 const mockGetDreamById = jest.fn();
 const mockGetInterpretationByDreamId = jest.fn();
 const mockIsOnline = jest.fn();
+const mockPurchasePlan = jest.fn();
+const mockGenerateEntitledDreamReflection = jest.fn();
+const mockGenerateEntitledFollowupReply = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -80,6 +83,10 @@ jest.mock('../../src/components/ui/VoiceRecordButton', () => ({
   VoiceRecordButton: () => null,
 }));
 
+jest.mock('../../src/components/subscription/PremiumUpsellModal', () => ({
+  PremiumUpsellModal: () => null,
+}));
+
 jest.mock('react-native-svg', () => {
   const React = require('react');
   return {
@@ -124,6 +131,20 @@ jest.mock('../../src/services/userSettingsService', () => ({
 
 jest.mock('../../src/utils/network', () => ({
   isOnline: (...args: unknown[]) => mockIsOnline(...args),
+}));
+
+jest.mock('../../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    status: { hasPaidAccess: false },
+    products: [],
+    purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
+  }),
+}));
+
+jest.mock('../../src/services/entitledAiService', () => ({
+  EntitlementError: class EntitlementError extends Error {},
+  generateEntitledDreamReflection: (...args: unknown[]) => mockGenerateEntitledDreamReflection(...args),
+  generateEntitledFollowupReply: (...args: unknown[]) => mockGenerateEntitledFollowupReply(...args),
 }));
 
 jest.mock('../../src/constants/symbolArchetypeInfo', () => ({
@@ -300,8 +321,7 @@ describe('DreamDetail offline message flow', () => {
 
   it('shows reflection-focused loading copy while generating', async () => {
     mockIsOnline.mockResolvedValue(true);
-    const ai = require('../../src/services/ai');
-    ai.generateInitialInterpretation.mockReturnValue(new Promise(() => {}));
+    mockGenerateEntitledDreamReflection.mockReturnValue(new Promise(() => {}));
 
     const screen = render(<DreamDetailScreen />);
 

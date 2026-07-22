@@ -29,6 +29,8 @@ import { SyncService } from '../../src/services/syncService';
 
 jest.spyOn(LocalStorage, 'getUnsyncedDreams');
 jest.spyOn(LocalStorage, 'removeUnsyncedDream');
+jest.spyOn(LocalStorage, 'getUnsyncedInterpretations');
+jest.spyOn(LocalStorage, 'removeUnsyncedInterpretation');
 jest.spyOn(LocalStorage, 'getDreams');
 jest.spyOn(LocalStorage, 'saveDreams');
 jest.spyOn(LocalStorage, 'getInterpretations');
@@ -48,7 +50,16 @@ const interpretation: Interpretation = {
   dreamId: 'dream-1',
   messages: [{ id: 'm1', role: 'assistant', content: 'A reflection.', timestamp: 't' }],
   symbols: ['door'],
+  symbol_stances: [{ symbol: 'door', stance: 'guarded, blocking' }],
   archetypes: [],
+  landscapes: ['hallway'],
+  affects: ['tension'],
+  motifs: ['blocked threshold'],
+  relational_dynamics: ['distance at entry'],
+  thresholds: ['closed door'],
+  central_conflicts: ['entry vs protection'],
+  core_mode: 'Core Tension',
+  amplifications: ['door as charged boundary'],
   display_distillation: {
     essence_title: 'Guarded entry',
     essence_line: 'The dream gathers around a guarded threshold.',
@@ -92,6 +103,32 @@ describe('SyncService flow', () => {
 
     expect(remoteStorage.remoteSaveDream).toHaveBeenCalledWith(dream);
     expect(LocalStorage.removeUnsyncedDream).toHaveBeenCalledWith('dream-1');
+  });
+
+  it('syncUnsyncedInterpretations pushes full AI metadata and removes from queue on success', async () => {
+    (UserService.getCurrentUserId as jest.Mock).mockResolvedValue('u1');
+    (network.isOnline as jest.Mock).mockResolvedValue(true);
+    (LocalStorage.getUnsyncedInterpretations as jest.Mock).mockResolvedValue([interpretation]);
+    (remoteStorage.remoteSaveInterpretation as jest.Mock).mockResolvedValue(undefined);
+
+    await SyncService.syncUnsyncedInterpretations();
+
+    expect(remoteStorage.remoteSaveInterpretation).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'interpretation-1',
+      dreamId: 'dream-1',
+      symbols: ['door'],
+      symbol_stances: [{ symbol: 'door', stance: 'guarded, blocking' }],
+      landscapes: ['hallway'],
+      affects: ['tension'],
+      motifs: ['blocked threshold'],
+      relational_dynamics: ['distance at entry'],
+      thresholds: ['closed door'],
+      central_conflicts: ['entry vs protection'],
+      core_mode: 'Core Tension',
+      amplifications: ['door as charged boundary'],
+      display_distillation: expect.objectContaining({ essence_title: 'Guarded entry' }),
+    }));
+    expect(LocalStorage.removeUnsyncedInterpretation).toHaveBeenCalledWith('interpretation-1');
   });
 
   it('fetchAndMergeDreams returns local only when offline', async () => {
@@ -139,5 +176,95 @@ describe('SyncService flow', () => {
     expect(saved[0].symbols).toEqual(['remote door']);
     expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
     expect(out[0].display_distillation?.movement_line).toBe('Something approaches without crossing.');
+  });
+
+  it('fetchAndMergeInterpretations preserves local-only optional metadata fields when remote omits them', async () => {
+    (UserService.getCurrentUserId as jest.Mock).mockResolvedValue('u1');
+    (network.isOnline as jest.Mock).mockResolvedValue(true);
+    const remoteInterpretation: Interpretation = {
+      ...interpretation,
+      symbols: ['remote door'],
+      symbol_stances: undefined,
+      landscapes: undefined,
+      affects: undefined,
+      motifs: undefined,
+      relational_dynamics: undefined,
+      thresholds: undefined,
+      central_conflicts: undefined,
+      core_mode: undefined,
+      amplifications: undefined,
+      display_distillation: undefined,
+    };
+    (LocalStorage.getInterpretations as jest.Mock).mockResolvedValue([interpretation]);
+    (remoteStorage.remoteGetInterpretations as jest.Mock).mockResolvedValue([remoteInterpretation]);
+
+    const out = await SyncService.fetchAndMergeInterpretations();
+    const saved = (LocalStorage.saveInterpretations as jest.Mock).mock.calls[0][0] as Interpretation[];
+
+    expect(saved[0]).toMatchObject({
+      symbols: ['remote door'],
+      symbol_stances: [{ symbol: 'door', stance: 'guarded, blocking' }],
+      landscapes: ['hallway'],
+      affects: ['tension'],
+      motifs: ['blocked threshold'],
+      relational_dynamics: ['distance at entry'],
+      thresholds: ['closed door'],
+      central_conflicts: ['entry vs protection'],
+      core_mode: 'Core Tension',
+      amplifications: ['door as charged boundary'],
+    });
+    expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
+    expect(out[0].symbol_stances?.[0].stance).toBe('guarded, blocking');
+  });
+
+  it('fetchAndMergeInterpretations prefers remote optional metadata when present and keeps local-only interpretations', async () => {
+    (UserService.getCurrentUserId as jest.Mock).mockResolvedValue('u1');
+    (network.isOnline as jest.Mock).mockResolvedValue(true);
+    const localOnly: Interpretation = {
+      ...interpretation,
+      id: 'interpretation-local-only',
+      dreamId: 'dream-local-only',
+      symbols: ['local moon'],
+    };
+    const remoteInterpretation: Interpretation = {
+      ...interpretation,
+      symbols: ['remote door'],
+      symbol_stances: [{ symbol: 'remote door', stance: 'open, inviting' }],
+      landscapes: ['remote hall'],
+      affects: ['curiosity'],
+      motifs: ['opening threshold'],
+      relational_dynamics: ['permission to enter'],
+      thresholds: ['open door'],
+      central_conflicts: ['blocked door vs open hall'],
+      core_mode: 'Core Shift',
+      amplifications: ['threshold as transition'],
+      display_distillation: {
+        ...interpretation.display_distillation!,
+        essence_title: 'Remote opening',
+      },
+    };
+    (LocalStorage.getInterpretations as jest.Mock).mockResolvedValue([interpretation, localOnly]);
+    (remoteStorage.remoteGetInterpretations as jest.Mock).mockResolvedValue([remoteInterpretation]);
+
+    const out = await SyncService.fetchAndMergeInterpretations();
+    const saved = (LocalStorage.saveInterpretations as jest.Mock).mock.calls[0][0] as Interpretation[];
+    const mergedRemote = saved.find((item) => item.id === interpretation.id);
+    const preservedLocal = saved.find((item) => item.id === localOnly.id);
+
+    expect(mergedRemote).toMatchObject({
+      symbols: ['remote door'],
+      symbol_stances: [{ symbol: 'remote door', stance: 'open, inviting' }],
+      landscapes: ['remote hall'],
+      affects: ['curiosity'],
+      motifs: ['opening threshold'],
+      relational_dynamics: ['permission to enter'],
+      thresholds: ['open door'],
+      central_conflicts: ['blocked door vs open hall'],
+      core_mode: 'Core Shift',
+      amplifications: ['threshold as transition'],
+    });
+    expect(mergedRemote?.display_distillation?.essence_title).toBe('Remote opening');
+    expect(preservedLocal?.symbols).toEqual(['local moon']);
+    expect(out).toHaveLength(2);
   });
 });

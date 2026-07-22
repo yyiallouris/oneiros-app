@@ -1,0 +1,155 @@
+/**
+ * Flow coverage: documentation/flows-03-onboarding-account-security.md (plan selection before secure step).
+ */
+import React from 'react';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockPurchasePlan = jest.fn();
+let mockHasPaidAccess = false;
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
+
+jest.mock('../../src/components/ui', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    PaperBackground: ({ children }: any) => <View>{children}</View>,
+    DesignExportForeground: ({ children }: any) => <View>{children}</View>,
+  };
+});
+
+jest.mock('../../src/components/subscription/SubscriptionBillingSwitch', () => ({
+  SubscriptionBillingSwitch: ({ value, onChange }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View>
+        <Text>{`Interval:${value}`}</Text>
+        <TouchableOpacity onPress={() => onChange('yearly')}>
+          <Text>Switch yearly</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../src/components/subscription/SubscriptionPlanCarousel', () => ({
+  SubscriptionPlanCarousel: ({ children, initialIndex, indicatorPosition, onIndexChange, testID }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View testID={testID}>
+        <Text>{`InitialIndex:${initialIndex ?? 0}`}</Text>
+        <Text>{`IndicatorPosition:${indicatorPosition ?? 'bottom'}`}</Text>
+        <TouchableOpacity onPress={() => onIndexChange?.(0)}>
+          <Text>Show free card</Text>
+        </TouchableOpacity>
+        {children}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
+  SubscriptionPlanCard: ({ title, actionTitle, onPress }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View>
+        <Text>{title}</Text>
+        <TouchableOpacity onPress={onPress}>
+          <Text>{actionTitle}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    status: { hasPaidAccess: mockHasPaidAccess },
+    loading: false,
+    products: [
+      {
+        planCode: 'paid_monthly',
+        billingInterval: 'monthly',
+        productId: 'monthly',
+        displayPrice: '€4.99 / month',
+        totalPriceLabel: 'Billed monthly',
+        monthlyEquivalentLabel: null,
+        savingsLabel: null,
+        title: 'Premium Monthly',
+      },
+      {
+        planCode: 'paid_yearly',
+        billingInterval: 'yearly',
+        productId: 'yearly',
+        displayPrice: '€47.88 / year',
+        totalPriceLabel: '€47.88 billed yearly',
+        monthlyEquivalentLabel: '€3.99 / month',
+        savingsLabel: 'Save €12 / year',
+        title: 'Premium Yearly',
+      },
+    ],
+    purchasingPlanCode: null,
+    purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
+  }),
+}));
+
+import OnboardingSubscriptionScreen from '../../src/screens/onboarding/OnboardingSubscriptionScreen';
+
+describe('Onboarding subscription flow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasPaidAccess = false;
+  });
+
+  it('lets the user continue with Free into the secure step', async () => {
+    const screen = render(<OnboardingSubscriptionScreen />);
+
+    expect(screen.getByTestId('subscription-carousel')).toBeTruthy();
+    expect(screen.getByText('InitialIndex:1')).toBeTruthy();
+    expect(screen.getByText('IndicatorPosition:top')).toBeTruthy();
+    expect(screen.getByText('Interval:monthly')).toBeTruthy();
+    fireEvent.press(screen.getByText('Continue with Free'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('OnboardingSecure');
+  });
+
+  it('hides the pricing switch when the free card becomes active', async () => {
+    const screen = render(<OnboardingSubscriptionScreen />);
+
+    expect(screen.getByText('Interval:monthly')).toBeTruthy();
+    fireEvent.press(screen.getByText('Show free card'));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Interval:monthly')).toBeNull();
+    });
+  });
+
+  it('starts purchase directly from onboarding premium CTA', async () => {
+    const screen = render(<OnboardingSubscriptionScreen />);
+
+    fireEvent.press(screen.getByText('Go Premium'));
+
+    await waitFor(() => {
+      expect(mockPurchasePlan).toHaveBeenCalledWith('monthly', 'onboarding');
+    });
+  });
+
+  it('skips the screen when paid access is already active', async () => {
+    mockHasPaidAccess = true;
+    render(<OnboardingSubscriptionScreen />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('OnboardingSecure');
+    });
+  });
+});

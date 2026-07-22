@@ -1,4 +1,4 @@
-export type PlanCode = 'free' | 'paid_monthly';
+export type PlanCode = 'free' | 'paid_monthly' | 'paid_yearly';
 
 export type BillingProvider = 'apple' | 'google';
 

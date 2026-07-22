@@ -38,6 +38,15 @@ describe('subscription billing policy flow', () => {
         at: now,
       })
     ).toBe(false);
+
+    expect(
+      hasPaidAccess({
+        planCode: 'paid_yearly',
+        entitlementState: 'active',
+        currentPeriodEnd: '2027-07-01T00:00:00.000Z',
+        at: now,
+      })
+    ).toBe(true);
   });
 
   it('builds a rolling 7-day free reflection window', () => {

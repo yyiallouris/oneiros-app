@@ -25,9 +25,10 @@ Import from `src/components/ui/`:
 
 1. **Colors:** import from `../theme` — no hardcoded hex in components.
 2. **Buttons:** use `Button` + `buttons.ts` tokens; Save dream on Write keeps local inactive fade (see `WriteScreen`).
-3. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
-4. **Background:** `PaperBackground` + `BG_paper.png` — no new global gradients or waves on active screens.
-5. **Legacy:** `LegacyWaveBackground` / `LegacyMountainWaveBackground` are reference-only; not for new screens.
+3. **Responsive actions:** button labels should stay readable as whole words on narrow devices. Prefer single-line labels, and if side-by-side actions cannot fit cleanly, stack them vertically instead of letting words split awkwardly across lines.
+4. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
+5. **Background:** `PaperBackground` + `BG_paper.png` — no new global gradients or waves on active screens.
+6. **Legacy:** `LegacyWaveBackground` / `LegacyMountainWaveBackground` are reference-only; not for new screens.
 
 ## Adding something new
 

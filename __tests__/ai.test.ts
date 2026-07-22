@@ -4,6 +4,7 @@ import {
   generateInitialInterpretation,
   mergeConversationElementUpdates,
 } from '../src/services/ai';
+import type { Dream, Interpretation } from '../src/types/dream';
 
 jest.mock('../src/services/userSettingsService', () => ({
   ...jest.requireActual('../src/services/userSettingsService'),
@@ -31,6 +32,38 @@ function apiResponse(body: unknown) {
     json: async () => body,
     text: async () => (typeof body === 'string' ? body : JSON.stringify(body)),
   };
+}
+
+const dreamFixture = (overrides: Partial<Dream> = {}): Dream => ({
+  id: 'dream-1',
+  title: 'Test',
+  date: '2024-01-01',
+  content: 'A red door would not open.',
+  archived: false,
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
+  ...overrides,
+});
+
+async function loadAiWithProxyEndpoint() {
+  jest.resetModules();
+  delete process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  delete process.env.SUPABASE_ANON_KEY;
+  jest.doMock('expo-constants', () => ({
+    expoConfig: {
+      version: '1.0.0',
+      extra: {
+        openaiApiKey: 'test-key',
+        customGptEndpoint: 'https://project.supabase.co/functions/v1/openai-proxy',
+        gptModel: 'ignored-by-proxy',
+      },
+    },
+  }));
+  jest.doMock('../src/services/userSettingsService', () => ({
+    ...jest.requireActual('../src/services/userSettingsService'),
+    getMythicResonance: jest.fn().mockResolvedValue(false),
+  }));
+  return require('../src/services/ai') as typeof import('../src/services/ai');
 }
 
 describe('ai service', () => {
@@ -170,6 +203,38 @@ describe('ai service', () => {
     expect(extraction.display_distillation?.visible_anchors[4].type).toBe('archetypal_echo');
     expect(extraction.display_distillation?.dream_movement).toBe('approaching');
     expect(extraction.display_distillation?.main_tension).toBe('entry vs blockage');
+  });
+
+  it('returns empty extraction instead of leaking malformed JSON into flows', async () => {
+    mockFetch.mockImplementation(async () =>
+      apiResponse({
+        choices: [
+          {
+            message: {
+              content: 'not valid json',
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      })
+    );
+
+    const extraction = await extractDreamSymbolsAndArchetypes(dreamFixture(), 'A reading.');
+
+    expect(extraction).toEqual({
+      display_distillation: undefined,
+      symbols: [],
+      archetypes: [],
+      landscapes: [],
+      affects: [],
+      motifs: [],
+      relational_dynamics: [],
+      thresholds: [],
+      central_conflicts: [],
+      core_mode: null,
+      amplifications: [],
+      symbol_stances: [],
+    });
   });
 
   it('includes the same universal output-language instruction for non-Greek dreams', async () => {
@@ -434,6 +499,200 @@ describe('ai service', () => {
     expect(retrySystemText).toMatch(/Do not create a Mythic Resonance section or lecture on mythology/);
     expect(retrySystemText).not.toMatch(/Use the Advanced mode structure/);
     expect(retrySystemText).not.toMatch(/Let the remaining sections orbit the charged image/);
+  });
+
+  it('attaches proxy task keys and dream headers for reflection depths and compact retry', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Quick\n\n<!--END_DREAM_READING-->' }, finish_reason: 'stop' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Standard\n\n<!--END_DREAM_READING-->' }, finish_reason: 'stop' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Partial advanced' }, finish_reason: 'length' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Retry\n\n<!--END_DREAM_READING-->' }, finish_reason: 'stop' }],
+        })
+      );
+    const ai = await loadAiWithProxyEndpoint();
+
+    await ai.generateInitialInterpretation(dreamFixture(), { depth: 'quick' });
+    await ai.generateInitialInterpretation(dreamFixture(), { depth: 'standard' });
+    await ai.generateInitialInterpretation(dreamFixture(), { depth: 'advanced' });
+
+    const bodies = mockFetch.mock.calls.map((call) => JSON.parse(call[1]?.body as string));
+    expect(bodies.map((body) => body.task)).toEqual([
+      'interpretation_quick',
+      'interpretation_standard',
+      'interpretation_advanced',
+      'interpretation_retry_compact',
+    ]);
+    expect(mockFetch.mock.calls.map((call) => call[1]?.headers?.['X-Dream-Id'])).toEqual([
+      'dream-1',
+      'dream-1',
+      'dream-1',
+      'dream-1',
+    ]);
+  });
+
+  it('attaches proxy task keys for extraction, chat, conversation updates, pattern essays, and semantic grouping', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  display_distillation: {
+                    essence_title: 'Guarded entry',
+                    essence_line: 'The dream gathers around a guarded threshold.',
+                    dominant_lens: 'threshold',
+                    visible_anchors: [
+                      { label: 'red door', type: 'threshold', salience: 5, ui_meaning: 'a guarded point of entry' },
+                    ],
+                    main_tension: 'entry vs protection',
+                    dream_movement: 'approaching',
+                    movement_line: 'Something approaches without crossing.',
+                  },
+                  symbols: ['red door'],
+                  symbol_stances: [{ symbol: 'red door', stance: 'blocking, charged' }],
+                  archetypes: [],
+                  landscapes: ['hallway'],
+                  affects: ['tension'],
+                  motifs: ['blocked threshold'],
+                  relational_dynamics: ['distance at entry'],
+                  thresholds: ['closed door'],
+                  central_conflicts: ['wanting entry vs blocked door'],
+                  core_mode: 'Core Tension',
+                  amplifications: [],
+                }),
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(apiResponse({ choices: [{ message: { content: 'Chat reply' }, finish_reason: 'stop' }] }))
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  archetypes: ['Shadow'],
+                  affects: ['tension'],
+                  motifs: ['blocked threshold'],
+                  relational_dynamics: ['distance at entry'],
+                  thresholds: ['closed door'],
+                  central_conflicts: ['wanting entry vs blocked door'],
+                  core_mode: 'Core Tension',
+                  amplifications: [],
+                }),
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Recent\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  symbol_groups: [{ canonical: 'forest', members: ['forest', 'woods'] }],
+                  landscape_groups: [{ canonical: 'hallway', members: ['hallway', 'corridor'] }],
+                }),
+              },
+              finish_reason: 'stop',
+            },
+          ],
+        })
+      );
+    const ai = await loadAiWithProxyEndpoint();
+    const dream = dreamFixture();
+    const interpretation: Interpretation = {
+      id: 'interpretation-1',
+      dreamId: dream.id,
+      messages: [{ id: 'm1', role: 'assistant', content: 'A reading.', timestamp: 't' }],
+      symbols: ['red door'],
+      archetypes: [],
+      createdAt: 't',
+      updatedAt: 't',
+    };
+
+    await ai.extractDreamSymbolsAndArchetypes(dream, 'A reading.');
+    await ai.sendChatMessage(dream, [{ id: 'm1', role: 'assistant', content: 'A reading.', timestamp: 't' }], 'What next?');
+    await ai.updateInterpretationElementsFromConversation(dream, interpretation, [
+      { id: 'm1', role: 'assistant', content: 'A reading.', timestamp: 't' },
+      { id: 'm2', role: 'user', content: 'The door felt guarded.', timestamp: 't' },
+    ]);
+    await ai.generatePatternInsights(
+      [{ dreamId: dream.id, date: dream.date, extracted: { symbols: ['red door'], symbol_stances: [], archetypes: [], landscapes: [], affects: [], motifs: [], relational_dynamics: [], thresholds: [], central_conflicts: [], core_mode: null, amplifications: [] }, interpretation: 'A reading.' }],
+      'monthly',
+      'en'
+    );
+    await ai.generateRecentDreamFieldReflection(
+      [{ dreamId: dream.id, date: dream.date, extracted: { symbols: ['red door'], symbol_stances: [], archetypes: [], landscapes: [], affects: [], motifs: [], relational_dynamics: [], thresholds: [], central_conflicts: [], core_mode: null, amplifications: [] }, interpretation: 'A reading.' }],
+      'en'
+    );
+    await ai.groupSimilarTerms(['forest', 'woods'], ['hallway', 'corridor']);
+
+    const bodies = mockFetch.mock.calls.map((call) => JSON.parse(call[1]?.body as string));
+    expect(bodies.map((body) => body.task)).toEqual([
+      'dream_extraction',
+      'chat_followup',
+      'conversation_element_update',
+      'pattern_insights',
+      'pattern_insights',
+      'semantic_grouping',
+    ]);
+    expect(bodies[0].response_format).toEqual({ type: 'json_object' });
+    expect(bodies[2].response_format).toEqual({ type: 'json_object' });
+    expect(bodies[5].response_format).toEqual({ type: 'json_object' });
+  });
+
+  it('attaches compact retry task for truncated pattern essays', async () => {
+    mockFetch
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Partial essay' }, finish_reason: 'length' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: 'Compact essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+        })
+      );
+    const ai = await loadAiWithProxyEndpoint();
+
+    await ai.generatePatternInsights(
+      [{ dreamId: 'dream-1', date: '2024-01-01', extracted: { symbols: ['door'], symbol_stances: [], archetypes: [], landscapes: [], affects: [], motifs: [], relational_dynamics: [], thresholds: [], central_conflicts: [], core_mode: null, amplifications: [] }, interpretation: 'A reading.' }],
+      'monthly',
+      'en'
+    );
+
+    const bodies = mockFetch.mock.calls.map((call) => JSON.parse(call[1]?.body as string));
+    expect(bodies.map((body) => body.task)).toEqual(['pattern_insights', 'pattern_insights_retry_compact']);
   });
 
   it('throws when API key missing', async () => {

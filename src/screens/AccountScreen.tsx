@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Switch } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
@@ -21,6 +21,8 @@ import {
   getBiometricLabel,
 } from '../services/biometricAuthService';
 import { deleteAccountAndData } from '../services/accountDeletion';
+import { useSubscription } from '../providers/SubscriptionProvider';
+import { getReadOnlyLapseMessage } from '../services/subscriptionService';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -32,6 +34,11 @@ const DEPTH_OPTIONS: { value: InterpretationDepth; label: string; hint: string }
 
 const AccountScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
+  const {
+    status: subscriptionStatus,
+    loading: subscriptionLoading,
+    refreshing: subscriptionRefreshing,
+  } = useSubscription();
   const [displayName, setDisplayName] = useState('');
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,6 +50,7 @@ const AccountScreen: React.FC = () => {
   const [biometricLabel, setBiometricLabel] = useState('Fingerprint');
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
+  const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
   useFocusEffect(
     useCallback(() => {
@@ -149,6 +157,27 @@ const AccountScreen: React.FC = () => {
     );
   }, []);
 
+  const currentPeriodLabel =
+    subscriptionStatus?.currentPeriodEnd
+      ? new Date(subscriptionStatus.currentPeriodEnd).toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : null;
+
+  const subscriptionHeading = hasPaidAccess
+    ? 'Premium active'
+    : subscriptionStatus?.entitlementState && subscriptionStatus.entitlementState !== 'inactive'
+      ? 'Premium inactive'
+      : 'Free plan';
+
+  const subscriptionBody = hasPaidAccess
+    ? `Active now${currentPeriodLabel ? ` • renews ${currentPeriodLabel}` : ''}`
+    : subscriptionStatus?.entitlementState && subscriptionStatus.entitlementState !== 'inactive'
+      ? getReadOnlyLapseMessage()
+      : 'Unlimited entries, 1 reflection every 7 days, and 5 follow-up replies on that free reflection.';
+
   return (
     <View style={styles.container}>
       <PaperBackground />
@@ -160,6 +189,27 @@ const AccountScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
         <Text style={styles.title}>Account</Text>
+
+        <Card style={styles.card}>
+          <Text style={styles.sectionLabel}>Subscription</Text>
+          <TouchableOpacity
+            style={styles.subscriptionEntryRow}
+            onPress={() => navigation.navigate('Subscription')}
+            activeOpacity={0.78}
+          >
+            <View style={styles.subscriptionHeaderText}>
+              <Text style={styles.subscriptionPlanTitle}>{subscriptionHeading}</Text>
+              <Text style={styles.subscriptionPlanBody}>{subscriptionBody}</Text>
+            </View>
+            <View style={styles.subscriptionMeta}>
+              {(subscriptionLoading || subscriptionRefreshing) ? (
+                <ActivityIndicator size="small" color={colors.buttonPrimary} />
+              ) : (
+                <Text style={styles.dataRowChevron}>›</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        </Card>
 
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Profile</Text>
@@ -324,6 +374,31 @@ const styles = StyleSheet.create({
   },
   card: {
     marginBottom: spacing.xl,
+  },
+  subscriptionEntryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  subscriptionMeta: {
+    minWidth: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subscriptionHeaderText: {
+    flex: 1,
+  },
+  subscriptionPlanTitle: {
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.medium,
+    color: colors.textPrimary,
+  },
+  subscriptionPlanBody: {
+    marginTop: spacing.xs,
+    fontSize: typography.sizes.sm,
+    lineHeight: typography.sizes.sm * 1.45,
+    color: text.secondary,
   },
   sectionLabel: {
     fontSize: typography.sizes.md,

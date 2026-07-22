@@ -8,8 +8,15 @@
 ### Main structure and navigation
 
 - **Legacy hidden:** the old Dream Field Overview summary block is kept behind a legacy gate in `InsightsScreen` and is no longer part of the active Insights layout.
-- **Recent Dream Field:** living reflection on the latest interpreted dreams; default Last 3, selectable Last 2 / Last 3 / Last 5; uses the global Insights language selected in Account; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections.
+- **Recent Dream Field:** living reflection on the latest interpreted dreams; paid users default to Last 3 and can switch between Last 2 / Last 3 / Last 5; uses the global Insights language selected in Account; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections.
+  - Free users see this as a deactivated but tappable Premium surface.
+  - Free users do not see a preselected recent-scope chip; the scope options stay faded/unselected until Premium unlocks them, while the scope label keeps the same copy as paid but in a muted style.
+  - In the free locked state, the CTA is inline clickable text (`Unlock Premium`) rather than a filled button, matching the nearby Period Reflection pattern.
+  - The top-right uppercase Premium tag is not shown in the free locked state.
+  - Locked taps open a premium-only upsell card rather than a full free-vs-premium compare view.
+  - The inline “recent field is forming” helper box is not shown anymore when the current scope is still too light.
 - **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports.
+  - Free users see a locked Premium card with tappable upsell behavior rather than a dead end.
 - **Returning Patterns:** unified strongest patterns across categories.
   - Images → **`JournalFilter`** with `filterSymbol`.
   - Motifs → **`JournalFilter`** with `filterMotif`.
@@ -38,11 +45,11 @@ Per `sectionId`:
 - **Repeating Patterns / Dream Places:** similar aggregations; journal links with `filterMotif` / `filterLandscape`. Single/other items are collapsed by default.
 - **Thresholds / Inner Tensions:** recurring transition points and tensions; single crossings/tensions are collapsed by default.
 - **Archetypal Echoes:** lower-hierarchy archetypal recurrence display.
-- **Period Reflection:** AI **monthly / quarterly** reflective reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; current month uses month-to-date entries while report keys stay weekly via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered).
-- **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateRecentDreamFieldReflection`; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
+- **Period Reflection:** AI calendar-period reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; current month uses month-to-date entries while report keys stay weekly via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered); generation now routes through `generateEntitledPeriodReflection`.
+- **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateEntitledRecentDreamField` for the standard paid path; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
 - **Collective:** `getCollectiveInsights()` — currently **placeholder** empty aggregates (`insightsService` TODO).
 
-## Backend entitlement model (ready, not yet the active screen path)
+## Backend entitlement model (active screen path)
 
 - Recent Dream Field now has a backend quota contract: paid-only, 10 generations per billing cycle, cache reuse for exact same sequence + language.
 - Period Reflection now has a backend cadence contract:
@@ -51,6 +58,8 @@ Per `sectionId`:
   - current month = month-to-date, max 1 generation per calendar week, plus at least 1 new reflected dream since the last current-month generation
   - finished months = immutable archived artifact per month scope
 - Backend artifacts live in `ai_generation_artifacts` and period reflections are mirrored into `pattern_reports` for compatibility.
+- Lapsed paid users can still read stored premium artifacts, but generation entrypoints become read-only and route to renewal messaging.
+- Locked premium taps across Insights now use the premium-only paywall mode for Recent Dream Field, Period Reflection, regenerate, and paid follow-up entrypoints.
 
 ### Online checks
 
@@ -64,8 +73,10 @@ Per `sectionId`:
 
 - Aggregations use **local dreams** and interpretations. Full pattern metadata remains available for Insights: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances.
 - `display_distillation` is for immediate DreamDetail presentation only; monthly/quarterly reports and recent reflections continue to synthesize from full metadata and interpretation excerpts.
-- The new backend gateway assumes remote dream + interpretation data is available; until FE cutover, current Insights generation still originates from local-first services.
+- The new backend gateway assumes remote dream + interpretation data is available and is now the default path for gated premium actions.
 - **Regression:** insights empty until user has reflections with extracted fields; changing period changes all section data.
+- **Regression:** adding a newly interpreted dream to an existing period updates interpreted counts, strongest patterns, recurring images, motifs, thresholds, and the field summary.
+- **Regression:** Recent Dream Field and Period Reflection gateway responses persist to their local caches/reports using the returned scope key, including cached gateway artifacts.
 
 ## Calendar + insights
 

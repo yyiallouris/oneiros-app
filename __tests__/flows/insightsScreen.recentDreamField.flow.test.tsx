@@ -11,6 +11,9 @@ const mockGetInsightsOverview = jest.fn();
 const mockGetRecentPatternInsightEntries = jest.fn();
 const mockGetCachedRecentDreamFieldReflection = jest.fn();
 const mockGenerateRecentDreamFieldReflection = jest.fn();
+const mockGenerateEntitledRecentDreamField = jest.fn();
+const mockPurchasePlan = jest.fn();
+let mockHasPaidAccess = true;
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -60,6 +63,22 @@ jest.mock('../../src/components/icons/InsightsIcons', () => ({
   ThresholdsIcon: () => null,
 }));
 
+jest.mock('../../src/components/subscription/PremiumUpsellModal', () => ({
+  PremiumUpsellModal: ({
+    visible,
+    source,
+    displayMode,
+  }: {
+    visible: boolean;
+    source: string;
+    displayMode?: string;
+  }) => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return visible ? <Text>{`Paywall:${source}:${displayMode ?? 'compare'}`}</Text> : null;
+  },
+}));
+
 jest.mock('../../src/services/insightsService', () => ({
   getInsightsOverview: (...args: unknown[]) => mockGetInsightsOverview(...args),
   getPeriodThisMonth: jest.fn(() => ({ startDate: '2026-05-01', endDate: '2026-05-31' })),
@@ -74,6 +93,21 @@ jest.mock('../../src/services/patternInsightsService', () => ({
   generateRecentDreamFieldReflection: (...args: unknown[]) => mockGenerateRecentDreamFieldReflection(...args),
   getCachedRecentDreamFieldReflection: (...args: unknown[]) => mockGetCachedRecentDreamFieldReflection(...args),
   getRecentPatternInsightEntries: (...args: unknown[]) => mockGetRecentPatternInsightEntries(...args),
+}));
+
+jest.mock('../../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    status: { hasPaidAccess: mockHasPaidAccess },
+    products: [],
+    purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
+  }),
+}));
+
+jest.mock('../../src/services/entitledAiService', () => ({
+  EntitlementError: class EntitlementError extends Error {
+    premiumRequired = true;
+  },
+  generateEntitledRecentDreamField: (...args: unknown[]) => mockGenerateEntitledRecentDreamField(...args),
 }));
 
 jest.mock('../../src/utils/network', () => ({
@@ -99,6 +133,7 @@ const overview = {
 describe('InsightsScreen Recent Dream Field flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasPaidAccess = true;
     jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     mockGetInsightsOverview.mockResolvedValue(overview);
     mockGetRecentPatternInsightEntries.mockResolvedValue([
@@ -110,6 +145,9 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     mockGenerateRecentDreamFieldReflection.mockResolvedValue(
       '## Recent Dream Field\nFresh body.\n\n## Reflective Questions\nWhat returns?'
     );
+    mockGenerateEntitledRecentDreamField.mockResolvedValue(
+      '## Recent Dream Field\nFresh body.\n\n## Reflective Questions\nWhat returns?'
+    );
     mockIsOnline.mockResolvedValue(true);
   });
 
@@ -117,7 +155,7 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     jest.restoreAllMocks();
   });
 
-  it('shows Recent Dream Field with Last 3 as the default scope', async () => {
+  it('shows Recent Dream Field with Last 3 as the default scope for paid users', async () => {
     const screen = render(<InsightsScreen />);
 
     await waitFor(() => expect(screen.getByText('Reflect on recent dreams')).toBeTruthy());
@@ -128,6 +166,21 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     expect(screen.queryByText('Images that keep returning')).toBeNull();
     expect(screen.queryByText('English')).toBeNull();
     expect(screen.getByText('Latest 3 reflected dreams')).toBeTruthy();
+    expect(screen.queryByText('A recent field is forming')).toBeNull();
+  });
+
+  it('keeps recent scope chips unselected for free users', async () => {
+    mockHasPaidAccess = false;
+    const screen = render(<InsightsScreen />);
+
+    await waitFor(() => expect(screen.getAllByText('Unlock Premium').length).toBeGreaterThan(0));
+    expect(screen.getByText('Latest 3 reflected dreams')).toBeTruthy();
+    expect(screen.queryByText('Premium')).toBeNull();
+
+    fireEvent.press(screen.getByText('Last 5'));
+
+    expect(screen.getByText('Paywall:insights:premium_only')).toBeTruthy();
+    expect(screen.queryByText('Latest 5 reflected dreams')).toBeNull();
   });
 
   it('switches recent scope between Last 2 and Last 5', async () => {
@@ -163,7 +216,17 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     fireEvent.press(screen.getByText('Reflect on recent dreams'));
 
     await waitFor(() => expect(screen.getByText('Fresh body.')).toBeTruthy());
-    expect(mockGenerateRecentDreamFieldReflection).toHaveBeenCalledWith(3, 'en', { force: false });
+    expect(mockGenerateEntitledRecentDreamField).toHaveBeenCalledWith(3, 'en');
     expect(screen.queryByText('Past reflections')).toBeNull();
+  });
+
+  it('opens the premium paywall when a free user taps the locked recent field action', async () => {
+    mockHasPaidAccess = false;
+    const screen = render(<InsightsScreen />);
+
+    await waitFor(() => expect(screen.getAllByText('Unlock Premium').length).toBeGreaterThan(0));
+    fireEvent.press(screen.getAllByText('Unlock Premium')[0]);
+
+    expect(screen.getByText('Paywall:insights:premium_only')).toBeTruthy();
   });
 });

@@ -8,6 +8,7 @@ const mockSetOptions = jest.fn();
 const mockGetDreamById = jest.fn();
 const mockGetInterpretationByDreamId = jest.fn();
 const mockIsOnline = jest.fn();
+const mockPurchasePlan = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -52,6 +53,10 @@ jest.mock('../../src/components/ui/VoiceRecordButton', () => ({
   VoiceRecordButton: () => null,
 }));
 
+jest.mock('../../src/components/subscription/PremiumUpsellModal', () => ({
+  PremiumUpsellModal: () => null,
+}));
+
 jest.mock('react-native-svg', () => {
   const React = require('react');
   return {
@@ -86,6 +91,20 @@ jest.mock('../../src/services/userSettingsService', () => ({
 
 jest.mock('../../src/utils/network', () => ({
   isOnline: (...args: unknown[]) => mockIsOnline(...args),
+}));
+
+jest.mock('../../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    status: { hasPaidAccess: false },
+    products: [],
+    purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
+  }),
+}));
+
+jest.mock('../../src/services/entitledAiService', () => ({
+  EntitlementError: class EntitlementError extends Error {},
+  generateEntitledDreamReflection: jest.fn(),
+  generateEntitledFollowupReply: jest.fn(),
 }));
 
 import InterpretationChatScreen from '../../src/screens/InterpretationChatScreen';

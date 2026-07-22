@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { LoadingScreen } from './src/components/ui';
+import { SubscriptionProvider } from './src/providers/SubscriptionProvider';
 import {
   DESIGN_EXPORT_DEVICE_HEIGHT,
   DESIGN_EXPORT_DEVICE_WIDTH,
@@ -113,7 +114,9 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <RootNavigator />
+        <SubscriptionProvider>
+          <RootNavigator />
+        </SubscriptionProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

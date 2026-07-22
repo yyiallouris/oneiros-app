@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
+import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ArchetypalEnergiesIcon,
   DreamPlacesIcon,
@@ -80,6 +81,10 @@ import {
   type InfoModalKey,
 } from '../constants/symbolArchetypeInfo';
 import { isOnline } from '../utils/network';
+import { useSubscription } from '../providers/SubscriptionProvider';
+import { EntitlementError, generateEntitledPeriodReflection } from '../services/entitledAiService';
+import { getFallbackPlan, getTargetPlanForInterval } from '../services/subscriptionService';
+import type { BillingInterval } from '../types/subscription';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
@@ -190,6 +195,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const { embedded, overrideSectionId, overridePeriod, overridePeriodLabel } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
+  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
   const sectionId = (embedded && overrideSectionId != null) ? overrideSectionId : (route.params?.sectionId ?? 'recurring-symbols');
   const routePeriod: InsightsPeriod | undefined = (embedded && overridePeriod != null)
     ? overridePeriod
@@ -255,8 +261,17 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [patternEmptyForMonthKey, setPatternEmptyForMonthKey] = useState<string | null>(null);
   const [patternLanguage, setPatternLanguage] = useState('en');
   const [archetypeModalKey, setArchetypeModalKey] = useState<InfoModalKey | null>(null);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+  const [upsellVisible, setUpsellVisible] = useState(false);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
+  const premiumPlan = useMemo(
+    () =>
+      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
+      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+    [billingInterval, products]
+  );
+  const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
   useEffect(() => {
     if (!embedded) {
@@ -1035,10 +1050,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               <TouchableOpacity
                 style={[
                   styles.patternGenerateRow,
-                  !!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]
+                  (!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)] || !hasPaidAccess)
                     && styles.patternGenerateRowDisabled,
                 ]}
                 onPress={async () => {
+                  if (!hasPaidAccess) {
+                    setUpsellVisible(true);
+                    return;
+                  }
                   const online = await isOnline();
                   if (!online) {
                     Alert.alert(
@@ -1086,10 +1105,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                   try {
                     const startDate = entries[0].date;
                     const endDate = entries[entries.length - 1].date;
-                    const result = await generateMonthlyInsights('monthly', periodFilter, patternLanguage);
+                    const result = await generateEntitledPeriodReflection(patternSelectedMonthKey, patternLanguage);
                     const userId = await UserService.getCurrentUserId();
                     if (userId) await remoteSavePatternReport(effectiveReportKey, result);
-                    await LocalStorage.savePatternReport(effectiveReportKey, result);
                     const reports = userId
                       ? (await remoteGetPatternReports() ?? await LocalStorage.getPatternReports())
                       : await LocalStorage.getPatternReports();
@@ -1102,6 +1120,10 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     });
                     setPatternViewingMonthKey(effectiveReportKey);
                   } catch (e: any) {
+                    if (e instanceof EntitlementError && e.premiumRequired) {
+                      setUpsellVisible(true);
+                      return;
+                    }
                     const msg = e?.message || 'Something went wrong. Please try again.';
                     Alert.alert('Error', msg);
                   } finally {
@@ -1111,7 +1133,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]}
                 activeOpacity={0.8}
               >
-                <Text style={styles.patternGenerateLabel}>Generate reflection</Text>
+                <Text style={styles.patternGenerateLabel}>{hasPaidAccess ? 'Generate reflection' : 'Unlock Premium'}</Text>
               </TouchableOpacity>
               )}
             </View>
@@ -1245,6 +1267,23 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
             contentKey={archetypeModalKey}
           />
         )}
+        <PremiumUpsellModal
+          visible={upsellVisible}
+          source="period_reflection"
+          billingInterval={billingInterval}
+          premiumPlan={premiumPlan}
+          displayMode="premium_only"
+          upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+          upgradeDisabled={purchasingPlanCode !== null}
+          onClose={() => setUpsellVisible(false)}
+          onIntervalChange={setBillingInterval}
+          onUpgrade={async () => {
+            const started = await purchasePlan(billingInterval, 'period_reflection');
+            if (started) {
+              setUpsellVisible(false);
+            }
+          }}
+        />
       </DesignExportForeground>
     </View>
   );

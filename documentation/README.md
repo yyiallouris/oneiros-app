@@ -11,14 +11,14 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 | [flows-00-complete-app-journey.md](./flows-00-complete-app-journey.md) | End-to-end journey from launch/login through consent, onboarding, dreams, AI, Insights, support, and logout |
 | [flows-01-app-entry-session.md](./flows-01-app-entry-session.md) | Cold start, splash/loading, session lifecycle, offline token behavior |
 | [flows-02-authentication.md](./flows-02-authentication.md) | Sign up, login, email verification, Apple/Google/Discord sign-in, forgot password, reset link → set password, login support |
-| [flows-03-onboarding-account-security.md](./flows-03-onboarding-account-security.md) | Post-login onboarding, Account settings, app biometric lock |
+| [flows-03-onboarding-account-security.md](./flows-03-onboarding-account-security.md) | Post-login onboarding, subscription choice, Account settings, app biometric lock |
 | [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md) | Write, drafts, voice transcription, save, Journal, Dream detail/editor, Calendar |
 | [flows-05-sync-offline.md](./flows-05-sync-offline.md) | Offline-first saves, reconnect sync, logout cleanup, dev offline toggle |
-| [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md) | Initial reflection, follow-up chat, limits, `InterpretationChat` route |
-| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Recent Dream Field, Pattern Explorer, pattern reports, filters → journal |
+| [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md) | Entitlement-gated reflection, follow-up chat, limits, `InterpretationChat` route |
+| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Recent Dream Field, premium paywalls, pattern reports, filters → journal |
 | [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md) | Contact, Privacy, support while locked out |
 | [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) | Error paths, empty states, ordering notes for test suites |
-| [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Backend subscription model, entitlement source of truth, quota rules, and AI gateway contract |
+| [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Subscription UX, yearly/monthly plans, entitlement source of truth, quota rules, and AI gateway contract |
 | [architecture-app-map.md](./architecture-app-map.md) | Practical subsystem map for navigation, screens, services, storage, Supabase, AI, theme, and impact analysis |
 | [architecture-features.md](./architecture-features.md) | Feature-by-feature map of entry points, dependencies, docs/tests, platform, and deploy considerations |
 | [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction, `display_distillation`, metadata, proxy routing, sync, and tests |
@@ -28,10 +28,10 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 - **No session:** stack shows `Auth` (+ `LoginSupport`).
 - **Session + pending password reset:** `SetPassword`.
 - **Session + biometric lock enabled + not unlocked this foreground:** `BiometricLock` (+ `LoginSupport`).
-- **Session + onboarding incomplete:** `Onboarding` (name → depth → secure).
+- **Session + onboarding incomplete:** `Onboarding` (name → depth → subscription → secure).
 - **Otherwise:** `MainTabs` (Write | Journal | Insights).
 
-**Stack screens** (reachable when authenticated, in addition to the above): `DreamEditor`, `InterpretationChat`, `DreamDetail`, `Account`, `Contact`, `Privacy`, `Calendar`, `InsightsSection`, `PatternExplorer`, `InsightsJourney`, `JournalFilter`.
+**Stack screens** (reachable when authenticated, in addition to the above): `DreamEditor`, `InterpretationChat`, `DreamDetail`, `Account`, `Subscription`, `Contact`, `Privacy`, `Calendar`, `InsightsSection`, `PatternExplorer`, `InsightsJourney`, `JournalFilter`.
 
 ## Automated tests
 
