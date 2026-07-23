@@ -34,6 +34,7 @@ import { Session } from '@supabase/supabase-js';
 import { StorageService } from '../services/storageService';
 import { SyncService } from '../services/syncService';
 import { LocalStorage } from '../services/localStorage';
+import { voiceTranscriptionQueueService } from '../services/voiceTranscriptionQueueService';
 import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
 import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
@@ -488,6 +489,7 @@ export const RootNavigator: React.FC = () => {
                 // Continue with clearing anyway
               }
             }
+            await voiceTranscriptionQueueService.discardAll();
             await StorageService.clearAll();
             await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
             // Do not clear biometric preference on logout: it is stored per-user in Supabase.
@@ -496,6 +498,7 @@ export const RootNavigator: React.FC = () => {
             console.error('[RootNavigator] Error during logout cleanup:', error);
             // Try to clear anyway
             try {
+              await voiceTranscriptionQueueService.discardAll();
               await StorageService.clearAll();
               await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
             } catch (clearError) {
@@ -539,8 +542,15 @@ export const RootNavigator: React.FC = () => {
 
       // If session changed (user might have changed), re-initialize
       if (previousSession && newSession && previousSession.user.id !== newSession.user.id) {
-        console.log('[RootNavigator] User changed, re-initializing storage');
-        StorageService.initialize().catch((err) => console.error('[RootNavigator] Re-init failed:', err));
+        console.log('[RootNavigator] User changed, discarding voice queue and re-initializing storage');
+        (async () => {
+          try {
+            await voiceTranscriptionQueueService.discardAll();
+            await StorageService.initialize();
+          } catch (err) {
+            console.error('[RootNavigator] Re-init failed:', err);
+          }
+        })();
       }
     });
 
@@ -569,6 +579,7 @@ export const RootNavigator: React.FC = () => {
       wasOfflineRef.current = !isOnlineNow;
       
       if (isOnlineNow && wasOffline) {
+        void voiceTranscriptionQueueService.drain();
         // Network just came back online - sync unsynced data and merge remote
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('🌐 USER BACK ONLINE - Syncing and merging data...');
@@ -656,6 +667,7 @@ export const RootNavigator: React.FC = () => {
         if (nextState === 'active' && session) {
           const enabled = await isBiometricEnabled();
           setBiometricLockEnabled(enabled);
+          void voiceTranscriptionQueueService.drain();
         }
       }
     });
@@ -663,6 +675,10 @@ export const RootNavigator: React.FC = () => {
       if (backgroundTimeout) clearTimeout(backgroundTimeout);
       sub.remove();
     };
+  }, [session]);
+
+  useEffect(() => {
+    if (session) void voiceTranscriptionQueueService.drain();
   }, [session]);
 
   const showBiometricLock = !!session && biometricLockEnabled && !biometricUnlocked;

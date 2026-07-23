@@ -4,7 +4,14 @@
 
 1. On focus: load **today’s non-archived dream** if any (`archived === false`; legacy treats missing flag as archived), else **draft** for today, else empty form.
 2. **Auto-save draft:** after ~2s idle when `content` non-empty → `saveDraft` (today’s date).
-3. **Voice:** `VoiceRecordButton` records audio → `transcribeAudio` (network/API) appends transcript to content. Failure → alert (user can still type).
+3. **Voice (offline-first):** `VoiceRecordButton` requests microphone access and records a single app-wide clip for up to five minutes, regardless of connectivity. On stop it safely stores the local clip and queues transcription; a confirmed transcript appends on a new line to dream content.
+   - While transcribing, the mic shows progress and cannot start another recording.
+   - A recoverable network, timeout, upstream, or rate-limit failure preserves the local clip and offers **Retry** (same audio) or **Discard**; audio is deleted only after success, discard, or stale-file cleanup.
+   - Friendly status copy explains recording, safe local save, waiting for connection, and delivery. Permission denial offers **Open Settings**; typing remains available throughout.
+   - The Write surface uses a stable target key (`active`) so pending notes remain visible across midnight and re-entry.
+   - Transcript delivery goes only through `claimCompleted` so the same clip cannot append twice after remount.
+   - Stuck `transcribing` clips reclaim only after the full client upload budget (~7+ minutes) and never while this process still owns the upload; Retry/Discard appear for queued / retrying / needs-attention only.
+   - Dream detail and the standalone interpretation chat use the same control and contract, appending a successful transcript to their chat input with a space.
 4. **Save dream / Update dream:** requires non-empty trimmed content.
    - Builds or updates `Dream` with `archived: true` (so it leaves the “today’s active” slot on Write).
    - `saveDream` via `StorageService` (local + sync queue).

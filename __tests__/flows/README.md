@@ -24,6 +24,8 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `openaiProxySecurity.flow.test.ts` | architecture-interpretation / openai-proxy README (authenticated AI proxy boundary) |
 | `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
+| `voiceTranscription.flow.test.tsx` | flows-04 / flows-05 / flows-06 / flows-09 (record → transcribe → append, successful local-audio cleanup, retryable clip contract) |
+| `whisperTranscriptionReliability.flow.test.ts` | flows-04 / flows-09 / whisper README (auth-first upload validation, durable reservation, stale-lock recovery, safe completion/release) |
 | `storageService.flow.test.ts` | flows-05 (offline-first storage orchestration) |
 | `subscriptionBilling.policy.flow.test.ts` | flows-10 (quota math, monthly cadence, cache/read-only rules) |
 | `subscriptionBilling.runtime.flow.test.ts` | flows-10 (purchase persistence, webhook dedupe, reserve/commit/release orchestration) |

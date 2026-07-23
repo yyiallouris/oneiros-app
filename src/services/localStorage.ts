@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Dream, Interpretation, DreamDraft } from '../types/dream';
+import { Dream, Interpretation, DreamDraft, PendingVoiceTranscription } from '../types/dream';
 import type { RecentSequenceReflection } from '../types/insights';
 import { logEvent } from './logger';
 
@@ -21,6 +21,7 @@ export class LocalStorage {
   private static readonly RECENT_SEQUENCE_REFLECTIONS_KEY = '@recent_sequence_reflections';
   private static readonly INTERPRETATION_DEPTH_KEY = '@interpretation_depth';
   private static readonly LEGACY_MYTHIC_RESONANCE_KEY = '@mythic_resonance_enabled';
+  private static readonly PENDING_VOICE_TRANSCRIPTIONS_KEY = '@pending_voice_transcriptions_v1';
 
   // Dreams
   static async getDreams(): Promise<Dream[]> {
@@ -196,6 +197,23 @@ export class LocalStorage {
     await AsyncStorage.removeItem(this.UNSYNCED_INTERPRETATIONS_KEY);
   }
 
+  static async getPendingVoiceTranscriptions(): Promise<PendingVoiceTranscription[]> {
+    try {
+      const data = await AsyncStorage.getItem(this.PENDING_VOICE_TRANSCRIPTIONS_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static async savePendingVoiceTranscriptions(items: PendingVoiceTranscription[]): Promise<void> {
+    if (items.length === 0) {
+      await AsyncStorage.removeItem(this.PENDING_VOICE_TRANSCRIPTIONS_KEY);
+      return;
+    }
+    await AsyncStorage.setItem(this.PENDING_VOICE_TRANSCRIPTIONS_KEY, JSON.stringify(items));
+  }
+
   // Pattern insight reports (monthKey YYYY-MM -> { generatedAt, text })
   static async getPatternReports(): Promise<Record<string, { generatedAt: string; text: string }>> {
     try {
@@ -275,6 +293,7 @@ export class LocalStorage {
       this.RECENT_SEQUENCE_REFLECTIONS_KEY,
       this.INTERPRETATION_DEPTH_KEY,
       this.LEGACY_MYTHIC_RESONANCE_KEY,
+      this.PENDING_VOICE_TRANSCRIPTIONS_KEY,
     ]);
     logEvent('local_storage_cleared');
   }

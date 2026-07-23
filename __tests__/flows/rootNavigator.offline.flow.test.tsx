@@ -23,6 +23,8 @@ const mockSyncBiometricFromRemote = jest.fn();
 const mockIsBiometricEnabled = jest.fn();
 const mockHasCompletedOnboarding = jest.fn();
 const mockHasAcceptedLegalConsent = jest.fn();
+const mockDrainVoiceQueue = jest.fn();
+const mockDiscardAllVoice = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const React = require('react');
@@ -100,6 +102,13 @@ jest.mock('../../src/services/syncService', () => ({
 jest.mock('../../src/services/localStorage', () => ({
   LocalStorage: {
     getUnsyncedDreams: (...args: unknown[]) => mockGetUnsyncedDreams(...args),
+  },
+}));
+
+jest.mock('../../src/services/voiceTranscriptionQueueService', () => ({
+  voiceTranscriptionQueueService: {
+    drain: (...args: unknown[]) => mockDrainVoiceQueue(...args),
+    discardAll: (...args: unknown[]) => mockDiscardAllVoice(...args),
   },
 }));
 

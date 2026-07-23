@@ -11,7 +11,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 | Legal consent | `LegalConsentScreen`, `legalConsentService.ts` | `LEGAL_CONSENT_VERSION`, per-user AsyncStorage | flows 03/08, legal consent flow test |
 | Onboarding | `OnboardingNavigator`, onboarding screens | user settings, biometric service, onboarding service | flows 03, onboarding flow test |
 | Biometric lock | `BiometricLockScreen`, `biometricAuthService.ts`, `RootNavigator` | Expo LocalAuthentication, AsyncStorage, remote user settings | flows 01/03, iOS/Android behavior notes |
-| Write dream | `WriteScreen`, `VoiceRecordButton` | drafts, voice recording/transcription, `StorageService`, Supabase session | flows 04/05, storage tests, voice tests |
+| Write dream | `WriteScreen`, `VoiceRecordButton` | drafts, durable offline voice queue, retryable transcription, `StorageService`, Supabase idempotency ledger | flows 04/05/09, voice queue/UI/function tests, migration + function deploy, iOS/Android microphone checks |
 | Journal and filters | `JournalScreen`, `JournalFilterScreen` | local dreams/interpretations, search, Insights filter params | flows 04/07, filter/key tests |
 | Dream detail and editor | `DreamDetailScreen`, `DreamEditorScreen` | storage helpers, interpretation services, metadata display, delete/save | flows 04/06, display/offline tests |
 | Calendar | `CalendarScreen`, `CircularCalendar` | local dreams by date, editor route params | flows 04, route/flow tests if behavior changes |

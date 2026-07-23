@@ -1079,6 +1079,7 @@ type IconProps = {
                 />
                 <View style={styles.inputActionSpacer}>
                   <VoiceRecordButton
+                    target={{ surface: 'dream-chat', key: dreamId }}
                     onTranscriptionComplete={(text) => {
                       setInputText((prev) => (prev ? `${prev} ${text}` : text));
                     }}

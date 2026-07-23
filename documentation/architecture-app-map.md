@@ -14,7 +14,7 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
 | Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
 | AI | `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Reflection, chat, extraction, grouping, pattern essays |
-| Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
+| Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, bounded/authenticated transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
 
 ## Navigation contract
 
@@ -65,3 +65,5 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 - Subscription / quota backend changes: update flow 10, account deletion behavior, billing function READMEs, quota tests, and deployment notes for Apple / Google store integration.
 - Support/legal/account changes: update flow 08, setup docs or function READMEs when backend behavior changes.
 - Shared UI/theme changes: update `src/theme/COLORS.md` or `src/theme/TYPOGRAPHY.md`; run relevant UI tests or note why E2E was skipped.
+- Voice transcription changes: update flows 04/05/06/09, `whisper-transcription` README, voice unit/flow coverage, and iOS/Android physical-device checks. The audio clip is transient local state: retain it only for user-initiated retry and never log its path or transcript.
+- Durable voice idempotency uses `voice_transcription_requests` plus the service-role-only `reserve_voice_transcription` RPC. Schema changes require `supabase db push`; function changes require `supabase functions deploy whisper-transcription`.

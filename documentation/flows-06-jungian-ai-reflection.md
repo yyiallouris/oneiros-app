@@ -70,6 +70,7 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 ## `InterpretationChatScreen`
 
 - Parallel implementation: dream load, interpretation load, gateway-based generate/chat, offline checks, voice button, and premium lapse read-only handling.
+- Voice transcription follows the shared offline-first contract: capture works without connectivity, the local queue exposes its saved/transcribing/retrying state, and the confirmed transcript appends exactly once to the original chat input. The mic remains disabled while the chat is loading or read-only.
 - For regression: if product wires navigation here later, mirror tests from DreamDetail.
 
 ## Regression ideas

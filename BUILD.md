@@ -192,12 +192,14 @@ Before Google Play review, complete these manual steps:
 - Complete Data Safety for account data, dream/user content, voice audio/transcription, support messages, AI processing, and processors such as Supabase, OpenAI/Anthropic, Google, Resend, and Postmark.
 - Add the hosted Privacy Policy URL, support/contact details, age rating consistent with 18+ consent, screenshots, store listing copy, and content declarations.
 - Confirm Google OAuth release SHA-1 / Play App Signing certificate is registered wherever the OAuth client requires it.
-- Deploy `openai-proxy` before production builds if the function changed:
+- Deploy changed AI functions before production builds:
   ```bash
   supabase functions deploy openai-proxy
+  supabase functions deploy whisper-transcription
   ```
 - Upload the AAB to an internal testing track first and review the Play pre-launch report for permission, crash, startup, and device compatibility issues.
-- Smoke test on Android: email login/signup/reset, Google/Discord sign-in, voice recording permission/transcription, AI reflection/chat, offline guards, sync, account deletion, and hosted legal links.
+- Smoke test on Android: email login/signup/reset, Google/Discord sign-in, voice permission (deny → Settings and allow), online/offline capture, retry/discard after a simulated connection failure, AI reflection/chat, sync, account deletion, and hosted legal links.
+- Voice recovery release check: record offline, confirm **Saved safely**, reconnect, observe **transcribing**, verify text appends exactly once, then repeat with **Retry now** and confirmed **Discard**. Verify automatic stop at 5:00 on a physical device.
 
 Build and submit after the checks pass:
 
@@ -236,11 +238,13 @@ Before TestFlight/App Review, complete these manual steps:
 - Export compliance answers consistent with `ITSAppUsesNonExemptEncryption: false`.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm` and `oneiros-dream-journal://auth/callback`.
 - Supabase providers are configured for Apple, Google, and Discord.
-- `openai-proxy` changes are deployed before production builds:
+- Changed AI functions are deployed before production builds:
   ```bash
   supabase functions deploy openai-proxy
+  supabase functions deploy whisper-transcription
   ```
-- Physical iPhone TestFlight smoke: email login/signup/reset, Apple sign-in, Google/Discord sign-in, voice recording permission/transcription, AI reflection/chat, offline guards, sync, account deletion, and hosted legal links.
+- Physical iPhone TestFlight smoke: email login/signup/reset, Apple sign-in, Google/Discord sign-in, voice permission (deny → Settings and allow), silent-mode online/offline capture, retry/discard after a simulated connection failure, AI reflection/chat, sync, account deletion, and hosted legal links.
+- Voice recovery release check: record offline, background/foreground the app, reconnect, observe queue status and append-once delivery, then validate Retry now, Discard, silent-mode capture, and the 5:00 cap on a physical iPhone.
 
 Build and submit after the checks pass:
 

@@ -35,7 +35,7 @@ Main app tabs are `Write`, `Journal`, and `Insights`.
 
 - Bottom navigation now renders as a floating parchment shelf over the paper background with explicit active/inactive PNG icon pairs.
 
-- `WriteScreen`: user records today’s dream, auto-saves a draft, optionally appends voice transcription, saves locally first, clears the draft, then opens `DreamDetail`.
+- `WriteScreen`: user records today’s dream, auto-saves a draft, optionally captures up to five minutes of voice offline-first, and receives the transcript through a durable retry queue before saving locally and opening `DreamDetail`.
 - `DreamDetailScreen`: shows the dream, generates or displays the Jungian reflection, presents `display_distillation`, supports inline follow-up chat, editing, regeneration, deletion/reset paths, and offline guards for AI actions.
 - `JournalScreen`: archive/search/filter view of dreams. Filters can come from Insights via `JournalFilterScreen`.
 - `CalendarScreen`: day-level dream map; opens existing dreams or creates a dated dream through `DreamEditorScreen`.

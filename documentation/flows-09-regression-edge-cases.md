@@ -26,7 +26,14 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 - [ ] Editor: change date; new dream from calendar; delete confirm cancel.
 - [ ] Journal: search no results; clear search; filter from insights then clear filter (`setParams`).
 - [ ] Dream detail: missing id → “Dream not found”.
-- [ ] Voice: permission denied; transcription timeout; very long recording cap (~3 min).
+- [ ] Voice: offline capture saves locally; permission denied offers Settings; only one recording can be active.
+- [ ] Voice: recording file finalization failure asks to re-record; warning appears at 4:30 and recording auto-stops at 5:00.
+- [ ] Voice: timeout, network loss, 429, and 5xx preserve the clip and offer retry/discard; successful transcription deletes the local clip and appends text once.
+- [ ] Voice: queued → transcribing → retrying/needs-attention status remains visible after navigation/relaunch; reconnect and Retry now resume processing.
+- [ ] Voice: crash mid-upload reclaims stuck `transcribing` only after the full client budget (~7+ minutes); healthy long uploads are never dropped mid-flight.
+- [ ] Voice: Write pending notes remain visible with the stable `active` target after midnight; completed transcripts append exactly once.
+- [ ] Voice: duplicate clip requests return the durable cached transcript, concurrent requests do not call Whisper twice, and stale processing locks recover.
+- [ ] Voice: verify iOS silent-mode recording and Android file finalization/copy on physical devices.
 
 ## Sync & offline
 

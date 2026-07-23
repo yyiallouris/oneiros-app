@@ -18,6 +18,13 @@
    - Sync unsynced dreams **first**.
    - Then `fetchAndMergeDreams` and `fetchAndMergeInterpretations`.
 
+## Voice transcription offline capture
+
+- Voice recording is never blocked by connectivity. On stop, Oneiros safely saves the compressed clip and a device-local, user-scoped transcription queue entry before attempting network work.
+- Offline clips automatically retry on reconnect, app foreground, and next launch. A completed transcript remains queued until its original Write/chat surface claims it, so a restart cannot lose the result.
+- Pending raw audio stays only on the device, is deleted after delivery/discard, and expires after seven days. OS termination can delay transcription until the next app launch, but does not discard the saved clip.
+- Queue mutations are serialized; stuck `transcribing` rows reclaim only after the full client upload budget (~7+ minutes) and never while this process still owns the upload; account switch and logout both call `discardAll()` so previous-user audio does not linger.
+
 ## Login
 
 - New session (no previous session): `StorageService.initialize()` then background `fetchAndMergeDreams`, `fetchAndMergeInterpretations`, `syncAll`.

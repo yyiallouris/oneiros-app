@@ -12,6 +12,26 @@ export interface Dream {
   landscapes?: string[]; // Extracted settings/places (e.g. forest, beach, childhood home)
 }
 
+export type VoiceTranscriptionTarget =
+  | { surface: 'write'; key: string }
+  | { surface: 'dream-chat'; key: string }
+  | { surface: 'interpretation-chat'; key: string };
+
+export interface PendingVoiceTranscription {
+  id: string;
+  userId: string;
+  audioUri: string;
+  sizeBytes: number;
+  durationMs: number | null;
+  target: VoiceTranscriptionTarget;
+  status: 'queued' | 'transcribing' | 'retrying' | 'completed' | 'needs_attention';
+  lastErrorCode?: string;
+  createdAt: string;
+  nextAttemptAt: string;
+  attemptCount: number;
+  transcript?: string;
+}
+
 export type JungianSymbol = 'moon' | 'sun' | 'key' | 'eye' | 'labyrinth';
 
 export type DisplayDistillationDominantLens =

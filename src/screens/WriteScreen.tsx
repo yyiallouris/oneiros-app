@@ -253,6 +253,7 @@ const WriteScreen: React.FC = () => {
             <View style={[styles.voiceButtonContainer, { bottom: voiceButtonBottom }]}>
               <VoiceRecordButton
                 surface="field"
+                target={{ surface: 'write', key: 'active' }}
                 onTranscriptionComplete={(text) => {
                   setContent((prev) => (prev ? `${prev}\n${text}` : text));
                 }}
