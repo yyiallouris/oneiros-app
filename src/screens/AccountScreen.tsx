@@ -227,6 +227,7 @@ const AccountScreen: React.FC = () => {
           <Button
             title={savedHint ? 'Saved' : 'Save'}
             onPress={handleSaveName}
+            size="compact"
             style={styles.saveButton}
           />
         </Card>
@@ -424,9 +425,6 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: spacing.lg,
     alignSelf: 'flex-start',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    minHeight: 44,
   },
   depthRow: {
     flexDirection: 'row',

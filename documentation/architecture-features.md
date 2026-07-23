@@ -7,7 +7,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 | Feature | Entry points | Core dependencies | Update when changed |
 |---------|--------------|-------------------|---------------------|
 | App entry and loading | `App.tsx`, `LoadingScreen` | Expo splash, droplet brand assets, paper background, design export flags, safe area | flows 00/01, theme docs for visual changes |
-| Auth and recovery | `AuthScreen`, `SetPasswordScreen`, `authDeepLink.ts` | Supabase Auth, deep links, `PENDING_PASSWORD_RESET_KEY` | flows 01/02, `AUTH_SETUP.md`, `authDeepLink.flow.test.ts` |
+| Auth and recovery | `AuthScreen`, `SetPasswordScreen`, `authDeepLink.ts`, `authOAuth.ts` | Supabase Auth (email + Apple/Google/Discord; PKCE for browser OAuth), deep links, `PENDING_PASSWORD_RESET_KEY` | flows 01/02, `AUTH_SETUP.md`, auth flow tests |
 | Legal consent | `LegalConsentScreen`, `legalConsentService.ts` | `LEGAL_CONSENT_VERSION`, per-user AsyncStorage | flows 03/08, legal consent flow test |
 | Onboarding | `OnboardingNavigator`, onboarding screens | user settings, biometric service, onboarding service | flows 03, onboarding flow test |
 | Biometric lock | `BiometricLockScreen`, `biometricAuthService.ts`, `RootNavigator` | Expo LocalAuthentication, AsyncStorage, remote user settings | flows 01/03, iOS/Android behavior notes |

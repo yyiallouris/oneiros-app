@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, DesignExportForeground, Button } from '../components/ui';
 import { LEGAL_LINKS, PRIVACY_SECTIONS } from '../constants/legal';
 import { RootStackParamList } from '../navigation/types';
 
@@ -40,20 +40,22 @@ const PrivacyScreen: React.FC = () => {
               For export, account deletion, or privacy questions, send a request from Contact us.
             </Text>
             <View style={styles.requestActions}>
-              <TouchableOpacity
-                style={styles.requestButton}
+              <Button
+                title="Request export"
+                variant="secondary"
+                size="compact"
                 onPress={() =>
                   navigation.navigate('Contact', {
                     initialSubject: 'Data export request',
                     initialMessage: 'I would like to request an export of my Oneiros data.',
                   })
                 }
-                activeOpacity={0.7}
-              >
-                <Text style={styles.requestButtonText}>Request export</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.requestButton, styles.deleteButton]}
+                style={styles.requestButton}
+              />
+              <Button
+                title="Request deletion"
+                variant="ghost"
+                size="compact"
                 onPress={() =>
                   navigation.navigate('Contact', {
                     initialSubject: 'Account deletion request',
@@ -61,10 +63,9 @@ const PrivacyScreen: React.FC = () => {
                       'I would like to request deletion of my Oneiros account and associated data.',
                   })
                 }
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.requestButtonText, styles.deleteButtonText]}>Request deletion</Text>
-              </TouchableOpacity>
+                style={[styles.requestButton, styles.deleteButton]}
+                textStyle={styles.deleteButtonText}
+              />
             </View>
           </View>
 
@@ -76,22 +77,22 @@ const PrivacyScreen: React.FC = () => {
               </Text>
               <View style={styles.requestActions}>
                 {LEGAL_LINKS.privacyPolicyUrl && (
-                  <TouchableOpacity
-                    style={styles.hostedLinkButton}
+                  <Button
+                    title="Privacy Policy"
+                    variant="secondary"
+                    size="compact"
                     onPress={() => Linking.openURL(LEGAL_LINKS.privacyPolicyUrl!)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.requestButtonText}>Privacy Policy</Text>
-                  </TouchableOpacity>
+                    style={styles.requestButton}
+                  />
                 )}
                 {LEGAL_LINKS.termsUrl && (
-                  <TouchableOpacity
-                    style={styles.hostedLinkButton}
+                  <Button
+                    title="Terms of Use"
+                    variant="secondary"
+                    size="compact"
                     onPress={() => Linking.openURL(LEGAL_LINKS.termsUrl!)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.requestButtonText}>Terms of Use</Text>
-                  </TouchableOpacity>
+                    style={styles.requestButton}
+                  />
                 )}
               </View>
             </View>
@@ -178,21 +179,10 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   requestButton: {
-    borderWidth: 1,
-    borderColor: colors.buttonPrimary40,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.fieldSurface,
+    flexGrow: 1,
   },
   deleteButton: {
     borderColor: colors.error,
-    backgroundColor: semantic.errorBackground,
-  },
-  requestButtonText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    color: colors.buttonPrimary,
   },
   deleteButtonText: {
     color: semantic.errorDark,
@@ -204,14 +194,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.lg,
-  },
-  hostedLinkButton: {
-    borderWidth: 1,
-    borderColor: colors.buttonPrimary40,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.cardBackground,
   },
   footer: {
     fontSize: typography.sizes.xs,

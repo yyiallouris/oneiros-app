@@ -111,5 +111,45 @@ export function parseAuthSessionTokens(url: string): {
   return { accessToken, refreshToken };
 }
 
+/** Parse OAuth / auth redirect callback query+hash params used by the app. */
+export function parseAuthCallbackParams(url: string): {
+  accessToken: string | null;
+  refreshToken: string | null;
+  code: string | null;
+  error: string | null;
+  errorDescription: string | null;
+} {
+  const { accessToken, refreshToken } = parseAuthSessionTokens(url);
+  let code: string | null = null;
+  let error: string | null = null;
+  let errorDescription: string | null = null;
+
+  const parsePart = (part: string) => {
+    if (!part) return;
+    try {
+      const params = new URLSearchParams(part);
+      code = code ?? params.get('code');
+      error = error ?? params.get('error');
+      errorDescription = errorDescription ?? params.get('error_description');
+    } catch {
+      // ignore malformed segments
+    }
+  };
+
+  if (url.includes('?')) {
+    parsePart(url.split('?')[1]?.split('#')[0] ?? '');
+  }
+  if (url.includes('#')) {
+    parsePart(url.split('#')[1] ?? '');
+  }
+
+  if (!code) {
+    const codeMatch = url.match(/[?#&]code=([^&#]+)/);
+    code = codeMatch ? decodeURIComponent(codeMatch[1].replace(/\+/g, ' ')) : null;
+  }
+
+  return { accessToken, refreshToken, code, error, errorDescription };
+}
+
 /** @deprecated Use isNewOAuthUser. Kept for older auth flow tests/imports. */
 export const isNewGoogleUser = isNewOAuthUser;

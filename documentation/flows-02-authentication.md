@@ -28,9 +28,9 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 ## Forgot password
 
 1. From login UI, user opens **Reset password** (`showForgotPassword`).
-2. Submits email → `resetPasswordForEmail` with `redirectTo: oneiros-dream-journal://auth/confirm`.
+2. Submits email → `resetPasswordForEmail` with `redirectTo: oneiros-dream-journal://auth/recovery`.
 3. User taps link in email → deep link:
-   - Sets `PENDING_PASSWORD_RESET_KEY` in AsyncStorage when `type` is recovery.
+   - Sets `PENDING_PASSWORD_RESET_KEY` in AsyncStorage when the URL is `auth/recovery` or `type=recovery`.
    - Establishes session.
 4. `RootNavigator` shows **`SetPassword`** until new password saved and flag cleared.
 5. `updateUser({ password })` → remove `PENDING_PASSWORD_RESET_KEY` → continue to onboarding or main app.
@@ -41,13 +41,17 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 
 ## Social sign-in: Apple, Google, and Discord
 
-1. On iOS, user can choose **Continue with Apple**. The app uses native Apple authentication, hashes a nonce for the Apple request, then sends the returned identity token to Supabase with `signInWithIdToken`.
-2. User can choose **Continue with Google** or **Continue with Discord** from login or sign up mode.
-3. Browser OAuth uses `signInWithOAuth` with the selected provider, `skipBrowserRedirect: true`, and `WebBrowser.openAuthSessionAsync`.
-4. Tokens extracted from redirect URL → `setSession`, or fallback session poll after dismiss.
-5. If user dismisses browser, short wait + `getSession` (deep link may still complete).
-6. **New vs returning** social user: `isNewOAuthUser` (created_at within ~60s, single identity) → different welcome alert.
-7. Provider-specific cancel/error copy uses the selected provider label. Deep-link completion uses provider identity metadata when Supabase returns it, otherwise falls back to generic signed-in copy.
+1. Below the email primary CTA, Auth shows an **or continue with** divider and a centered row of equal-size squircle icon buttons (Google → Apple on iOS → Discord). Provider assets are logo-only transparent PNGs; squircle chrome and soft shadow are styled in-app. Labels stay accessibility-only (`Continue with …`) so the same controls work for login and sign up.
+2. On iOS, Apple uses native Apple authentication (custom icon button; same `signInAsync` + hashed nonce path), then sends the identity token to Supabase with `signInWithIdToken`.
+3. Google and Discord use browser OAuth via `signInWithOAuth` with the selected provider, `skipBrowserRedirect: true`, PKCE (`flowType: 'pkce'`), and `WebBrowser.openAuthSessionAsync`.
+4. Redirect target is `oneiros-dream-journal://auth/callback` (must be allowlisted in Supabase Redirect URLs). After consent, Supabase returns either:
+   - **PKCE** `?code=…` → `exchangeCodeForSession` (primary path; password recovery uses `oneiros-dream-journal://auth/recovery?code=…` so the app routes to `SetPassword`), or
+   - **Implicit** `#access_token=…&refresh_token=…` → `setSession`.
+5. AuthScreen and `processAuthDeepLink` share the same completion path for browser results and live deep-link events. Concurrent callers for the same URL share one in-flight Promise (`Map<url, Promise>`), then a short post-success TTL prevents re-exchange of a one-time PKCE code. Cold-start `getInitialURL` is owned only by RootNavigator and a concrete initial callback URL is processed once before checking the stored session.
+6. If the browser dismisses early, the app polls briefly for a session before showing “cancelled”.
+7. **New vs returning** social user: `isNewOAuthUser` (created_at within ~60s, single identity). New users skip the welcome modal and go straight into LegalConsent/Onboarding; returning users may see a short “Welcome back” alert (deduped). Provider/new-user metadata prefers the user returned from `setSession` / `exchangeCodeForSession` (or local `getSession`); it does not wait on network `getUser()`.
+8. Provider-specific cancel/error copy uses the selected provider label. Loading copy shows `Continuing with {Provider}…`.
+9. After session start, RootNavigator shows branded `LoadingScreen` while resolving **local** biometric/onboarding/legal flags. Remote biometric preference sync runs in the background and must not block routing. The previous blank `routeLoading` view is what looked like an “empty Oneiros page” after Google OAuth.
 
 ## Deep link error URLs
 
@@ -61,6 +65,7 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 ## Timeouts & errors
 
 - Auth requests race a ~25s timeout → user-facing connection message.
+- Deep-link auth steps (`verifyOtp`, `setSession`, PKCE `exchangeCodeForSession`) race a shorter timeout (~15s) so provider callbacks cannot leave the app on the branded loading screen indefinitely.
 - Invalid credentials vs network errors → different copy.
 
 ## Regression checklist (auth)

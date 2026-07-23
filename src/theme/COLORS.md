@@ -47,13 +47,13 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 
 ### Primary actions
 
-Styles: **`buttons.ts`**. Loading: **`loading.ts`**.
+Styles: **`buttons.ts`**. Loading: **`loading.ts`**. Press: shared `Button` uses `activeOpacity={0.7}`.
 
-- Active: `buttonPrimary90` + `buttonEdge` + `buttonGlow` + white label
-- Default disabled (most buttons): `buttonPrimaryDisabled*`
-- **Write Save dream exception:** same plum active colors + `opacity: 0.68` when empty — see `WriteScreen`
+- Active: `buttonPrimary90` + `buttonEdge` + soft plum shadow + `onAccent` label
+- Disabled: same plum fill/border at `opacity: 0.68` (Save dream treatment — app-wide for primary)
+- Secondary/ghost disabled: keep variant fill, fade with `opacity: 0.68`
 
-Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`
+Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`, `buttonPrimaryDisabled*` (legacy soft lavender — prefer opacity fade on primary CTAs)
 
 ### Subscription buttons
 

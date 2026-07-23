@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // @ts-ignore - @expo/vector-icons resolved at runtime by Expo
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { Button, Card, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
+import { Button, Card, PaperBackground, DesignExportForeground, ActionLoadingSlot, SocialAuthProviderRow } from '../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
@@ -31,10 +31,10 @@ import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/au
 import { processAuthDeepLink } from '../utils/authDeepLink';
 import {
   AUTH_APPLE_PROVIDER,
-  AUTH_OAUTH_PROVIDERS,
+  getAuthOAuthProvider,
   getAuthOAuthProviderLabel,
   isNewOAuthUser,
-  parseAuthSessionTokens,
+  parseAuthCallbackParams,
   type AuthOAuthProviderConfig,
   type AuthOAuthProviderId,
 } from '../utils/authOAuth';
@@ -48,6 +48,7 @@ type NavProp = StackNavigationProp<RootStackParamList>;
 
 const AUTH_REQUEST_TIMEOUT_MS = 25_000;
 const APPLE_NONCE_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+let lastOAuthSuccessAlertAt = 0;
 
 const authDebugLog = (...args: unknown[]) => {
   if (__DEV__) console.log(...args);
@@ -64,11 +65,15 @@ const createAppleNonce = (length = 32): string => {
 };
 
 const showOAuthSuccessAlert = (providerId: AuthOAuthProviderId | undefined, isNewUser: boolean | undefined) => {
+  // New users go straight into LegalConsent/Onboarding — skip the modal stop.
+  if (isNewUser) return;
+
+  const now = Date.now();
+  // Browser result + Linking can both complete the same OAuth redirect.
+  if (now - lastOAuthSuccessAlertAt < 4_000) return;
+  lastOAuthSuccessAlertAt = now;
+
   const providerLabel = getAuthOAuthProviderLabel(providerId);
-  if (isNewUser) {
-    Alert.alert('Welcome!', "You're all set. Your dream journal is ready.");
-    return;
-  }
   Alert.alert('Welcome back!', providerLabel ? `You're signed in with ${providerLabel}.` : "You're signed in.");
 };
 
@@ -81,6 +86,7 @@ const AuthScreen: React.FC = () => {
   const [verifyPassword, setVerifyPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [oauthLoadingLabel, setOauthLoadingLabel] = useState<string | null>(null);
   /** After signup with email confirmation required, show OTP input. */
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const [verificationCode, setVerificationCode] = useState('');
@@ -125,21 +131,10 @@ const AuthScreen: React.FC = () => {
       }
     };
 
-    const runInitialUrl = async () => {
-      const url = await Linking.getInitialURL();
-      if (url?.startsWith('oneiros-dream-journal://')) handleDeepLink(url);
-    };
-    runInitialUrl();
-    const t1 = setTimeout(runInitialUrl, 800);
-    const t2 = setTimeout(runInitialUrl, 2000);
-
+    // Cold-start initial URLs are owned by RootNavigator. AuthScreen only handles live events
+    // (magic link / OAuth return while the auth UI is already mounted).
     const subscription = Linking.addEventListener('url', (e) => handleDeepLink(e.url));
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, []);
 
   const handleAuth = async () => {
@@ -163,7 +158,7 @@ const AuthScreen: React.FC = () => {
     }
 
     setIsLoading(true);
-    logEvent('auth_submit', { mode, email: email.trim().toLowerCase() });
+    logEvent('auth_submit', { mode });
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out. Please check your connection and try again.')), AUTH_REQUEST_TIMEOUT_MS)
@@ -194,7 +189,7 @@ const AuthScreen: React.FC = () => {
           return;
         }
         authDebugLog('[Auth] signIn success', { user: data?.user?.id });
-        logEvent('auth_login_success', { email: email.trim().toLowerCase() });
+        logEvent('auth_login_success', {});
       } else {
         const normalizedEmail = email.trim().toLowerCase();
         const signUpPromise = supabase.auth.signUp({
@@ -210,12 +205,15 @@ const AuthScreen: React.FC = () => {
           throw error;
         }
         authDebugLog('[Auth] signUp success', { user: data?.user?.id });
-        logEvent('auth_signup_success', { email: normalizedEmail });
-        // When email confirmation is enabled, Supabase returns user but no session until verified
+        logEvent('auth_signup_success', {});
+        // Confirmation required: user without session → verification UI.
+        // Autoconfirm/dev: session present → let RootNavigator route (no false “check email”).
         if (data?.user && !data?.session) {
           logEvent('auth_verification_screen_shown', {});
           setPendingVerificationEmail(normalizedEmail);
           setResendCooldown(60); // Rate limit: don't allow resend until 60s after first email
+        } else if (data?.session) {
+          logEvent('auth_signup_session_ready', {});
         } else {
           Alert.alert(
             'Check your email',
@@ -266,7 +264,7 @@ const AuthScreen: React.FC = () => {
       setPendingVerificationEmail(null);
       setVerificationCode('');
     } catch (err: any) {
-      logError('auth_verify_otp_error', err, { email: pendingVerificationEmail });
+      logError('auth_verify_otp_error', err, {});
       Alert.alert('Verification failed', err.message || 'Invalid or expired code. Try again or use the link in your email.');
     } finally {
       setIsVerifying(false);
@@ -301,7 +299,7 @@ const AuthScreen: React.FC = () => {
       setResendCooldown(60);
       Alert.alert('Email sent', 'A new verification email was sent. Check your inbox and spam folder.');
     } catch (err: any) {
-      logError('auth_resend_error', err, { email: pendingVerificationEmail });
+      logError('auth_resend_error', err, {});
       const msg = err?.message ?? '';
       const isRateLimit = /rate limit|wait|60|seconds|minute/i.test(msg);
       if (isRateLimit) {
@@ -341,7 +339,7 @@ const AuthScreen: React.FC = () => {
     logEvent('auth_forgot_password_submit', {});
     try {
       const resetPromise = supabase.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: 'oneiros-dream-journal://auth/confirm',
+        redirectTo: 'oneiros-dream-journal://auth/recovery',
       });
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out. Please check your connection and try again.')), AUTH_REQUEST_TIMEOUT_MS)
@@ -350,9 +348,9 @@ const AuthScreen: React.FC = () => {
       if (error) throw error;
       setForgotPasswordSent(true);
       setForgotPasswordCooldown(60);
-      logEvent('auth_forgot_password_sent', { email: normalizedEmail });
+      logEvent('auth_forgot_password_sent', {});
     } catch (err: any) {
-      logError('auth_forgot_password_error', err, { email: normalizedEmail });
+      logError('auth_forgot_password_error', err, {});
       Alert.alert('Could not send', err.message || 'Please try again.');
     } finally {
       setIsLoading(false);
@@ -364,7 +362,7 @@ const AuthScreen: React.FC = () => {
     setIsLoading(true);
     try {
       const resetPromise = supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: 'oneiros-dream-journal://auth/confirm',
+        redirectTo: 'oneiros-dream-journal://auth/recovery',
       });
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Request timed out.')), AUTH_REQUEST_TIMEOUT_MS)
@@ -384,13 +382,23 @@ const AuthScreen: React.FC = () => {
     }
   };
 
+  const waitForSession = async (attempts = 5, delayMs = 500) => {
+    for (let i = 0; i < attempts; i++) {
+      if (i > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) return sessionData.session;
+    }
+    return null;
+  };
+
   const handleOAuthProvider = async (provider: AuthOAuthProviderConfig) => {
     setIsLoading(true);
+    setOauthLoadingLabel(`Continuing with ${provider.label}…`);
     logEvent(`${provider.eventPrefix}_start`, { mode });
     authDebugLog(`[Auth] Starting ${provider.label} OAuth flow...`);
 
     try {
-      // Build redirect URL that works in Expo Go (proxy) and in standalone (scheme)
+      // Stable native scheme redirect — must be allowlisted in Supabase Redirect URLs.
       const redirectUrl = AuthSession.makeRedirectUri({
         scheme: 'oneiros-dream-journal',
         path: 'auth/callback',
@@ -402,6 +410,8 @@ const AuthScreen: React.FC = () => {
         options: {
           redirectTo: redirectUrl,
           skipBrowserRedirect: true,
+          // Ask providers to return to our app scheme after consent.
+          queryParams: provider.id === 'google' ? { prompt: 'select_account' } : undefined,
         },
       });
 
@@ -418,7 +428,6 @@ const AuthScreen: React.FC = () => {
 
       authDebugLog('[Auth] Opening browser with OAuth URL...');
 
-      // Use WebBrowser.openAuthSessionAsync (works reliably with Expo Go)
       const authResult = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
       authDebugLog('[Auth] Auth session result type:', authResult.type);
@@ -427,66 +436,68 @@ const AuthScreen: React.FC = () => {
       }
 
       if (authResult.type === 'success' && 'url' in authResult && authResult.url) {
-        // Try to extract tokens from the returned URL
         const url = authResult.url;
-        const { accessToken, refreshToken } = parseAuthSessionTokens(url);
+        const callback = parseAuthCallbackParams(url);
+        if (callback.error) {
+          logEvent(`${provider.eventPrefix}_cancel`, { mode, reason: callback.error });
+          Alert.alert(
+            'Sign-in cancelled',
+            callback.errorDescription?.replace(/\+/g, ' ') ||
+              `${provider.label} sign-in was cancelled.`
+          );
+          return;
+        }
 
-        if (accessToken && refreshToken) {
-          authDebugLog('[Auth] Setting session from auth session URL...');
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
+        const result = await processAuthDeepLink(url);
+        if (result.handled) {
+          logEvent(`${provider.eventPrefix}_success`, {
+            mode,
+            source: callback.code ? 'pkce_code' : 'auth_session_url',
           });
-
-          if (sessionError) {
-            authDebugError('[Auth] Session error:', sessionError);
-            throw sessionError;
-          }
-
-          authDebugLog('[Auth] Session set successfully');
-          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'auth_session_url' });
-          const { data: userData } = await supabase.auth.getUser();
-          const isNewUser = isNewOAuthUser(userData.user);
-          showOAuthSuccessAlert(provider.id, isNewUser);
-        } else {
-          authDebugLog('[Auth] No tokens in URL, checking session fallback...');
-          // Give Supabase a moment to process the code and create the session
-          await new Promise((resolve) => setTimeout(resolve, 1200));
-          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) {
-            authDebugError('[Auth] Session fetch error:', sessionError.message);
-          }
-          if (sessionData?.session) {
-            authDebugLog('[Auth] Session found via fallback session check');
-            logEvent(`${provider.eventPrefix}_success`, { mode, source: 'session_fallback' });
-            const { data: userData } = await supabase.auth.getUser();
-            const isNewUser = isNewOAuthUser(userData.user);
-            showOAuthSuccessAlert(provider.id, isNewUser);
+          if (result.isOAuth) {
+            showOAuthSuccessAlert(result.provider ?? provider.id, result.isNewUser);
           } else {
-            throw new Error(`No session created from ${provider.label} sign-in.`);
+            showOAuthSuccessAlert(provider.id, result.isNewUser);
           }
+          return;
         }
-      } else if (authResult.type === 'dismiss' || authResult.type === 'cancel') {
-        // Browser may close before we get the redirect URL; deep link often delivers session.
-        // Wait and check for session before showing "cancelled".
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (sessionData?.session) {
-          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'dismiss_then_session' });
-          // Deep link handler shows the success alert; no duplicate here
-        } else {
-          logEvent(`${provider.eventPrefix}_cancel`, { mode });
-          Alert.alert('Sign-in cancelled', `${provider.label} sign-in was cancelled.`);
+
+        // Rare race: session arrives via auth state before URL processing finishes.
+        const session = await waitForSession();
+        if (session) {
+          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'session_fallback' });
+          showOAuthSuccessAlert(provider.id, isNewOAuthUser(session.user));
+          return;
         }
-      } else {
-        authDebugError('[Auth] Unexpected auth session result:', authResult.type);
-        Alert.alert('Sign-in error', `${provider.label} sign-in did not complete. Please try again.`);
+
+        throw new Error(
+          result.error ||
+            `No session created from ${provider.label} sign-in. Please try again.`
+        );
       }
+
+      if (authResult.type === 'dismiss' || authResult.type === 'cancel') {
+        // Browser may close before we get the redirect URL; deep link / PKCE often still lands.
+        const session = await waitForSession(6, 400);
+        if (session) {
+          logEvent(`${provider.eventPrefix}_success`, { mode, source: 'dismiss_then_session' });
+          // Deep link handler shows the success alert when it owns the URL; otherwise welcome here.
+          showOAuthSuccessAlert(provider.id, isNewOAuthUser(session.user));
+          return;
+        }
+        logEvent(`${provider.eventPrefix}_cancel`, { mode });
+        Alert.alert('Sign-in cancelled', `${provider.label} sign-in was cancelled.`);
+        return;
+      }
+
+      authDebugError('[Auth] Unexpected auth session result:', authResult.type);
+      Alert.alert('Sign-in error', `${provider.label} sign-in did not complete. Please try again.`);
     } catch (error: any) {
       authDebugError(`[Auth] ${provider.label} OAuth error:`, error);
       logError(`${provider.eventPrefix}_error`, error, { mode });
       Alert.alert(`${provider.label} sign-in error`, error.message || 'Something went wrong. Please try again.');
     } finally {
+      setOauthLoadingLabel(null);
       setIsLoading(false);
     }
   };
@@ -495,6 +506,7 @@ const AuthScreen: React.FC = () => {
     if (Platform.OS !== 'ios') return;
 
     setIsLoading(true);
+    setOauthLoadingLabel('Continuing with Apple…');
     logEvent(`${AUTH_APPLE_PROVIDER.eventPrefix}_start`, { mode });
 
     try {
@@ -540,6 +552,7 @@ const AuthScreen: React.FC = () => {
       logError(`${AUTH_APPLE_PROVIDER.eventPrefix}_error`, error, { mode });
       Alert.alert('Apple sign-in error', error?.message || 'Something went wrong. Please try again.');
     } finally {
+      setOauthLoadingLabel(null);
       setIsLoading(false);
     }
   };
@@ -824,7 +837,9 @@ const AuthScreen: React.FC = () => {
             loading={isLoading}
             loadingProps={{
               preset: 'authSubmit',
-              message: mode === 'login' ? 'Signing in…' : 'Creating your account…',
+              message:
+                oauthLoadingLabel ??
+                (mode === 'login' ? 'Signing in…' : 'Creating your account…'),
               style: styles.primaryButton,
             }}
           >
@@ -842,33 +857,12 @@ const AuthScreen: React.FC = () => {
             </TouchableOpacity>
           )}
 
-          {/* Social OAuth */}
-          <View style={styles.dividerRow}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>or</Text>
-            <View style={styles.divider} />
-          </View>
-          {Platform.OS === 'ios' && (
-            <View pointerEvents={isLoading ? 'none' : 'auto'} style={isLoading ? styles.oauthDisabled : undefined}>
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                cornerRadius={borderRadius.md}
-                style={styles.appleButton}
-                onPress={handleAppleAuth}
-              />
-            </View>
-          )}
-          {AUTH_OAUTH_PROVIDERS.map((provider, index) => (
-            <Button
-              key={provider.id}
-              title={provider.buttonTitle}
-              onPress={() => handleOAuthProvider(provider)}
-              variant="secondary"
-              disabled={isLoading}
-              style={(index > 0 || Platform.OS === 'ios') ? styles.oauthButtonSpacing : undefined}
-            />
-          ))}
+          <SocialAuthProviderRow
+            disabled={isLoading}
+            onGooglePress={() => handleOAuthProvider(getAuthOAuthProvider('google'))}
+            onDiscordPress={() => handleOAuthProvider(getAuthOAuthProvider('discord'))}
+            onApplePress={Platform.OS === 'ios' ? handleAppleAuth : undefined}
+          />
           <TouchableOpacity
             onPress={() => navigation.navigate('Privacy')}
             style={styles.legalLink}
@@ -1028,32 +1022,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.sm,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  dividerText: {
-    marginHorizontal: spacing.sm,
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
-  },
-  oauthButtonSpacing: {
-    marginTop: spacing.sm,
-  },
-  appleButton: {
-    width: '100%',
-    height: 48,
-    marginTop: spacing.xs,
-  },
-  oauthDisabled: {
-    opacity: 0.6,
   },
   switchModeText: {
     fontSize: typography.sizes.sm,

@@ -24,7 +24,7 @@ Import from `src/components/ui/`:
 ## Rules
 
 1. **Colors:** import from `../theme` — no hardcoded hex in components.
-2. **Buttons:** use `Button` + `buttons.ts` tokens; Save dream on Write keeps local inactive fade (see `WriteScreen`).
+2. **Buttons:** use `Button` + `buttons.ts` tokens for enabled / disabled / press. Do not override primary colors or disabled opacity in screens (layout-only styles are fine). Subscription plan CTAs and text links are exceptions.
 3. **Responsive actions:** button labels should stay readable as whole words on narrow devices. Prefer single-line labels, and if side-by-side actions cannot fit cleanly, stack them vertically instead of letting words split awkwardly across lines.
 4. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
 5. **Background:** `PaperBackground` + `BG_paper.png` — no new global gradients or waves on active screens.

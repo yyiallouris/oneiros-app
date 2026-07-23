@@ -3,7 +3,10 @@ import { colors } from './colors';
 import { spacing, borderRadius } from './spacing';
 import { typography } from './typography';
 
-/** Shared primary action button — matches Write screen Save dream active/disabled treatment. */
+/**
+ * Shared primary action button — matches Write “Save dream” enabled / disabled / press.
+ * Disabled keeps the plum fill and fades with opacity (not the soft lavender fill).
+ */
 export const primaryButton = {
   base: {
     paddingVertical: spacing.md,
@@ -15,30 +18,32 @@ export const primaryButton = {
   active: {
     backgroundColor: colors.buttonPrimary90,
     borderColor: colors.buttonEdge,
-    shadowColor: colors.buttonGlow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 5,
+    shadowColor: colors.buttonPrimary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
+    opacity: 1,
   },
   disabled: {
-    backgroundColor: colors.buttonPrimaryDisabledLight,
-    borderColor: colors.buttonPrimaryDisabledBorder,
+    backgroundColor: colors.buttonPrimary90,
+    borderColor: colors.buttonEdge,
     shadowOpacity: 0,
     elevation: 0,
+    opacity: 0.68,
   },
 } satisfies Record<'base' | 'active' | 'disabled', ViewStyle>;
 
 export const primaryButtonText = {
   active: {
-    color: colors.white,
+    color: colors.onAccent,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.medium,
     fontFamily: typography.regular,
     letterSpacing: 0.2,
   },
   disabled: {
-    color: colors.buttonPrimaryDisabled,
+    color: colors.onAccent,
   },
 } satisfies Record<'active' | 'disabled', TextStyle>;
 
@@ -54,10 +59,12 @@ export const secondaryButton = {
   active: {
     backgroundColor: colors.buttonPrimaryLight12,
     borderColor: colors.buttonPrimary40,
+    opacity: 1,
   },
   disabled: {
     backgroundColor: colors.cardGlassSoft,
     borderColor: colors.buttonPrimaryDisabledBorder,
+    opacity: 0.68,
   },
 } satisfies Record<'base' | 'active' | 'disabled', ViewStyle>;
 
@@ -70,7 +77,7 @@ export const secondaryButtonText = {
     letterSpacing: 0.2,
   },
   disabled: {
-    color: colors.buttonPrimaryDisabled,
+    color: colors.buttonPrimary,
   },
 } satisfies Record<'active' | 'disabled', TextStyle>;
 
@@ -87,6 +94,7 @@ export const ghostButton = {
   },
   disabled: {
     backgroundColor: 'transparent',
+    opacity: 0.68,
   },
 } satisfies Record<'base' | 'disabled', ViewStyle>;
 
@@ -99,8 +107,7 @@ export const ghostButtonText = {
     letterSpacing: 0.2,
   },
   disabled: {
-    color: colors.buttonPrimaryDisabled,
-    opacity: 0.75,
+    color: colors.buttonPrimary,
   },
 } satisfies Record<'active' | 'disabled', TextStyle>;
 
@@ -117,17 +124,19 @@ export const primaryIconButton = {
   active: {
     backgroundColor: colors.buttonPrimary90,
     borderColor: colors.buttonEdge,
-    shadowColor: colors.buttonGlow,
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    shadowColor: colors.buttonPrimary,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+    opacity: 1,
   },
   inactive: {
-    backgroundColor: colors.buttonPrimaryDisabledLight,
-    borderColor: colors.buttonPrimaryDisabledBorder,
+    backgroundColor: colors.buttonPrimary90,
+    borderColor: colors.buttonEdge,
     shadowOpacity: 0,
     elevation: 0,
+    opacity: 0.68,
   },
 } satisfies Record<'base' | 'active' | 'inactive', ViewStyle>;
 

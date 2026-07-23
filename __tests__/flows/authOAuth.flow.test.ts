@@ -6,6 +6,7 @@ import {
   AUTH_OAUTH_PROVIDERS,
   getAuthOAuthProviderLabel,
   isNewOAuthUser,
+  parseAuthCallbackParams,
   parseAuthSessionTokens,
   resolveAuthOAuthProviderFromUser,
 } from '../../src/utils/authOAuth';
@@ -41,6 +42,17 @@ describe('auth OAuth flow utilities', () => {
     expect(
       parseAuthSessionTokens('oneiros-dream-journal://auth/callback?access_token=atok2&refresh_token=rtok2')
     ).toEqual({ accessToken: 'atok2', refreshToken: 'rtok2' });
+  });
+
+  it('parses PKCE authorization codes from OAuth callbacks', () => {
+    expect(
+      parseAuthCallbackParams('oneiros-dream-journal://auth/callback?code=abc123&state=xyz')
+    ).toMatchObject({
+      code: 'abc123',
+      accessToken: null,
+      refreshToken: null,
+      error: null,
+    });
   });
 
   it('decodes regex fallback tokens with plus-encoded spaces', () => {

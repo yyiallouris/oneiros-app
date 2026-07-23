@@ -878,6 +878,7 @@ type IconProps = {
                           title="Update reflection"
                           onPress={handleUpdateInterpretation}
                           variant="secondary"
+                          size="compact"
                           style={[styles.conversationButton, styles.updateButton]}
                         />
                       </>
@@ -905,6 +906,7 @@ type IconProps = {
                         animateChatOpen();
                       }}
                       variant="secondary"
+                      size="compact"
                       style={styles.conversationButton}
                     />
                   </View>
@@ -927,6 +929,7 @@ type IconProps = {
                     onPress={() => {
                       setTimeout(() => handleAskAI(), 850);
                     }}
+                    size="compact"
                     style={styles.askButton}
                   />
                 </View>
@@ -1384,16 +1387,7 @@ type IconProps = {
     conversationButton: {
       alignSelf: 'center',
       width: '92%',
-      minHeight: 48,
-      borderRadius: 18,
-      paddingVertical: spacing.sm,
       marginTop: spacing.sm,
-      borderWidth: 1,
-      shadowColor: colors.buttonGlow,
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 3 },
-      elevation: 2,
     },
     actionButtonsContainer: {
       flexDirection: 'column',
@@ -1422,13 +1416,6 @@ type IconProps = {
     askButton: {
       alignSelf: 'center',
       width: '92%',
-      minHeight: 48,
-      borderRadius: 18,
-      paddingVertical: spacing.sm,
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 3 },
-      elevation: 2,
     },
     loadingPanel: {
       width: '100%',

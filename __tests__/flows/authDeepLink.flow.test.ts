@@ -23,6 +23,8 @@ jest.mock('expo-auth-session/build/QueryParams', () => ({
 
 const mockVerifyOtp = jest.fn<any, any>();
 const mockSetSession = jest.fn<any, any>();
+const mockExchangeCodeForSession = jest.fn<any, any>();
+const mockGetSession = jest.fn<any, any>(() => Promise.resolve({ data: { session: null }, error: null }));
 const mockGetUser = jest.fn<Promise<{ data: { user: any }; error: null }>, []>(() =>
   Promise.resolve({ data: { user: null }, error: null })
 );
@@ -32,6 +34,8 @@ jest.mock('../../src/services/supabaseClient', () => ({
     auth: {
       verifyOtp: (payload: any) => mockVerifyOtp(payload),
       setSession: (payload: any) => mockSetSession(payload),
+      exchangeCodeForSession: (code: string) => mockExchangeCodeForSession(code),
+      getSession: () => mockGetSession(),
       getUser: () => mockGetUser(),
     },
   },
@@ -51,6 +55,9 @@ describe('authDeepLink flow', () => {
   beforeEach(() => {
     mockVerifyOtp.mockReset();
     mockSetSession.mockReset();
+    mockExchangeCodeForSession.mockReset();
+    mockGetSession.mockReset();
+    mockGetSession.mockImplementation(() => Promise.resolve({ data: { session: null }, error: null }));
     mockGetUser.mockReset();
     mockGetUser.mockImplementation(() => Promise.resolve({ data: { user: null }, error: null }));
     (AsyncStorage as any).clear?.();
@@ -146,23 +153,167 @@ describe('authDeepLink flow', () => {
       expect(await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY)).toBe('true');
     });
 
-    it('setSession path: non-recovery clears pending reset concern via success', async () => {
-      mockSetSession.mockResolvedValue({ error: null });
-      mockGetUser.mockImplementation(() =>
-        Promise.resolve({
+    it('setSession path: non-recovery uses setSession user (no getUser)', async () => {
+      mockSetSession.mockResolvedValue({
         data: {
           user: {
             identities: [{ provider: 'discord' }],
             created_at: new Date(Date.now() - 120_000).toISOString(),
           },
+          session: { access_token: 'a2', refresh_token: 'r2' },
         },
         error: null,
-        })
-      );
+      });
       const url =
         'oneiros-dream-journal://auth#access_token=a2&refresh_token=r2';
       const result = await processAuthDeepLink(url);
       expect(result).toMatchObject({ handled: true, isOAuth: true, isNewUser: false, provider: 'discord' });
+      expect(mockGetUser).not.toHaveBeenCalled();
+    });
+
+    it('exchanges PKCE authorization code for a session', async () => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: {
+          user: {
+            identities: [{ provider: 'google' }],
+            created_at: new Date().toISOString(),
+          },
+          session: { access_token: 'a', refresh_token: 'r' },
+        },
+        error: null,
+      });
+      const url = 'oneiros-dream-journal://auth/callback?code=oauth-code-1';
+      const result = await processAuthDeepLink(url);
+      expect(mockExchangeCodeForSession).toHaveBeenCalledWith('oauth-code-1');
+      expect(result).toMatchObject({
+        handled: true,
+        isOAuth: true,
+        isNewUser: true,
+        provider: 'google',
+      });
+      expect(mockGetUser).not.toHaveBeenCalled();
+    });
+
+    it('treats already-exchanged PKCE codes as success when a session exists', async () => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: { user: null, session: null },
+        error: { message: 'invalid request: both auth code and code verifier should be non-empty' },
+      });
+      mockGetSession.mockResolvedValue({
+        data: {
+          session: {
+            access_token: 'a',
+            refresh_token: 'r',
+            user: {
+              identities: [{ provider: 'google' }],
+              created_at: new Date(Date.now() - 120_000).toISOString(),
+            },
+          },
+        },
+        error: null,
+      });
+      const url = 'oneiros-dream-journal://auth/callback?code=oauth-code-2';
+      const result = await processAuthDeepLink(url);
+      expect(result).toMatchObject({ handled: true, isOAuth: true, provider: 'google', isNewUser: false });
+      expect(mockGetUser).not.toHaveBeenCalled();
+    });
+
+    it('PKCE recovery path sets pending reset before exchange and routes to SetPassword', async () => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: {
+          user: {
+            identities: [{ provider: 'email' }],
+            created_at: new Date(Date.now() - 120_000).toISOString(),
+          },
+          session: { access_token: 'a', refresh_token: 'r' },
+        },
+        error: null,
+      });
+
+      const url = 'oneiros-dream-journal://auth/recovery?code=recovery-code-1';
+      const result = await processAuthDeepLink(url);
+
+      expect(mockExchangeCodeForSession).toHaveBeenCalledWith('recovery-code-1');
+      expect(result).toEqual({ handled: true, isRecovery: true });
+      expect(await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY)).toBe('true');
+    });
+
+    it('PKCE recovery type param remains backward compatible for old reset links', async () => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: {
+          user: {
+            identities: [{ provider: 'email' }],
+            created_at: new Date(Date.now() - 120_000).toISOString(),
+          },
+          session: { access_token: 'a', refresh_token: 'r' },
+        },
+        error: null,
+      });
+
+      const url = 'oneiros-dream-journal://auth/confirm?code=recovery-code-2&type=recovery';
+      const result = await processAuthDeepLink(url);
+
+      expect(mockExchangeCodeForSession).toHaveBeenCalledWith('recovery-code-2');
+      expect(result).toEqual({ handled: true, isRecovery: true });
+      expect(await AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY)).toBe('true');
+    });
+
+    it('serializes concurrent PKCE exchanges for the same callback URL', async () => {
+      let resolveExchange: ((value: unknown) => void) | undefined;
+      mockExchangeCodeForSession.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveExchange = resolve;
+          })
+      );
+
+      const url = 'oneiros-dream-journal://auth/callback?code=oauth-code-race';
+      const first = processAuthDeepLink(url);
+      const second = processAuthDeepLink(url);
+
+      expect(mockExchangeCodeForSession).toHaveBeenCalledTimes(1);
+
+      resolveExchange!({
+        data: {
+          user: {
+            identities: [{ provider: 'google' }],
+            created_at: new Date().toISOString(),
+          },
+          session: { access_token: 'a', refresh_token: 'r' },
+        },
+        error: null,
+      });
+
+      await expect(Promise.all([first, second])).resolves.toEqual([
+        expect.objectContaining({ handled: true, isOAuth: true, provider: 'google' }),
+        expect.objectContaining({ handled: true, isOAuth: true, provider: 'google' }),
+      ]);
+      expect(mockExchangeCodeForSession).toHaveBeenCalledTimes(1);
+    });
+
+    it('times out a hanging PKCE exchange instead of leaving OAuth loading forever', async () => {
+      jest.useFakeTimers();
+      try {
+        let resolveExchange: ((value: unknown) => void) | undefined;
+        mockExchangeCodeForSession.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveExchange = resolve;
+            })
+        );
+
+        const resultPromise = processAuthDeepLink('oneiros-dream-journal://auth/callback?code=oauth-code-hangs');
+        await jest.advanceTimersByTimeAsync(15_000);
+
+        await expect(resultPromise).resolves.toMatchObject({
+          handled: false,
+          error: expect.stringContaining('timed out'),
+        });
+        expect(mockExchangeCodeForSession).toHaveBeenCalledTimes(1);
+        resolveExchange?.({ data: { user: null, session: null }, error: null });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 });

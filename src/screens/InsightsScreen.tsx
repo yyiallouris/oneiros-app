@@ -376,7 +376,6 @@ const InsightsScreen: React.FC = () => {
                   disabled={!hasEnoughRecentDreams}
                   size="compact"
                   style={styles.recentGenerateButton}
-                  textStyle={styles.recentGenerateText}
                 />
               )}
             </View>
@@ -710,15 +709,9 @@ const styles = StyleSheet.create({
   },
   recentGenerateButton: {
     flex: 1,
-    borderRadius: borderRadius.md,
   },
   recentGenerateButtonLocked: {
     opacity: 0.96,
-  },
-  recentGenerateText: {
-    fontSize: typography.sizes.sm,
-    color: colors.onAccent,
-    fontWeight: typography.weights.semibold,
   },
   recentCacheRow: {
     marginTop: spacing.sm,

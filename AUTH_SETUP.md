@@ -17,10 +17,11 @@ This app uses Supabase Auth with **email/password**, **Sign in with Apple on iOS
 1. Go to **Authentication** → **URL Configuration**.
 2. Under **Redirect URLs**, add:
    - `oneiros-dream-journal://auth/confirm`
+   - `oneiros-dream-journal://auth/recovery`
    - `oneiros-dream-journal://auth/callback`
 3. Save.
 
-The confirm URL is used when the user taps the “Confirm your email” or reset-password link. The callback URL is used after Google or Discord OAuth completes.
+The confirm URL is used when the user taps the “Confirm your email” link. The recovery URL is used by forgot-password links. The callback URL is used after Google or Discord OAuth completes.
 
 ### 3. Enable Sign in with Apple, Google, and Discord providers
 
@@ -30,7 +31,13 @@ The confirm URL is used when the user taps the “Confirm your email” or reset
 4. Enable **Discord** and enter the Discord OAuth client credentials.
 5. In each external provider console, allow the Supabase callback URL shown in the Supabase provider panel. It usually looks like:
    - `https://<project-ref>.supabase.co/auth/v1/callback`
-6. In Supabase, keep `oneiros-dream-journal://auth/callback` in **Redirect URLs** so Supabase can send completed browser OAuth sessions back to the app.
+6. In Supabase, keep these in **Redirect URLs** so completed browser OAuth returns into the app:
+   - `oneiros-dream-journal://auth/callback`
+   - `oneiros-dream-journal://auth/confirm`
+   - `oneiros-dream-journal://auth/recovery`
+   - If you test in **Expo Go**, also add the Expo auth proxy URI printed by `AuthSession.makeRedirectUri` in the Metro logs (often `https://auth.expo.io/@…/…`).
+
+The app uses **PKCE** for Google/Discord (`exchangeCodeForSession` on `?code=`). A blank in-app browser page after Google consent usually means the redirect URL is missing from Supabase Redirect URLs, or an older build that only looked for `#access_token` and never exchanged the PKCE code.
 
 The iOS Apple button uses native Apple credentials and sends the Apple identity token to Supabase with `signInWithIdToken`, so it still requires the Apple provider to be enabled in Supabase even though it does not open the browser OAuth flow.
 
@@ -69,8 +76,9 @@ No code changes are required for (3); the app already has the verification scree
 For “Forgot password” to work, the reset email must contain a clickable link that opens the app.
 
 1. **Redirect URL**  
-   The same redirect URL is used. In **Authentication** → **URL Configuration** → **Redirect URLs**, ensure you have:
-   - `oneiros-dream-journal://auth/confirm`  
+   The recovery redirect URL is used. In **Authentication** → **URL Configuration** → **Redirect URLs**, ensure you have:
+   - `oneiros-dream-journal://auth/recovery`
+   - `oneiros-dream-journal://auth/confirm` for older reset links that may already be in inboxes
    (If you added it in step 2, you’re done.)
 
 2. **Reset Password email template**  
@@ -85,4 +93,4 @@ For “Forgot password” to work, the reset email must contain a clickable link
    ```
    If you customize the template, do **not** remove `{{ .ConfirmationURL }}` — that is the link Supabase generates. Without it, the user gets an email with no link.
 
-After this, the flow is: user taps “Forgot password” → enters email → receives email with link → taps link → app opens and shows the “Set new password” screen.
+After this, the flow is: user taps “Forgot password” → enters email → receives email with link → taps link → app opens through `oneiros-dream-journal://auth/recovery` and shows the “Set new password” screen.

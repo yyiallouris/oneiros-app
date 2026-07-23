@@ -64,7 +64,7 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 
 ## Automated tests today
 
-- `e2e/login.e2e.ts` — Detox: auth screen visible, Sign in / Continue with Google / Continue with Discord labels. Apple sign-in still needs physical iPhone/TestFlight validation.
+- `e2e/login.e2e.ts` — Detox: auth screen visible, Sign in, and social provider buttons by accessibility label / testID. Apple sign-in still needs physical iPhone/TestFlight validation.
 - `__tests__/` — unit tests for AI client and Supabase helper; expand e2e as product stabilizes.
 
 ## Deep links (manual)

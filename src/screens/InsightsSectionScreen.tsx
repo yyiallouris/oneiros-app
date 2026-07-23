@@ -16,7 +16,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
-import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground } from '../components/ui';
+import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground, Button } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ArchetypalEnergiesIcon,
@@ -1047,17 +1047,13 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               )}
 
               {!patternInsightGenerating && (
-              <TouchableOpacity
-                style={[
-                  styles.patternGenerateRow,
-                  (!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)] || !hasPaidAccess)
-                    && styles.patternGenerateRowDisabled,
-                ]}
+              hasPaidAccess ? (
+              <Button
+                title="Generate reflection"
+                size="compact"
+                style={styles.patternGenerateButton}
+                disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]}
                 onPress={async () => {
-                  if (!hasPaidAccess) {
-                    setUpsellVisible(true);
-                    return;
-                  }
                   const online = await isOnline();
                   if (!online) {
                     Alert.alert(
@@ -1130,11 +1126,16 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                     setPatternInsightGenerating(false);
                   }
                 }}
-                disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]}
-                activeOpacity={0.8}
+              />
+              ) : (
+              <TouchableOpacity
+                style={styles.patternGenerateRow}
+                onPress={() => setUpsellVisible(true)}
+                activeOpacity={0.7}
               >
-                <Text style={styles.patternGenerateLabel}>{hasPaidAccess ? 'Generate reflection' : 'Unlock Premium'}</Text>
+                <Text style={styles.patternGenerateLabel}>Unlock Premium</Text>
               </TouchableOpacity>
+              )
               )}
             </View>
 
@@ -1653,8 +1654,9 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-  patternGenerateRowDisabled: {
-    opacity: 0.45,
+  patternGenerateButton: {
+    marginTop: spacing.sm,
+    alignSelf: 'stretch',
   },
   patternGenerateLabel: {
     fontSize: typography.sizes.md,

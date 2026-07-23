@@ -9,8 +9,14 @@
    - `StorageService.initialize()` runs (user change detection, local clear if user switched).
    - Cold-start auth deep links are polled (`Linking.getInitialURL` with retries) for `oneiros-dream-journal://` and processed via `processAuthDeepLink`.
 5. `supabase.auth.getSession()` sets initial session.
-6. If session exists: load `PENDING_PASSWORD_RESET_KEY`, sync biometric preference from remote, load onboarding completion for current user.
-7. User lands on the appropriate root (see `documentation/README.md` gating table).
+6. If session exists: load local route-critical flags only (`PENDING_PASSWORD_RESET_KEY`, local biometric preference, onboarding/legal). Remote biometric sync runs in the background and must never block the route gate.
+7. While that local route state resolves, RootNavigator shows branded `LoadingScreen` (never a blank paper view).
+8. User lands on the appropriate root (see `documentation/README.md` gating table).
+
+## Navigator route boundary
+
+- **No session (public):** `Auth`, `LoginSupport`, `Privacy` only.
+- **With session:** gate screens (`SetPassword` / `BiometricLock` / `LegalConsent` / `Onboarding` / `MainTabs`) plus authenticated stack screens (`DreamDetail`, `Account`, etc.). Authenticated screens are not registered while signed out.
 
 ## Session while offline (regression-critical)
 
@@ -25,7 +31,9 @@
 ## Deep link on cold start
 
 - Scheme: `oneiros-dream-journal://`.
-- Handled paths include: `token_hash` + `type` (OTP verify), or `access_token` + `refresh_token` (OAuth / post-verify), including `type=recovery` for password reset flows.
+- **Owner:** RootNavigator polls `Linking.getInitialURL` (with retries) and runs `processAuthDeepLink`. Once a concrete app-scheme initial URL is found, it is processed once, then RootNavigator proceeds to session resolution so a stale or slow one-time OAuth code cannot keep startup loading indefinitely. AuthScreen does **not** process cold-start initial URLs; it only listens for live `Linking` `url` events while mounted.
+- Handled paths include: `token_hash` + `type` (OTP verify), PKCE `code` (`exchangeCodeForSession`), or `access_token` + `refresh_token` (OAuth / post-verify). Password reset links use `oneiros-dream-journal://auth/recovery` and also remain compatible with older `type=recovery` links.
+- Deep-link auth steps have a bounded timeout (~15s) and return a handled error instead of leaving the app on the loading screen forever.
 - See [flows-02-authentication.md](./flows-02-authentication.md).
 
 ## Regression ideas
@@ -33,3 +41,4 @@
 - Kill app → reopen: session restored when online; offline should not force logout.
 - Cold start with valid auth URL in clipboard / initial URL: session or recovery state applied.
 - Background app with biometric on → foreground: lock screen appears.
+- After OAuth/session start, hanging remote biometric sync still shows branded `LoadingScreen` briefly then routes from local flags (never blank / never stuck).

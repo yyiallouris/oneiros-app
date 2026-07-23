@@ -12,6 +12,7 @@ export { MysticHeader } from './MysticHeader';
 export { LoadingScreen } from './LoadingScreen';
 export { CircularCalendar } from './CircularCalendar';
 export { VoiceRecordButton } from './VoiceRecordButton';
+export { SocialAuthProviderRow } from './SocialAuthProviderRow';
 export { BreathingLine } from './BreathingLine';
 export { ThreadDrift } from './ThreadDrift';
 export { StarsAppearing } from './StarsAppearing';

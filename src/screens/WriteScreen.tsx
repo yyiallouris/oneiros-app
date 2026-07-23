@@ -35,7 +35,6 @@ const writePalette = {
   mutedViolet: colors.textAccent,
   border: colors.border,
   surface: colors.cardGlass,
-  button: colors.buttonPrimary,
 } as const;
 
 const WriteScreen: React.FC = () => {
@@ -285,8 +284,7 @@ const WriteScreen: React.FC = () => {
               onPress={handleSaveDream}
               disabled={isSaveInactive}
               size="compact"
-              style={[styles.saveButton, isSaveInactive && styles.saveButtonDisabled]}
-              textStyle={styles.saveButtonText}
+              style={styles.saveButton}
             />
           </ActionLoadingSlot>
         </View>
@@ -483,21 +481,6 @@ const styles = StyleSheet.create({
   saveButton: {
     alignSelf: 'center',
     width: '92%',
-    minHeight: 46,
-    borderRadius: 18,
-    backgroundColor: colors.buttonPrimary90,
-    borderColor: colors.buttonEdge,
-    shadowColor: writePalette.button,
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  saveButtonDisabled: {
-    opacity: 0.68,
-  },
-  saveButtonText: {
-    color: colors.onAccent,
   },
   secondaryButton: {
     marginTop: spacing.sm,

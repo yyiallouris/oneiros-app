@@ -73,6 +73,13 @@ jest.mock('../../src/screens/JournalFilterScreen', () => () => null);
 jest.mock('../../src/components/DevOfflineToggle', () => ({
   DevOfflineToggle: () => null,
 }));
+jest.mock('../../src/components/ui/LoadingScreen', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    LoadingScreen: () => <Text>route-loading</Text>,
+  };
+});
 
 jest.mock('../../src/services/supabaseClient', () => ({
   supabase: {
@@ -321,6 +328,7 @@ describe('RootNavigator offline flow', () => {
       const loginPromise = authStateChangeHandler?.('SIGNED_IN', session);
       await flushMicrotasks();
 
+      // While route flags resolve, never flash LegalConsent/MainTabs.
       expect(view.queryByText('screen:LegalConsent')).toBeNull();
       expect(view.queryByText('screen:MainTabs')).toBeNull();
 
@@ -344,6 +352,7 @@ describe('RootNavigator offline flow', () => {
 
     await drainAsyncWork();
 
+    expect(view.queryByText('route-loading')).toBeTruthy();
     expect(view.queryByText('screen:LegalConsent')).toBeNull();
     expect(view.queryByText('screen:MainTabs')).toBeNull();
 
@@ -357,5 +366,45 @@ describe('RootNavigator offline flow', () => {
       expect(view.queryByText('screen:LegalConsent')).toBeNull();
       expect(view.getByText('screen:MainTabs')).toBeTruthy();
     });
+  });
+
+  it('shows branded LoadingScreen then routes when biometric remote sync hangs after session start', async () => {
+    const localBiometric = deferred<boolean>();
+    const hangingRemoteSync = deferred<boolean>();
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+    mockIsBiometricEnabled.mockReturnValue(localBiometric.promise);
+    mockSyncBiometricFromRemote.mockReturnValue(hangingRemoteSync.promise);
+
+    const view = render(<RootNavigator />);
+    unmountCurrent = view.unmount;
+    await drainAsyncWork();
+
+    expect(view.queryByText('screen:Auth')).toBeTruthy();
+
+    await act(async () => {
+      void authStateChangeHandler?.('SIGNED_IN', session);
+      await flushMicrotasks();
+    });
+
+    // Local gate still resolving → branded loading, not blank / not MainTabs yet.
+    await waitFor(() => {
+      expect(view.queryByText('route-loading')).toBeTruthy();
+    });
+    expect(view.queryByText('screen:MainTabs')).toBeNull();
+    expect(view.queryByText('screen:LegalConsent')).toBeNull();
+
+    await act(async () => {
+      localBiometric.resolve(false);
+      await flushMicrotasks();
+    });
+    await drainAsyncWork();
+
+    // Local gate finished; remote biometric sync is still hanging and must not block routing.
+    await waitFor(() => {
+      expect(view.queryByText('route-loading')).toBeNull();
+      expect(view.getByText('screen:MainTabs')).toBeTruthy();
+    });
+    expect(mockIsBiometricEnabled).toHaveBeenCalled();
+    expect(mockSyncBiometricFromRemote).toHaveBeenCalled();
   });
 });
