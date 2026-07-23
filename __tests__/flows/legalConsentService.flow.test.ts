@@ -10,7 +10,11 @@ jest.mock('../../src/services/userService', () => ({
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LEGAL_CONSENT_VERSION } from '../../src/constants/legal';
-import { hasAcceptedLegalConsent, setLegalConsentAccepted } from '../../src/services/legalConsentService';
+import {
+  hasAcceptedLegalConsent,
+  hasAcceptedLegalConsentForUser,
+  setLegalConsentAccepted,
+} from '../../src/services/legalConsentService';
 import { UserService } from '../../src/services/userService';
 
 const uid = UserService.getCurrentUserId as jest.Mock;
@@ -58,5 +62,16 @@ describe('legalConsentService flow', () => {
     uid.mockResolvedValue(null);
     sid.mockResolvedValue('offline-user');
     await expect(hasAcceptedLegalConsent()).resolves.toBe(true);
+  });
+
+  it('reads by known session user id without re-entering the auth service', async () => {
+    await AsyncStorage.setItem(
+      '@legal_consent_known-user',
+      JSON.stringify({ version: LEGAL_CONSENT_VERSION })
+    );
+
+    await expect(hasAcceptedLegalConsentForUser('known-user')).resolves.toBe(true);
+    expect(uid).not.toHaveBeenCalled();
+    expect(sid).not.toHaveBeenCalled();
   });
 });

@@ -9,7 +9,7 @@
    - `StorageService.initialize()` runs (user change detection, local clear if user switched).
    - Cold-start auth deep links are polled (`Linking.getInitialURL` with retries) for `oneiros-dream-journal://` and processed via `processAuthDeepLink`.
 5. `supabase.auth.getSession()` sets initial session.
-6. If session exists: load local route-critical flags only (`PENDING_PASSWORD_RESET_KEY`, local biometric preference, onboarding/legal). Remote biometric sync runs in the background and must never block the route gate.
+6. If session exists: load local route-critical flags only (`PENDING_PASSWORD_RESET_KEY`, local biometric preference, onboarding/legal). The gate receives the known `session.user.id` directly, so it does not call `supabase.auth.getSession()` again while handling an auth event. Remote biometric sync runs in the background and must never block the route gate.
 7. While that local route state resolves, RootNavigator shows branded `LoadingScreen` (never a blank paper view).
 8. User lands on the appropriate root (see `documentation/README.md` gating table).
 
@@ -22,6 +22,7 @@
 
 - On `onAuthStateChange`, if Supabase reports **no session** but there was a **previous session**, the app calls `isOnline()`.
 - **If offline:** the previous session is **preserved** in React state (avoids kicking the user to login when token refresh fails without network — Supabase/auth-js behavior).
+- The Supabase auth subscriber itself is synchronous and returns immediately. Route resolution runs without returning its Promise to `onAuthStateChange`; subscription refresh is deferred to a later tick. This prevents the exclusive auth-lock deadlock where PKCE waits for a subscriber that calls `getSession()`.
 
 ## App background / foreground — biometric re-lock
 
@@ -42,3 +43,4 @@
 - Cold start with valid auth URL in clipboard / initial URL: session or recovery state applied.
 - Background app with biometric on → foreground: lock screen appears.
 - After OAuth/session start, hanging remote biometric sync still shows branded `LoadingScreen` briefly then routes from local flags (never blank / never stuck).
+- During `SIGNED_IN`, the auth-state callback must return `undefined` immediately even if onboarding/legal reads are still pending.

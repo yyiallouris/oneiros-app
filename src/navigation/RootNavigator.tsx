@@ -16,7 +16,7 @@ import { isBiometricEnabled, syncBiometricFromRemote } from '../services/biometr
 import AccountScreen from '../screens/AccountScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
 import OnboardingNavigator from './OnboardingNavigator';
-import { hasCompletedOnboarding } from '../services/onboardingService';
+import { hasCompletedOnboardingForUser } from '../services/onboardingService';
 import { PENDING_PASSWORD_RESET_KEY } from '../constants/auth';
 import ContactScreen from '../screens/ContactScreen';
 import PrivacyScreen from '../screens/PrivacyScreen';
@@ -39,7 +39,7 @@ import { voiceTranscriptionQueueService } from '../services/voiceTranscriptionQu
 import { onNetworkStateChange, isOnline } from '../utils/network';
 import { DevOfflineToggle } from '../components/DevOfflineToggle';
 import { processAuthDeepLink, redactAuthUrl } from '../utils/authDeepLink';
-import { hasAcceptedLegalConsent } from '../services/legalConsentService';
+import { hasAcceptedLegalConsentForUser } from '../services/legalConsentService';
 import {
   DESIGN_EXPORT_INITIAL_ONBOARDING_ROUTE,
   DESIGN_EXPORT_INITIAL_ROUTE,
@@ -352,16 +352,17 @@ export const RootNavigator: React.FC = () => {
   useEffect(() => {
     let mounted = true;
 
-    const resolveAuthenticatedRouteState = async (): Promise<AuthenticatedRouteState> => {
+    const resolveAuthenticatedRouteState = async (userId: string): Promise<AuthenticatedRouteState> => {
       // Route gate uses local/session-critical flags only. Remote biometric sync must not
-      // block post-OAuth navigation (hanging user_settings reads caused blank-page UX).
+      // block post-OAuth navigation. The known user ID also avoids re-entering the
+      // Supabase auth lock from an auth-state notification.
       const [pending, lockEnabled, completed, legalAccepted] = await Promise.all([
         AsyncStorage.getItem(PENDING_PASSWORD_RESET_KEY)
           .then((value) => value === 'true')
           .catch(() => false),
         isBiometricEnabled().catch(() => false),
-        hasCompletedOnboarding().catch(() => false),
-        hasAcceptedLegalConsent().catch(() => false),
+        hasCompletedOnboardingForUser(userId).catch(() => false),
+        hasAcceptedLegalConsentForUser(userId).catch(() => false),
       ]);
 
       return {
@@ -421,7 +422,7 @@ export const RootNavigator: React.FC = () => {
         previousSessionRef.current = data.session;
         if (data.session) {
           const requestId = ++routeStateRequestRef.current;
-          const routeState = await resolveAuthenticatedRouteState();
+          const routeState = await resolveAuthenticatedRouteState(data.session.user.id);
           if (!mounted || requestId !== routeStateRequestRef.current) return;
           applyAuthenticatedRouteState(routeState);
           refreshBiometricFromRemoteInBackground();
@@ -437,9 +438,7 @@ export const RootNavigator: React.FC = () => {
 
     init();
 
-    const {
-      data: { subscription },
-    } =     supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const handleAuthStateChange = async (event: string, newSession: Session | null) => {
       const previousSession = previousSessionRef.current;
       const userChanged = !!previousSession && !!newSession && previousSession.user.id !== newSession.user.id;
       const sessionStarted = !previousSession && !!newSession;
@@ -468,7 +467,7 @@ export const RootNavigator: React.FC = () => {
           setSession(newSession);
         }
 
-        const routeState = await resolveAuthenticatedRouteState();
+        const routeState = await resolveAuthenticatedRouteState(newSession.user.id);
         if (!mounted || requestId !== routeStateRequestRef.current) return;
         applyAuthenticatedRouteState(routeState);
         refreshBiometricFromRemoteInBackground();
@@ -572,6 +571,17 @@ export const RootNavigator: React.FC = () => {
           }
         })();
       }
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // Supabase invokes subscribers while holding its exclusive auth lock. Returning
+      // this async work would deadlock PKCE exchange when route checks touch auth state.
+      void handleAuthStateChange(event, newSession).catch((error) => {
+        console.error('[RootNavigator] Auth state handling failed:', error);
+        if (mounted) setIsLoading(false);
+      });
     });
 
     return () => {

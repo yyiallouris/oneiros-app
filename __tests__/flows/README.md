@@ -6,7 +6,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 |-----------|----------------|
 | `authDeepLink.flow.test.ts` | flows-02 (deep links, recovery, OAuth URL handling) |
 | `authOAuth.flow.test.ts` | flows-02 (Apple/Google/Discord provider config, OAuth token parsing, new-user detection) |
-| `rootNavigator.offline.flow.test.tsx` | flows-01 / flows-05 (session preserve offline, reconnect sync, LoadingScreen gate, hanging biometric remote sync) |
+| `rootNavigator.offline.flow.test.tsx` | flows-01 / flows-02 / flows-05 (synchronous auth-state callback, per-session local route gate, offline session preservation, reconnect sync, LoadingScreen gate) |
 | `onboardingService.flow.test.ts` | flows-03 (per-user onboarding flag) |
 | `onboardingSubscription.flow.test.tsx` | flows-03 / flows-10 (plan selection step, free continuation, premium purchase entry) |
 | `subscriptionSurface.flow.test.tsx` | flows-03 / flows-10 (dedicated Subscription destination, Account entry row, premium-first compare surface) |

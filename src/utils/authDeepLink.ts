@@ -236,12 +236,13 @@ async function processAuthDeepLinkInner(url: string): Promise<ProcessAuthDeepLin
   const code = callback.code ?? params.code ?? getParam(url, 'code');
   if (code) {
     const isRecovery = isPasswordRecoveryUrl(url);
+    const exchangeStep = isRecovery ? 'Password reset' : 'Social sign-in';
     if (isRecovery) await markPendingPasswordReset();
     logEvent('auth_deeplink_received', { hasCode: true, flow: 'pkce', isRecovery });
     try {
       const { data, error } = await withAuthStepTimeout(
         supabase.auth.exchangeCodeForSession(code),
-        'Google sign-in'
+        exchangeStep
       );
       if (error) {
         const { data: sessionData } = await supabase.auth.getSession();

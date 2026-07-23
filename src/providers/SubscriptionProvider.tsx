@@ -145,8 +145,15 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   useEffect(() => {
     refreshStatus().catch(() => undefined);
+    let authRefreshTimer: ReturnType<typeof setTimeout> | null = null;
     const { data: subscription } = supabase.auth.onAuthStateChange(() => {
-      refreshStatus().catch(() => undefined);
+      // Auth subscribers run under Supabase's exclusive auth lock. Defer getSession
+      // until after the callback returns to avoid blocking PKCE/session completion.
+      if (authRefreshTimer) clearTimeout(authRefreshTimer);
+      authRefreshTimer = setTimeout(() => {
+        authRefreshTimer = null;
+        refreshStatus().catch(() => undefined);
+      }, 0);
     });
 
     const appStateSubscription = AppState.addEventListener('change', (nextState) => {
@@ -156,6 +163,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     });
 
     return () => {
+      if (authRefreshTimer) clearTimeout(authRefreshTimer);
       subscription.subscription.unsubscribe();
       appStateSubscription.remove();
     };

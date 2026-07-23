@@ -184,7 +184,7 @@ Production Android config expectations:
 - `production.android.buildType`: `app-bundle` in `eas.json`.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
 - Microphone permission copy describes optional dream voice journaling and transcription.
-- Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm` and `oneiros-dream-journal://auth/callback`.
+- Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 
 Before Google Play review, complete these manual steps:
 
@@ -236,7 +236,7 @@ Before TestFlight/App Review, complete these manual steps:
 - App Store Connect app record, category, support URL (`https://oneirosjournal.com/support`), Privacy Policy URL, Terms URL, age rating, and screenshots. Because `ios.supportsTablet` is true, prepare iPad screenshots or disable tablet support before release.
 - App Privacy nutrition labels for account data, dream/user content, voice audio/transcription, support messages, diagnostics if collected, and AI subprocessors.
 - Export compliance answers consistent with `ITSAppUsesNonExemptEncryption: false`.
-- Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm` and `oneiros-dream-journal://auth/callback`.
+- Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 - Supabase providers are configured for Apple, Google, and Discord.
 - Changed AI functions are deployed before production builds:
   ```bash

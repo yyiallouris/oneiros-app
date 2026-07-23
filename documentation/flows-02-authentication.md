@@ -51,7 +51,7 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 6. If the browser dismisses early, the app polls briefly for a session before showing “cancelled”.
 7. **New vs returning** social user: `isNewOAuthUser` (created_at within ~60s, single identity). New users skip the welcome modal and go straight into LegalConsent/Onboarding; returning users may see a short “Welcome back” alert (deduped). Provider/new-user metadata prefers the user returned from `setSession` / `exchangeCodeForSession` (or local `getSession`); it does not wait on network `getUser()`.
 8. Provider-specific cancel/error copy uses the selected provider label. Loading copy shows `Continuing with {Provider}…`.
-9. After session start, RootNavigator shows branded `LoadingScreen` while resolving **local** biometric/onboarding/legal flags. Remote biometric preference sync runs in the background and must not block routing. The previous blank `routeLoading` view is what looked like an “empty Oneiros page” after Google OAuth.
+9. After session start, RootNavigator shows branded `LoadingScreen` while resolving **local** biometric/onboarding/legal flags. It passes `session.user.id` into those reads and never re-enters `supabase.auth.getSession()` from the auth-state notification. The `onAuthStateChange` subscriber returns synchronously; all Supabase-dependent follow-up work is deferred until after the auth lock is released. Remote biometric preference sync runs in the background and must not block routing.
 
 ## Deep link error URLs
 
@@ -65,7 +65,7 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 ## Timeouts & errors
 
 - Auth requests race a ~25s timeout → user-facing connection message.
-- Deep-link auth steps (`verifyOtp`, `setSession`, PKCE `exchangeCodeForSession`) race a shorter timeout (~15s) so provider callbacks cannot leave the app on the branded loading screen indefinitely.
+- Deep-link auth steps (`verifyOtp`, `setSession`, PKCE `exchangeCodeForSession`) race a shorter timeout (~15s) so provider callbacks cannot leave the app on the branded loading screen indefinitely. PKCE timeout copy is flow-specific (`Social sign-in` or `Password reset`), never hardcoded to Google for recovery links.
 - Invalid credentials vs network errors → different copy.
 
 ## Regression checklist (auth)
@@ -75,4 +75,5 @@ All auth UI lives in `AuthScreen` unless noted. Backend: Supabase Auth.
 - Forgot password → link expired / wrong → error path.
 - Apple cancel vs success on iOS.
 - Google / Discord cancel vs success vs “dismiss but session from deep link”.
+- Google and recovery PKCE `/auth/v1/token` succeeds, auth subscriber returns immediately, and the app leaves `LoadingScreen`.
 - Set password: mismatch, too short, network timeout (`SetPasswordScreen` has ~15s timeout).

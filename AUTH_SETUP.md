@@ -37,7 +37,7 @@ The confirm URL is used when the user taps the “Confirm your email” link. Th
    - `oneiros-dream-journal://auth/recovery`
    - If you test in **Expo Go**, also add the Expo auth proxy URI printed by `AuthSession.makeRedirectUri` in the Metro logs (often `https://auth.expo.io/@…/…`).
 
-The app uses **PKCE** for Google/Discord (`exchangeCodeForSession` on `?code=`). A blank in-app browser page after Google consent usually means the redirect URL is missing from Supabase Redirect URLs, or an older build that only looked for `#access_token` and never exchanged the PKCE code.
+The app uses **PKCE** for Google/Discord (`exchangeCodeForSession` on `?code=`). If Supabase logs show no `/auth/v1/token?grant_type=pkce` request, check redirect allowlisting and whether the installed build handles `?code=`. If that token request returns **200** but the app remains on `LoadingScreen`, the provider and dashboard configuration succeeded; inspect client auth-state subscribers instead. They must return synchronously and must not await or re-enter Supabase Auth while its exclusive lock is held.
 
 The iOS Apple button uses native Apple credentials and sends the Apple identity token to Supabase with `signInWithIdToken`, so it still requires the Apple provider to be enabled in Supabase even though it does not open the browser OAuth flow.
 
@@ -94,3 +94,5 @@ For “Forgot password” to work, the reset email must contain a clickable link
    If you customize the template, do **not** remove `{{ .ConfirmationURL }}` — that is the link Supabase generates. Without it, the user gets an email with no link.
 
 After this, the flow is: user taps “Forgot password” → enters email → receives email with link → taps link → app opens through `oneiros-dream-journal://auth/recovery` and shows the “Set new password” screen.
+
+Recovery is also a PKCE exchange. A successful `/auth/v1/token?grant_type=pkce` response followed by an app timeout is a client session-listener problem, not a Reset Password email-template problem.

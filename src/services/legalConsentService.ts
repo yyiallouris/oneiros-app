@@ -14,15 +14,24 @@ async function getUserId(): Promise<string | null> {
   return userId;
 }
 
-export async function hasAcceptedLegalConsent(): Promise<boolean> {
+/** Read the local consent flag when the authenticated user ID is already known. */
+export async function hasAcceptedLegalConsentForUser(userId: string): Promise<boolean> {
   try {
-    const userId = await getUserId();
-    if (!userId) return false;
     const value = await AsyncStorage.getItem(legalConsentKey(userId));
     if (!value) return false;
 
     const parsed = JSON.parse(value) as { version?: string };
     return parsed.version === LEGAL_CONSENT_VERSION;
+  } catch {
+    return false;
+  }
+}
+
+export async function hasAcceptedLegalConsent(): Promise<boolean> {
+  try {
+    const userId = await getUserId();
+    if (!userId) return false;
+    return hasAcceptedLegalConsentForUser(userId);
   } catch {
     return false;
   }

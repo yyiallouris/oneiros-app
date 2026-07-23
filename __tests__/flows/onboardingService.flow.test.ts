@@ -9,7 +9,11 @@ jest.mock('../../src/services/userService', () => ({
 }));
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { hasCompletedOnboarding, setOnboardingCompleted } from '../../src/services/onboardingService';
+import {
+  hasCompletedOnboarding,
+  hasCompletedOnboardingForUser,
+  setOnboardingCompleted,
+} from '../../src/services/onboardingService';
 import { UserService } from '../../src/services/userService';
 
 const uid = (UserService.getCurrentUserId as jest.Mock);
@@ -51,5 +55,13 @@ describe('onboardingService flow', () => {
     uid.mockResolvedValue(null);
     sid.mockResolvedValue('offline-user');
     await expect(hasCompletedOnboarding()).resolves.toBe(true);
+  });
+
+  it('reads by known session user id without re-entering the auth service', async () => {
+    await AsyncStorage.setItem('@onboarding_completed_known-user', 'true');
+
+    await expect(hasCompletedOnboardingForUser('known-user')).resolves.toBe(true);
+    expect(uid).not.toHaveBeenCalled();
+    expect(sid).not.toHaveBeenCalled();
   });
 });

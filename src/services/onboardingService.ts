@@ -7,6 +7,16 @@ function onboardingKey(userId: string): string {
   return `${ONBOARDING_COMPLETED_KEY_PREFIX}${userId}`;
 }
 
+/** Read the local onboarding flag when the authenticated user ID is already known. */
+export async function hasCompletedOnboardingForUser(userId: string): Promise<boolean> {
+  try {
+    const value = await AsyncStorage.getItem(onboardingKey(userId));
+    return value === 'true';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Check if the current user has completed onboarding.
  * Returns false if not logged in or onboarding not completed.
@@ -16,8 +26,7 @@ export async function hasCompletedOnboarding(): Promise<boolean> {
     let userId = await UserService.getCurrentUserId();
     if (!userId) userId = await UserService.getStoredUserId();
     if (!userId) return false;
-    const value = await AsyncStorage.getItem(onboardingKey(userId));
-    return value === 'true';
+    return hasCompletedOnboardingForUser(userId);
   } catch {
     return false;
   }

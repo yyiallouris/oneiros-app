@@ -1,5 +1,6 @@
 /**
- * Flow coverage: documentation/flows-05-sync-offline.md (reconnect sync, offline session preservation, logout cleanup).
+ * Flow coverage: documentation/flows-01-app-entry-session.md,
+ * documentation/flows-02-authentication.md, and documentation/flows-05-sync-offline.md.
  */
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
@@ -130,11 +131,11 @@ jest.mock('../../src/services/biometricAuthService', () => ({
 }));
 
 jest.mock('../../src/services/onboardingService', () => ({
-  hasCompletedOnboarding: (...args: unknown[]) => mockHasCompletedOnboarding(...args),
+  hasCompletedOnboardingForUser: (...args: unknown[]) => mockHasCompletedOnboarding(...args),
 }));
 
 jest.mock('../../src/services/legalConsentService', () => ({
-  hasAcceptedLegalConsent: (...args: unknown[]) => mockHasAcceptedLegalConsent(...args),
+  hasAcceptedLegalConsentForUser: (...args: unknown[]) => mockHasAcceptedLegalConsent(...args),
 }));
 
 jest.mock('../../src/utils/authDeepLink', () => ({
@@ -325,7 +326,8 @@ describe('RootNavigator offline flow', () => {
     expect(view.queryByText('screen:Auth')).toBeTruthy();
 
     await act(async () => {
-      const loginPromise = authStateChangeHandler?.('SIGNED_IN', session);
+      const callbackResult = authStateChangeHandler?.('SIGNED_IN', session);
+      expect(callbackResult).toBeUndefined();
       await flushMicrotasks();
 
       // While route flags resolve, never flash LegalConsent/MainTabs.
@@ -333,7 +335,6 @@ describe('RootNavigator offline flow', () => {
       expect(view.queryByText('screen:MainTabs')).toBeNull();
 
       legalConsent.resolve(true);
-      await loginPromise;
       await flushMicrotasks();
     });
 
@@ -341,6 +342,8 @@ describe('RootNavigator offline flow', () => {
       expect(view.queryByText('screen:LegalConsent')).toBeNull();
       expect(view.getByText('screen:MainTabs')).toBeTruthy();
     });
+    expect(mockHasCompletedOnboarding).toHaveBeenCalledWith('user-1');
+    expect(mockHasAcceptedLegalConsent).toHaveBeenCalledWith('user-1');
   });
 
   it('does not flash legal consent during cold start before stored consent resolves', async () => {

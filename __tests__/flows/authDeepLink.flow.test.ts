@@ -307,9 +307,35 @@ describe('authDeepLink flow', () => {
 
         await expect(resultPromise).resolves.toMatchObject({
           handled: false,
-          error: expect.stringContaining('timed out'),
+          error: expect.stringContaining('Social sign-in timed out'),
         });
         expect(mockExchangeCodeForSession).toHaveBeenCalledTimes(1);
+        resolveExchange?.({ data: { user: null, session: null }, error: null });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('labels a hanging recovery exchange as password reset rather than Google sign-in', async () => {
+      jest.useFakeTimers();
+      try {
+        let resolveExchange: ((value: unknown) => void) | undefined;
+        mockExchangeCodeForSession.mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveExchange = resolve;
+            })
+        );
+
+        const resultPromise = processAuthDeepLink(
+          'oneiros-dream-journal://auth/recovery?code=recovery-code-hangs'
+        );
+        await jest.advanceTimersByTimeAsync(15_000);
+
+        await expect(resultPromise).resolves.toMatchObject({
+          handled: false,
+          error: expect.stringContaining('Password reset timed out'),
+        });
         resolveExchange?.({ data: { user: null, session: null }, error: null });
       } finally {
         jest.useRealTimers();
