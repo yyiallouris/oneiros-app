@@ -100,7 +100,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - cache reuse via `ai_generation_artifacts`
   - server-side calls into `openai-proxy` using the caller's user JWT + anon `apikey` (not the service-role bearer)
   - reflection-first persistence: dream reflections can start asynchronously, commit only after the reflection row is saved, and fill extraction metadata separately
-  - safe AI cost observability for reflection and metadata calls, using provider `usage` tokens plus the configured OpenAI standard pricing table to log estimated USD totals without storing dream content, prompts, or model output
+  - safe AI cost observability for reflection, metadata, Recent Dream Field, and Period Reflection calls, using provider `usage` tokens plus the shared monthly pricing table in `src/billing/aiPricing.ts` (OpenAI + Anthropic) to log estimated USD totals without storing dream content, prompts, or model output
 
 ## Native store setup
 

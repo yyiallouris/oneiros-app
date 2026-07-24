@@ -1,9 +1,17 @@
 import type { Dream, ChatMessage, Interpretation, DisplayDistillation, CoreMode } from '../types/dream';
 import Constants from 'expo-constants';
 import { logError, logInfo } from './logger';
+import {
+  buildDreamExtractionSystemPrompt,
+  buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_TEMPERATURE,
+  DREAM_EXTRACTION_TOKEN_LIMIT,
+} from '../ai/dreamExtractionPrompt';
+import { validateStructuredTaskContent } from '../ai/structuredTaskValidation';
 import type { ArchetypeName } from '../constants/archetypes';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
+import { estimateSimpleTokenCost, USD_TO_EUR_ESTIMATE } from '../billing/aiPricing';
 
 type ModelCapabilities = {
   supportsResponseFormat: boolean;
@@ -259,37 +267,16 @@ const attachProxyTask = (payload: Record<string, unknown>, apiUrl: string, task:
   if (supportsProxyTaskRouting(apiUrl)) payload.task = task;
 };
 
-type AiCostRates = { inputUsdPerMTok: number; outputUsdPerMTok: number };
-
-const USD_TO_EUR_ESTIMATE = 0.855;
-const AI_COST_RATES_USD_PER_MTOK: Record<string, AiCostRates> = {
-  'gpt-5.4': { inputUsdPerMTok: 2.5, outputUsdPerMTok: 15 },
-  'gpt-5.4-mini': { inputUsdPerMTok: 0.75, outputUsdPerMTok: 4.5 },
-  'claude-haiku-4-5': { inputUsdPerMTok: 1, outputUsdPerMTok: 5 },
-};
-
-const normalizeModelForPricing = (model: unknown): string | null => {
-  if (typeof model !== 'string') return null;
-  const m = model.toLowerCase();
-  if (m.includes('gpt-5.4-mini')) return 'gpt-5.4-mini';
-  if (m.includes('gpt-5.4')) return 'gpt-5.4';
-  if (m.includes('claude') && m.includes('haiku') && m.includes('4')) return 'claude-haiku-4-5';
-  return null;
-};
-
 const estimateCost = (
   model: unknown,
   promptTokens: number,
-  completionTokens: number
-): { usd: number; eur: number; rateKey: string | null } | null => {
-  const rateKey = normalizeModelForPricing(model);
-  if (!rateKey) return null;
-  const rates = AI_COST_RATES_USD_PER_MTOK[rateKey];
-  if (!rates) return null;
-  const usd =
-    (promptTokens / 1_000_000) * rates.inputUsdPerMTok +
-    (completionTokens / 1_000_000) * rates.outputUsdPerMTok;
-  return { usd, eur: usd * USD_TO_EUR_ESTIMATE, rateKey };
+  completionTokens: number,
+  provider?: string | null
+): { usd: number; eur: number; rateKey: string | null; pricingSource?: string } | null => {
+  const modelId = typeof model === 'string' ? model : null;
+  const cost = estimateSimpleTokenCost(provider ?? null, modelId, promptTokens, completionTokens);
+  if (!cost) return null;
+  return { usd: cost.usd, eur: cost.eur, rateKey: cost.rateKey, pricingSource: cost.pricingSource };
 };
 
 const estimateMessageInput = (messages: ApiMessage[]): { chars: number; roughTokens: number; turns: number } => {
@@ -399,7 +386,7 @@ function recordDreamAiUsage(
   const model = meta?.resolvedModel ?? (typeof dataModel === 'string' ? dataModel : undefined);
   const promptTokens = usage.prompt ?? 0;
   const completionTokens = usage.completion ?? 0;
-  const cost = estimateCost(model, promptTokens, completionTokens);
+  const cost = estimateCost(model, promptTokens, completionTokens, meta?.provider);
   const stepLabel = DREAM_USAGE_STEP_LABEL[step] ?? step;
 
   logInfo('ai_step_token_cost', {
@@ -410,6 +397,7 @@ function recordDreamAiUsage(
     provider: meta?.provider ?? undefined,
     model,
     pricingKey: cost?.rateKey,
+    pricingSource: cost?.pricingSource,
     promptTokens,
     completionTokens,
     totalTokens: usage.total,
@@ -1643,121 +1631,8 @@ const CONVERSATION_ELEMENT_UPDATE_SYSTEM_PROMPT = `You revise long-term dream pa
 Return only the JSON fields requested in the user message.
 Do not extract, invent, or return symbols, symbol_stances, or landscapes.
 Use the user's confirmed clarifications; do not treat assistant speculation as ground truth unless the user echoes or grounds it.
+Always include explicit status: "no_change" when leaving elements unchanged, or "updated" when revising fields. Bare {} is invalid.
 All field values in English. Return valid JSON only — no markdown fences or commentary.`;
-
-const EXTRACTION_SYSTEM_PROMPT = `
-You map dream elements for two different purposes:
-
-1. Long-term pattern metadata.
-This is used for later monthly/quarterly dream-pattern reports.
-It may include symbols, affects, motifs, relational dynamics, thresholds, central conflicts, archetypal echoes, landscapes, amplifications, and core mode.
-
-2. Immediate UI display distillation.
-This is shown to the user directly after reflection.
-It must be minimal, emotionally readable, and non-taxonomic.
-It should feel like a poetic mirror, not a metadata report.
-
-Use the dream as ground truth. If a final interpretation is provided, treat it as supporting context only.
-Do not invent symbolic material not present in the dream or interpretation.
-
-Rules:
-- Map only what is clearly present or strongly implied by concrete dream language.
-- Be restrained and economical. Leave arrays empty when the dream does not clearly support a field.
-- Return every field value in English only, regardless of the dream language.
-- Prefer fewer high-confidence items over many weak ones.
-- Prefer concrete dream language over abstract psychological labels.
-- Do not infer archetypes unless strongly staged.
-- Do not use mythological amplification unless it directly clarifies the dream image.
-- core_mode may be null if choosing a mode would distort the dream.
-
-For display_distillation:
-- Choose only the 3–5 strongest psychologically charged anchors. Ideal is 3.
-- Prefer concrete dream images when available.
-- Include a feeling, tension, threshold, or relationship anchor only if it is central.
-- Do not expose all metadata fields.
-- Avoid Jungian jargon in visible labels.
-- Translate archetypes into ordinary symbolic language unless the archetype is unmistakably central.
-- Avoid labels like Shadow, Anima, Great Mother, Puer, Senex, or Self in display labels unless strongly staged.
-- Each visible anchor must include a short ui_meaning.
-- essence_title should be 3–7 words.
-- essence_line should be one sentence.
-- movement_line should be one sentence or null.
-- main_tension should be compact, like "contact vs protection", or null.
-
-Fields:
-- display_distillation: a minimal user-facing summary for the DreamDetail screen. It is not a metadata report.
-- symbols: 1–5 concrete images, figures, animals, places, objects, or forces. Never emotions. Use canonical singular form with no article.
-- symbol_stances: 1–5 items, only for genuinely charged symbols. Add one entry per charged key symbol, maximum 5. If no symbol carries clear charge, use []. Each item is { "symbol": "exact phrase from symbols", "stance": "2–8 words" }. Capture how the symbol is experienced in this dream: e.g. "playful", "blocking, alarming", "stressful attempt to prove", "warmly permitting closeness". Use specific lived tone, not generic positive/negative labels.
-- archetypes: optional. Include only when clearly active. Use only: ${ARCHETYPE_WHITELIST.join(', ')}. Split combined labels into separate entries.
-- landscapes: 1–3 main settings or places in canonical form.
-- affects: 2–4 dominant felt tones or bodily energies, not diagnoses.
-- motifs: 2–4 short symbolic forms or situations describing the dream's shape, not its interpretation.
-- relational_dynamics: 1–3 short phrases about regulation of pace, permission, urgency, merging, or distance.
-- thresholds: 0–3 moments of transition, departure, arrival, sleep, work, crossing, or change of ground.
-- central_conflicts: 0–2 concrete conflicts or opposing pressures clearly staged by the dream.
-  Use "X vs Y" only when both sides are supported by actual dream images, figures, actions, places, or bodily tones.
-  Prefer image-near phrasing over abstract psychology.
-  Good: "locked room vs open street", "wanting to enter vs being watched", "warm table vs silent exclusion", "sleeping body vs demand to perform".
-  Avoid generic pairs like "fear vs desire", "control vs surrender", or "autonomy vs belonging" unless the dream concretely stages both sides.
-  Use [] if none is clearly staged.
-- core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration", or null.
-- amplifications: 0–2 brief items for symbols with unmistakable embodied or numinous charge. Do not use mythological amplification unless it directly clarifies the dream image.
-
-Schema contract:
-{
-  "display_distillation": {
-    "essence_title": string,
-    "essence_line": string,
-    "dominant_lens": "image" | "affect" | "threshold" | "relationship" | "conflict" | "archetypal" | "restoration" | "unclear",
-    "visible_anchors": {
-      "label": string,
-      "type": "image" | "feeling" | "tension" | "threshold" | "relationship" | "archetypal_echo",
-      "salience": 1 | 2 | 3 | 4 | 5,
-      "ui_meaning": string
-    }[],
-    "main_tension": string | null,
-    "dream_movement": "stuck" | "approaching" | "crossing" | "descending" | "confronting" | "hiding" | "returning" | "integrating" | "restoring" | "unclear",
-    "movement_line": string | null
-  },
-  "symbols": string[],
-  "symbol_stances": {"symbol": string, "stance": string}[],
-  "archetypes": string[],
-  "landscapes": string[],
-  "affects": string[],
-  "motifs": string[],
-  "relational_dynamics": string[],
-  "thresholds": string[],
-  "central_conflicts": string[],
-  "core_mode": "Core Tension" | "Core State" | "Core Shift" | "Core Restoration" | null,
-  "amplifications": string[]
-}
-
-Return ONLY one valid JSON object, single-line, no extra text. Put display_distillation first and symbol_stances immediately after symbols:
-{
-  "display_distillation": {
-    "essence_title": "guarded threshold",
-    "essence_line": "The dream circles a wish to move toward contact while protecting something vulnerable.",
-    "dominant_lens": "threshold",
-    "visible_anchors": [{"label": "closed door", "type": "threshold", "salience": 5, "ui_meaning": "a protected edge between safety and contact"}],
-    "main_tension": "contact vs protection",
-    "dream_movement": "approaching",
-    "movement_line": "Something moves toward contact without fully crossing."
-  },
-  "symbols": [...],
-  "symbol_stances": [{"symbol": "mirror", "stance": "stressful attempt to prove"}],
-  "archetypes": [...],
-  "landscapes": [...],
-  "affects": [...],
-  "motifs": [...],
-  "relational_dynamics": [...],
-  "thresholds": [...],
-  "central_conflicts": [...],
-  "core_mode": "Core Tension",
-  "amplifications": [...]
-}
-
-If nothing fits an array field, use []. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
-`;
 
 export type SymbolStance = { symbol: string; stance: string };
 
@@ -2016,25 +1891,13 @@ export const extractDreamSymbolsAndArchetypes = async (
   dream: Dream,
   finalInterpretation: string = ''
 ): Promise<DreamExtraction> => {
-  const interpretationContext = finalInterpretation.trim() || '(none provided)';
-  const hasFinalInterpretation = finalInterpretation.trim().length > 0;
-
-  const extractionPrompt = `${hasFinalInterpretation ? 'Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation has been written' : 'Pre-catalog this dream into pattern metadata and immediate UI display distillation from the raw dream only'}: display_distillation, symbols, symbol_stances, archetypes, landscapes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, and amplifications.
-
-Title: ${dream.title || 'Untitled'}
-Date: ${dream.date}
-
-Dream:
-${dream.content}
-
-${hasFinalInterpretation ? `Final interpretation:
-${interpretationContext}
-` : 'Final interpretation: (not provided; use raw dream only)\n'}
-Return one JSON object matching the schema exactly. Put symbol_stances immediately after symbols.
-display_distillation.visible_anchors must contain maximum 5 anchors, ideal 3.
-symbol_stances must contain one entry per genuinely charged key symbol, maximum 5. Use [] if no symbol has clear charge.
-Do not write a new interpretation. Do not make the display layer exhaustive. Catalog only what ${hasFinalInterpretation ? 'the dream text and final interpretation concretely support' : 'the dream text concretely supports'}.
-If unsure for arrays, use []. For core_mode, choose the least distorted fit based on dominant final movement and affect, or null if no mode fits without distortion.`;
+  // Canonical extraction contract lives in src/ai/dreamExtractionPrompt.ts (shared with gateway).
+  const extractionPrompt = buildDreamExtractionUserPrompt({
+    title: dream.title,
+    date: dream.date,
+    content: dream.content,
+    finalInterpretation,
+  });
 
   const { requestId, model } = startRequest();
 
@@ -2054,16 +1917,16 @@ If unsure for arrays, use []. For core_mode, choose the least distorted fit base
     }
 
     const messages: ApiMessage[] = [
-      { role: 'system', content: EXTRACTION_SYSTEM_PROMPT },
+      { role: 'system', content: buildDreamExtractionSystemPrompt() },
       { role: 'user', content: extractionPrompt },
     ];
 
-    const payload: any = { model, messages, temperature: 0.25 };
+    const payload: any = { model, messages, temperature: DREAM_EXTRACTION_TEMPERATURE };
     attachProxyTask(payload, apiUrl, 'dream_extraction');
 
     let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
-      tokenLimit = 2600;
+      tokenLimit = DREAM_EXTRACTION_TOKEN_LIMIT;
       setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
@@ -2101,17 +1964,18 @@ If unsure for arrays, use []. For core_mode, choose the least distorted fit base
     if (__DEV__) console.log('[AI] Extraction response (first 200 chars):', content.substring(0, 200));
 
     try {
-      let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-      if (!jsonStr.startsWith('{')) {
-        const extracted = extractFirstJsonObject(jsonStr);
-        if (extracted) jsonStr = extracted.trim();
-        else throw new Error('No JSON object found in response');
+      const validated = validateStructuredTaskContent('dream_extraction', content, {
+        provider: typeof response.headers?.get === 'function' ? response.headers.get('X-AI-Provider') : null,
+      });
+      if (!validated.ok) {
+        logError('ai_extract_json_parse_error', new Error('schema_invalid'), {
+          contentLength: content.length,
+          schemaErrorCount: validated.schemaErrors.length,
+        });
+        return emptyDreamExtraction();
       }
 
-      const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
-
-      const extraction = parseDreamExtractionRecord(parsed);
+      const extraction = parseDreamExtractionRecord(validated.data as Record<string, unknown>);
 
       if (__DEV__) {
         console.log('[AI] Extracted:', {
@@ -2267,17 +2131,10 @@ Rules:
 - core_mode must be exactly one of: Core Tension, Core State, Core Shift, Core Restoration.
 - If the conversation does not clarify a field, keep the current value.
 
-Return ONLY one valid JSON object:
-{
-  "archetypes": [...],
-  "affects": [...],
-  "motifs": [...],
-  "relational_dynamics": [...],
-  "thresholds": [...],
-  "central_conflicts": [...],
-  "core_mode": "Core State",
-  "amplifications": [...]
-}`;
+Return ONLY one valid JSON object with an explicit status:
+- If nothing should change: {"status":"no_change"}
+- If revising elements: {"status":"updated","archetypes":[...],"affects":[...],"motifs":[...],"relational_dynamics":[...],"thresholds":[...],"central_conflicts":[...],"core_mode":"Core State","amplifications":[...]}
+Bare {} is invalid.`;
 
   const { requestId, model } = startRequest();
 
@@ -2333,14 +2190,25 @@ Return ONLY one valid JSON object:
     recordDreamAiUsage(dream.id, 'conversation_element_update', data, aiResponseMeta(response, requestId));
 
     const content = extractApiResponseContent(data);
-    let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    if (!jsonStr.startsWith('{')) {
-      const extracted = extractFirstJsonObject(jsonStr);
-      if (!extracted) return interpretation;
-      jsonStr = extracted.trim();
+    const validated = validateStructuredTaskContent('conversation_element_update', content, {
+      provider: typeof response.headers?.get === 'function' ? response.headers.get('X-AI-Provider') : null,
+    });
+    if (!validated.ok) {
+      logError('ai_conversation_element_update_schema_invalid', new Error('schema_invalid'), {
+        requestId,
+        model,
+        schemaErrorCount: validated.schemaErrors.length,
+        repairAttempted: validated.log.repairAttempted,
+      });
+      return interpretation;
     }
 
-    const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+    const parsed = validated.data as Record<string, unknown>;
+    if (parsed.status === 'no_change') {
+      logInfo('ai_conversation_element_update_no_change', { requestId, model });
+      return interpretation;
+    }
+
     const updates: ConversationElementFields = {
       archetypes: asStringArray(parsed.archetypes, 8),
       affects: asStringArray(parsed.affects, 5),
@@ -2870,14 +2738,19 @@ Return ONLY valid JSON:
     recordDreamAiUsage(undefined, 'semantic_grouping', data, aiResponseMeta(response, requestId));
     const content = extractApiResponseContent(data);
 
-    let jsonStr = content.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    if (!jsonStr.startsWith('{')) {
-      const extracted = extractFirstJsonObject(jsonStr);
-      if (!extracted) return empty;
-      jsonStr = extracted;
+    const validated = validateStructuredTaskContent('semantic_grouping', content, {
+      provider: typeof response.headers?.get === 'function' ? response.headers.get('X-AI-Provider') : null,
+    });
+    if (!validated.ok) {
+      logError('ai_semantic_grouping_schema_invalid', new Error('schema_invalid'), {
+        requestId,
+        model,
+        schemaErrorCount: validated.schemaErrors.length,
+      });
+      return empty;
     }
 
-    const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+    const parsed = validated.data as Record<string, unknown>;
 
     const symbolGroupMap: Record<string, string> = {};
     for (const group of (parsed.symbol_groups as any[]) ?? []) {

@@ -4,6 +4,7 @@ import type { InsightsSectionId } from '../types/insights';
 export type OnboardingStackParamList = {
   OnboardingName: undefined;
   OnboardingDepth: undefined;
+  OnboardingLanguage: undefined;
   OnboardingSubscription: undefined;
   OnboardingSecure: undefined;
 };

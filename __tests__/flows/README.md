@@ -9,7 +9,10 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `rootNavigator.offline.flow.test.tsx` | flows-01 / flows-02 / flows-05 (synchronous auth-state callback, per-session local route gate, offline session preservation, reconnect sync, LoadingScreen gate) |
 | `onboardingService.flow.test.ts` | flows-03 (per-user onboarding flag) |
 | `onboardingSubscription.flow.test.tsx` | flows-03 / flows-10 (plan selection step, free continuation, premium purchase entry) |
+| `onboardingLanguage.flow.test.tsx` | flows-03 (Insights language step between depth and subscription; no false Skip on defaulted preference screens) |
+| `onboardingLanguageOptions.flow.test.ts` | flows-03 (device-language default ordering for onboarding language list) |
 | `subscriptionSurface.flow.test.tsx` | flows-03 / flows-10 (dedicated Subscription destination, Account entry row, premium-first compare surface) |
+| `accountProfileSave.flow.test.tsx` | flows-03 (sticky Account header Save only for dirty nickname; depth/language remain instant-save; Save redirects to Write) |
 | `legalCopy.flow.test.ts` | flows-08 (consent/privacy/AI disclaimer boundary wording) |
 | `legalSite.flow.test.ts` | flows-08 / release docs (public landing, privacy, and terms pages for store review) |
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
@@ -17,7 +20,9 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `dreamMetadataPrefetchService.flow.test.ts` | architecture-interpretation (extraction cache, dream content hashes, in-flight prefetch, offline prefetch skip) |
 | `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, async reflection polling, direct interpretation payloads, local persistence/cache, entitlement denial reasons) |
 | `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
-| `aiCostLogging.flow.test.ts` | architecture-interpretation / flows-10 (safe AI token-cost logging for reflection and metadata extraction) |
+| `edgeExtractionPrompt.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (Edge dream metadata extraction prompt parity via shared canonical module) |
+| `edgePatternEssayPrompt.flow.test.ts` | flows-07 (Edge Recent Dream Field and period reflection prompt parity) |
+| `aiCostLogging.flow.test.ts` | architecture-interpretation / flows-07 / flows-10 (safe AI token-cost logging for reflection, metadata, Recent Dream Field, and Period Reflection via shared pricing table, plus metadata extraction duplicate-spend guard) |
 | `symbolTaxonomy.flow.test.ts` | flows-07 (safe labels, archetype taxonomy, modal key mapping, date labels) |
 | `symbolGroupingService.flow.test.ts` | flows-07 (semantic grouping cache, invalidation, canonical merges) |
 | `syncService.flow.test.ts` | flows-05 / architecture-interpretation (unsynced queue, interpretation metadata merge, offline short-circuit) |
@@ -25,7 +30,9 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `network.flow.test.ts` | flows-05 (forced offline, subscription callback) |
 | `constants.flow.test.ts` | flows-02 / flows-06 (password length, AI message cap) |
 | `openaiProxySecurity.flow.test.ts` | architecture-interpretation / openai-proxy README (authenticated AI proxy boundary) |
+| `structuredAiValidation.flow.test.ts` | architecture-interpretation / openai-proxy README (Zod schemas + one repair for structured AI tasks) |
 | `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
+| `dreamSaveLoading.flow.test.ts` | flows-04 (Save dream disables immediately but delays visible loading to avoid fast-save flashes) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
 | `voiceTranscription.flow.test.tsx` | flows-04 / flows-05 / flows-06 / flows-09 (record → transcribe → append, successful local-audio cleanup, retryable clip contract) |
 | `whisperTranscriptionReliability.flow.test.ts` | flows-04 / flows-09 / whisper README (auth-first upload validation, durable reservation, stale-lock recovery, safe completion/release) |

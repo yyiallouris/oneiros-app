@@ -14,6 +14,7 @@ export const DESIGN_EXPORT_SCREEN_CATALOG: DesignExportScreen[] = [
   { id: 'legal-consent', route: 'LegalConsent', navigator: 'root-stack', label: 'Legal consent' },
   { id: 'onboarding-name', route: 'OnboardingName', navigator: 'onboarding-stack', label: 'Onboarding: name' },
   { id: 'onboarding-depth', route: 'OnboardingDepth', navigator: 'onboarding-stack', label: 'Onboarding: analysis depth' },
+  { id: 'onboarding-language', route: 'OnboardingLanguage', navigator: 'onboarding-stack', label: 'Onboarding: insights language' },
   { id: 'onboarding-secure', route: 'OnboardingSecure', navigator: 'onboarding-stack', label: 'Onboarding: security' },
   { id: 'write', route: 'Write', navigator: 'main-tabs', label: 'Write dream' },
   { id: 'journal', route: 'Journal', navigator: 'main-tabs', label: 'Journal' },

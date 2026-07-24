@@ -8,6 +8,12 @@
  */
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
+import {
+  buildDreamExtractionSystemPrompt,
+  buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_TEMPERATURE,
+  DREAM_EXTRACTION_TOKEN_LIMIT,
+} from '../../src/ai/dreamExtractionPrompt';
 
 type LiveConfig = {
   supabaseUrl: string;
@@ -217,17 +223,21 @@ describeQuality('live crafted dream analysis quality', () => {
       messages: [
         {
           role: 'system',
-          content:
-            'Extract restrained dream metadata for Insights. Return only valid JSON. Do not invent material. Use English field values.',
+          content: buildDreamExtractionSystemPrompt(),
         },
         {
           role: 'user',
-          content: `Dream:\n${TEST_DREAM.content}\n\nFinal reflection:\n${reflection}\n\nReturn exactly one JSON object with fields: display_distillation, symbols, symbol_stances, archetypes, landscapes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications. display_distillation must include essence_title, essence_line, dominant_lens, visible_anchors, main_tension, dream_movement, movement_line.`,
+          content: buildDreamExtractionUserPrompt({
+            title: TEST_DREAM.title,
+            date: TEST_DREAM.date,
+            content: TEST_DREAM.content,
+            finalInterpretation: reflection,
+          }),
         },
       ],
-      temperature: 0.1,
-      max_completion_tokens: 1200,
-      max_tokens: 1200,
+      temperature: DREAM_EXTRACTION_TEMPERATURE,
+      max_completion_tokens: DREAM_EXTRACTION_TOKEN_LIMIT,
+      max_tokens: DREAM_EXTRACTION_TOKEN_LIMIT,
       response_format: { type: 'json_object' },
     });
     const extraction = parseJsonObject<DreamExtraction>(extractionText);

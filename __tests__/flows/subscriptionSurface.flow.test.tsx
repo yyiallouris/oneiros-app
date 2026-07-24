@@ -23,6 +23,7 @@ jest.mock('@react-navigation/native', () => ({
   __esModule: true,
   useNavigation: () => ({
     navigate: mockNavigate,
+    setOptions: jest.fn(),
   }),
   useFocusEffect: (callback: () => void) => {
     const React = require('react');

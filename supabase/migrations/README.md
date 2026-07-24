@@ -50,6 +50,13 @@ Adds extraction status fields to `interpretations`:
 
 This lets the gateway commit and return the user-facing reflection before background extraction finishes, while Insights can skip only still-pending metadata.
 
+### `20260725100000_add_metadata_extraction_claims.sql`
+Adds `interpretation_metadata_extraction_jobs` plus `billing_claim_metadata_extraction` / `billing_finish_metadata_extraction`.
+
+This is a server-side lease for `dream_metadata_extract`, preventing overlapping app retries or multiple Edge isolates from starting duplicate OpenAI metadata calls for the same pending interpretation. Stuck jobs can be reclaimed after the lease expires.
+
+Implementation note: `interpretation_metadata_extraction_jobs.interpretation_id` is `text` because `interpretations.id` is an app-generated text id, not a UUID.
+
 ## Running Migrations
 
 ### Prerequisites
@@ -91,6 +98,15 @@ After running migrations, verify the policies are active:
 1. Go to your Supabase Dashboard
 2. Navigate to **Database** → **Policies**
 3. You should see policies for both `dreams` and `interpretations` tables
+
+## Migration Safety Checklist
+
+Before adding a foreign key, RPC argument, lock table, or claim table against an existing table:
+
+- Verify the referenced column type from existing migrations and the app's remote mapping code.
+- Match the referenced type exactly; do not infer UUID from naming alone.
+- Remember that Oneiros app-generated ids such as `dreams.id` and `interpretations.id` are `text`, while auth/billing ids such as `auth.users.id` and billing entity ids are UUIDs.
+- For Edge Function migrations, push the database migration before deploying function code that calls newly added RPCs.
 
 ### Rollback (if needed)
 

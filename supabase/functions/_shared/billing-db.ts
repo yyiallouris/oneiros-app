@@ -47,6 +47,15 @@ type InterpretationRow = {
   updated_at: string;
 };
 
+type MetadataExtractionClaimStatus = 'claimed' | 'ready' | 'processing' | 'not_found';
+
+export type MetadataExtractionClaim = {
+  status: MetadataExtractionClaimStatus;
+  claimed: boolean;
+  leaseExpiresAt?: string | null;
+  attempts?: number | null;
+};
+
 export type PatternEntry = {
   dreamId: string;
   date: string;
@@ -379,6 +388,59 @@ export async function saveInterpretation(
   }
 
   return (data as { id: string }).id;
+}
+
+function normalizeMetadataExtractionClaim(data: unknown): MetadataExtractionClaim {
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const status = typeof raw.status === 'string' ? raw.status : 'processing';
+  if (!['claimed', 'ready', 'processing', 'not_found'].includes(status)) {
+    throw new HttpError(500, 'Invalid metadata extraction claim response');
+  }
+
+  return {
+    status: status as MetadataExtractionClaimStatus,
+    claimed: raw.claimed === true,
+    leaseExpiresAt: typeof raw.lease_expires_at === 'string' ? raw.lease_expires_at : null,
+    attempts: typeof raw.attempts === 'number' ? raw.attempts : null,
+  };
+}
+
+export async function claimMetadataExtraction(
+  client: AdminClient,
+  userId: string,
+  interpretationId: string
+): Promise<MetadataExtractionClaim> {
+  const db = client as any;
+  const { data, error } = await db.rpc('billing_claim_metadata_extraction', {
+    p_user_id: userId,
+    p_interpretation_id: interpretationId,
+  });
+
+  if (error || !data) {
+    throw new HttpError(500, 'Failed to claim metadata extraction', error);
+  }
+
+  return normalizeMetadataExtractionClaim(data);
+}
+
+export async function finishMetadataExtraction(
+  client: AdminClient,
+  userId: string,
+  interpretationId: string,
+  status: 'completed' | 'failed',
+  errorCode?: string | null
+): Promise<void> {
+  const db = client as any;
+  const { error } = await db.rpc('billing_finish_metadata_extraction', {
+    p_user_id: userId,
+    p_interpretation_id: interpretationId,
+    p_status: status,
+    p_error_code: errorCode ?? null,
+  });
+
+  if (error) {
+    throw new HttpError(500, 'Failed to finish metadata extraction', error);
+  }
 }
 
 export async function saveArtifact(client: AdminClient, artifact: ArtifactInsert): Promise<string> {

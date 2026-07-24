@@ -29,6 +29,7 @@ const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
 const FLOATING_TAB_BAR_HEIGHT = 86;
 const SAVE_BUTTON_NAV_GAP_OFFSET = Platform.OS === 'android' ? 44 : 8;
 const WRITE_MOUNTAIN_HEIGHT = 320;
+const SAVE_LOADING_REVEAL_DELAY_MS = 450;
 const writePalette = {
   background: colors.background,
   secondaryWash: colors.backgroundSecondary,
@@ -48,8 +49,10 @@ const WriteScreen: React.FC = () => {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showSaveLoading, setShowSaveLoading] = useState(false);
   const [mainCardBottom, setMainCardBottom] = useState<number | null>(null);
   const autoSaveTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
+  const saveLoadingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
 
   const today = getTodayDate();
@@ -65,6 +68,10 @@ const WriteScreen: React.FC = () => {
       return () => {
         if (autoSaveTimeout.current) {
           clearTimeout(autoSaveTimeout.current);
+        }
+        if (saveLoadingTimeout.current) {
+          clearTimeout(saveLoadingTimeout.current);
+          saveLoadingTimeout.current = undefined;
         }
       };
     }, [])
@@ -141,6 +148,9 @@ const WriteScreen: React.FC = () => {
     }
 
     setIsSaving(true);
+    saveLoadingTimeout.current = setTimeout(() => {
+      setShowSaveLoading(true);
+    }, SAVE_LOADING_REVEAL_DELAY_MS);
     try {
       const dream: Dream = todaysDream
         ? {
@@ -184,6 +194,11 @@ const WriteScreen: React.FC = () => {
       console.error('[WriteScreen] Error saving dream:', error);
       // Don't clear fields on error - user can retry
     } finally {
+      if (saveLoadingTimeout.current) {
+        clearTimeout(saveLoadingTimeout.current);
+        saveLoadingTimeout.current = undefined;
+      }
+      setShowSaveLoading(false);
       setIsSaving(false);
     }
   };
@@ -290,13 +305,13 @@ const WriteScreen: React.FC = () => {
           ]}
         >
           <ActionLoadingSlot
-            loading={isSaving}
+            loading={showSaveLoading}
             loadingProps={{ preset: 'saveDream', style: styles.saveButton }}
           >
             <Button
               title={todaysDream ? 'Update dream' : 'Save dream'}
               onPress={handleSaveDream}
-              disabled={isSaveInactive}
+              disabled={isSaveInactive || isSaving}
               size="compact"
               style={styles.saveButton}
             />

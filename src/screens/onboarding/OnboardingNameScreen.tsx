@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius, borders } from '../../theme';
 import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress';
 import { UserService } from '../../services/userService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 
@@ -37,9 +38,10 @@ const OnboardingNameScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+        <OnboardingProgress step={1} />
         <Text style={styles.welcome}>Welcome to Oneiros</Text>
         <Text style={styles.subtitle}>
-          Your dream journal companion. Let’s set a few things up — you can skip any step.
+          Your dream journal companion. A few quiet choices to start — name is optional, and everything stays editable later in Account.
         </Text>
 
         <Card style={styles.card}>

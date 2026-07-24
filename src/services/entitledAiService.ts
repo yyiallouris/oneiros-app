@@ -55,6 +55,8 @@ type GatewayMetadataResponse = {
   metadata_status: 'ready' | 'failed';
   metadata_ai_cost?: Record<string, unknown> | null;
   metadata_cost_usd?: number | null;
+  reflection_ai_cost?: Record<string, unknown> | null;
+  reflection_cost_usd?: number | null;
   total_ai_cost_usd?: number | null;
 };
 
@@ -69,6 +71,10 @@ type GatewayArtifactResponse = {
   artifact_id?: string;
   content: string;
   scope_key: string;
+  recent_dream_field_ai_cost?: Record<string, unknown> | null;
+  recent_dream_field_cost_usd?: number | null;
+  period_reflection_ai_cost?: Record<string, unknown> | null;
+  period_reflection_cost_usd?: number | null;
 };
 
 const PREMIUM_REQUIRED_REASONS = new Set([
@@ -187,6 +193,15 @@ async function saveCommittedReflectionPayload(
     interpretationId: response.interpretation_id,
     hasDirectInterpretation: Boolean(response.interpretation),
     reflectionCostUsd: response.reflection_cost_usd,
+    // Avoid keys containing "dream"/"interpretation" content patterns beyond ids —
+    // flatten cost fields so the logger does not strip nested objects.
+    costProvider: response.reflection_ai_cost?.provider ?? null,
+    costModel: response.reflection_ai_cost?.model ?? null,
+    costPricingModel: response.reflection_ai_cost?.pricingModel ?? null,
+    costPricingSource: response.reflection_ai_cost?.pricingSource ?? null,
+    costInputTokens: response.reflection_ai_cost?.inputTokens ?? null,
+    costOutputTokens: response.reflection_ai_cost?.outputTokens ?? null,
+    costTotalTokens: response.reflection_ai_cost?.totalTokens ?? null,
   });
 
   if (response.interpretation) {
@@ -303,12 +318,30 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         interpretationId,
         metadataStatus: response.metadata_status,
         metadataCostUsd: response.metadata_cost_usd,
+        // Flatten cost fields — logger redacts nested objects and "dream*" keys.
+        costProvider: response.metadata_ai_cost?.provider ?? null,
+        costModel: response.metadata_ai_cost?.model ?? null,
+        costPricingModel: response.metadata_ai_cost?.pricingModel ?? null,
+        costPricingSource: response.metadata_ai_cost?.pricingSource ?? null,
+        costInputTokens: response.metadata_ai_cost?.inputTokens ?? null,
+        costOutputTokens: response.metadata_ai_cost?.outputTokens ?? null,
+        costTotalTokens: response.metadata_ai_cost?.totalTokens ?? null,
+        reflectionCostUsd: response.reflection_cost_usd ?? null,
+        reflectionCostModel: response.reflection_ai_cost?.model ?? null,
         totalAiCostUsd: response.total_ai_cost_usd,
         durationMs: Date.now() - attemptStartedAt,
       });
       return response;
     } catch (error) {
       lastError = error;
+      if (error instanceof EntitlementError && error.reason === 'metadata_extraction_processing') {
+        logInfo('dream_metadata_extract_already_processing', {
+          interpretationId,
+          retryDelayMs: retryDelay,
+          durationMs: Date.now() - attemptStartedAt,
+        });
+        continue;
+      }
       logWarn('dream_metadata_extract_attempt_failed', {
         interpretationId,
         retryDelayMs: retryDelay,
@@ -458,6 +491,21 @@ export async function generateEntitledRecentDreamField(
   });
 
   assertCommitted(response);
+  logInfo('recent_dream_field_gateway_committed', {
+    status: response.status,
+    scopeKey: response.scope_key,
+    language,
+    count,
+    // Avoid keys containing "dream" — logger redacts those for privacy.
+    costUsd: response.recent_dream_field_cost_usd ?? null,
+    costProvider: response.recent_dream_field_ai_cost?.provider ?? null,
+    costModel: response.recent_dream_field_ai_cost?.model ?? null,
+    costPricingModel: response.recent_dream_field_ai_cost?.pricingModel ?? null,
+    costPricingSource: response.recent_dream_field_ai_cost?.pricingSource ?? null,
+    costInputTokens: response.recent_dream_field_ai_cost?.inputTokens ?? null,
+    costOutputTokens: response.recent_dream_field_ai_cost?.outputTokens ?? null,
+    costTotalTokens: response.recent_dream_field_ai_cost?.totalTokens ?? null,
+  });
   const cache = buildRecentReflectionCache(entries, count, language, response.content, response.scope_key);
   await LocalStorage.saveRecentSequenceReflection(cache);
   return response.content;
@@ -475,6 +523,20 @@ export async function generateEntitledPeriodReflection(
   });
 
   assertCommitted(response);
+  logInfo('period_reflection_gateway_committed', {
+    status: response.status,
+    monthKey,
+    scopeKey: response.scope_key,
+    language,
+    costUsd: response.period_reflection_cost_usd ?? null,
+    costProvider: response.period_reflection_ai_cost?.provider ?? null,
+    costModel: response.period_reflection_ai_cost?.model ?? null,
+    costPricingModel: response.period_reflection_ai_cost?.pricingModel ?? null,
+    costPricingSource: response.period_reflection_ai_cost?.pricingSource ?? null,
+    costInputTokens: response.period_reflection_ai_cost?.inputTokens ?? null,
+    costOutputTokens: response.period_reflection_ai_cost?.outputTokens ?? null,
+    costTotalTokens: response.period_reflection_ai_cost?.totalTokens ?? null,
+  });
   await LocalStorage.savePatternReport(response.scope_key || monthKey, response.content);
   return response.content;
 }

@@ -52,6 +52,8 @@ Per `sectionId`:
 ## Backend entitlement model (active screen path)
 
 - Recent Dream Field now has a backend quota contract: paid-only, 10 generations per billing cycle, cache reuse for exact same sequence + language.
+- Recent Dream Field and Period Reflection gateway prompts keep parity with the canonical June 9 essay contracts from `src/services/ai.ts`: post-Jungian symbolic essayist role, image-near synthesis over tag listing, grounded hypothetical claims, exact English section headings, requested-language body/questions, two reflective questions, and hidden essay completion markers stripped before persistence.
+- Gateway generation for Recent Dream Field and Period Reflection emits reflect-style sanitized AI cost logs (`recent_dream_field_*` / `period_reflection_*` cost fields) from provider usage tokens and the shared monthly pricing table in `src/billing/aiPricing.ts`. Logs never include essay text or prompts.
 - Period Reflection now has a backend cadence contract:
   - paid-only
   - at least 2 reflected dreams

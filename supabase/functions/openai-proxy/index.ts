@@ -2,7 +2,14 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { HttpError } from "../_shared/http.ts";
 import { requireUser } from "../_shared/supabase.ts";
 import { normalizeTask, type OneirosTask } from "./ai-routing.ts";
-import { getTaskAiConfig, type TaskAiEntry } from "./task-config.ts";
+import { getTaskAiConfig, missingOrUnknownTaskMessage, type TaskAiEntry } from "./task-config.ts";
+import {
+  buildStructuredRepairMessages,
+  isStructuredAiTask,
+  safeStructuredValidationLog,
+  validateStructuredTaskContent,
+  type StructuredAiTask,
+} from "../_shared/structuredTaskValidation.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -95,6 +102,149 @@ function evaluateOpenAICompletionBody(body: string): {
   } catch {
     return { ok: false, reason: "openai_invalid_json" };
   }
+}
+
+function replaceOpenAIAssistantContent(body: string, content: string): string {
+  const data = JSON.parse(body) as {
+    choices?: Array<{ message?: { role?: string; content?: unknown } }>;
+  };
+  if (!data.choices?.[0]) {
+    data.choices = [{ message: { role: "assistant", content } }];
+  } else if (!data.choices[0].message) {
+    data.choices[0].message = { role: "assistant", content };
+  } else {
+    data.choices[0].message.content = content;
+  }
+  return JSON.stringify(data);
+}
+
+function extractAssistantContentFromOpenAIBody(body: string): string {
+  const ev = evaluateOpenAICompletionBody(body);
+  return ev.ok ? ev.text : "";
+}
+
+async function maybeValidateAndRepairStructured(params: {
+  task: OneirosTask;
+  responseText: string;
+  messages: ApiMessage[];
+  provider: "openai" | "anthropic";
+  model: string;
+  temperature: unknown;
+  tokenLimit: unknown;
+  responseFormat: unknown;
+  requestId: string;
+}): Promise<{ responseText: string; rejected: boolean }> {
+  if (!isStructuredAiTask(params.task)) {
+    return { responseText: params.responseText, rejected: false };
+  }
+
+  const task = params.task as StructuredAiTask;
+  const content = extractAssistantContentFromOpenAIBody(params.responseText);
+  const first = validateStructuredTaskContent(task, content, {
+    provider: params.provider,
+    repairAttempted: false,
+  });
+
+  if (first.ok) {
+    console.log(
+      `[openai-proxy] structured validation`,
+      safeStructuredValidationLog(first.log),
+    );
+    return {
+      responseText: replaceOpenAIAssistantContent(params.responseText, first.normalizedContent),
+      rejected: false,
+    };
+  }
+
+  console.log(
+    `[openai-proxy] structured validation`,
+    safeStructuredValidationLog(first.log),
+  );
+
+  const repairMessages = buildStructuredRepairMessages(
+    task,
+    params.messages.map((m) => ({
+      role: typeof m.role === "string" ? m.role : "user",
+      content: stringifyMessageContent(m.content),
+    })),
+    content,
+    first.schemaErrors,
+  );
+
+  let repairedContent = "";
+  if (params.provider === "anthropic") {
+    const ar = await callAnthropic(params.model, repairMessages, 0, params.tokenLimit);
+    const raw = await ar.text();
+    if (!ar.ok) {
+      console.log(`[openai-proxy] structured repair failed`, {
+        task,
+        provider: params.provider,
+        validationStage: "rejected",
+        schemaErrors: first.schemaErrors,
+        repairAttempted: true,
+        repairSucceeded: false,
+        status: ar.status,
+      });
+      return { responseText: params.responseText, rejected: true };
+    }
+    try {
+      const anthropicData = JSON.parse(raw) as unknown;
+      repairedContent = anthropicTextContent(anthropicData as Record<string, unknown>).trim();
+    } catch {
+      repairedContent = "";
+    }
+  } else {
+    const oa = await callOpenAI(
+      params.model,
+      repairMessages,
+      0,
+      params.tokenLimit,
+      params.responseFormat ?? { type: "json_object" },
+      false,
+      undefined,
+    );
+    const repairedBody = await oa.text();
+    if (!oa.ok) {
+      console.log(`[openai-proxy] structured repair failed`, {
+        task,
+        provider: params.provider,
+        validationStage: "rejected",
+        schemaErrors: first.schemaErrors,
+        repairAttempted: true,
+        repairSucceeded: false,
+        status: oa.status,
+      });
+      return { responseText: params.responseText, rejected: true };
+    }
+    repairedContent = extractAssistantContentFromOpenAIBody(repairedBody);
+  }
+
+  const second = validateStructuredTaskContent(task, repairedContent, {
+    provider: params.provider,
+    repairAttempted: true,
+    stage: "repair_schema",
+  });
+  console.log(
+    `[openai-proxy] structured validation`,
+    safeStructuredValidationLog(
+      second.ok
+        ? second.log
+        : {
+          ...second.log,
+          validationStage: "rejected",
+          repairSucceeded: false,
+        },
+    ),
+  );
+
+  if (!second.ok) {
+    return { responseText: params.responseText, rejected: true };
+  }
+
+  return {
+    responseText: replaceOpenAIAssistantContent(params.responseText, second.normalizedContent),
+    rejected: false,
+  };
 }
 
 type ApiMessage = {
@@ -408,6 +558,9 @@ serve(async (req: Request) => {
     } =
       body;
     const task = normalizeTask(body.task);
+    if (!task) {
+      return proxyJsonError(missingOrUnknownTaskMessage(body.task), 400);
+    }
     const taskCfg = getTaskAiConfig(task);
 
     if (!model || !messages || !Array.isArray(messages)) {
@@ -483,15 +636,43 @@ serve(async (req: Request) => {
         if (ar.ok) {
           const fbResp = responseFromAnthropicSuccess(requestId, raw, fbModel, {
             dreamId,
-            task: task ?? "unrouted",
+            task,
             requestedModel: model,
             appVersion,
-          userId,
+            userId,
             messageCount: messages.length,
             usedFallback: true,
             upstreamMs: openAIUpstreamMs + fallbackUpstreamMs,
           });
-          if (fbResp) return fbResp;
+          if (fbResp) {
+            const fbText = await fbResp.clone().text();
+            const finalized = await maybeValidateAndRepairStructured({
+              task,
+              responseText: fbText,
+              messages,
+              provider: "anthropic",
+              model: fbModel,
+              temperature,
+              tokenLimit,
+              responseFormat,
+              requestId,
+            });
+            if (finalized.rejected) {
+              return proxyJsonError("Structured AI response failed schema validation", 502);
+            }
+            return new Response(finalized.responseText, {
+              status: 200,
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json",
+                "X-Request-Id": requestId,
+                "X-AI-Provider": "anthropic",
+                "X-AI-Model": fbModel,
+                "X-AI-Fallback": "1",
+                "X-AI-Upstream-Ms": String(openAIUpstreamMs + fallbackUpstreamMs),
+              },
+            });
+          }
         }
       }
 
@@ -558,7 +739,7 @@ serve(async (req: Request) => {
 
       console.log(`[openai-proxy] Request ${requestId}`, {
         dreamId,
-        task: task ?? "unrouted",
+        task,
         requestedModel: model,
         resolvedModel,
         provider: "openai",
@@ -570,7 +751,22 @@ serve(async (req: Request) => {
         upstreamMs: openAIUpstreamMs,
       });
 
-      return new Response(responseText, {
+      const finalized = await maybeValidateAndRepairStructured({
+        task,
+        responseText,
+        messages,
+        provider: "openai",
+        model: resolvedModel,
+        temperature,
+        tokenLimit,
+        responseFormat,
+        requestId,
+      });
+      if (finalized.rejected) {
+        return proxyJsonError("Structured AI response failed schema validation", 502);
+      }
+
+      return new Response(finalized.responseText, {
         status: oaResponse.status,
         headers: {
           ...corsHeaders,
@@ -666,7 +862,7 @@ serve(async (req: Request) => {
 
     console.log(`[openai-proxy] Request ${requestId}`, {
       dreamId,
-      task: task ?? "unrouted",
+      task,
       requestedModel: model,
       resolvedModel,
       provider: "anthropic",
@@ -678,7 +874,22 @@ serve(async (req: Request) => {
       upstreamMs: anthropicUpstreamMs,
     });
 
-    return new Response(responseText, {
+    const finalized = await maybeValidateAndRepairStructured({
+      task,
+      responseText,
+      messages,
+      provider: "anthropic",
+      model: resolvedModel,
+      temperature,
+      tokenLimit,
+      responseFormat,
+      requestId,
+    });
+    if (finalized.rejected) {
+      return proxyJsonError("Structured AI response failed schema validation", 502);
+    }
+
+    return new Response(finalized.responseText, {
       status: 200,
       headers: {
         ...corsHeaders,

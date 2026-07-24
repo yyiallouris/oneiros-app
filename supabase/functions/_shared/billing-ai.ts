@@ -1,9 +1,20 @@
 import type { DisplayDistillation } from '../../../src/types/dream.ts';
 import type { GatewayAction } from '../../../src/billing/types.ts';
+import {
+  estimateAiCallCost,
+  type AiCallCost,
+} from '../../../src/billing/aiPricing.ts';
 import { buildCurrentMonthScope, getRecentSequenceScopeKey } from '../../../src/billing/policy.ts';
+import {
+  buildDreamExtractionSystemPrompt,
+  buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_TEMPERATURE,
+  DREAM_EXTRACTION_TOKEN_LIMIT,
+} from '../../../src/ai/dreamExtractionPrompt.ts';
 import type { PatternEntry } from './billing-db.ts';
 import { HttpError } from './http.ts';
 import { getFunctionsBaseUrl, getSupabaseAnonKey } from './supabase.ts';
+import { validateStructuredTaskContent } from './structuredTaskValidation.ts';
 
 type ChatMessage = {
   id: string;
@@ -34,27 +45,7 @@ type ExtractionResult = {
   symbol_stances: Array<{ symbol: string; stance: string }>;
 };
 
-type OpenAiPricing = {
-  inputUsdPer1m: number;
-  cachedInputUsdPer1m: number;
-  outputUsdPer1m: number;
-};
-
-export type AiCallCost = {
-  provider: string | null;
-  model: string | null;
-  pricingModel: string | null;
-  pricingSource: string;
-  inputTokens: number;
-  cachedInputTokens: number;
-  billableInputTokens: number;
-  outputTokens: number;
-  totalTokens: number;
-  inputUsd: number | null;
-  cachedInputUsd: number | null;
-  outputUsd: number | null;
-  estimatedUsd: number | null;
-};
+export type { AiCallCost };
 
 type ReflectionProgressCallback = (progress: {
   text: string;
@@ -64,26 +55,8 @@ type ReflectionProgressCallback = (progress: {
 
 const DEFAULT_AI_PROXY_TIMEOUT_MS = 60000;
 const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
+const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
 const AI_COST_FIELD = '__oneiros_ai_cost';
-const OPENAI_STANDARD_PRICING_SOURCE = 'openai_standard_short_context_2026_07_24';
-const UNKNOWN_PRICING_SOURCE = 'unknown_provider_or_model';
-
-// OpenAI API pricing, Standard / short-context rates, USD per 1M tokens.
-// Source checked 2026-07-24: https://developers.openai.com/api/docs/pricing
-const OPENAI_STANDARD_PRICING_USD_PER_1M: Record<string, OpenAiPricing> = {
-  'gpt-5.6-sol': { inputUsdPer1m: 5, cachedInputUsdPer1m: 0.5, outputUsdPer1m: 30 },
-  'gpt-5.6-terra': { inputUsdPer1m: 2.5, cachedInputUsdPer1m: 0.25, outputUsdPer1m: 15 },
-  'gpt-5.6-luna': { inputUsdPer1m: 1, cachedInputUsdPer1m: 0.1, outputUsdPer1m: 6 },
-  'gpt-5.5-pro': { inputUsdPer1m: 30, cachedInputUsdPer1m: 30, outputUsdPer1m: 180 },
-  'gpt-5.5': { inputUsdPer1m: 5, cachedInputUsdPer1m: 0.5, outputUsdPer1m: 30 },
-  'gpt-5.4-pro': { inputUsdPer1m: 30, cachedInputUsdPer1m: 30, outputUsdPer1m: 180 },
-  'gpt-5.4-mini': { inputUsdPer1m: 0.75, cachedInputUsdPer1m: 0.075, outputUsdPer1m: 4.5 },
-  'gpt-5.4-nano': { inputUsdPer1m: 0.2, cachedInputUsdPer1m: 0.02, outputUsdPer1m: 1.25 },
-  'gpt-5.4': { inputUsdPer1m: 2.5, cachedInputUsdPer1m: 0.25, outputUsdPer1m: 15 },
-};
-
-const OPENAI_PRICING_MODEL_ORDER = Object.keys(OPENAI_STANDARD_PRICING_USD_PER_1M)
-  .sort((a, b) => b.length - a.length);
 
 /* ============================
    PROMPT CONSTITUTION
@@ -175,6 +148,130 @@ const INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE =
   'Write all paragraph text, bullets, and reflective questions in the same primary language as the dream narrative and any user notes in this request. ' +
   'Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. ' +
   'If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.';
+
+/* ============================
+   PATTERN ESSAY PROMPTS
+   Keep these Recent Dream Field and period essay contracts in parity with src/services/ai.ts
+   as of the 2026-06-09 prompt baseline.
+   ============================ */
+
+const MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT = `
+You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
+
+Your role is to synthesize the month's dream material into a reflective symbolic essay.
+You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
+You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
+
+Core principles:
+- Read the dreams as a field, not as isolated events.
+- Track recurring images, affects, symbol stances, relational dynamics, thresholds, and central conflicts.
+- Do not write as if explaining metadata fields.
+- Use extracted fields only to see the dream-field more clearly.
+- The essay should feel synthesized from images and movements, not generated from tags.
+- Use thresholds and central conflicts as high-value synthesis material only when the data clearly stages crossings or opposing pressures.
+- Notice whether the month shows movement, repetition, intensification, retreat, partial integration, contradiction, or unresolved suspension.
+- Do not force progress. If the month is cyclical, stalled, fragmented, or contradictory, say so plainly.
+- Do not flatten everything into generic themes like "change", "growth", or "anxiety".
+- Every major claim must be grounded in at least one concrete recurrence or contrast from the dream data.
+- If there are too few dreams to support a strong pattern, say so and offer a lighter reading.
+- Treat interpretation excerpts as supporting material, but do not simply repeat them.
+- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
+- Shadow means unintegrated charge, intensity, vitality, fear, anger, or instinct — not moral negativity.
+- Self should appear only if the month shows a credible organizing center or movement toward coherence.
+
+Style:
+- Write like a psychologically precise essay, not a bullet-point analytics report.
+- Use vivid, grounded, image-near language.
+- Prefer synthesis over listing.
+- Avoid generic coaching language.
+- Avoid advice.
+- Avoid conclusions that sound final.
+- Keep markdown section headings exactly as specified in English for UI consistency.
+- Write body text and reflective questions in the user's requested language.
+
+Essay shape:
+## The Month's Dream Field
+A short opening that names the dominant atmosphere or organizing movement of the month.
+
+## Recurring Images and Pressures
+Synthesize the main repeated symbols, affects, landscapes, and symbol stances. Focus on what the images are doing.
+
+## Thresholds and Conflicts
+Optional. Include this section only when crossings, transitions, or conflict pairs are concrete and structurally important. Otherwise weave those pressures into Recurring Images and Pressures or Movement Across the Month.
+Stay image-near and tied to the excerpts; avoid generic "X vs Y" psychology templates unless the month's images support each side.
+
+## Movement Across the Month
+Describe whether the dreams move toward coherence, intensification, retreat, partial repair, contradiction, or unresolved suspension. Do not force an evolution.
+
+## What Remains Open
+Name the unresolved question or psychic pressure the month seems to leave behind.
+
+## Reflective Questions
+Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+
+Length:
+- If 1 dream: 250–400 words.
+- If 2–4 dreams: 450–700 words.
+- If 5+ dreams: 650–800 words.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_ESSAY}
+`;
+
+const RECENT_DREAM_FIELD_SYSTEM_PROMPT = `
+You are Dream Weaver, a post-Jungian dream essayist reviewing the user's latest reflected dreams as a short recent sequence.
+
+Your role is to synthesize what feels currently active in the latest dreams the user has explored.
+You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
+You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
+
+Core principles:
+- Read the dreams as a recent sequence, not as a completed calendar period.
+- Look for what is currently active, repeating, intensifying, shifting, or unresolved.
+- Do not force a monthly narrative or archive-style conclusion.
+- Do not summarize each dream one by one.
+- Do not simply list recurring tags.
+- Use extracted fields only to see the recent dream-field more clearly.
+- The reflection should feel synthesized from images and movements, not generated from metadata.
+- Stay close to concrete images, affects, symbol stances, thresholds, and tensions.
+- Every major claim must be grounded in at least one concrete recurrence, contrast, or sequence detail.
+- If the recent sequence is light or only loosely connected, say so plainly and offer a lighter reading.
+- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
+
+Style:
+- Write like a psychologically precise reflection, not a report.
+- Use vivid, grounded, image-near language.
+- Prefer synthesis over listing.
+- Avoid generic coaching language.
+- Avoid advice.
+- Avoid conclusions that sound final.
+- Keep markdown section headings exactly as specified in English for UI consistency.
+- Write body text and reflective questions in the user's requested language.
+
+Essay shape:
+## Recent Dream Field
+A short opening that names the dominant atmosphere or immediate movement of the latest dream sequence.
+
+## What Keeps Returning
+Synthesize repeated or echoing images, affects, places, pressures, or stances. Focus on what they are doing.
+
+## Current Movement
+Describe what seems active now: repetition, intensification, hesitation, crossing, partial repair, contradiction, or unresolved suspension.
+
+## What Remains Open
+Name the unresolved question or psychic pressure the recent sequence leaves behind.
+
+## Reflective Questions
+Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+
+Length:
+- 350–550 words.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
+${END_MARKER_DREAM_ESSAY}
+`;
 
 const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
 BRIEF mode (Quick Glance):
@@ -344,79 +441,6 @@ ${END_MARKER_DREAM_READING}
 
 function requestId(): string {
   return crypto.randomUUID();
-}
-
-function asFiniteNumber(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
-}
-
-function centsSafeUsd(tokens: number, usdPer1m: number): number {
-  return (tokens * usdPer1m) / 1_000_000;
-}
-
-function roundUsd(value: number): number {
-  return Number(value.toFixed(8));
-}
-
-function normalizePricingModel(model: string | null): string | null {
-  if (!model) return null;
-  const normalized = model.trim().toLowerCase();
-  return OPENAI_PRICING_MODEL_ORDER.find((pricingModel) => normalized.startsWith(pricingModel)) ?? null;
-}
-
-function estimateAiCallCost(payload: Record<string, unknown>, provider: string | null): AiCallCost {
-  const usage = (payload.usage && typeof payload.usage === 'object')
-    ? payload.usage as Record<string, unknown>
-    : {};
-  const promptDetails = (usage.prompt_tokens_details && typeof usage.prompt_tokens_details === 'object')
-    ? usage.prompt_tokens_details as Record<string, unknown>
-    : {};
-  const model = typeof payload.model === 'string' ? payload.model : null;
-  const inputTokens = asFiniteNumber(usage.prompt_tokens);
-  const outputTokens = asFiniteNumber(usage.completion_tokens);
-  const totalTokens = asFiniteNumber(usage.total_tokens) || inputTokens + outputTokens;
-  const cachedInputTokens = Math.min(asFiniteNumber(promptDetails.cached_tokens), inputTokens);
-  const billableInputTokens = Math.max(inputTokens - cachedInputTokens, 0);
-  const pricingModel = provider === 'openai' ? normalizePricingModel(model) : null;
-  const pricing = pricingModel ? OPENAI_STANDARD_PRICING_USD_PER_1M[pricingModel] : null;
-
-  if (!pricing) {
-    return {
-      provider,
-      model,
-      pricingModel: null,
-      pricingSource: UNKNOWN_PRICING_SOURCE,
-      inputTokens,
-      cachedInputTokens,
-      billableInputTokens,
-      outputTokens,
-      totalTokens,
-      inputUsd: null,
-      cachedInputUsd: null,
-      outputUsd: null,
-      estimatedUsd: null,
-    };
-  }
-
-  const inputUsd = centsSafeUsd(billableInputTokens, pricing.inputUsdPer1m);
-  const cachedInputUsd = centsSafeUsd(cachedInputTokens, pricing.cachedInputUsdPer1m);
-  const outputUsd = centsSafeUsd(outputTokens, pricing.outputUsdPer1m);
-
-  return {
-    provider,
-    model,
-    pricingModel,
-    pricingSource: OPENAI_STANDARD_PRICING_SOURCE,
-    inputTokens,
-    cachedInputTokens,
-    billableInputTokens,
-    outputTokens,
-    totalTokens,
-    inputUsd: roundUsd(inputUsd),
-    cachedInputUsd: roundUsd(cachedInputUsd),
-    outputUsd: roundUsd(outputUsd),
-    estimatedUsd: roundUsd(inputUsd + cachedInputUsd + outputUsd),
-  };
 }
 
 function attachAiCallCost(payload: Record<string, unknown>, cost: AiCallCost): void {
@@ -718,6 +742,30 @@ function trim(text: string, max: number): string {
   return normalized.length > max ? `${normalized.slice(0, max)}...` : normalized;
 }
 
+function buildEssayLanguageInstruction(language: string): string {
+  const languageNames: Record<string, string> = {
+    el: 'Greek (Ελληνικά)',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    it: 'Italian',
+    pt: 'Portuguese',
+    nl: 'Dutch',
+    pl: 'Polish',
+    ru: 'Russian',
+    ja: 'Japanese',
+    zh: 'Chinese',
+  };
+  if (language === 'en') return '';
+  return `
+
+IMPORTANT LANGUAGE RULE:
+Keep all markdown section headings exactly as specified in English for UI consistency.
+Write all paragraph text, bullets, and reflective questions in ${languageNames[language] ?? `the language with ISO 639-1 code "${language}"`}.
+Do not translate section headings.
+Preserve extracted symbols in English only if needed, but explain them in the requested language.`;
+}
+
 function buildReflectionMessages(dream: DreamRecord, depth: 'quick' | 'standard' | 'advanced') {
   const outputLangSuffix = `\n\n${INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE}`;
   const userPrompt = depth === 'quick'
@@ -770,32 +818,29 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
   };
 }
 
+/* ============================
+   DREAM EXTRACTION
+   Keep this metadata extraction contract in parity with src/services/ai.ts
+   via the shared canonical module src/ai/dreamExtractionPrompt.ts.
+   ============================ */
+
 function buildExtractionMessages(dream: DreamRecord, interpretation: string) {
-  const system = `Return a single JSON object with keys:
-display_distillation, symbols, symbol_stances, archetypes, landscapes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications.
-display_distillation must include:
-essence_title, essence_line, dominant_lens, visible_anchors (array of 3-5 {label, type, salience, ui_meaning}), main_tension, dream_movement, movement_line.
-visible_anchors must always be an array (use [] only if nothing concrete exists).
-Do not include any prose outside JSON.`;
-  const user = `Title: ${dream.title || 'Untitled'}
-Date: ${dream.date}
-
-Dream:
-${dream.content}
-
-Final interpretation:
-${interpretation}
-
-Populate only what the dream text and interpretation concretely support.`;
-
   return {
     task: 'dream_extraction',
     messages: [
-      { role: 'system' as const, content: system },
-      { role: 'user' as const, content: user },
+      { role: 'system' as const, content: buildDreamExtractionSystemPrompt() },
+      {
+        role: 'user' as const,
+        content: buildDreamExtractionUserPrompt({
+          title: dream.title,
+          date: dream.date,
+          content: dream.content,
+          finalInterpretation: interpretation,
+        }),
+      },
     ],
-    temperature: 0.2,
-    tokenLimit: 2600,
+    temperature: DREAM_EXTRACTION_TEMPERATURE,
+    tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT,
     responseFormat: { type: 'json_object' as const },
     timeoutMs: 60000,
   };
@@ -838,38 +883,54 @@ function buildRecentEssayMessages(entries: PatternEntry[], language: string) {
   const context = entries.map((entry, index) => `
 Dream ${index + 1}
 Date: ${entry.date}
-Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
+Core Mode: ${entry.extracted.core_mode || '(not set)'}
 Affects: ${entry.extracted.affects.join(', ') || '(none)'}
+Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
+Symbol stances: ${entry.extracted.symbol_stances.map((stance) => `${stance.symbol}: ${stance.stance}`).join('; ') || '(none)'}
+Landscapes: ${entry.extracted.landscapes.slice(0, 3).join(', ') || '(none)'}
 Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
+Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
 Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
-Conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Interpretation excerpt: ${trim(entry.interpretation, 500)}
+Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
+Amplifications: ${entry.extracted.amplifications.join('; ') || '(none)'}
+Interpretation excerpt: ${trim(entry.interpretation, 520)}
 `).join('\n');
+
+  const languageInstruction = buildEssayLanguageInstruction(language);
 
   return {
     task: 'pattern_insights',
     messages: [
       {
         role: 'system' as const,
-        content: `You are writing a recent symbolic dream-field reflection. Keep markdown headings in English. Write the body in ${language}.`,
+        content: RECENT_DREAM_FIELD_SYSTEM_PROMPT,
       },
       {
         role: 'user' as const,
-        content: `Use these recent reflected dreams:
+        content: `You are writing a Recent Dream Field reflection.
+
+Scope: latest reflected dreams
+Number of interpreted dreams: ${entries.length}
+
+Dream data:
 ${context}
 
-Write sections:
-## Recent Dream Field
-## What Keeps Returning
-## Current Movement
-## What Remains Open
-## Reflective Questions
+Write a symbolic reflection that synthesizes this recent dream sequence.
 
-No advice or diagnosis.`,
+Important:
+- Treat these as the latest dreams the user has explored, not as a month or completed calendar period.
+- Look for what is active now: what repeats, intensifies, shifts, hesitates, or remains unresolved.
+- Do not summarize each dream one by one.
+- Do not simply list recurring tags.
+- Use extracted fields only to see the recent dream-field more clearly.
+- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
+- Keep all claims hypothetical and grounded in the data.
+- No advice, no diagnosis, no prescriptions, no reassurance.
+${languageInstruction}`,
       },
     ],
     temperature: 0.46,
-    tokenLimit: 1500,
+    tokenLimit: 1400,
   };
 }
 
@@ -877,36 +938,53 @@ function buildPeriodEssayMessages(entries: PatternEntry[], monthKey: string, lan
   const context = entries.map((entry, index) => `
 Dream ${index + 1}
 Date: ${entry.date}
-Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
+Core Mode: ${entry.extracted.core_mode || '(not set)'}
 Affects: ${entry.extracted.affects.join(', ') || '(none)'}
+Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
+Symbol stances: ${entry.extracted.symbol_stances.map((stance) => `${stance.symbol}: ${stance.stance}`).join('; ') || '(none)'}
+Landscapes: ${entry.extracted.landscapes.slice(0, 3).join(', ') || '(none)'}
 Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
+Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
 Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
-Conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Interpretation excerpt: ${trim(entry.interpretation, 600)}
+Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
+Amplifications: ${entry.extracted.amplifications.join('; ') || '(none)'}
+Interpretation excerpt: ${trim(entry.interpretation, 650)}
 `).join('\n');
+
+  const languageInstruction = buildEssayLanguageInstruction(language);
 
   return {
     task: 'pattern_insights',
     messages: [
       {
         role: 'system' as const,
-        content: `You are writing a symbolic monthly dream-field reflection. Keep markdown headings in English. Write the body in ${language}.`,
+        content: MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT,
       },
       {
         role: 'user' as const,
-        content: `Month key: ${monthKey}
-Reflected dreams:
+        content: `You are writing a monthly dream essay.
+
+Period: monthly
+Month key: ${monthKey}
+Number of interpreted dreams: ${entries.length}
+
+Dream data:
 ${context}
 
-Write sections:
-## The Month's Dream Field
-## Recurring Images and Pressures
-## Thresholds and Conflicts
-## Movement Across the Month
-## What Remains Open
-## Reflective Questions
+Write a symbolic monthly/quarterly essay that synthesizes the dream field as a whole.
 
-No advice or diagnosis.`,
+Important:
+- Do not summarize each dream one by one.
+- Do not simply list recurring tags.
+- Do not write as if explaining metadata fields.
+- Use extracted fields only to see the dream-field more clearly.
+- The essay should feel synthesized from images and movements, not generated from tags.
+- Find the field-level pattern: recurring images, pressures, thresholds, conflicts, and movements.
+- Use thresholds and conflicts as major synthesis anchors only when they are concrete and recurring or structurally important.
+- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
+- Keep all claims hypothetical and grounded in the data.
+- No advice, no diagnosis, no prescriptions, no reassurance.
+${languageInstruction}`,
       },
     ],
     temperature: 0.48,
@@ -1052,17 +1130,24 @@ function hasExtractionContent(extraction: ExtractionResult): boolean {
 }
 
 function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: boolean } = {}): ExtractionResult {
-  const parsed = parseJsonObjectLoose(content);
-  if (!parsed) {
-    console.error('[billing-ai] Extraction JSON parse failed', {
+  const validated = validateStructuredTaskContent('dream_extraction', content, {
+    provider: 'openai-or-fallback',
+  });
+  if (!validated.ok) {
+    console.error('[billing-ai] Extraction schema validation failed', {
       contentLength: content.length,
       failOnInvalidOrEmpty: Boolean(options.failOnInvalidOrEmpty),
+      schemaErrors: validated.schemaErrors,
+      repairAttempted: validated.log.repairAttempted,
+      repairSucceeded: validated.log.repairSucceeded,
     });
     if (options.failOnInvalidOrEmpty) {
       throw new HttpError(502, 'AI extraction returned invalid JSON');
     }
     return emptyExtraction();
   }
+
+  const parsed = validated.data as Record<string, unknown>;
 
   const extraction = {
     display_distillation: normalizeDisplayDistillation(parsed.display_distillation),
@@ -1196,12 +1281,15 @@ export async function generateRecentReflection(
   authHeader: string,
   entries: PatternEntry[],
   language: string
-): Promise<string> {
+): Promise<{ content: string; cost: AiCallCost | null }> {
   const payload = await invokeOpenAiProxy({
     authHeader,
     ...buildRecentEssayMessages(entries, language),
   });
-  return extractContent(payload);
+  return {
+    content: stripEndMarker(extractContent(payload), END_MARKER_DREAM_ESSAY),
+    cost: aiCallCostFromPayload(payload),
+  };
 }
 
 export async function generatePeriodReflection(
@@ -1209,12 +1297,15 @@ export async function generatePeriodReflection(
   entries: PatternEntry[],
   monthKey: string,
   language: string
-): Promise<string> {
+): Promise<{ content: string; cost: AiCallCost | null }> {
   const payload = await invokeOpenAiProxy({
     authHeader,
     ...buildPeriodEssayMessages(entries, monthKey, language),
   });
-  return extractContent(payload);
+  return {
+    content: stripEndMarker(extractContent(payload), END_MARKER_DREAM_ESSAY),
+    cost: aiCallCostFromPayload(payload),
+  };
 }
 
 export function buildRecentScope(entries: PatternEntry[], count: number): string {

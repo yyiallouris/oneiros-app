@@ -13,7 +13,9 @@ import {
   generateRecentReflection,
 } from '../_shared/billing-ai.ts';
 import {
+  claimMetadataExtraction,
   commitQuota,
+  finishMetadataExtraction,
   getDreamById,
   getInterpretationByDreamId,
   getInterpretationById,
@@ -726,21 +728,95 @@ serve(async (req: Request) => {
         }
       }
 
-      const metadataResult = await persistReflectionMetadata({
-        admin,
-        userId,
-        authHeader,
+      const claim = await claimMetadataExtraction(admin, userId, interpretation.id);
+      if (claim.status === 'not_found') {
+        throw new HttpError(404, 'Interpretation not found');
+      }
+      if (claim.status === 'ready') {
+        console.log('[ai-entitlements-gateway] metadata request cached by claim', {
+          action: body.action,
+          interpretationId: interpretation.id,
+          totalMs: measureSince(totalStartedAt),
+        });
+        return jsonResponse(
+          {
+            status: 'committed',
+            interpretation_id: interpretation.id,
+            metadata_status: 'ready',
+            cached: true,
+            total_ms: measureSince(totalStartedAt),
+          },
+          200,
+          methods
+        );
+      }
+      if (!claim.claimed) {
+        console.log('[ai-entitlements-gateway] metadata request already processing', {
+          action: body.action,
+          interpretationId: interpretation.id,
+          attempts: claim.attempts,
+          leaseExpiresAt: claim.leaseExpiresAt,
+          totalMs: measureSince(totalStartedAt),
+        });
+        return jsonResponse(
+          {
+            status: 'pending',
+            reason: 'metadata_extraction_processing',
+            interpretation_id: interpretation.id,
+            metadata_status: interpretation.metadata_status ?? 'pending',
+            total_ms: measureSince(totalStartedAt),
+          },
+          200,
+          methods
+        );
+      }
+
+      console.log('[ai-entitlements-gateway] metadata request claimed', {
+        action: body.action,
         interpretationId: interpretation.id,
-        dream,
-        reflection,
-        reflectionCost,
+        attempts: claim.attempts,
+        leaseExpiresAt: claim.leaseExpiresAt,
       });
+
+      let metadataResult: Awaited<ReturnType<typeof persistReflectionMetadata>>;
+      try {
+        metadataResult = await persistReflectionMetadata({
+          admin,
+          userId,
+          authHeader,
+          interpretationId: interpretation.id,
+          dream,
+          reflection,
+          reflectionCost,
+        });
+        await finishMetadataExtraction(admin, userId, interpretation.id, 'completed');
+      } catch (error) {
+        try {
+          await finishMetadataExtraction(
+            admin,
+            userId,
+            interpretation.id,
+            'failed',
+            'metadata_generation_failed'
+          );
+        } catch (finishError) {
+          console.error('[ai-entitlements-gateway] metadata claim finish failed', {
+            action: body.action,
+            interpretationId: interpretation.id,
+            message: finishError instanceof Error ? finishError.message : 'Unknown metadata claim finish error',
+          });
+        }
+        throw error;
+      }
 
       console.log('[ai-entitlements-gateway] metadata request done', {
         action: body.action,
         interpretationId: interpretation.id,
         metadataStatus: metadataResult.metadataStatus,
+        metadataAiCost: safeCostLog(metadataResult.metadataCost),
         metadataCostUsd: costUsd(metadataResult.metadataCost),
+        reflectionAiCost: safeCostLog(reflectionCost),
+        reflectionCostUsd: costUsd(reflectionCost),
         totalAiCostUsd: metadataResult.totalCostUsd,
         totalMs: measureSince(totalStartedAt),
       });
@@ -751,6 +827,8 @@ serve(async (req: Request) => {
           metadata_status: metadataResult.metadataStatus,
           metadata_ai_cost: safeCostLog(metadataResult.metadataCost),
           metadata_cost_usd: costUsd(metadataResult.metadataCost),
+          reflection_ai_cost: safeCostLog(reflectionCost),
+          reflection_cost_usd: costUsd(reflectionCost),
           total_ai_cost_usd: metadataResult.totalCostUsd,
           total_ms: measureSince(totalStartedAt),
         },
@@ -831,6 +909,13 @@ serve(async (req: Request) => {
       const count = body.count ?? 3;
       const entries = await getRecentPatternEntries(admin, userId, count);
       const scopeKey = buildRecentScope(entries, count);
+      console.log('[ai-entitlements-gateway] recent dream field ai start', {
+        action: body.action,
+        scopeKey,
+        language,
+        dreamCount: entries.length,
+        count,
+      });
       const result = await executeQuotaJob({
         reserve: () =>
           reserveQuota(admin, userId, body.action, body.idempotencyKey, {
@@ -843,7 +928,18 @@ serve(async (req: Request) => {
         release: (quotaEventId, reason, releaseResult) => releaseQuota(admin, quotaEventId, reason, releaseResult),
         work: async (reservation) => {
           const quotaEvent = await getQuotaEvent(admin, reservation.quotaEventId!);
-          const reflection = await generateRecentReflection(authHeader, entries, language);
+          const aiStartedAt = measureStart();
+          const generated = await generateRecentReflection(authHeader, entries, language);
+          const aiMs = measureSince(aiStartedAt);
+          console.log('[ai-entitlements-gateway] recent dream field ai done', {
+            action: body.action,
+            scopeKey,
+            language,
+            dreamCount: entries.length,
+            aiMs,
+            aiCost: safeCostLog(generated.cost),
+            recentDreamFieldCostUsd: costUsd(generated.cost),
+          });
           const artifactId = await saveArtifact(admin, {
             userId,
             entitlementId: (quotaEvent.entitlement_id as string | null) ?? null,
@@ -854,25 +950,43 @@ serve(async (req: Request) => {
             language,
             dreamIds: entries.map((entry) => entry.dreamId),
             dreamCount: entries.length,
-            content: reflection,
+            content: generated.content,
             metadata: { count },
           });
 
           return {
             value: {
               artifact_id: artifactId,
-              content: reflection,
+              content: generated.content,
               scope_key: scopeKey,
+              recent_dream_field_ai_cost: safeCostLog(generated.cost),
+              recent_dream_field_cost_usd: costUsd(generated.cost),
             },
-            result: { artifact_id: artifactId },
+            result: {
+              artifact_id: artifactId,
+              recent_dream_field_ai_ms: aiMs,
+              recent_dream_field_ai_cost: safeCostLog(generated.cost),
+              recent_dream_field_cost_usd: costUsd(generated.cost),
+            },
           };
         },
       });
 
       if (result.reservation.status === 'cached') {
+        console.log('[ai-entitlements-gateway] recent dream field cached', {
+          action: body.action,
+          scopeKey,
+          language,
+        });
         return jsonResponse({ status: 'cached', ...result.reservation.result }, 200, methods);
       }
       if (result.reservation.status !== 'committed') {
+        console.log('[ai-entitlements-gateway] recent dream field not committed', {
+          action: body.action,
+          scopeKey,
+          status: result.reservation.status,
+          reason: (result.reservation as { reason?: string }).reason ?? null,
+        });
         return jsonResponse(normalizeReservation(result.reservation), 200, methods);
       }
 
@@ -886,6 +1000,14 @@ serve(async (req: Request) => {
       const scope = buildMonthScope(monthKey, timeZone);
       const entries = await getPatternEntriesForPeriod(admin, userId, scope.startDate, scope.endDate);
       const latestReflectedAt = entries[entries.length - 1]?.interpretationCreatedAt ?? null;
+      console.log('[ai-entitlements-gateway] period reflection ai start', {
+        action: body.action,
+        monthKey,
+        scopeKey: scope.scopeKey,
+        language,
+        dreamCount: entries.length,
+        isCurrentMonth: scope.isCurrentMonth,
+      });
       const result = await executeQuotaJob({
         reserve: () =>
           reserveQuota(admin, userId, body.action, body.idempotencyKey, {
@@ -901,7 +1023,19 @@ serve(async (req: Request) => {
         release: (quotaEventId, reason, releaseResult) => releaseQuota(admin, quotaEventId, reason, releaseResult),
         work: async (reservation) => {
           const quotaEvent = await getQuotaEvent(admin, reservation.quotaEventId!);
-          const reflection = await generatePeriodReflection(authHeader, entries, monthKey, language);
+          const aiStartedAt = measureStart();
+          const generated = await generatePeriodReflection(authHeader, entries, monthKey, language);
+          const aiMs = measureSince(aiStartedAt);
+          console.log('[ai-entitlements-gateway] period reflection ai done', {
+            action: body.action,
+            monthKey,
+            scopeKey: scope.scopeKey,
+            language,
+            dreamCount: entries.length,
+            aiMs,
+            aiCost: safeCostLog(generated.cost),
+            periodReflectionCostUsd: costUsd(generated.cost),
+          });
           const artifactId = await saveArtifact(admin, {
             userId,
             entitlementId: (quotaEvent.entitlement_id as string | null) ?? null,
@@ -915,26 +1049,46 @@ serve(async (req: Request) => {
             dreamIds: entries.map((entry) => entry.dreamId),
             dreamCount: entries.length,
             monthKey,
-            content: reflection,
+            content: generated.content,
             metadata: { is_current_month: scope.isCurrentMonth },
           });
-          await mirrorPatternReport(admin, userId, scope.scopeKey, reflection);
+          await mirrorPatternReport(admin, userId, scope.scopeKey, generated.content);
 
           return {
             value: {
               artifact_id: artifactId,
-              content: reflection,
+              content: generated.content,
               scope_key: scope.scopeKey,
+              period_reflection_ai_cost: safeCostLog(generated.cost),
+              period_reflection_cost_usd: costUsd(generated.cost),
             },
-            result: { artifact_id: artifactId },
+            result: {
+              artifact_id: artifactId,
+              period_reflection_ai_ms: aiMs,
+              period_reflection_ai_cost: safeCostLog(generated.cost),
+              period_reflection_cost_usd: costUsd(generated.cost),
+            },
           };
         },
       });
 
       if (result.reservation.status === 'cached') {
+        console.log('[ai-entitlements-gateway] period reflection cached', {
+          action: body.action,
+          monthKey,
+          scopeKey: scope.scopeKey,
+          language,
+        });
         return jsonResponse({ status: 'cached', ...result.reservation.result }, 200, methods);
       }
       if (result.reservation.status !== 'committed') {
+        console.log('[ai-entitlements-gateway] period reflection not committed', {
+          action: body.action,
+          monthKey,
+          scopeKey: scope.scopeKey,
+          status: result.reservation.status,
+          reason: (result.reservation as { reason?: string }).reason ?? null,
+        });
         return jsonResponse(normalizeReservation(result.reservation), 200, methods);
       }
 

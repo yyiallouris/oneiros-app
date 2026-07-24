@@ -11,6 +11,12 @@
  * - fallbackAnthropicModel (optional, μόνο όταν provider = "openai"):
  *     Αν το OpenAI αποτύχει (429, 5xx, ή κενό completion) και υπάρχει ANTHROPIC_API_KEY, μία προσπάθεια με αυτό το Anthropic model.
  *
+ * Product mapping (A/B-backed, 2026-07):
+ * - Nano + Haiku fallback  → mechanical understanding (extract / update / candidates)
+ * - GPT-5.4 + Sonnet 5    → user-facing analysis (reflection / pattern essay)
+ * - Mini + Haiku fallback → interactive follow-up chat
+ * - Missing/unknown task  → reject (no silent unrouted default)
+ *
  * Μετά: `supabase functions deploy openai-proxy`
  */
 
@@ -28,70 +34,84 @@ export type TaskAiEntry = {
   fallbackAnthropicModel?: string | null;
 };
 
-/** Unrouted requests (no `task` in body) use this. */
-export const UNROUTED_TASK_AI: TaskAiEntry = {
-  provider: "openai",
-  model: "gpt-5.4-mini",
-};
-
-/** Latency-first tasks used in the reflection critical path. */
-const OPENAI_CHEAP = "gpt-5.4-mini";
-/** Long-form synthesis tasks where the user is already in an explicitly generative flow. */
-const OPENAI_PREMIUM = "gpt-5.4";
-/** Fallback when OpenAI errors or returns empty (needs ANTHROPIC_API_KEY on the function). */
-const ANTHROPIC_FALLBACK = "claude-haiku-4-5";
+/** Cheapest tier — metadata extract + pattern candidate grouping. */
+const OPENAI_NANO = "gpt-5.4-nano";
+/** Mid tier — follow-up chat (not the primary reflection product). */
+const OPENAI_MINI = "gpt-5.4-mini";
+/** Full tier — core dream reflection + pattern essays. */
+const OPENAI_FULL = "gpt-5.4";
+/** Operational Anthropic fallback (extract / classify / chat). */
+const ANTHROPIC_HAIKU = "claude-haiku-4-5";
+/** Quality Anthropic fallback for premium user-facing analysis. */
+const ANTHROPIC_SONNET = "claude-sonnet-5";
 
 export const TASK_AI_BY_TASK: Record<OneirosTask, TaskAiEntry> = {
+  // dream_metadata_extract
   dream_extraction: {
     provider: "openai",
-    model: OPENAI_CHEAP,
+    model: OPENAI_NANO,
+    fallbackAnthropicModel: ANTHROPIC_HAIKU,
   },
   conversation_element_update: {
     provider: "openai",
-    model: OPENAI_CHEAP,
+    model: OPENAI_NANO,
+    fallbackAnthropicModel: ANTHROPIC_HAIKU,
   },
+  // pattern_candidates
   semantic_grouping: {
     provider: "openai",
-    model: OPENAI_CHEAP,
+    model: OPENAI_NANO,
+    fallbackAnthropicModel: ANTHROPIC_HAIKU,
   },
+  // pattern_essay
   pattern_insights: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
   pattern_insights_retry_compact: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
+  // reflection (all depths — primary product)
   interpretation_quick: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
   interpretation_standard: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
   interpretation_advanced: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
+  // compact regenerate/deepen retry — same quality bar as reflection
   interpretation_retry_compact: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_FULL,
+    fallbackAnthropicModel: ANTHROPIC_SONNET,
   },
+  // chat_followup
   chat_followup: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_MINI,
+    fallbackAnthropicModel: ANTHROPIC_HAIKU,
   },
 };
 
-export function getTaskAiConfig(task: OneirosTask | null): TaskAiEntry {
-  if (!task) return UNROUTED_TASK_AI;
-  return TASK_AI_BY_TASK[task] ?? UNROUTED_TASK_AI;
+export function getTaskAiConfig(task: OneirosTask): TaskAiEntry {
+  return TASK_AI_BY_TASK[task];
+}
+
+/** Reject missing/unknown tasks instead of silently routing to a default model. */
+export function missingOrUnknownTaskMessage(rawTask: unknown): string {
+  if (typeof rawTask === "string" && rawTask.trim().length > 0) {
+    return `Unknown AI task: ${rawTask.trim()}`;
+  }
+  return "Missing AI task — pass a known task in the request body";
 }

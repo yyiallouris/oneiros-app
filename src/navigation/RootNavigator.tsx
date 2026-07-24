@@ -76,7 +76,13 @@ const ROOT_ROUTE_NAMES: Array<keyof RootStackParamList> = [
 ];
 
 const MAIN_TAB_ROUTE_NAMES = ['Write', 'Journal', 'Insights'] as const;
-const ONBOARDING_ROUTE_NAMES = ['OnboardingName', 'OnboardingDepth', 'OnboardingSubscription', 'OnboardingSecure'] as const;
+const ONBOARDING_ROUTE_NAMES = [
+  'OnboardingName',
+  'OnboardingDepth',
+  'OnboardingLanguage',
+  'OnboardingSubscription',
+  'OnboardingSecure',
+] as const;
 const SHOW_DEV_OFFLINE_TOGGLE = false;
 
 const isRootRouteName = (route: string): route is keyof RootStackParamList =>

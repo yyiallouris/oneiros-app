@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders, semantic } from '../theme';
-import { PaperBackground, Card, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Card, DesignExportForeground } from '../components/ui';
 import { UserService } from '../services/userService';
 import { getInterpretationDepth, setInterpretationDepth, type InterpretationDepth } from '../services/userSettingsService';
 import {
@@ -40,6 +40,7 @@ const AccountScreen: React.FC = () => {
     refreshing: subscriptionRefreshing,
   } = useSubscription();
   const [displayName, setDisplayName] = useState('');
+  const [savedDisplayName, setSavedDisplayName] = useState('');
   const [savedHint, setSavedHint] = useState(false);
   const savedHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [interpretationDepth, setInterpretationDepthState] = useState<InterpretationDepth>('standard');
@@ -51,12 +52,22 @@ const AccountScreen: React.FC = () => {
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+  const isNameDirty = useMemo(
+    () => displayName.trim() !== savedDisplayName.trim(),
+    [displayName, savedDisplayName]
+  );
+  const canSaveName = isNameDirty && !savedHint;
+  const showNameSaveAction = isNameDirty || savedHint;
 
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
       UserService.getDisplayName().then((name) => {
-        if (mounted) setDisplayName(name ?? '');
+        if (!mounted) return;
+        const nextName = name ?? '';
+        setDisplayName(nextName);
+        setSavedDisplayName(nextName);
+        setSavedHint(false);
       });
       getInterpretationDepth().then((depth) => {
         if (mounted) setInterpretationDepthState(depth);
@@ -83,15 +94,47 @@ const AccountScreen: React.FC = () => {
   );
 
   const handleSaveName = useCallback(() => {
+    if (!canSaveName) return;
     if (savedHintTimer.current) clearTimeout(savedHintTimer.current);
-    UserService.setDisplayName(displayName);
+    const nextName = displayName.trim();
+    void UserService.setDisplayName(nextName);
+    setDisplayName(nextName);
+    setSavedDisplayName(nextName);
     setSavedHint(true);
     savedHintTimer.current = setTimeout(() => {
       savedHintTimer.current = null;
       setSavedHint(false);
       navigation.navigate('MainTabs', { screen: 'Write' });
     }, 800);
-  }, [displayName, navigation]);
+  }, [canSaveName, displayName, navigation]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: showNameSaveAction
+        ? () => (
+            <TouchableOpacity
+              onPress={handleSaveName}
+              disabled={!canSaveName}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 12, right: 8 }}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canSaveName }}
+              accessibilityLabel={savedHint ? 'Profile name saved' : 'Save profile name'}
+              style={styles.headerSaveButton}
+            >
+              <Text
+                style={[
+                  styles.saveAction,
+                  canSaveName ? styles.saveActionActive : styles.saveActionSaved,
+                ]}
+              >
+                {savedHint ? 'Saved' : 'Save'}
+              </Text>
+            </TouchableOpacity>
+          )
+        : undefined,
+    });
+  }, [navigation, showNameSaveAction, canSaveName, savedHint, handleSaveName]);
 
   const handleDepthSelect = useCallback((depth: InterpretationDepth) => {
     setInterpretationDepthState(depth);
@@ -188,8 +231,6 @@ const AccountScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-        <Text style={styles.title}>Account</Text>
-
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Subscription</Text>
           <TouchableOpacity
@@ -217,19 +258,21 @@ const AccountScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             value={displayName}
-            onChangeText={setDisplayName}
+            onChangeText={(value) => {
+              setDisplayName(value);
+              if (savedHint) setSavedHint(false);
+            }}
             placeholder="How you’d like to be called"
             placeholderTextColor={text.muted}
             maxLength={60}
             autoCapitalize="words"
             autoCorrect={false}
+            returnKeyType="done"
+            onSubmitEditing={handleSaveName}
           />
-          <Button
-            title={savedHint ? 'Saved' : 'Save'}
-            onPress={handleSaveName}
-            size="compact"
-            style={styles.saveButton}
-          />
+          <Text style={styles.fieldHint}>
+            Other Account choices save as soon as you tap them.
+          </Text>
         </Card>
 
         <Card style={styles.card}>
@@ -363,15 +406,25 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: {
     padding: spacing.lg,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxxl,
   },
-  title: {
-    fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xl,
+  headerSaveButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    justifyContent: 'center',
+  },
+  saveAction: {
+    fontSize: typography.sizes.md,
+    fontFamily: typography.medium,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.2,
+  },
+  saveActionActive: {
+    color: colors.buttonPrimary,
+  },
+  saveActionSaved: {
+    color: text.secondary,
   },
   card: {
     marginBottom: spacing.xl,
@@ -422,9 +475,11 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     backgroundColor: colors.background,
   },
-  saveButton: {
-    marginTop: spacing.lg,
-    alignSelf: 'flex-start',
+  fieldHint: {
+    marginTop: spacing.sm,
+    fontSize: typography.sizes.xs,
+    lineHeight: typography.sizes.xs * 1.45,
+    color: text.muted,
   },
   depthRow: {
     flexDirection: 'row',

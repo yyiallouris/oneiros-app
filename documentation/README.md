@@ -21,14 +21,14 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 | [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Subscription UX, yearly/monthly plans, entitlement source of truth, quota rules, and AI gateway contract |
 | [architecture-app-map.md](./architecture-app-map.md) | Practical subsystem map for navigation, screens, services, storage, Supabase, AI, theme, and impact analysis |
 | [architecture-features.md](./architecture-features.md) | Feature-by-feature map of entry points, dependencies, docs/tests, platform, and deploy considerations |
-| [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction, `display_distillation`, metadata, proxy routing, sync, and tests |
+| [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction (shared canonical prompt in `src/ai/dreamExtractionPrompt.ts`), `display_distillation`, metadata, proxy routing, sync, and tests |
 
 ## Primary navigation map (simplified)
 
 - **No session:** stack shows `Auth` (+ `LoginSupport`).
 - **Session + pending password reset:** `SetPassword`.
 - **Session + biometric lock enabled + not unlocked this foreground:** `BiometricLock` (+ `LoginSupport`).
-- **Session + onboarding incomplete:** `Onboarding` (name → depth → subscription → secure).
+- **Session + onboarding incomplete:** `Onboarding` (name → depth → language → subscription → secure).
 - **Otherwise:** `MainTabs` (Write | Journal | Insights).
 
 **Stack screens** (reachable when authenticated, in addition to the above): `DreamEditor`, `InterpretationChat`, `DreamDetail`, `Account`, `Subscription`, `Contact`, `Privacy`, `Calendar`, `InsightsSection`, `PatternExplorer`, `InsightsJourney`, `JournalFilter`.

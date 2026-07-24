@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text } from '../../theme';
 import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress';
 import {
   getBiometricStatus,
   isBiometricEnabled,
@@ -65,11 +66,6 @@ const OnboardingSecureScreen: React.FC = () => {
     onComplete?.();
   }, [onComplete]);
 
-  const handleSkip = useCallback(async () => {
-    await setOnboardingCompleted();
-    onComplete?.();
-  }, [onComplete]);
-
   return (
     <View style={styles.container}>
       <PaperBackground height={260} lite />
@@ -87,9 +83,10 @@ const OnboardingSecureScreen: React.FC = () => {
         >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
+        <OnboardingProgress step={5} />
         <Text style={styles.title}>Secure your journal</Text>
         <Text style={styles.subtitle}>
-          Keep your dreams private. You can lock the app with {biometricLabel} so only you can open it.
+          Optional. Keep your dreams private with {biometricLabel}, or continue and enable this later in Account.
         </Text>
 
         <Card style={styles.card}>
@@ -121,9 +118,6 @@ const OnboardingSecureScreen: React.FC = () => {
             onPress={handleFinish}
             style={styles.primaryButton}
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton} activeOpacity={0.7}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
           </Card>
         </ScrollView>
       </DesignExportForeground>
@@ -217,15 +211,6 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginBottom: spacing.sm,
-  },
-  skipButton: {
-    alignSelf: 'center',
-    paddingVertical: spacing.sm,
-  },
-  skipText: {
-    fontSize: typography.sizes.sm,
-    color: text.muted,
-    fontWeight: typography.weights.medium,
   },
 });
 

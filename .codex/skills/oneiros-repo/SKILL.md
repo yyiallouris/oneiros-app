@@ -42,8 +42,10 @@ Prefer existing tokens and shared components. If a token, type role, visual rule
 ## Supabase and AI obligations
 
 - Schema, RLS, persistence, or remote storage changes require a migration under `supabase/migrations/`, migration docs, and a final `supabase db push` note.
+- Before adding foreign keys, RPC params, or claim/lock tables against existing app data, verify the real database column types from existing migrations and remote mapping code. Oneiros uses app-generated `text` ids for `dreams.id` and `interpretations.id`; do not assume `uuid` just because related billing/auth tables use UUIDs.
 - Edge Function behavior changes require the relevant `supabase/functions/<name>/README.md` update and a final deploy note.
 - AI provider/model routing changes live in `supabase/functions/openai-proxy/task-config.ts` and require `supabase functions deploy openai-proxy`.
+- Dream metadata extraction prompts must stay on the shared canonical module `src/ai/dreamExtractionPrompt.ts` (client + gateway). Do not reintroduce a thinner gateway-only extraction stub.
 - Never log raw dream content, prompts, messages, or AI responses. Use `src/services/logger.ts` patterns.
 
 ## Work style

@@ -21,6 +21,8 @@ import { Button, ActionLoadingSlot } from '../components/ui';
 </ActionLoadingSlot>
 ```
 
+For fast local actions such as **Save dream**, disable the trigger immediately but delay the visible `ActionLoadingSlot` loader briefly. This preserves double-tap protection without flashing the heavier reflection-style visual during normal Save → DreamDetail navigation.
+
 ## Variants
 
 | Variant | Visual | Use for |

@@ -1,7 +1,7 @@
 /**
  * Archetypes whitelist - Dream Weaver post-Jungian split.
  * One master whitelist, with explicit inner structures vs archetypal energies.
- * Must stay aligned with extraction in `ai.ts`.
+ * Must stay aligned with extraction in `src/ai/dreamExtractionPrompt.ts`.
  */
 
 export const INNER_STRUCTURE_ARCHETYPES = [

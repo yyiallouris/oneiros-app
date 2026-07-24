@@ -36,11 +36,27 @@ describe('edge reflection prompt flow', () => {
     expect(billingAi).toMatch(/stripEndMarker\(extractContent\(reflectionPayload\), END_MARKER_DREAM_READING\)/);
   });
 
-  it('does not downgrade interpretation depth routing in the proxy config', () => {
+  it('routes interpretation depths to the accountant cost-tier models', () => {
     const taskConfig = readFileSync(path.join(repoRoot, 'supabase/functions/openai-proxy/task-config.ts'), 'utf8');
+    const proxyIndex = readFileSync(path.join(repoRoot, 'supabase/functions/openai-proxy/index.ts'), 'utf8');
 
-    expect(taskConfig).toMatch(/interpretation_quick:\s*{\s*provider: "openai",\s*model: OPENAI_PREMIUM,\s*fallbackAnthropicModel: ANTHROPIC_FALLBACK,\s*}/);
-    expect(taskConfig).toMatch(/interpretation_standard:\s*{\s*provider: "openai",\s*model: OPENAI_PREMIUM,\s*fallbackAnthropicModel: ANTHROPIC_FALLBACK,\s*}/);
-    expect(taskConfig).toMatch(/interpretation_advanced:\s*{\s*provider: "openai",\s*model: OPENAI_PREMIUM,\s*fallbackAnthropicModel: ANTHROPIC_FALLBACK,\s*}/);
+    expect(taskConfig).toMatch(/const OPENAI_NANO = "gpt-5\.4-nano"/);
+    expect(taskConfig).toMatch(/const OPENAI_MINI = "gpt-5\.4-mini"/);
+    expect(taskConfig).toMatch(/const OPENAI_FULL = "gpt-5\.4"/);
+    expect(taskConfig).toMatch(/const ANTHROPIC_HAIKU = "claude-haiku-4-5"/);
+    expect(taskConfig).toMatch(/const ANTHROPIC_SONNET = "claude-sonnet-5"/);
+    expect(taskConfig).toMatch(/interpretation_quick:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
+    expect(taskConfig).toMatch(/interpretation_standard:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
+    expect(taskConfig).toMatch(/interpretation_advanced:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
+    expect(taskConfig).toMatch(/interpretation_retry_compact:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
+    expect(taskConfig).toMatch(/pattern_insights:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
+    expect(taskConfig).toMatch(/dream_extraction:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
+    expect(taskConfig).toMatch(/conversation_element_update:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
+    expect(taskConfig).toMatch(/semantic_grouping:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
+    expect(taskConfig).toMatch(/chat_followup:\s*{\s*provider: "openai",\s*model: OPENAI_MINI,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
+    expect(taskConfig).not.toMatch(/UNROUTED_TASK_AI/);
+    expect(taskConfig).toMatch(/missingOrUnknownTaskMessage/);
+    expect(proxyIndex).toMatch(/missingOrUnknownTaskMessage\(body\.task\)/);
+    expect(proxyIndex).toMatch(/proxyJsonError\(missingOrUnknownTaskMessage\(body\.task\), 400\)/);
   });
 });

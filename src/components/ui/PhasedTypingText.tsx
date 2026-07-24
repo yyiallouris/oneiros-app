@@ -2,13 +2,14 @@
  * Smooth word-by-word typing for dream interpretations.
  * UX principles:
  * - Word-by-word (not char) to avoid line-break jitter
- * - Pre-render final text invisibly to reserve layout space
  * - Smooth, readable pace (not aggressive)
- * - Stable layout: no shifting, no aggressive rewrapping
+ * - Stable layout: append-aware updates so streamed partials do not restart
+ * - Same markdown formatting as the settled FormattedMessageText view
  */
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Text, TextProps } from 'react-native';
+import { formatInterpretationMarkdown } from '../../utils/formatInterpretationMarkdown';
 
 // Word-by-word timing: smooth, contemplative pace
 const WORD_DELAY_MS = 35; // ~35ms per word = ~17 words/sec (comfortable reading pace)
@@ -18,52 +19,35 @@ export interface PhasedTypingTextProps extends TextProps {
   onComplete?: () => void;
 }
 
-interface ParsedSection {
-  type: 'anchor' | 'atmosphere' | 'key_symbols' | 'archetypal' | 'questions' | 'other';
-  raw: string;
-  /** For key_symbols: [heading, bullet1, bullet2, ...] */
-  chunks?: string[];
-}
+function tokenizeForTyping(text: string): string[] {
+  const tokens: string[] = [];
+  let current = '';
 
-/**
- * Normalize markdown text for typing display.
- * This must match formatMarkdownText used in FormattedMessageText for consistency.
- * Converts markdown to clean text so live typing matches the final rendered view.
- */
-function normalizeInterpretationForTyping(text: string): string {
-  if (!text) return '';
-  
-  let formatted = text;
-  
-  try {
-    // Convert headers to plain text with spacing (keep content, remove ## markers)
-    formatted = formatted.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
-      return content ? `\n${content}\n` : match;
-    });
-    
-    // Convert bold (**text** or __text__) to plain text (keep the text)
-    formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
-    formatted = formatted.replace(/__([^_]+)__/g, '$1');
-    
-    // Convert italic (*text* or _text_) to plain text
-    formatted = formatted.replace(/\*([^*]+)\*/g, '$1');
-    formatted = formatted.replace(/_([^_]+)_/g, '$1');
-    
-    // Remove inline code markers but keep the text
-    formatted = formatted.replace(/`([^`]+)`/g, '$1');
-    
-    // Remove links but keep the text
-    formatted = formatted.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-    
-    return formatted.trim();
-  } catch (error) {
-    console.warn('[PhasedTypingText] Normalization error:', error);
-    return text;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (char === ' ') {
+      if (current) {
+        tokens.push(current + ' ');
+        current = '';
+      }
+    } else if (char === '\n') {
+      if (current) {
+        tokens.push(current);
+        current = '';
+      }
+      tokens.push('\n');
+    } else {
+      current += char;
+    }
   }
-}
 
-// Simplified: just do simple char-by-char typing of the whole normalized text
-// No section parsing, no phased reveals - just clean, reliable typing
+  if (current) {
+    tokens.push(current);
+  }
+
+  return tokens;
+}
 
 export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   text,
@@ -75,6 +59,7 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   const wordIdxRef = useRef(0);
   const wordsRef = useRef<string[]>([]);
   const normalizedTextRef = useRef('');
+  const rawTextRef = useRef('');
   const isCompleteRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -106,58 +91,43 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   }, []);
 
   useEffect(() => {
-    const previousText = normalizedTextRef.current;
-    const nextText = normalizeInterpretationForTyping(text);
-    
-    // Split into words (preserving spaces and newlines as separate tokens)
-    // This keeps layout stable: "word " "word " "\n" "word "
-    const tokens: string[] = [];
-    let current = '';
-    
-    for (let i = 0; i < nextText.length; i++) {
-      const char = nextText[i];
-      
-      if (char === ' ') {
-        if (current) {
-          tokens.push(current + ' '); // word with trailing space
-          current = '';
-        }
-      } else if (char === '\n') {
-        if (current) {
-          tokens.push(current); // word without space before newline
-          current = '';
-        }
-        tokens.push('\n'); // newline as separate token
-      } else {
-        current += char;
-      }
-    }
-    
-    if (current) {
-      tokens.push(current); // last word
-    }
+    const previousNormalized = normalizedTextRef.current;
+    const previousRaw = rawTextRef.current;
+    const nextText = formatInterpretationMarkdown(text);
+    const tokens = tokenizeForTyping(nextText);
 
-    const isAppendOnlyUpdate =
-      previousText.length > 0 &&
-      nextText.startsWith(previousText) &&
+    const isNormalizedAppend =
+      previousNormalized.length > 0 &&
+      nextText.startsWith(previousNormalized) &&
       wordIdxRef.current <= tokens.length;
+
+    // Raw append covers cases where closing markdown (e.g. **) reshapes the
+    // already-normalized prefix without requiring a full typewriter restart.
+    const isRawAppend =
+      previousRaw.length > 0 &&
+      text.startsWith(previousRaw) &&
+      wordIdxRef.current <= tokens.length;
+
+    const isAppendOnlyUpdate = isNormalizedAppend || isRawAppend;
 
     if (!isAppendOnlyUpdate) {
       clearTimeoutSafe();
+      wordIdxRef.current = 0;
+      setDisplayedWords([]);
+    } else {
+      const keepCount = Math.min(wordIdxRef.current, tokens.length);
+      wordIdxRef.current = keepCount;
+      setDisplayedWords(tokens.slice(0, keepCount));
     }
 
     wordsRef.current = tokens;
     normalizedTextRef.current = nextText;
-
-    if (!isAppendOnlyUpdate) {
-      wordIdxRef.current = 0;
-      setDisplayedWords([]);
-    }
+    rawTextRef.current = text;
     isCompleteRef.current = false;
 
     if (tokens.length === 0) {
       onCompleteRef.current?.();
-      return;
+      return clearTimeoutSafe;
     }
 
     if (!timeoutRef.current && wordIdxRef.current < tokens.length) {
@@ -168,7 +138,6 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
 
   useEffect(() => clearTimeoutSafe, [clearTimeoutSafe]);
 
-  // Render: just the typing text (word-by-word is smooth enough, no pre-render needed)
   const typingText = displayedWords.join('');
 
   return (

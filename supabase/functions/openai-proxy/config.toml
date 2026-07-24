@@ -1,1 +1,2 @@
 verify_jwt = false
+import_map = "../import_map.json"

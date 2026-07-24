@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, text, borderRadius } from '../../theme';
 import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
+import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress';
 import { setInterpretationDepth, type InterpretationDepth } from '../../services/userSettingsService';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { AI_REFLECTION_NOTICE } from '../../constants/legal';
@@ -22,12 +23,8 @@ const OnboardingDepthScreen: React.FC = () => {
 
   const handleContinue = useCallback(async () => {
     await setInterpretationDepth(interpretationDepth);
-    navigation.navigate('OnboardingSubscription');
+    navigation.navigate('OnboardingLanguage');
   }, [interpretationDepth, navigation]);
-
-  const handleSkip = useCallback(() => {
-    navigation.navigate('OnboardingSubscription');
-  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -46,9 +43,10 @@ const OnboardingDepthScreen: React.FC = () => {
         >
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
+        <OnboardingProgress step={2} />
         <Text style={styles.title}>Dream analysis</Text>
         <Text style={styles.subtitle}>
-          Choose how deep you want your interpretations. You can change this anytime in Account settings.
+          Choose how deep you want your interpretations. Core Reflection is a calm default — change anytime in Account.
         </Text>
         <Text style={styles.notice}>{AI_REFLECTION_NOTICE}</Text>
 
@@ -75,9 +73,6 @@ const OnboardingDepthScreen: React.FC = () => {
             onPress={handleContinue}
             style={styles.primaryButton}
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton} activeOpacity={0.7}>
-            <Text style={styles.skipText}>Skip</Text>
-          </TouchableOpacity>
           </Card>
         </ScrollView>
       </DesignExportForeground>
@@ -174,15 +169,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
-  },
-  skipButton: {
-    alignSelf: 'center',
-    paddingVertical: spacing.sm,
-  },
-  skipText: {
-    fontSize: typography.sizes.sm,
-    color: text.muted,
-    fontWeight: typography.weights.medium,
   },
 });
 

@@ -24,6 +24,7 @@ import { getRandomSymbol } from '../components/symbols';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamEditor'>;
 type EditorRouteProp = RouteProp<RootStackParamList, 'DreamEditor'>;
+const SAVE_LOADING_REVEAL_DELAY_MS = 450;
 
 const DreamEditorScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
@@ -38,8 +39,19 @@ const DreamEditorScreen: React.FC = () => {
   const [content, setContent] = useState('');
   const [date, setDate] = useState(presetDate || toISODate(new Date()));
   const [isSaving, setIsSaving] = useState(false);
+  const [showSaveLoading, setShowSaveLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const saveLoadingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    return () => {
+      if (saveLoadingTimeout.current) {
+        clearTimeout(saveLoadingTimeout.current);
+        saveLoadingTimeout.current = undefined;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (dreamId) {
@@ -66,6 +78,9 @@ const DreamEditorScreen: React.FC = () => {
     }
 
     setIsSaving(true);
+    saveLoadingTimeout.current = setTimeout(() => {
+      setShowSaveLoading(true);
+    }, SAVE_LOADING_REVEAL_DELAY_MS);
     try {
       const dreamData: Dream = dream
         ? {
@@ -91,6 +106,11 @@ const DreamEditorScreen: React.FC = () => {
     } catch (error) {
       Alert.alert('Error', 'Failed to save dream. Please try again.');
     } finally {
+      if (saveLoadingTimeout.current) {
+        clearTimeout(saveLoadingTimeout.current);
+        saveLoadingTimeout.current = undefined;
+      }
+      setShowSaveLoading(false);
       setIsSaving(false);
     }
   };
@@ -192,13 +212,13 @@ const DreamEditorScreen: React.FC = () => {
           ]}
         >
           <ActionLoadingSlot
-            loading={isSaving}
+            loading={showSaveLoading}
             loadingProps={{ preset: 'saveDream', style: styles.saveButton }}
           >
             <Button
               title={dream ? 'Save Changes' : 'Save Dream'}
               onPress={handleSave}
-              disabled={!content.trim()}
+              disabled={!content.trim() || isSaving}
               style={styles.saveButton}
             />
           </ActionLoadingSlot>

@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { DesignExportForeground, PaperBackground } from '../../components/ui';
+import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress';
 import { SubscriptionBillingSwitch } from '../../components/subscription/SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from '../../components/subscription/SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from '../../components/subscription/SubscriptionPlanCard';
@@ -61,6 +62,7 @@ const OnboardingSubscriptionScreen: React.FC = () => {
             <Text style={styles.backText}>← Back</Text>
           </TouchableOpacity>
 
+          <OnboardingProgress step={4} />
           <Text style={styles.title}>Choose your mode</Text>
           <Text style={styles.subtitle}>
             Start grounded with Free, or unlock the full Oneiros flow now. Pricing stays clear and you can manage it later from Subscription.

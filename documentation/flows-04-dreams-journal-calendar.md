@@ -16,6 +16,7 @@
    - Builds or updates `Dream` with `archived: true` (so it leaves the “today’s active” slot on Write).
    - `saveDream` via `StorageService` (local + sync queue).
    - Clears draft and navigates to **`DreamDetail`** with `dreamId`.
+   - The save button disables immediately to prevent double taps, but the visible save loader is delayed for short local saves so the user does not see a reflection-style loading flash during normal Save → DreamDetail navigation.
 5. Visual treatment: the writing surface is a single notebook-like page with soft paper tint and hairline edges; nested dashboard cards are intentionally avoided on this screen.
 
 ## Regression — Write

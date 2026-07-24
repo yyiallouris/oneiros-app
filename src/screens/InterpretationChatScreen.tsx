@@ -24,6 +24,7 @@ import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
+import { formatInterpretationMarkdown } from '../utils/formatInterpretationMarkdown';
 import { updateInterpretationElementsFromConversation } from '../services/ai';
 import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
@@ -82,99 +83,8 @@ interface ChatBubbleProps {
   showSettleFooter?: boolean;
 }
 
-// Helper function to format markdown text for better display
-// Converts markdown to plain text with proper spacing and formatting
-const formatMarkdownText = (text: string): string => {
-  let formatted = text;
-  
-  // Convert headers to bold with spacing
-  formatted = formatted.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
-    return `\n${content}\n`; // Add line breaks around headers
-  });
-  
-  // Convert bold (**text** or __text__) to plain text (keep the text)
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
-  formatted = formatted.replace(/__([^_]+)__/g, '$1');
-  
-  // Convert italic (*text* or _text_) to plain text
-  formatted = formatted.replace(/\*([^*]+)\*/g, '$1');
-  formatted = formatted.replace(/_([^_]+)_/g, '$1');
-  
-  // Remove inline code markers but keep the text
-  formatted = formatted.replace(/`([^`]+)`/g, '$1');
-  
-  // Remove links but keep the text
-  formatted = formatted.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-  
-  // Process line by line to handle bullet points and remove unwanted indentation
-  const lines = formatted.split('\n');
-  let previousWasBulletPoint = false;
-  
-  formatted = lines.map((line, index) => {
-    const originalLine = line;
-    const trimmed = line.trim();
-    
-    // Skip empty lines - keep them as is (preserve spacing)
-    if (!trimmed) {
-      previousWasBulletPoint = false; // Reset on empty line
-      return originalLine;
-    }
-    
-    // IMPORTANT: Don't convert "Evidence phrase:" or "Evidence:" lines to bullet points
-    // They should remain as regular text (will be styled as italic later)
-    if (/Evidence\s*(?:phrase|phase)?\s*:?/i.test(trimmed)) {
-      previousWasBulletPoint = false;
-      // Remove leading bullet characters if present, but keep the text
-      return trimmed.replace(/^[-*+]\s*/, '');
-    }
-    
-    // Count leading whitespace to detect indentation
-    const leadingWhitespace = originalLine.match(/^\s*/)?.[0] || '';
-    const isIndented = leadingWhitespace.length > 2; // More than 2 spaces = indented (continuation text)
-    
-    // Check if this line starts with -, *, or +
-    const startsWithBulletChar = /^\s*[-*+]\s+/.test(originalLine);
-    
-    // If previous line was a bullet point AND this line starts with bullet char, treat as continuation text
-    // This prevents continuation sentences from becoming bullet points
-    if (previousWasBulletPoint && startsWithBulletChar) {
-      // Remove the bullet character and treat as regular continuation text
-      previousWasBulletPoint = false; // Reset since this is continuation, not a new bullet
-      return trimmed.replace(/^[-*+]\s+/, '');
-    }
-    
-    // Only treat as bullet point if it starts with -, *, or + AND is NOT heavily indented
-    // AND the previous line was NOT a bullet point (to avoid continuation text)
-    if (!isIndented && startsWithBulletChar && !previousWasBulletPoint) {
-      // Convert to bullet point format
-      previousWasBulletPoint = true;
-      return '• ' + trimmed.replace(/^[-*+]\s+/, '');
-    }
-    
-    // Reset bullet point flag if this is not a bullet point
-    if (!startsWithBulletChar) {
-      previousWasBulletPoint = false;
-    }
-    
-    // Check if this is a numbered list item (only if not heavily indented)
-    if (!isIndented && /^\s*\d+\.\s+/.test(originalLine)) {
-      // Clean up spacing but keep the number
-      previousWasBulletPoint = false; // Numbered lists reset the flag
-      return trimmed.replace(/^(\d+)\.\s+/, '$1. ');
-    }
-    
-    // For all other lines (regular text, continuation lines, indented text), remove ALL leading whitespace
-    return trimmed;
-  }).join('\n');
-  
-  // Clean up multiple newlines (max 2 consecutive)
-  formatted = formatted.replace(/\n{3,}/g, '\n\n');
-  
-  // Ensure proper spacing after sections
-  formatted = formatted.replace(/(\d+\.\s+\*\*[^*]+\*\*)/g, '\n$1\n');
-  
-  return formatted.trim();
-};
+// Formats assistant markdown for display (shared with live typing)
+const formatMarkdownText = formatInterpretationMarkdown;
 
 // Component to render text with italic styling for "Evidence" phrases
 // This component handles both markdown formatting AND italic styling for evidence phrases
