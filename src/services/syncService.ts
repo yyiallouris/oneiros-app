@@ -210,18 +210,22 @@ export class SyncService {
         local.forEach((i) => mergedById.set(i.id, i));
         remote.forEach((remoteI) => {
           const localI = mergedById.get(remoteI.id);
+          const remoteMetadataPending = remoteI.metadata_status === 'pending';
           const merged: Interpretation = {
             ...remoteI,
-            landscapes: (remoteI.landscapes && remoteI.landscapes.length > 0) ? remoteI.landscapes : localI?.landscapes,
-            affects: (remoteI.affects && remoteI.affects.length > 0) ? remoteI.affects : localI?.affects,
-            motifs: (remoteI.motifs && remoteI.motifs.length > 0) ? remoteI.motifs : localI?.motifs,
-            relational_dynamics: (remoteI.relational_dynamics && remoteI.relational_dynamics.length > 0) ? remoteI.relational_dynamics : localI?.relational_dynamics,
-            thresholds: (remoteI.thresholds && remoteI.thresholds.length > 0) ? remoteI.thresholds : localI?.thresholds,
-            central_conflicts: (remoteI.central_conflicts && remoteI.central_conflicts.length > 0) ? remoteI.central_conflicts : localI?.central_conflicts,
-            core_mode: remoteI.core_mode && remoteI.core_mode.trim() ? remoteI.core_mode : localI?.core_mode,
-            amplifications: (remoteI.amplifications && remoteI.amplifications.length > 0) ? remoteI.amplifications : localI?.amplifications,
-            symbol_stances: (remoteI.symbol_stances && remoteI.symbol_stances.length > 0) ? remoteI.symbol_stances : localI?.symbol_stances,
-            display_distillation: remoteI.display_distillation ?? localI?.display_distillation,
+            landscapes: !remoteMetadataPending && remoteI.landscapes && remoteI.landscapes.length > 0 ? remoteI.landscapes : localI?.landscapes,
+            affects: !remoteMetadataPending && remoteI.affects && remoteI.affects.length > 0 ? remoteI.affects : localI?.affects,
+            motifs: !remoteMetadataPending && remoteI.motifs && remoteI.motifs.length > 0 ? remoteI.motifs : localI?.motifs,
+            relational_dynamics: !remoteMetadataPending && remoteI.relational_dynamics && remoteI.relational_dynamics.length > 0 ? remoteI.relational_dynamics : localI?.relational_dynamics,
+            thresholds: !remoteMetadataPending && remoteI.thresholds && remoteI.thresholds.length > 0 ? remoteI.thresholds : localI?.thresholds,
+            central_conflicts: !remoteMetadataPending && remoteI.central_conflicts && remoteI.central_conflicts.length > 0 ? remoteI.central_conflicts : localI?.central_conflicts,
+            core_mode: !remoteMetadataPending && remoteI.core_mode && remoteI.core_mode.trim() ? remoteI.core_mode : localI?.core_mode,
+            amplifications: !remoteMetadataPending && remoteI.amplifications && remoteI.amplifications.length > 0 ? remoteI.amplifications : localI?.amplifications,
+            symbol_stances: !remoteMetadataPending && remoteI.symbol_stances && remoteI.symbol_stances.length > 0 ? remoteI.symbol_stances : localI?.symbol_stances,
+            display_distillation: !remoteMetadataPending && remoteI.display_distillation ? remoteI.display_distillation : localI?.display_distillation,
+            metadata_status: remoteI.metadata_status ?? localI?.metadata_status,
+            metadata_generated_at: remoteI.metadata_generated_at ?? localI?.metadata_generated_at,
+            metadata_error_code: remoteI.metadata_error_code ?? localI?.metadata_error_code,
           };
           mergedById.set(remoteI.id, merged);
         });

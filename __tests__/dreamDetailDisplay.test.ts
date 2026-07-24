@@ -80,6 +80,54 @@ describe('dream detail display model', () => {
     expect(model.movementLine).toBe('outside the house');
   });
 
+  it('does not crash when display_distillation exists without visible_anchors', () => {
+    const model = buildDreamDetailDisplayModel(dream, {
+      ...baseInterpretation,
+      display_distillation: {
+        essence_title: 'Partial distillation',
+        essence_line: 'Only essence fields came back from extraction.',
+        dominant_lens: 'threshold',
+        // Simulate gateway/AI partial payload
+        visible_anchors: undefined as unknown as [],
+        main_tension: 'safety vs contact',
+        dream_movement: 'approaching',
+        movement_line: 'Approaching without crossing.',
+      },
+      symbols: ['locked house', 'watching figure'],
+      central_conflicts: ['safety vs contact'],
+      thresholds: ['doorway'],
+      affects: ['unease'],
+    });
+
+    expect(model.essenceTitle).toBe('Partial distillation');
+    expect(model.mainTension).toBe('safety vs contact');
+    expect(model.anchors.map((a) => a.label)).toEqual([
+      'Safety vs contact',
+      'Doorway',
+      'Unease',
+    ]);
+  });
+
+  it('falls back to metadata when visible_anchors is an empty array', () => {
+    const model = buildDreamDetailDisplayModel(dream, {
+      ...baseInterpretation,
+      display_distillation: {
+        essence_title: 'Empty anchors',
+        essence_line: 'Essence only',
+        dominant_lens: 'unclear',
+        visible_anchors: [],
+        main_tension: null,
+        dream_movement: 'unclear',
+        movement_line: null,
+      },
+      symbols: ['locked house'],
+      affects: ['apprehension'],
+    });
+
+    expect(model.essenceTitle).toBe('Empty anchors');
+    expect(model.anchors.map((a) => a.label)).toEqual(['Apprehension', 'Locked house']);
+  });
+
   it('dedupes anchors and uses dream symbols only as a final fallback', () => {
     const model = buildDreamDetailDisplayModel(dream, {
       ...baseInterpretation,

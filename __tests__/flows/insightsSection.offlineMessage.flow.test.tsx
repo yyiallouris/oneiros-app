@@ -35,12 +35,17 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../src/components/ui', () => {
   const React = require('react');
-  const { View, Text } = require('react-native');
+  const { View, Text, TouchableOpacity } = require('react-native');
   return {
     PaperBackground: ({ children }: any) => <View>{children}</View>,
     LegacyMountainWaveBackground: ({ children }: any) => <View>{children}</View>,
     BreathingLine: () => null,
     Card: ({ children }: any) => <View>{children}</View>,
+    Button: ({ title, onPress, disabled }: any) => (
+      <TouchableOpacity onPress={onPress} disabled={disabled}>
+        <Text>{title}</Text>
+      </TouchableOpacity>
+    ),
     LoadingState: () => <Text>Loading</Text>,
     ContentSkeleton: () => <Text>Skeleton</Text>,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,

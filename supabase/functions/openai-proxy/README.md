@@ -15,6 +15,18 @@ AI payload. Mobile clients must send:
 Missing or invalid user auth returns `401` and no dream/chat content is sent to
 OpenAI or Anthropic.
 
+## Request forwarding
+
+The proxy forwards OpenAI-compatible `response_format` when present. Metadata
+extraction uses this to request JSON object responses from OpenAI; Anthropic
+fallbacks still rely on prompt instructions and are converted back into the
+OpenAI-compatible response shape.
+
+The proxy also forwards OpenAI `stream` / `stream_options` for server-side
+progressive reflection generation. Streaming responses are passed through as
+event streams without reading the body in the proxy, so `ai-entitlements-gateway`
+can collect partial chunks and expose them through status polling.
+
 ## Πού διαλέγω provider + model ανά task
 
 **Ένα αρχείο στο repo:**

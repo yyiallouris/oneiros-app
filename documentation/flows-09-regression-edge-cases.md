@@ -46,6 +46,10 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 - [ ] Offline: cannot start reflection; offline banner behavior.
 - [ ] Online: API error restores chat input where implemented.
 - [ ] Proxy auth: missing/expired Supabase session cannot forward dream/chat payloads to `openai-proxy`.
+- [ ] Gateway → proxy: `ai-entitlements-gateway` must forward the user JWT; a service-role bearer to `openai-proxy` returns `Unauthorized`.
+- [ ] Malformed extraction JSON after a successful reflection must not fail the whole reflection (empty metadata fallback).
+- [ ] Async reflection status: `dream_reflection_generate` returns a pending quota event quickly, `dream_reflection_status` polls until committed/released, and regenerate does not confuse an older interpretation for the new result.
+- [ ] Async metadata: a committed reflection with `metadata_status: pending` renders reflection/chat immediately, starts `dream_metadata_extract`, restarts enrichment if a pending row is loaded later, refreshes metadata, and does not spend/release additional quota.
 - [ ] Max assistant responses reached → no further sends.
 - [ ] Regenerate interpretation after editing dream text.
 

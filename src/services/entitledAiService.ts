@@ -9,6 +9,7 @@ import {
   remoteGetInterpretationById,
 } from './remoteStorage';
 import { getRecentPatternInsightEntries, getRecentSequenceScopeKey, type RecentDreamFieldCount } from './patternInsightsService';
+import { logInfo, logWarn } from './logger';
 import type { Dream, Interpretation } from '../types/dream';
 import type { GatewayAction } from '../billing/types';
 import type { PatternInsightDreamEntry } from './ai';
@@ -16,12 +17,45 @@ import type { PatternInsightDreamEntry } from './ai';
 type GatewayDeniedResponse = {
   status: 'denied' | 'released' | 'pending';
   reason?: string | null;
+  quota_event_id?: string;
+  partial_reflection?: string;
+  partial_reflection_updated_at?: string;
+  partial_reflection_done?: boolean;
+  partial_reflection_cost_usd?: number | null;
 };
 
 type GatewayReflectionResponse = {
   status: 'committed';
   interpretation_id: string;
   reflection: string;
+  interpretation?: Interpretation;
+  reflection_ai_ms?: number;
+  save_reflection_ms?: number;
+  reflection_ai_cost?: Record<string, unknown> | null;
+  reflection_cost_usd?: number | null;
+};
+
+type GatewayReflectionPendingResponse = {
+  status: 'pending';
+  quota_event_id: string;
+  partial_reflection?: string;
+  partial_reflection_updated_at?: string;
+  partial_reflection_done?: boolean;
+  partial_reflection_cost_usd?: number | null;
+};
+
+type GatewayReflectionStatusResponse =
+  | GatewayReflectionResponse
+  | GatewayReflectionPendingResponse
+  | GatewayDeniedResponse;
+
+type GatewayMetadataResponse = {
+  status: 'committed';
+  interpretation_id: string;
+  metadata_status: 'ready' | 'failed';
+  metadata_ai_cost?: Record<string, unknown> | null;
+  metadata_cost_usd?: number | null;
+  total_ai_cost_usd?: number | null;
 };
 
 type GatewayFollowupResponse = {
@@ -45,6 +79,24 @@ const PREMIUM_REQUIRED_REASONS = new Set([
 const READ_ONLY_REASONS = new Set([
   'paid_reflection_read_only_after_lapse',
 ]);
+
+const METADATA_EXTRACTION_RETRY_DELAYS_MS = [0, 15000, 45000];
+const REFLECTION_STATUS_MAX_ATTEMPTS = 90;
+const REFLECTION_STATUS_POLL_DELAY_MS = 1000;
+const REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000;
+const metadataExtractionInFlight = new Set<string>();
+
+export type DreamReflectionProgress = {
+  text: string;
+  elapsedMs: number;
+  updatedAt?: string;
+  done?: boolean;
+  costUsd?: number | null;
+};
+
+export type EntitledDreamReflectionOptions = {
+  onPartialReflection?: (progress: DreamReflectionProgress) => void;
+};
 
 export class EntitlementError extends Error {
   reason: string;
@@ -90,13 +142,26 @@ function toUserFacingError(reason: string): string {
   }
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function syncInterpretationByDreamId(dreamId: string): Promise<Interpretation> {
+  const startedAt = Date.now();
+  logInfo('dream_reflection_remote_sync_start', { dreamId });
   const interpretation = await remoteGetInterpretationByDreamId(dreamId);
   if (!interpretation) {
     throw new Error('The updated reflection could not be loaded.');
   }
 
   await StorageService.saveInterpretation(interpretation);
+  triggerPendingDreamMetadataExtraction(interpretation);
+  logInfo('dream_reflection_remote_sync_done', {
+    dreamId,
+    interpretationId: interpretation.id,
+    metadataStatus: interpretation.metadata_status,
+    durationMs: Date.now() - startedAt,
+  });
   return interpretation;
 }
 
@@ -110,20 +175,229 @@ async function syncInterpretationById(interpretationId: string): Promise<Interpr
   return interpretation;
 }
 
+async function saveCommittedReflectionPayload(
+  action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>,
+  dreamId: string,
+  response: GatewayReflectionResponse,
+  totalStartedAt: number
+): Promise<Interpretation> {
+  logInfo('dream_reflection_gateway_committed', {
+    action,
+    dreamId,
+    interpretationId: response.interpretation_id,
+    hasDirectInterpretation: Boolean(response.interpretation),
+    reflectionCostUsd: response.reflection_cost_usd,
+  });
+
+  if (response.interpretation) {
+    const saveStartedAt = Date.now();
+    await LocalStorage.saveInterpretation(response.interpretation);
+    logInfo('dream_reflection_direct_payload_saved', {
+      action,
+      dreamId,
+      interpretationId: response.interpretation.id,
+      metadataStatus: response.interpretation.metadata_status,
+      saveLocalMs: Date.now() - saveStartedAt,
+      totalMs: Date.now() - totalStartedAt,
+    });
+    triggerPendingDreamMetadataExtraction(response.interpretation);
+    return response.interpretation;
+  }
+
+  const interpretation = await syncInterpretationByDreamId(dreamId);
+  logInfo('dream_reflection_generate_done_with_remote_fallback', {
+    action,
+    dreamId,
+    interpretationId: interpretation.id,
+    totalMs: Date.now() - totalStartedAt,
+  });
+  return interpretation;
+}
+
+async function pollEntitledDreamReflection(params: {
+  action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>;
+  dreamId: string;
+  quotaEventId: string;
+  totalStartedAt: number;
+  onPartialReflection?: (progress: DreamReflectionProgress) => void;
+}): Promise<Interpretation> {
+  let lastPartialText = '';
+  for (let attempt = 0; attempt < REFLECTION_STATUS_MAX_ATTEMPTS; attempt += 1) {
+    if (attempt > 0) {
+      await delay(REFLECTION_STATUS_POLL_DELAY_MS);
+    }
+
+    const pollStartedAt = Date.now();
+    const response = await invokeAiEntitlementsGateway<GatewayReflectionStatusResponse>({
+      action: 'dream_reflection_status',
+      idempotencyKey: createIdempotencyKey('dream_reflection_status', params.quotaEventId),
+      dreamId: params.dreamId,
+      quotaEventId: params.quotaEventId,
+    });
+
+    logInfo('dream_reflection_status_polled', {
+      action: params.action,
+      dreamId: params.dreamId,
+      quotaEventId: params.quotaEventId,
+      status: response.status,
+      attempt: attempt + 1,
+      durationMs: Date.now() - pollStartedAt,
+      totalMs: Date.now() - params.totalStartedAt,
+      reflectionAiMs: response.status === 'committed' ? response.reflection_ai_ms : undefined,
+      saveReflectionMs: response.status === 'committed' ? response.save_reflection_ms : undefined,
+      reflectionCostUsd: response.status === 'committed' ? response.reflection_cost_usd : undefined,
+      partialReflectionLength: response.status === 'pending' ? response.partial_reflection?.length : undefined,
+    });
+
+    if (response.status === 'committed') {
+      return saveCommittedReflectionPayload(params.action, params.dreamId, response, params.totalStartedAt);
+    }
+
+    if (
+      response.status === 'pending' &&
+      params.onPartialReflection &&
+      Date.now() - params.totalStartedAt >= REFLECTION_PARTIAL_REVEAL_AFTER_MS &&
+      typeof response.partial_reflection === 'string' &&
+      response.partial_reflection.trim().length > 0 &&
+      response.partial_reflection !== lastPartialText
+    ) {
+      lastPartialText = response.partial_reflection;
+      params.onPartialReflection({
+        text: response.partial_reflection,
+        elapsedMs: Date.now() - params.totalStartedAt,
+        updatedAt: response.partial_reflection_updated_at,
+        done: response.partial_reflection_done,
+        costUsd: response.partial_reflection_cost_usd,
+      });
+    }
+
+    if (response.status === 'released' || response.status === 'denied') {
+      throw new EntitlementError(response.reason ?? 'dream_reflection_generation_failed');
+    }
+  }
+
+  throw new Error('The reflection is still being generated. Please reopen this dream in a moment.');
+}
+
+async function runMetadataExtractionWithRetry(interpretationId: string): Promise<void> {
+  let lastError: unknown = null;
+
+  for (const retryDelay of METADATA_EXTRACTION_RETRY_DELAYS_MS) {
+    if (retryDelay > 0) {
+      await delay(retryDelay);
+    }
+
+    const attemptStartedAt = Date.now();
+    try {
+      logInfo('dream_metadata_extract_attempt_start', {
+        interpretationId,
+        retryDelayMs: retryDelay,
+      });
+      const response = await invokeAiEntitlementsGateway<GatewayMetadataResponse | GatewayDeniedResponse>({
+        action: 'dream_metadata_extract',
+        idempotencyKey: createIdempotencyKey('dream_metadata_extract', interpretationId),
+        interpretationId,
+      });
+      assertCommitted(response);
+      logInfo('dream_metadata_extract_attempt_done', {
+        interpretationId,
+        metadataStatus: response.metadata_status,
+        metadataCostUsd: response.metadata_cost_usd,
+        totalAiCostUsd: response.total_ai_cost_usd,
+        durationMs: Date.now() - attemptStartedAt,
+      });
+      return;
+    } catch (error) {
+      lastError = error;
+      logWarn('dream_metadata_extract_attempt_failed', {
+        interpretationId,
+        retryDelayMs: retryDelay,
+        durationMs: Date.now() - attemptStartedAt,
+        message: error instanceof Error ? error.message : 'Unknown metadata extraction error',
+      });
+    }
+  }
+
+  if (lastError) {
+    console.warn('[entitledAiService] Metadata extraction trigger failed', {
+      interpretationId,
+      message: lastError instanceof Error ? lastError.message : 'Unknown metadata extraction error',
+    });
+  }
+}
+
+export function triggerDreamMetadataExtraction(interpretationId: string): boolean {
+  if (metadataExtractionInFlight.has(interpretationId)) {
+    logInfo('dream_metadata_extract_deduped', { interpretationId });
+    return false;
+  }
+
+  logInfo('dream_metadata_extract_triggered', { interpretationId });
+  metadataExtractionInFlight.add(interpretationId);
+  void runMetadataExtractionWithRetry(interpretationId).finally(() => {
+    metadataExtractionInFlight.delete(interpretationId);
+  });
+  return true;
+}
+
+export function triggerPendingDreamMetadataExtraction(
+  interpretation: Pick<Interpretation, 'id' | 'metadata_status'>
+): boolean {
+  if (interpretation.metadata_status !== 'pending') return false;
+  return triggerDreamMetadataExtraction(interpretation.id);
+}
+
 export async function generateEntitledDreamReflection(
   dream: Dream,
   depth: 'quick' | 'standard' | 'advanced',
-  action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>
+  action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>,
+  options: EntitledDreamReflectionOptions = {}
 ): Promise<Interpretation> {
-  const response = await invokeAiEntitlementsGateway<GatewayReflectionResponse | GatewayDeniedResponse>({
+  const totalStartedAt = Date.now();
+  logInfo('dream_reflection_generate_start', {
     action,
-    idempotencyKey: createIdempotencyKey(action, dream.id),
     dreamId: dream.id,
     depth,
   });
 
+  const gatewayStartedAt = Date.now();
+  const response = await invokeAiEntitlementsGateway<GatewayReflectionResponse | GatewayReflectionPendingResponse | GatewayDeniedResponse>({
+    action,
+    idempotencyKey: createIdempotencyKey(action, dream.id),
+    dreamId: dream.id,
+    depth,
+    async: true,
+  });
+  const gatewayDurationMs = Date.now() - gatewayStartedAt;
+
+  if (response.status === 'pending') {
+    const quotaEventId = response.quota_event_id;
+    if (!quotaEventId) {
+      throw new Error('Reflection started without a status reference. Please try again.');
+    }
+    logInfo('dream_reflection_async_started', {
+      action,
+      dreamId: dream.id,
+      quotaEventId,
+      gatewayDurationMs,
+    });
+    return pollEntitledDreamReflection({
+      action,
+      dreamId: dream.id,
+      quotaEventId,
+      totalStartedAt,
+      onPartialReflection: options.onPartialReflection,
+    });
+  }
+
   assertCommitted(response);
-  return syncInterpretationByDreamId(dream.id);
+  logInfo('dream_reflection_gateway_committed_after_sync_wait', {
+    action,
+    dreamId: dream.id,
+    gatewayDurationMs,
+    reflectionCostUsd: response.reflection_cost_usd,
+  });
+  return saveCommittedReflectionPayload(action, dream.id, response, totalStartedAt);
 }
 
 export async function generateEntitledFollowupReply(

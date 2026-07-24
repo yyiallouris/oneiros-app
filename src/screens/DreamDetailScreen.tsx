@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,13 +32,22 @@ import { isOnline } from '../utils/network';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
-import { EntitlementError, generateEntitledDreamReflection, generateEntitledFollowupReply } from '../services/entitledAiService';
+import {
+  EntitlementError,
+  generateEntitledDreamReflection,
+  generateEntitledFollowupReply,
+  triggerPendingDreamMetadataExtraction,
+} from '../services/entitledAiService';
 import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
+import { remoteGetInterpretationById } from '../services/remoteStorage';
+import { LocalStorage } from '../services/localStorage';
+import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
 const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
+const METADATA_REFRESH_DELAYS_MS = [4000, 12000, 25000, 45000];
 type IconProps = {
   size?: number;
   color?: string;
@@ -449,7 +458,9 @@ type IconProps = {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
     const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
+    const [reflectionLoadingPhase, setReflectionLoadingPhase] = useState<'starting' | 'working' | 'background'>('starting');
     const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
+    const [streamingReflectionMessageId, setStreamingReflectionMessageId] = useState<string | null>(null);
     const [showChat, setShowChat] = useState(false);
     const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
     const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
@@ -462,6 +473,8 @@ type IconProps = {
 
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
+    const metadataRefreshTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+    const streamingReflectionMessageIdRef = useRef<string | null>(null);
     const premiumPlan = useMemo(
       () =>
         products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
@@ -470,14 +483,91 @@ type IconProps = {
     );
     const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
+    useEffect(() => {
+      if (!isGeneratingInitial) {
+        setReflectionLoadingPhase('starting');
+        return;
+      }
+
+      setReflectionLoadingPhase('starting');
+      const workingTimer = setTimeout(() => setReflectionLoadingPhase('working'), 8000);
+      const backgroundTimer = setTimeout(() => setReflectionLoadingPhase('background'), 20000);
+
+      return () => {
+        clearTimeout(workingTimer);
+        clearTimeout(backgroundTimer);
+      };
+    }, [isGeneratingInitial]);
+
+    const clearMetadataRefreshTimers = useCallback(() => {
+      metadataRefreshTimers.current.forEach((timer) => clearTimeout(timer));
+      metadataRefreshTimers.current = [];
+    }, []);
+
+    const refreshInterpretationMetadata = useCallback(async (interpretationId: string): Promise<boolean> => {
+      const startedAt = Date.now();
+      logInfo('dream_detail_metadata_refresh_start', { dreamId, interpretationId });
+      try {
+        const refreshed = await remoteGetInterpretationById(interpretationId);
+        if (!refreshed || refreshed.metadata_status === 'pending') {
+          logInfo('dream_detail_metadata_refresh_pending', {
+            dreamId,
+            interpretationId,
+            durationMs: Date.now() - startedAt,
+          });
+          return false;
+        }
+
+        await LocalStorage.saveInterpretation(refreshed);
+        setInterpretation((current) => {
+          if (current?.id !== refreshed.id) return current;
+          return {
+            ...refreshed,
+            messages: current.messages.length > refreshed.messages.length ? current.messages : refreshed.messages,
+          };
+        });
+        setMessages((current) => (current.length > refreshed.messages.length ? current : refreshed.messages));
+        logInfo('dream_detail_metadata_refresh_done', {
+          dreamId,
+          interpretationId,
+          metadataStatus: refreshed.metadata_status,
+          durationMs: Date.now() - startedAt,
+        });
+        return true;
+      } catch (error) {
+        console.warn('[DreamDetail] Failed to refresh interpretation metadata:', error);
+        return false;
+      }
+    }, []);
+
+    const scheduleMetadataRefresh = useCallback((nextInterpretation: Interpretation) => {
+      if (nextInterpretation.metadata_status !== 'pending') return;
+      logInfo('dream_detail_metadata_refresh_scheduled', {
+        dreamId,
+        interpretationId: nextInterpretation.id,
+        refreshDelaysMs: METADATA_REFRESH_DELAYS_MS.join(','),
+      });
+      clearMetadataRefreshTimers();
+      triggerPendingDreamMetadataExtraction(nextInterpretation);
+      METADATA_REFRESH_DELAYS_MS.forEach((delay) => {
+        const timer = setTimeout(() => {
+          refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+            if (updated) clearMetadataRefreshTimers();
+          });
+        }, delay);
+        metadataRefreshTimers.current.push(timer);
+      });
+    }, [clearMetadataRefreshTimers, refreshInterpretationMetadata]);
+
     useFocusEffect(
       useCallback(() => {
         loadDreamData();
         // Clear typing state when screen gains focus
         return () => {
           setTypingMessageId(null);
+          clearMetadataRefreshTimers();
         };
-      }, [dreamId])
+      }, [dreamId, clearMetadataRefreshTimers])
     );
 
     const loadDreamData = async () => {
@@ -500,6 +590,7 @@ type IconProps = {
               } else {
                 setInterpretation(interpretationData);
                 setMessages(interpretationData.messages);
+                scheduleMetadataRefresh(interpretationData);
                 // Clear typing state when loading existing messages
                 // Messages from storage are already complete, no need to type them
                 setTypingMessageId(null);
@@ -530,19 +621,79 @@ type IconProps = {
       setShowChat(false);
     };
 
+    const handlePartialReflection = useCallback((progress: { text: string; updatedAt?: string; elapsedMs: number }) => {
+      const text = progress.text.trim();
+      if (!text) return;
+      const messageId = streamingReflectionMessageIdRef.current ?? `streaming-reflection-${Date.now()}`;
+      streamingReflectionMessageIdRef.current = messageId;
+      setStreamingReflectionMessageId(messageId);
+      setTypingMessageId(null);
+      setShowChat(true);
+      setIsUserScrolledUp(false);
+      setMessages((current) => {
+        const nextMessage: ChatMessage = {
+          id: messageId,
+          role: 'assistant',
+          content: text,
+          timestamp: progress.updatedAt ?? new Date().toISOString(),
+        };
+        const existingIndex = current.findIndex((message) => message.id === messageId);
+        if (existingIndex >= 0) {
+          const next = [...current];
+          next[existingIndex] = nextMessage;
+          return next;
+        }
+        return [...current, nextMessage];
+      });
+      logInfo('dream_detail_reflection_partial_visible', {
+        dreamId,
+        elapsedMs: progress.elapsedMs,
+        partialLength: text.length,
+      });
+    }, [dreamId]);
+
     const generateInitialAIInterpretation = async (dreamData: Dream) => {
+      const totalStartedAt = Date.now();
+      logInfo('dream_detail_reflection_flow_start', {
+        dreamId: dreamData.id,
+        mode: 'generate',
+      });
       setIsGeneratingInitial(true);
+      setStreamingReflectionMessageId(null);
+      streamingReflectionMessageIdRef.current = null;
       try {
+        const saveStartedAt = Date.now();
         await saveDream(dreamData);
+        logInfo('dream_detail_reflection_save_dream_done', {
+          dreamId: dreamData.id,
+          durationMs: Date.now() - saveStartedAt,
+        });
+        const depthStartedAt = Date.now();
         const depth = await getInterpretationDepth();
+        logInfo('dream_detail_reflection_depth_loaded', {
+          dreamId: dreamData.id,
+          depth,
+          durationMs: Date.now() - depthStartedAt,
+        });
+        const reflectionStartedAt = Date.now();
         const newInterpretation = await generateEntitledDreamReflection(
           dreamData,
           depth,
-          'dream_reflection_generate'
+          'dream_reflection_generate',
+          { onPartialReflection: handlePartialReflection }
         );
+        logInfo('dream_detail_reflection_service_done', {
+          dreamId: dreamData.id,
+          interpretationId: newInterpretation.id,
+          metadataStatus: newInterpretation.metadata_status,
+          durationMs: Date.now() - reflectionStartedAt,
+        });
 
         setInterpretation(newInterpretation);
         setMessages(newInterpretation.messages);
+        setStreamingReflectionMessageId(null);
+        streamingReflectionMessageIdRef.current = null;
+        scheduleMetadataRefresh(newInterpretation);
         setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
         
         // Show chat - replaces reflection section
@@ -553,8 +704,20 @@ type IconProps = {
         
         // Don't auto-scroll to chat - let user decide when to scroll
         // This provides ChatGPT-like experience where content appears and user scrolls when ready
+        logInfo('dream_detail_reflection_flow_done', {
+          dreamId: dreamData.id,
+          interpretationId: newInterpretation.id,
+          totalMs: Date.now() - totalStartedAt,
+        });
       } catch (error: any) {
         console.error('[DreamDetail] Error generating interpretation:', error);
+        const partialMessageId = streamingReflectionMessageIdRef.current;
+        if (partialMessageId) {
+          setMessages((current) => current.filter((message) => message.id !== partialMessageId));
+          setStreamingReflectionMessageId(null);
+          streamingReflectionMessageIdRef.current = null;
+          if (!interpretation) setShowChat(false);
+        }
         if (error instanceof EntitlementError) {
           Alert.alert(
             'Reflection unavailable',
@@ -577,9 +740,16 @@ type IconProps = {
 
     const handleAskAI = async () => {
       if (!dream) return;
+      const startedAt = Date.now();
+      logInfo('dream_detail_reflect_tap', { dreamId: dream.id });
       
       // Check if online before proceeding
       const online = await isOnline();
+      logInfo('dream_detail_reflect_online_checked', {
+        dreamId: dream.id,
+        online,
+        durationMs: Date.now() - startedAt,
+      });
       if (!online) {
         setShowOfflineMessage(true);
         // Hide message after 5 seconds
@@ -611,16 +781,22 @@ type IconProps = {
 
       setShowOfflineMessage(false);
       setIsGeneratingInitial(true);
+      setStreamingReflectionMessageId(null);
+      streamingReflectionMessageIdRef.current = null;
       try {
         const depth = await getInterpretationDepth();
         const updatedInterpretation = await generateEntitledDreamReflection(
           dream,
           depth,
-          'dream_reflection_regenerate'
+          'dream_reflection_regenerate',
+          { onPartialReflection: handlePartialReflection }
         );
 
         setInterpretation(updatedInterpretation);
         setMessages(updatedInterpretation.messages);
+        setStreamingReflectionMessageId(null);
+        streamingReflectionMessageIdRef.current = null;
+        scheduleMetadataRefresh(updatedInterpretation);
         setTypingMessageId(updatedInterpretation.messages[0]?.id ?? null);
 
         // Show chat
@@ -630,6 +806,12 @@ type IconProps = {
         // Don't auto-scroll - ChatGPT experience: content appears, user scrolls when ready
       } catch (error: any) {
         console.error('[DreamDetail] Error updating interpretation:', error);
+        const partialMessageId = streamingReflectionMessageIdRef.current;
+        if (partialMessageId) {
+          setMessages((current) => current.filter((message) => message.id !== partialMessageId));
+          setStreamingReflectionMessageId(null);
+          streamingReflectionMessageIdRef.current = null;
+        }
         if (error instanceof EntitlementError) {
           if (error.premiumRequired || error.readOnlyAfterLapse) {
             setUpsellSource('regenerate');
@@ -813,6 +995,21 @@ type IconProps = {
     const showInterpretationPreview =
       Boolean(interpretationCollapsedPreview) || Boolean(firstAssistantInterpretationText);
     const displayModel = buildDreamDetailDisplayModel(dream, interpretation);
+    const reflectionLoadingCopy =
+      reflectionLoadingPhase === 'background'
+        ? {
+            message: 'Still reflecting…',
+            submessage: 'This can take a little while in Deeper Dive. You can leave and return; the reflection will attach when ready.',
+          }
+        : reflectionLoadingPhase === 'working'
+          ? {
+              message: 'The deeper reading is still forming…',
+              submessage: 'Keeping the full depth and language of your reflection.',
+            }
+          : {
+              message: 'Reflecting on your dream…',
+              submessage: 'Tracing its images, feelings, and inner movement.',
+            };
 
     return (
       <View style={styles.root}>
@@ -899,16 +1096,18 @@ type IconProps = {
                       </View>
                     )}
 
-                    <Button
-                      title="Continue exploring"
+                    <TouchableOpacity
                       onPress={() => {
                         setShowChat(true);
                         animateChatOpen();
                       }}
-                      variant="secondary"
-                      size="compact"
-                      style={styles.conversationButton}
-                    />
+                      style={styles.continueExploringButton}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel="Continue exploring"
+                    >
+                      <Text style={styles.continueExploringText}>Continue exploring</Text>
+                    </TouchableOpacity>
                   </View>
 
                   <SymbolicLayersAccordion model={displayModel} />
@@ -926,9 +1125,7 @@ type IconProps = {
                   )}
                   <Button
                     title="Reflect on this dream"
-                    onPress={() => {
-                      setTimeout(() => handleAskAI(), 850);
-                    }}
+                    onPress={handleAskAI}
                     size="compact"
                     style={styles.askButton}
                   />
@@ -938,9 +1135,14 @@ type IconProps = {
           )}
 
           {/* Loading state */}
-          {isGeneratingInitial && (
+          {isGeneratingInitial && !streamingReflectionMessageId && (
             <View style={styles.reflectionSection}>
-              <LoadingState preset="dreamReflection" style={styles.loadingPanel} />
+              <LoadingState
+                preset="dreamReflection"
+                message={reflectionLoadingCopy.message}
+                submessage={reflectionLoadingCopy.submessage}
+                style={styles.loadingPanel}
+              />
             </View>
           )}
 
@@ -1070,10 +1272,10 @@ type IconProps = {
                   onChangeText={setInputText}
                   multiline
                   maxLength={3000}
-                  editable={!reflectionLimitReached && !premiumReflectionReadOnly}
-                  pointerEvents={reflectionLimitReached || premiumReflectionReadOnly ? 'none' : 'auto'}
+                  editable={!isGeneratingInitial && !reflectionLimitReached && !premiumReflectionReadOnly}
+                  pointerEvents={isGeneratingInitial || reflectionLimitReached || premiumReflectionReadOnly ? 'none' : 'auto'}
                   onFocus={() => {
-                    if (!reflectionLimitReached && !premiumReflectionReadOnly) {
+                    if (!isGeneratingInitial && !reflectionLimitReached && !premiumReflectionReadOnly) {
                       setTimeout(() => {
                         scrollViewRef.current?.scrollToEnd({ animated: true });
                       }, 100);
@@ -1086,11 +1288,11 @@ type IconProps = {
                     onTranscriptionComplete={(text) => {
                       setInputText((prev) => (prev ? `${prev} ${text}` : text));
                     }}
-                    disabled={isLoading || reflectionLimitReached || premiumReflectionReadOnly}
+                    disabled={isGeneratingInitial || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
                   />
                 </View>
                 <PrimaryIconButton
-                  inactive={!inputText.trim() || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
+                  inactive={!inputText.trim() || isGeneratingInitial || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
                   onPress={
                     reflectionLimitReached || premiumReflectionReadOnly
                       ? () => {
@@ -1103,14 +1305,14 @@ type IconProps = {
                         }
                       : handleSendMessage
                   }
-                  disabled={reflectionLimitReached || premiumReflectionReadOnly ? false : (!inputText.trim() || isLoading)}
+                  disabled={reflectionLimitReached || premiumReflectionReadOnly ? false : (!inputText.trim() || isGeneratingInitial || isLoading)}
                   loading={isLoading}
                   testID="dream-detail-send-button"
                 >
                   <SendIcon
                     size={20}
                     color={
-                      !inputText.trim() || reflectionLimitReached || premiumReflectionReadOnly
+                      !inputText.trim() || isGeneratingInitial || reflectionLimitReached || premiumReflectionReadOnly
                         ? colors.buttonPrimaryDisabled
                         : colors.white
                     }
@@ -1388,6 +1590,18 @@ type IconProps = {
       alignSelf: 'center',
       width: '92%',
       marginTop: spacing.sm,
+    },
+    continueExploringButton: {
+      alignSelf: 'center',
+      paddingVertical: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    continueExploringText: {
+      fontSize: typography.sizes.md,
+      color: colors.buttonPrimary,
+      fontWeight: typography.weights.medium,
+      fontFamily: typography.regular,
+      letterSpacing: 0.2,
     },
     actionButtonsContainer: {
       flexDirection: 'column',

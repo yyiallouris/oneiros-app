@@ -62,8 +62,10 @@ export type AiGatewayRequest = {
   idempotencyKey: string;
   dreamId?: string;
   interpretationId?: string;
+  quotaEventId?: string;
   message?: string;
   depth?: 'quick' | 'standard' | 'advanced';
+  async?: boolean;
   count?: 2 | 3 | 5;
   monthKey?: string;
   language?: string;

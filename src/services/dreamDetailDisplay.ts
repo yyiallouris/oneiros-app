@@ -88,13 +88,13 @@ const dedupeAnchors = (anchors: VisibleDreamAnchor[]): VisibleDreamAnchor[] => {
 };
 
 const anchorsFromDisplayDistillation = (display: DisplayDistillation): VisibleDreamAnchor[] =>
-  display.visible_anchors
+  (Array.isArray(display.visible_anchors) ? display.visible_anchors : [])
     .slice(0, MAX_VISIBLE_ANCHORS)
     .map((anchor) => ({
-      label: normalizeAnchorLabel(anchor.label),
-      type: anchor.type,
-      salience: anchor.salience,
-      uiMeaning: anchor.ui_meaning || undefined,
+      label: normalizeAnchorLabel(anchor?.label ?? ''),
+      type: anchor?.type ?? 'image',
+      salience: clampSalience(Number(anchor?.salience) || 1),
+      uiMeaning: anchor?.ui_meaning || undefined,
       source: 'display_distillation' as const,
     }))
     .filter((anchor) => anchor.label.length > 0);
@@ -202,9 +202,12 @@ export const buildDreamDetailDisplayModel = (
   interpretation?: Interpretation | null
 ): DreamDetailDisplayModel => {
   const display = interpretation?.display_distillation;
-  const anchors = display
-    ? anchorsFromDisplayDistillation(display)
-    : buildVisibleAnchorsFromMetadata(dream, interpretation);
+  // Partial AI/gateway distillation must never crash DreamDetail — fall back to metadata.
+  const distillationAnchors = display ? anchorsFromDisplayDistillation(display) : [];
+  const anchors =
+    distillationAnchors.length > 0
+      ? distillationAnchors
+      : buildVisibleAnchorsFromMetadata(dream, interpretation);
 
   return {
     essenceTitle: display?.essence_title || null,

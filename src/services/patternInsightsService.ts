@@ -88,6 +88,8 @@ export async function getPatternInsightEntries(
   const entries: PatternInsightDreamEntry[] = [];
 
   for (const i of interpretations) {
+    if (i.metadata_status === 'pending') continue;
+
     const date = dreamIdToDate.get(i.dreamId);
     if (!date) continue;
 

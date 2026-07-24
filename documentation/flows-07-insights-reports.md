@@ -60,6 +60,7 @@ Per `sectionId`:
 - Backend artifacts live in `ai_generation_artifacts` and period reflections are mirrored into `pattern_reports` for compatibility.
 - Lapsed paid users can still read stored premium artifacts, but generation entrypoints become read-only and route to renewal messaging.
 - Locked premium taps across Insights now use the premium-only paywall mode for Recent Dream Field, Period Reflection, regenerate, and paid follow-up entrypoints.
+- Reflections whose extraction metadata is still `pending` are temporarily skipped by Recent Dream Field and Period Reflection inputs; they become eligible when the post-reflection metadata action marks metadata `ready`.
 
 ### Online checks
 

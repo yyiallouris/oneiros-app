@@ -31,7 +31,12 @@ import { MAX_FOLLOW_UP_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
-import { EntitlementError, generateEntitledDreamReflection, generateEntitledFollowupReply } from '../services/entitledAiService';
+import {
+  EntitlementError,
+  generateEntitledDreamReflection,
+  generateEntitledFollowupReply,
+  triggerPendingDreamMetadataExtraction,
+} from '../services/entitledAiService';
 import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
@@ -376,6 +381,7 @@ const InterpretationChatScreen: React.FC = () => {
           console.log('[ChatScreen] Found existing interpretation, using it');
           setInterpretation(interpretationData);
           setMessages(interpretationData.messages);
+          triggerPendingDreamMetadataExtraction(interpretationData);
           // Clear typing state when loading existing messages
           // Messages from storage are already complete, no need to type them
           setTypingMessageId(null);
@@ -410,6 +416,7 @@ const InterpretationChatScreen: React.FC = () => {
       );
       setInterpretation(newInterpretation);
       setMessages(newInterpretation.messages);
+      triggerPendingDreamMetadataExtraction(newInterpretation);
       // Start typing animation
       setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
     } catch (error: any) {

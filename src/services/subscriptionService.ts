@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import type { ProductSubscription } from 'expo-iap';
 import { hasPaidAccess } from '../billing/policy';
 import type { GatewayAction, PlanCode } from '../billing/types';
+import { logError, logInfo } from './logger';
 import { supabase } from './supabaseClient';
 import type {
   AiGatewayRequest,
@@ -390,11 +391,73 @@ export async function registerGooglePurchase(purchaseToken: string) {
 }
 
 export async function invokeAiEntitlementsGateway<T = Record<string, unknown>>(body: AiGatewayRequest): Promise<T> {
+  const startedAt = Date.now();
+  logInfo('ai_gateway_invoke_start', {
+    action: body.action,
+    hasDreamId: Boolean(body.dreamId),
+    hasInterpretationId: Boolean(body.interpretationId),
+  });
+
   const { data, error } = await supabase.functions.invoke('ai-entitlements-gateway', {
     body,
   });
 
-  if (error) throw error;
+  if (error) {
+    const context = (error as { context?: Response }).context;
+    let details: unknown = null;
+    if (context && typeof (context as Response).json === 'function') {
+      try {
+        details = await (context as Response).clone().json();
+      } catch {
+        try {
+          details = await (context as Response).clone().text();
+        } catch {
+          details = null;
+        }
+      }
+    }
+
+    const serverMessage =
+      details &&
+      typeof details === 'object' &&
+      details !== null &&
+      'error' in details &&
+      typeof (details as { error: unknown }).error === 'string'
+        ? (details as { error: string }).error
+        : null;
+
+    const durationMs = Date.now() - startedAt;
+    console.error('[ai-entitlements-gateway] invoke failed', {
+      message: error.message,
+      serverMessage,
+      details,
+      action: body.action,
+      durationMs,
+    });
+    logError('ai_gateway_invoke_failed', error, {
+      action: body.action,
+      serverMessage,
+      durationMs,
+    });
+
+    if (serverMessage) {
+      throw new Error(serverMessage);
+    }
+    throw error;
+  }
+
+  logInfo('ai_gateway_invoke_success', {
+    action: body.action,
+    status: typeof data === 'object' && data !== null && 'status' in data ? (data as { status?: unknown }).status : undefined,
+    durationMs: Date.now() - startedAt,
+    hasInterpretation:
+      typeof data === 'object' && data !== null && 'interpretation' in data && Boolean((data as { interpretation?: unknown }).interpretation),
+    metadataStatus:
+      typeof data === 'object' && data !== null && 'metadata_status' in data
+        ? (data as { metadata_status?: unknown }).metadata_status
+        : undefined,
+  });
+
   return data as T;
 }
 

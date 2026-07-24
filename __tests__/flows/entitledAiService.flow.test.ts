@@ -22,6 +22,7 @@ jest.mock('../../src/services/storageService', () => ({
 
 jest.mock('../../src/services/localStorage', () => ({
   LocalStorage: {
+    saveInterpretation: jest.fn(),
     saveRecentSequenceReflection: jest.fn(),
     savePatternReport: jest.fn(),
   },
@@ -132,9 +133,132 @@ describe('entitled AI service flow', () => {
       idempotencyKey: 'idem:dream_reflection_generate:dream-1',
       dreamId: dream.id,
       depth: 'standard',
+      async: true,
     });
+    expect(mockGateway).toHaveBeenCalledTimes(1);
     expect(mockRemoteByDreamId).toHaveBeenCalledWith(dream.id);
     expect(StorageService.saveInterpretation).toHaveBeenCalledWith(interpretation);
+  });
+
+  it('uses the canonical gateway interpretation payload without a second remote fetch', async () => {
+    const pendingInterpretation: Interpretation = {
+      ...interpretation,
+      symbols: [],
+      archetypes: [],
+      metadata_status: 'pending',
+      metadata_generated_at: null,
+      metadata_error_code: null,
+    };
+    mockGateway
+      .mockResolvedValueOnce({
+        status: 'committed',
+        interpretation_id: interpretation.id,
+        reflection: 'A reflection.',
+        interpretation: pendingInterpretation,
+      })
+      .mockResolvedValueOnce({
+        status: 'committed',
+        interpretation_id: interpretation.id,
+        metadata_status: 'ready',
+      });
+
+    await expect(generateEntitledDreamReflection(dream, 'standard', 'dream_reflection_generate')).resolves.toEqual(pendingInterpretation);
+
+    expect(mockRemoteByDreamId).not.toHaveBeenCalled();
+    expect(StorageService.saveInterpretation).not.toHaveBeenCalled();
+    expect(LocalStorage.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
+    expect(mockGateway).toHaveBeenNthCalledWith(1, {
+      action: 'dream_reflection_generate',
+      idempotencyKey: 'idem:dream_reflection_generate:dream-1',
+      dreamId: dream.id,
+      depth: 'standard',
+      async: true,
+    });
+    expect(mockGateway).toHaveBeenNthCalledWith(2, {
+      action: 'dream_metadata_extract',
+      idempotencyKey: 'idem:dream_metadata_extract:interpretation-1',
+      interpretationId: interpretation.id,
+    });
+  });
+
+  it('starts metadata extraction recovery when the remote fallback row is still pending', async () => {
+    const pendingInterpretation: Interpretation = {
+      ...interpretation,
+      id: 'interpretation-remote-pending',
+      symbols: [],
+      archetypes: [],
+      metadata_status: 'pending',
+      metadata_generated_at: null,
+      metadata_error_code: null,
+    };
+    mockRemoteByDreamId.mockResolvedValue(pendingInterpretation);
+    mockGateway
+      .mockResolvedValueOnce({
+        status: 'committed',
+        interpretation_id: pendingInterpretation.id,
+        reflection: 'A reflection.',
+      })
+      .mockResolvedValueOnce({
+        status: 'committed',
+        interpretation_id: pendingInterpretation.id,
+        metadata_status: 'ready',
+      });
+
+    await expect(generateEntitledDreamReflection(dream, 'standard', 'dream_reflection_generate')).resolves.toEqual(pendingInterpretation);
+
+    expect(mockRemoteByDreamId).toHaveBeenCalledWith(dream.id);
+    expect(StorageService.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
+    expect(mockGateway).toHaveBeenNthCalledWith(2, {
+      action: 'dream_metadata_extract',
+      idempotencyKey: 'idem:dream_metadata_extract:interpretation-remote-pending',
+      interpretationId: pendingInterpretation.id,
+    });
+  });
+
+  it('starts long reflections asynchronously, polls status, then saves the committed payload', async () => {
+    const pendingInterpretation: Interpretation = {
+      ...interpretation,
+      symbols: [],
+      archetypes: [],
+      metadata_status: 'pending',
+      metadata_generated_at: null,
+      metadata_error_code: null,
+    };
+    mockGateway
+      .mockResolvedValueOnce({
+        status: 'pending',
+        quota_event_id: 'quota-1',
+      })
+      .mockResolvedValueOnce({
+        status: 'committed',
+        quota_event_id: 'quota-1',
+        interpretation_id: interpretation.id,
+        reflection: 'A reflection.',
+        interpretation: pendingInterpretation,
+      })
+      .mockResolvedValueOnce({
+        status: 'committed',
+        interpretation_id: interpretation.id,
+        metadata_status: 'ready',
+      });
+
+    await expect(generateEntitledDreamReflection(dream, 'advanced', 'dream_reflection_generate')).resolves.toEqual(pendingInterpretation);
+
+    expect(mockGateway).toHaveBeenNthCalledWith(1, {
+      action: 'dream_reflection_generate',
+      idempotencyKey: 'idem:dream_reflection_generate:dream-1',
+      dreamId: dream.id,
+      depth: 'advanced',
+      async: true,
+    });
+    expect(mockGateway).toHaveBeenNthCalledWith(2, {
+      action: 'dream_reflection_status',
+      idempotencyKey: 'idem:dream_reflection_status:quota-1',
+      dreamId: dream.id,
+      quotaEventId: 'quota-1',
+    });
+    expect(LocalStorage.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
+    expect(mockRemoteByDreamId).not.toHaveBeenCalled();
   });
 
   it('generates a follow-up reply and syncs the updated interpretation by id', async () => {

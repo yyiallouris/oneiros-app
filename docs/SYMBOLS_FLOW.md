@@ -11,10 +11,12 @@ DreamDetail should not expose raw extraction categories as primary UI. It shows 
 
 ## Reflection Flow
 
-1. `generateInitialInterpretation(dream, { depth })` returns the prose reflection.
-2. `getDreamMetadataForReflection(dream, aiResponse)` runs the structured extraction call.
-3. The extraction returns `display_distillation` plus pattern metadata.
-4. `saveInterpretation` persists the assistant message and metadata locally, then syncs remotely when possible.
+1. The entitlement gateway starts the prose reflection first. Mobile reflection requests use an async quota-event status pattern so the full-depth reflection can continue server-side while the client polls. For long reflections, partial model chunks may be exposed through status polling after the client-side reveal threshold, but they are not treated as complete metadata input.
+2. The saved interpretation starts with `metadata_status: pending`.
+3. The client starts a separate `dream_metadata_extract` gateway request after the reflection response; extraction uses the saved reflection plus dream text to produce `display_distillation` plus pattern metadata.
+4. The same interpretation row is updated to `metadata_status: ready` when extraction succeeds, or `failed` when the enrichment request fails, returns malformed JSON, or returns no usable metadata.
+
+Pending rows are recoverable: when DreamDetail or the alternate chat route loads a pending interpretation, the client restarts metadata enrichment in the background with in-memory dedupe and short retries, while the user-facing reflection remains readable.
 
 ## DreamDetail Display Priority
 
@@ -40,6 +42,8 @@ Dream-level `dream.symbols` / `dream.archetypes` are no longer shown as top-leve
 ## Insights Metadata
 
 Insights and pattern reports still use full extraction metadata. The rich ontology is useful for monthly/quarterly synthesis, but it remains secondary on a single dream page.
+
+Insights skip interpretations whose `metadata_status` is still `pending`; legacy rows and completed/failed rows continue to behave as reflected dreams.
 
 ## Files Involved
 

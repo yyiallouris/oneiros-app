@@ -34,9 +34,9 @@ export const UNROUTED_TASK_AI: TaskAiEntry = {
   model: "gpt-5.4-mini",
 };
 
-/** Cheap structured utility tasks */
+/** Latency-first tasks used in the reflection critical path. */
 const OPENAI_CHEAP = "gpt-5.4-mini";
-/** Prose-heavy and high-signal symbolic tasks — needs headroom beyond “cheap” completions for nuance. */
+/** Long-form synthesis tasks where the user is already in an explicitly generative flow. */
 const OPENAI_PREMIUM = "gpt-5.4";
 /** Fallback when OpenAI errors or returns empty (needs ANTHROPIC_API_KEY on the function). */
 const ANTHROPIC_FALLBACK = "claude-haiku-4-5";
@@ -44,8 +44,7 @@ const ANTHROPIC_FALLBACK = "claude-haiku-4-5";
 export const TASK_AI_BY_TASK: Record<OneirosTask, TaskAiEntry> = {
   dream_extraction: {
     provider: "openai",
-    model: OPENAI_PREMIUM,
-    fallbackAnthropicModel: ANTHROPIC_FALLBACK,
+    model: OPENAI_CHEAP,
   },
   conversation_element_update: {
     provider: "openai",

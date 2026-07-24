@@ -41,6 +41,15 @@ Adds SQL RPC helpers for:
 - `billing_release_quota`
 - `billing_subscription_status`
 
+### `20260724120000_add_interpretation_metadata_status.sql`
+Adds extraction status fields to `interpretations`:
+
+- `metadata_status` (`pending`, `ready`, `failed`)
+- `metadata_generated_at`
+- `metadata_error_code`
+
+This lets the gateway commit and return the user-facing reflection before background extraction finishes, while Insights can skip only still-pending metadata.
+
 ## Running Migrations
 
 ### Prerequisites

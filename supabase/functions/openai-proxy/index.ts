@@ -309,11 +309,17 @@ async function callOpenAI(
   messages: ApiMessage[],
   temperature: unknown,
   tokenLimit: unknown,
+  responseFormat: unknown,
+  stream: unknown,
+  streamOptions: unknown,
 ): Promise<Response> {
   const payload: Record<string, unknown> = {
     model,
     messages,
     ...(temperature !== undefined && { temperature }),
+    ...(responseFormat !== undefined && { response_format: responseFormat }),
+    ...(stream !== undefined && { stream }),
+    ...(streamOptions !== undefined && { stream_options: streamOptions }),
   };
 
   if (tokenLimit !== undefined) {
@@ -389,7 +395,17 @@ serve(async (req: Request) => {
     const dreamId = req.headers.get("x-dream-id")?.trim() || null;
 
     const body = await req.json();
-    const { model, messages, temperature, max_tokens, max_completion_tokens, max_output_tokens } =
+    const {
+      model,
+      messages,
+      temperature,
+      max_tokens,
+      max_completion_tokens,
+      max_output_tokens,
+      response_format,
+      stream,
+      stream_options,
+    } =
       body;
     const task = normalizeTask(body.task);
     const taskCfg = getTaskAiConfig(task);
@@ -418,8 +434,44 @@ serve(async (req: Request) => {
           : resolveOpenAIModel(model, task);
 
       const upstreamStart = Date.now();
-      const oaResponse = await callOpenAI(resolvedModel, messages, temperature, tokenLimit);
+      const oaResponse = await callOpenAI(
+        resolvedModel,
+        messages,
+        temperature,
+        tokenLimit,
+        response_format,
+        stream,
+        stream_options,
+      );
       const openAIUpstreamMs = Date.now() - upstreamStart;
+      if (stream === true && oaResponse.ok) {
+        console.log(`[openai-proxy] Request ${requestId}`, {
+          dreamId,
+          task: task ?? "unrouted",
+          requestedModel: model,
+          resolvedModel,
+          provider: "openai",
+          status: oaResponse.status,
+          appVersion,
+          userId,
+          messageCount: messages.length,
+          stream: true,
+          upstreamMs: openAIUpstreamMs,
+        });
+
+        return new Response(oaResponse.body, {
+          status: oaResponse.status,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": oaResponse.headers.get("Content-Type") ?? "text/event-stream",
+            "X-Request-Id": requestId,
+            "X-AI-Provider": "openai",
+            "X-AI-Model": resolvedModel,
+            "X-AI-Upstream-Ms": String(openAIUpstreamMs),
+          },
+        });
+      }
+
       let responseText = await oaResponse.text();
 
       if (shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText)) {

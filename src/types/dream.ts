@@ -70,6 +70,8 @@ export type CoreMode =
   | 'Core Shift'
   | 'Core Restoration';
 
+export type InterpretationMetadataStatus = 'pending' | 'ready' | 'failed';
+
 export type DisplayDistillationAnchor = {
   label: string;
   type: DisplayDistillationAnchorType;
@@ -112,6 +114,10 @@ export interface Interpretation {
   symbol_stances?: { symbol: string; stance: string }[];
   /** Minimal user-facing dream-field summary for DreamDetail. */
   display_distillation?: DisplayDistillation;
+  /** Background extraction status for display/Insights metadata. */
+  metadata_status?: InterpretationMetadataStatus;
+  metadata_generated_at?: string | null;
+  metadata_error_code?: string | null;
   reflection_origin?: 'free_weekly' | 'paid_cycle';
   chat_replies_used?: number;
   chat_replies_limit?: number;

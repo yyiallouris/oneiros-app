@@ -21,6 +21,7 @@ import { formatDate, getTodayDate, generateId } from '../utils/date';
 import { saveDream, getDreamsByDate, saveDraft, getDraft, clearDraft } from '../utils/storage';
 import { Dream } from '../types/dream';
 import { UserService } from '../services/userService';
+import { logInfo } from '../services/logger';
 import { getRandomSymbol } from '../components/symbols';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -127,6 +128,11 @@ const WriteScreen: React.FC = () => {
 
   const handleSaveDream = async () => {
     if (!content.trim()) return;
+    const totalStartedAt = Date.now();
+    logInfo('write_save_dream_tap', {
+      hasExistingDream: Boolean(todaysDream),
+      contentLength: content.trim().length,
+    });
 
     // Clear any pending auto-save to prevent race conditions
     if (autoSaveTimeout.current) {
@@ -155,17 +161,25 @@ const WriteScreen: React.FC = () => {
             archived: true, // Mark as archived
           };
 
+      const saveStartedAt = Date.now();
       await saveDream(dream);
+      logInfo('write_save_dream_persist_done', {
+        dreamId: dream.id,
+        durationMs: Date.now() - saveStartedAt,
+      });
+      const clearDraftStartedAt = Date.now();
       await clearDraft();
-      
-      // Clear form fields immediately after successful save
-      // Do this BEFORE navigation to ensure state is cleared
-      setTitle('');
-      setContent('');
-      setTodaysDream(null);
-      
+      logInfo('write_save_dream_clear_draft_done', {
+        dreamId: dream.id,
+        durationMs: Date.now() - clearDraftStartedAt,
+      });
+
       // Navigate to dream detail page
       navigation.navigate('DreamDetail', { dreamId: dream.id });
+      logInfo('write_save_dream_navigated', {
+        dreamId: dream.id,
+        totalMs: Date.now() - totalStartedAt,
+      });
     } catch (error) {
       console.error('[WriteScreen] Error saving dream:', error);
       // Don't clear fields on error - user can retry

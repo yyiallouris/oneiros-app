@@ -6,10 +6,10 @@ This document explains the AI interpretation system: how a dream becomes a refle
 
 1. User saves or opens a dream in `DreamDetailScreen`.
 2. User requests a reflection; screen checks `isOnline()` before any AI call.
-3. `generateInitialInterpretation(dream, { depth })` returns the user-facing Jungian reflection.
-4. `getDreamMetadataForReflection(dream, aiResponse)` runs extraction and caching logic.
-5. Extraction returns `display_distillation` plus long-term metadata.
-6. `saveInterpretation` persists messages and metadata locally first, then syncs remotely when possible.
+3. `ai-entitlements-gateway` reserves quota and starts the user-facing Jungian reflection as a background Edge task for mobile reflection requests.
+4. The client receives a pending quota event quickly, polls `dream_reflection_status`, and mirrors the canonical reflection locally once the gateway persists and commits it. For long reflections, the gateway streams OpenAI chunks server-side into the pending quota event as `partial_reflection`; the client starts revealing that partial text after roughly 15 seconds while it keeps polling for the final committed interpretation.
+5. The client starts `dream_metadata_extract` as a separate post-reflection gateway request; it updates `display_distillation` plus long-term metadata when ready. If extraction JSON is malformed, truncated, or empty, the gateway keeps the reflection, marks metadata as failed, and lets the client retry instead of silently storing an empty ready state.
+6. The client mirrors the canonical reflection locally immediately; metadata refreshes from remote when post-reflection extraction finishes. Pending metadata rows also restart enrichment on DreamDetail / alternate chat load with in-memory dedupe and short retries.
 7. DreamDetail renders:
    - Dream essence and movement from `display_distillation`.
    - Visible anchors from distillation first, fallback model second.
@@ -23,6 +23,8 @@ The alternate `InterpretationChatScreen` mirrors this conceptual flow but is not
 - Reflection text is for the individual dream page.
 - `display_distillation` is for calm immediate UI presentation on DreamDetail.
 - Full metadata powers Insights and pattern reports.
+- `metadata_status` tracks whether extraction is `pending`, `ready`, or `failed`; Insights skip only still-pending interpretations so incomplete enrichment does not pollute reports.
+- If `display_distillation` is partial (for example missing `visible_anchors`), DreamDetail must fall back to metadata anchors instead of crashing.
 - Dream-level legacy `dream.symbols` / `dream.archetypes` are fallback material, not the primary DreamDetail display.
 - AI copy must stay reflective, hypothetical, and non-clinical. Legal and wellness boundaries live in `constants/legal.ts`.
 
@@ -50,8 +52,8 @@ The repository now also contains a backend-first AI entitlement layer in Supabas
 
 Important rollout boundary:
 
-- Current mobile screens still call the legacy client AI services.
-- The backend gateway is the future server-owned path for quota-controlled generation and already persists:
+- Current mobile reflection, follow-up, Recent Dream Field, and period reflection flows call the backend gateway for quota-controlled generation.
+- The backend gateway persists:
   - reflection origin (`free_weekly` / `paid_cycle`)
   - follow-up reply counters
   - premium cached artifacts for Recent Dream Field and period reflections
@@ -62,8 +64,8 @@ Important rollout boundary:
 
 - Local interpretation storage: `LocalStorage.INTERPRETATIONS_KEY`.
 - Unsynced queue: `LocalStorage.UNSYNCED_INTERPRETATIONS_KEY`.
-- Remote mapping: `remoteStorage.ts` maps `display_distillation` and all metadata to/from Supabase rows.
-- Merge behavior: `SyncService.fetchAndMergeInterpretations()` preserves local display distillation/metadata when remote rows are missing newer optional fields.
+- Remote mapping: `remoteStorage.ts` maps `display_distillation`, `metadata_status`, and all metadata to/from Supabase rows.
+- Merge behavior: `SyncService.fetchAndMergeInterpretations()` preserves local display distillation/metadata when remote rows are missing newer optional fields or extraction is still pending.
 - Database schema history lives in `supabase/migrations/`, especially the interpretation metadata migrations.
 - Backend quota and entitlement history now lives in `subscription_entitlements`, `subscription_transactions`, `quota_buckets`, `quota_events`, and `ai_generation_artifacts`.
 
@@ -73,6 +75,11 @@ If adding a persisted interpretation field, update all of these together: `src/t
 
 - Client config can call OpenAI-compatible APIs directly or the Supabase `openai-proxy`.
 - Production `openai-proxy` calls require a valid Supabase user bearer token before the function reads or forwards dream/chat payloads. CORS preflight remains unauthenticated.
+- `openai-proxy` forwards OpenAI `response_format` to upstream requests so structured extraction calls can enforce JSON object responses.
+- `ai-entitlements-gateway` forwards the caller's user JWT (and anon `apikey`) when it invokes `openai-proxy` server-side; the service-role key must not be used as the proxy `Authorization` bearer.
+- The gateway initial reflection prompt must stay in parity with the canonical client `src/services/ai.ts` initial interpretation contract: same constitution / role / format / user-message shape, same-language body text and questions, same depth targets, and the same Standard / Advanced two-question ending.
+- Mobile reflection generation uses an async start/status pattern so Advanced depth can keep its full prompt/model contract without blocking one long HTTP request; quota still commits only after the reflection row is saved and releases on generation failure. Pending status responses may include sanitized `partial_reflection` progress for progressive display, but partial text is not treated as a completed interpretation and cannot be used for follow-up chat until commit.
+- Reflection and post-reflection metadata extraction log sanitized AI cost observability from real provider `usage` tokens: model/provider, input/cached/output token counts, per-call estimated USD, and combined reflection+metadata estimated USD. These logs never include dream content, prompts, messages, or raw AI output, and they do not affect quota or model routing.
 - When using `openai-proxy`, the client sends a task hint; provider and model routing are centralized in `supabase/functions/openai-proxy/task-config.ts`.
 - Task names include interpretation, chat follow-up, dream extraction, conversation element update, semantic grouping, pattern insights, and compact retry flows.
 - Changing provider/model routing requires updating `supabase/functions/openai-proxy/README.md` when behavior changes and deploying with `supabase functions deploy openai-proxy`.

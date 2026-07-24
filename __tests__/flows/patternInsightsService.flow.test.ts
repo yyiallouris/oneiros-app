@@ -174,6 +174,31 @@ describe('patternInsightsService flow', () => {
     ]);
   });
 
+  it('getRecentPatternInsightEntries skips interpretations whose metadata is still pending', async () => {
+    const dreams: Dream[] = [1, 2, 3].map((n) => ({
+      id: `d${n}`,
+      date: `2025-06-0${n}`,
+      content: `dream ${n}`,
+      createdAt: 'x',
+      updatedAt: 'x',
+    }));
+    const interpretations: Interpretation[] = dreams.map((dream, index) => ({
+      id: `i${index + 1}`,
+      dreamId: dream.id,
+      messages: [{ id: `m${index + 1}`, role: 'assistant', content: `reading ${index + 1}`, timestamp: 't' }],
+      symbols: [],
+      archetypes: [],
+      metadata_status: dream.id === 'd3' ? 'pending' : 'ready',
+      createdAt: 't',
+      updatedAt: 't',
+    }));
+    mockDreams.mockResolvedValue(dreams);
+    mockInterpretations.mockResolvedValue(interpretations);
+
+    const latestTwo = await getRecentPatternInsightEntries(2);
+    expect(latestTwo.map((entry) => entry.dreamId)).toEqual(['d1', 'd2']);
+  });
+
   it('generateRecentDreamFieldReflection delegates to AI without archive storage', async () => {
     const dreams: Dream[] = [
       { id: 'd1', date: '2025-06-01', content: 'one', createdAt: 'x', updatedAt: 'x' },

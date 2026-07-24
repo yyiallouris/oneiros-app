@@ -1,5 +1,12 @@
 import { supabase } from './supabaseClient';
-import { Dream, Interpretation, type CoreMode, type DisplayDistillation, type JungianSymbol } from '../types/dream';
+import {
+  Dream,
+  Interpretation,
+  type CoreMode,
+  type DisplayDistillation,
+  type InterpretationMetadataStatus,
+  type JungianSymbol,
+} from '../types/dream';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -38,6 +45,10 @@ function isCoreMode(value: string | null | undefined): value is CoreMode {
   return value === 'Core Tension' || value === 'Core State' || value === 'Core Shift' || value === 'Core Restoration';
 }
 
+function isMetadataStatus(value: string | null | undefined): value is InterpretationMetadataStatus {
+  return value === 'pending' || value === 'ready' || value === 'failed';
+}
+
 type SymbolStanceRow = { symbol: string; stance: string };
 
 type InterpretationRow = {
@@ -56,6 +67,9 @@ type InterpretationRow = {
   amplifications?: string[];
   symbol_stances?: SymbolStanceRow[];
   display_distillation?: DisplayDistillation | null;
+  metadata_status?: string | null;
+  metadata_generated_at?: string | null;
+  metadata_error_code?: string | null;
   reflection_origin?: 'free_weekly' | 'paid_cycle' | null;
   chat_replies_used?: number | null;
   chat_replies_limit?: number | null;
@@ -113,6 +127,9 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
     symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
     display_distillation: row.display_distillation ?? undefined,
+    metadata_status: isMetadataStatus(row.metadata_status) ? row.metadata_status : undefined,
+    metadata_generated_at: row.metadata_generated_at ?? null,
+    metadata_error_code: row.metadata_error_code ?? null,
     reflection_origin: row.reflection_origin ?? undefined,
     chat_replies_used: row.chat_replies_used ?? undefined,
     chat_replies_limit: row.chat_replies_limit ?? undefined,
@@ -143,6 +160,9 @@ function mapInterpretationToRow(
     amplifications: interpretation.amplifications,
     symbol_stances: interpretation.symbol_stances,
     display_distillation: interpretation.display_distillation,
+    metadata_status: interpretation.metadata_status ?? 'ready',
+    metadata_generated_at: interpretation.metadata_generated_at ?? null,
+    metadata_error_code: interpretation.metadata_error_code ?? null,
     reflection_origin: interpretation.reflection_origin ?? null,
     chat_replies_used: interpretation.chat_replies_used ?? null,
     chat_replies_limit: interpretation.chat_replies_limit ?? null,

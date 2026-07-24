@@ -35,4 +35,18 @@ describe('openai-proxy security boundary', () => {
     expect(methodGuardIndex).toBeGreaterThan(optionsIndex);
     expect(methodGuardIndex).toBeLessThan(requireUserIndex);
   });
+
+  it('forwards response_format to OpenAI so JSON extraction requests stay structured', () => {
+    expect(proxySource).toContain('response_format');
+    expect(proxySource).toContain('responseFormat: unknown');
+    expect(proxySource).toContain('response_format: responseFormat');
+    expect(proxySource).toContain('response_format,');
+  });
+
+  it('passes through OpenAI streaming flags without consuming the event stream', () => {
+    expect(proxySource).toContain('streamOptions: unknown');
+    expect(proxySource).toContain('stream_options: streamOptions');
+    expect(proxySource).toContain('stream === true && oaResponse.ok');
+    expect(proxySource).toContain('new Response(oaResponse.body');
+  });
 });

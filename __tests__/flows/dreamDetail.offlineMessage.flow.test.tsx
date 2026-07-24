@@ -145,6 +145,7 @@ jest.mock('../../src/services/entitledAiService', () => ({
   EntitlementError: class EntitlementError extends Error {},
   generateEntitledDreamReflection: (...args: unknown[]) => mockGenerateEntitledDreamReflection(...args),
   generateEntitledFollowupReply: (...args: unknown[]) => mockGenerateEntitledFollowupReply(...args),
+  triggerPendingDreamMetadataExtraction: jest.fn(),
 }));
 
 jest.mock('../../src/constants/symbolArchetypeInfo', () => ({

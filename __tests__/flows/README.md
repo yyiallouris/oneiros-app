@@ -13,9 +13,11 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `legalCopy.flow.test.ts` | flows-08 (consent/privacy/AI disclaimer boundary wording) |
 | `legalSite.flow.test.ts` | flows-08 / release docs (public landing, privacy, and terms pages for store review) |
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
-| `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering) |
+| `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering, pending metadata skip) |
 | `dreamMetadataPrefetchService.flow.test.ts` | architecture-interpretation (extraction cache, dream content hashes, in-flight prefetch, offline prefetch skip) |
-| `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, local persistence/cache, entitlement denial reasons) |
+| `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, async reflection polling, direct interpretation payloads, local persistence/cache, entitlement denial reasons) |
+| `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
+| `aiCostLogging.flow.test.ts` | architecture-interpretation / flows-10 (safe AI token-cost logging for reflection and metadata extraction) |
 | `symbolTaxonomy.flow.test.ts` | flows-07 (safe labels, archetype taxonomy, modal key mapping, date labels) |
 | `symbolGroupingService.flow.test.ts` | flows-07 (semantic grouping cache, invalidation, canonical merges) |
 | `syncService.flow.test.ts` | flows-05 / architecture-interpretation (unsynced queue, interpretation metadata merge, offline short-circuit) |

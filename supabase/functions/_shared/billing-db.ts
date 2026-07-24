@@ -35,7 +35,12 @@ type InterpretationRow = {
   amplifications?: string[] | null;
   symbol_stances?: Array<{ symbol: string; stance: string }> | null;
   display_distillation?: Record<string, unknown> | null;
+  metadata_status?: 'pending' | 'ready' | 'failed' | null;
+  metadata_generated_at?: string | null;
+  metadata_error_code?: string | null;
   reflection_origin?: string | null;
+  origin_quota_event_id?: string | null;
+  origin_entitlement_id?: string | null;
   chat_replies_used?: number | null;
   chat_replies_limit?: number | null;
   created_at: string;
@@ -174,6 +179,32 @@ export async function getQuotaEvent(client: AdminClient, quotaEventId: string): 
   }
 
   return data as Record<string, unknown>;
+}
+
+export async function patchQuotaEventResultContext(
+  client: AdminClient,
+  quotaEventId: string,
+  patch: Record<string, unknown>
+): Promise<void> {
+  const db = client as any;
+  const current = await getQuotaEvent(client, quotaEventId);
+  const resultContext = current.result_context && typeof current.result_context === 'object'
+    ? current.result_context as Record<string, unknown>
+    : {};
+  const { error } = await db
+    .from('quota_events')
+    .update({
+      result_context: {
+        ...resultContext,
+        ...patch,
+      },
+    })
+    .eq('id', quotaEventId)
+    .eq('status', 'pending');
+
+  if (error) {
+    throw new HttpError(500, 'Failed to update quota event progress', error);
+  }
 }
 
 export async function upsertTransaction(client: AdminClient, purchase: VerifiedPurchase): Promise<void> {
@@ -416,6 +447,8 @@ function firstAssistantText(messages: unknown[]): string {
 }
 
 function toPatternEntry(row: InterpretationRow, dreamsById: Map<string, DreamRow>): PatternEntry | null {
+  if (row.metadata_status === 'pending') return null;
+
   const dream = dreamsById.get(row.dream_id);
   if (!dream) return null;
 

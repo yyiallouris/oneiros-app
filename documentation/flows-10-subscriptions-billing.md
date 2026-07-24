@@ -87,6 +87,8 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Supported actions:
   - `dream_reflection_generate`
   - `dream_reflection_regenerate`
+  - `dream_reflection_status` (status-only polling for async reflection jobs)
+  - `dream_metadata_extract`
   - `dream_followup_reply`
   - `recent_dream_field_generate`
   - `period_reflection_generate`
@@ -96,7 +98,9 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - quota commit / release
   - paid-access checks
   - cache reuse via `ai_generation_artifacts`
-  - server-side calls into `openai-proxy`
+  - server-side calls into `openai-proxy` using the caller's user JWT + anon `apikey` (not the service-role bearer)
+  - reflection-first persistence: dream reflections can start asynchronously, commit only after the reflection row is saved, and fill extraction metadata separately
+  - safe AI cost observability for reflection and metadata calls, using provider `usage` tokens plus the configured OpenAI standard pricing table to log estimated USD totals without storing dream content, prompts, or model output
 
 ## Native store setup
 
@@ -133,6 +137,9 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Paid users get a 60-use billing-cycle bucket.
 - A new initial reflection or a full regenerate/update consumes 1 dream-reflection slot.
 - Follow-up assistant replies do **not** consume the 60-use paid bucket.
+- Reflection quota is committed once the user-facing reflection is generated and persisted. Post-reflection metadata extraction failure does not release quota because the reflection was delivered.
+- Reflection timeout/error before persistence releases the quota reservation.
+- Cost logs are observability-only and do not affect quota: the gateway logs reflection cost when the reflection call completes, metadata cost when extraction completes, and a combined reflection+metadata estimated USD when both are available.
 
 ### Dream follow-up chat
 

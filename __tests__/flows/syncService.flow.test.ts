@@ -71,6 +71,9 @@ const interpretation: Interpretation = {
     dream_movement: 'approaching',
     movement_line: 'Something approaches without crossing.',
   },
+  metadata_status: 'ready',
+  metadata_generated_at: '2026-04-01T00:00:01.000Z',
+  metadata_error_code: null,
   createdAt: 't',
   updatedAt: 't',
 };
@@ -215,6 +218,48 @@ describe('SyncService flow', () => {
     });
     expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
     expect(out[0].symbol_stances?.[0].stance).toBe('guarded, blocking');
+  });
+
+  it('fetchAndMergeInterpretations preserves local metadata when remote extraction is still pending', async () => {
+    (UserService.getCurrentUserId as jest.Mock).mockResolvedValue('u1');
+    (network.isOnline as jest.Mock).mockResolvedValue(true);
+    const pendingRemoteInterpretation: Interpretation = {
+      ...interpretation,
+      symbols: [],
+      symbol_stances: undefined,
+      landscapes: undefined,
+      affects: undefined,
+      motifs: undefined,
+      relational_dynamics: undefined,
+      thresholds: undefined,
+      central_conflicts: undefined,
+      core_mode: undefined,
+      amplifications: undefined,
+      display_distillation: undefined,
+      metadata_status: 'pending',
+      metadata_generated_at: null,
+      metadata_error_code: null,
+    };
+    (LocalStorage.getInterpretations as jest.Mock).mockResolvedValue([interpretation]);
+    (remoteStorage.remoteGetInterpretations as jest.Mock).mockResolvedValue([pendingRemoteInterpretation]);
+
+    await SyncService.fetchAndMergeInterpretations();
+    const saved = (LocalStorage.saveInterpretations as jest.Mock).mock.calls[0][0] as Interpretation[];
+
+    expect(saved[0]).toMatchObject({
+      symbols: [],
+      symbol_stances: [{ symbol: 'door', stance: 'guarded, blocking' }],
+      landscapes: ['hallway'],
+      affects: ['tension'],
+      motifs: ['blocked threshold'],
+      relational_dynamics: ['distance at entry'],
+      thresholds: ['closed door'],
+      central_conflicts: ['entry vs protection'],
+      core_mode: 'Core Tension',
+      amplifications: ['door as charged boundary'],
+      metadata_status: 'pending',
+    });
+    expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
   });
 
   it('fetchAndMergeInterpretations prefers remote optional metadata when present and keeps local-only interpretations', async () => {

@@ -17,6 +17,8 @@ export type ReflectionOrigin = 'free_weekly' | 'paid_cycle';
 export type GatewayAction =
   | 'dream_reflection_generate'
   | 'dream_reflection_regenerate'
+  | 'dream_reflection_status'
+  | 'dream_metadata_extract'
   | 'dream_followup_reply'
   | 'recent_dream_field_generate'
   | 'period_reflection_generate';

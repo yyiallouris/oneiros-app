@@ -105,6 +105,7 @@ jest.mock('../../src/services/entitledAiService', () => ({
   EntitlementError: class EntitlementError extends Error {},
   generateEntitledDreamReflection: jest.fn(),
   generateEntitledFollowupReply: jest.fn(),
+  triggerPendingDreamMetadataExtraction: jest.fn(),
 }));
 
 import InterpretationChatScreen from '../../src/screens/InterpretationChatScreen';
