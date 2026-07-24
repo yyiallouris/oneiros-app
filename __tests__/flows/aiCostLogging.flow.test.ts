@@ -34,6 +34,7 @@ describe('AI cost logging flow', () => {
   it('propagates reflection and metadata costs through gateway responses and logs', () => {
     const gateway = readFileSync(path.join(repoRoot, 'supabase/functions/ai-entitlements-gateway/index.ts'), 'utf8');
     const service = readFileSync(path.join(repoRoot, 'src/services/entitledAiService.ts'), 'utf8');
+    const dreamDetailScreen = readFileSync(path.join(repoRoot, 'src/screens/DreamDetailScreen.tsx'), 'utf8');
 
     expect(gateway).toMatch(/reflection_ai_cost/);
     expect(gateway).toMatch(/partial_reflection/);
@@ -50,7 +51,29 @@ describe('AI cost logging flow', () => {
     expect(service).toMatch(/reflectionCostUsd/);
     expect(service).toMatch(/REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000/);
     expect(service).toMatch(/onPartialReflection/);
+    expect(service).toMatch(/ensureDreamMetadataExtraction/);
+    expect(service).toMatch(/metadataExtractionInFlight = new Map/);
     expect(service).toMatch(/metadataCostUsd/);
     expect(service).toMatch(/totalAiCostUsd/);
+
+    expect(dreamDetailScreen).toMatch(/isStreaming\?: boolean/);
+    expect(dreamDetailScreen).toMatch(/\(isTyping \|\| isStreaming\) && !isUser/);
+    expect(dreamDetailScreen).toMatch(/!isTyping && !isStreaming/);
+    expect(dreamDetailScreen).toMatch(/hadStreamingReflectionRef/);
+    expect(dreamDetailScreen).toMatch(/shouldTypeFinalReflection = !hadStreamingReflectionRef\.current/);
+    expect(dreamDetailScreen).toMatch(/ensureDreamMetadataExtraction\(nextInterpretation\.id\)\.then/);
+    expect(dreamDetailScreen).toMatch(/Dream details are still forming/);
+    expect(dreamDetailScreen).toMatch(/refreshInterpretationMetadata\(interpretation\.id\)/);
+  });
+
+  it('keeps streamed reflection typing append-aware instead of restarting on each partial', () => {
+    const phasedTypingText = readFileSync(path.join(repoRoot, 'src/components/ui/PhasedTypingText.tsx'), 'utf8');
+
+    expect(phasedTypingText).toMatch(/const previousText = normalizedTextRef\.current/);
+    expect(phasedTypingText).toMatch(/const nextText = normalizeInterpretationForTyping\(text\)/);
+    expect(phasedTypingText).toMatch(/const isAppendOnlyUpdate =/);
+    expect(phasedTypingText).toMatch(/nextText\.startsWith\(previousText\)/);
+    expect(phasedTypingText).toMatch(/if \(!isAppendOnlyUpdate\) \{/);
+    expect(phasedTypingText).toMatch(/wordIdxRef\.current = 0/);
   });
 });

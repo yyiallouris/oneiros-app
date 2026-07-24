@@ -88,6 +88,7 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   }, []);
 
   const typeNextWord = useCallback(() => {
+    timeoutRef.current = null;
     const allWords = wordsRef.current;
     const currentIdx = wordIdxRef.current;
 
@@ -105,16 +106,16 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
   }, []);
 
   useEffect(() => {
-    // Normalize text once
-    normalizedTextRef.current = normalizeInterpretationForTyping(text);
+    const previousText = normalizedTextRef.current;
+    const nextText = normalizeInterpretationForTyping(text);
     
     // Split into words (preserving spaces and newlines as separate tokens)
     // This keeps layout stable: "word " "word " "\n" "word "
     const tokens: string[] = [];
     let current = '';
     
-    for (let i = 0; i < normalizedTextRef.current.length; i++) {
-      const char = normalizedTextRef.current[i];
+    for (let i = 0; i < nextText.length; i++) {
+      const char = nextText[i];
       
       if (char === ' ') {
         if (current) {
@@ -135,10 +136,23 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
     if (current) {
       tokens.push(current); // last word
     }
-    
+
+    const isAppendOnlyUpdate =
+      previousText.length > 0 &&
+      nextText.startsWith(previousText) &&
+      wordIdxRef.current <= tokens.length;
+
+    if (!isAppendOnlyUpdate) {
+      clearTimeoutSafe();
+    }
+
     wordsRef.current = tokens;
-    wordIdxRef.current = 0;
-    setDisplayedWords([]);
+    normalizedTextRef.current = nextText;
+
+    if (!isAppendOnlyUpdate) {
+      wordIdxRef.current = 0;
+      setDisplayedWords([]);
+    }
     isCompleteRef.current = false;
 
     if (tokens.length === 0) {
@@ -146,7 +160,9 @@ export const PhasedTypingText: React.FC<PhasedTypingTextProps> = ({
       return;
     }
 
-    typeNextWord();
+    if (!timeoutRef.current && wordIdxRef.current < tokens.length) {
+      typeNextWord();
+    }
     return clearTimeoutSafe;
   }, [text, typeNextWord, clearTimeoutSafe]);
 

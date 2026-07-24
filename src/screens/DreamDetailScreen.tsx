@@ -34,9 +34,9 @@ import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import {
   EntitlementError,
+  ensureDreamMetadataExtraction,
   generateEntitledDreamReflection,
   generateEntitledFollowupReply,
-  triggerPendingDreamMetadataExtraction,
 } from '../services/entitledAiService';
 import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
 import { remoteGetInterpretationById } from '../services/remoteStorage';
@@ -112,6 +112,7 @@ type IconProps = {
     message: ChatMessage;
     isUser: boolean;
     isTyping?: boolean;
+    isStreaming?: boolean;
     onTypingComplete?: () => void;
     onCopy?: (text: string) => void;
     showSettleFooter?: boolean;
@@ -302,7 +303,7 @@ type IconProps = {
 
   const SETTLE_FOOTER = 'This feels like a good point to pause and let the dream settle.\nYou can return tomorrow, or begin a new reflection.';
 
-  const ChatBubble = React.memo<ChatBubbleProps>(({ message, isUser, isTyping = false, onTypingComplete, onCopy, showSettleFooter = false }) => {
+  const ChatBubble = React.memo<ChatBubbleProps>(({ message, isUser, isTyping = false, isStreaming = false, onTypingComplete, onCopy, showSettleFooter = false }) => {
     const handleCopy = () => {
       try {
         if (onCopy) {
@@ -321,7 +322,7 @@ type IconProps = {
     return (
       <View style={[styles.messageContainer, isUser && styles.userMessageContainer]}>
         <View style={[styles.messageBubble, isUser && styles.userBubble]}>
-          {isTyping && !isUser ? (
+          {(isTyping || isStreaming) && !isUser ? (
             <PhasedTypingText
               text={message.content}
               onComplete={onTypingComplete}
@@ -335,7 +336,7 @@ type IconProps = {
               )}
             </>
           )}
-          {!isUser && !isTyping && (
+          {!isUser && !isTyping && !isStreaming && (
             <TouchableOpacity 
               style={styles.copyButton} 
               onPress={handleCopy}
@@ -475,6 +476,7 @@ type IconProps = {
     const scrollViewRef = useRef<ScrollView>(null);
     const metadataRefreshTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
     const streamingReflectionMessageIdRef = useRef<string | null>(null);
+    const hadStreamingReflectionRef = useRef(false);
     const premiumPlan = useMemo(
       () =>
         products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
@@ -548,7 +550,13 @@ type IconProps = {
         refreshDelaysMs: METADATA_REFRESH_DELAYS_MS.join(','),
       });
       clearMetadataRefreshTimers();
-      triggerPendingDreamMetadataExtraction(nextInterpretation);
+      void ensureDreamMetadataExtraction(nextInterpretation.id).then((result) => {
+        if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
+          refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+            if (updated) clearMetadataRefreshTimers();
+          });
+        }
+      });
       METADATA_REFRESH_DELAYS_MS.forEach((delay) => {
         const timer = setTimeout(() => {
           refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
@@ -619,6 +627,14 @@ type IconProps = {
 
     const animateChatClose = () => {
       setShowChat(false);
+      if (interpretation?.metadata_status === 'pending') {
+        void ensureDreamMetadataExtraction(interpretation.id).then((result) => {
+          if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
+            void refreshInterpretationMetadata(interpretation.id);
+          }
+        });
+        void refreshInterpretationMetadata(interpretation.id);
+      }
     };
 
     const handlePartialReflection = useCallback((progress: { text: string; updatedAt?: string; elapsedMs: number }) => {
@@ -626,6 +642,7 @@ type IconProps = {
       if (!text) return;
       const messageId = streamingReflectionMessageIdRef.current ?? `streaming-reflection-${Date.now()}`;
       streamingReflectionMessageIdRef.current = messageId;
+      hadStreamingReflectionRef.current = true;
       setStreamingReflectionMessageId(messageId);
       setTypingMessageId(null);
       setShowChat(true);
@@ -661,6 +678,7 @@ type IconProps = {
       setIsGeneratingInitial(true);
       setStreamingReflectionMessageId(null);
       streamingReflectionMessageIdRef.current = null;
+      hadStreamingReflectionRef.current = false;
       try {
         const saveStartedAt = Date.now();
         await saveDream(dreamData);
@@ -693,8 +711,10 @@ type IconProps = {
         setMessages(newInterpretation.messages);
         setStreamingReflectionMessageId(null);
         streamingReflectionMessageIdRef.current = null;
+        const shouldTypeFinalReflection = !hadStreamingReflectionRef.current;
         scheduleMetadataRefresh(newInterpretation);
-        setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
+        setTypingMessageId(shouldTypeFinalReflection ? newInterpretation.messages[0]?.id ?? null : null);
+        hadStreamingReflectionRef.current = false;
         
         // Show chat - replaces reflection section
         setShowChat(true);
@@ -716,6 +736,7 @@ type IconProps = {
           setMessages((current) => current.filter((message) => message.id !== partialMessageId));
           setStreamingReflectionMessageId(null);
           streamingReflectionMessageIdRef.current = null;
+          hadStreamingReflectionRef.current = false;
           if (!interpretation) setShowChat(false);
         }
         if (error instanceof EntitlementError) {
@@ -783,6 +804,7 @@ type IconProps = {
       setIsGeneratingInitial(true);
       setStreamingReflectionMessageId(null);
       streamingReflectionMessageIdRef.current = null;
+      hadStreamingReflectionRef.current = false;
       try {
         const depth = await getInterpretationDepth();
         const updatedInterpretation = await generateEntitledDreamReflection(
@@ -796,8 +818,10 @@ type IconProps = {
         setMessages(updatedInterpretation.messages);
         setStreamingReflectionMessageId(null);
         streamingReflectionMessageIdRef.current = null;
+        const shouldTypeFinalReflection = !hadStreamingReflectionRef.current;
         scheduleMetadataRefresh(updatedInterpretation);
-        setTypingMessageId(updatedInterpretation.messages[0]?.id ?? null);
+        setTypingMessageId(shouldTypeFinalReflection ? updatedInterpretation.messages[0]?.id ?? null : null);
+        hadStreamingReflectionRef.current = false;
 
         // Show chat
         setShowChat(true);
@@ -811,6 +835,7 @@ type IconProps = {
           setMessages((current) => current.filter((message) => message.id !== partialMessageId));
           setStreamingReflectionMessageId(null);
           streamingReflectionMessageIdRef.current = null;
+          hadStreamingReflectionRef.current = false;
         }
         if (error instanceof EntitlementError) {
           if (error.premiumRequired || error.readOnlyAfterLapse) {
@@ -995,6 +1020,7 @@ type IconProps = {
     const showInterpretationPreview =
       Boolean(interpretationCollapsedPreview) || Boolean(firstAssistantInterpretationText);
     const displayModel = buildDreamDetailDisplayModel(dream, interpretation);
+    const isMetadataPending = interpretation?.metadata_status === 'pending';
     const reflectionLoadingCopy =
       reflectionLoadingPhase === 'background'
         ? {
@@ -1055,6 +1081,16 @@ type IconProps = {
               {interpretation ? (
                 <View style={styles.reflectionBody}>
                   <DreamFieldSummary model={displayModel} />
+
+                  {isMetadataPending && (
+                    <LoadingState
+                      preset="loadSection"
+                      context="inline"
+                      message="Dream details are still forming…"
+                      submessage="The reflection is ready; symbolic layers will appear here as soon as extraction finishes."
+                      style={styles.metadataPendingState}
+                    />
+                  )}
 
                   {/* Action buttons */}
                   <View style={styles.actionButtonsContainer}>
@@ -1199,6 +1235,7 @@ type IconProps = {
                     message={item}
                     isUser={item.role === 'user'}
                     isTyping={typingMessageId === item.id}
+                    isStreaming={streamingReflectionMessageId === item.id && isGeneratingInitial}
                     onTypingComplete={() => {
                       if (typingMessageId === item.id) {
                         setTypingMessageId(null);
@@ -1721,6 +1758,10 @@ type IconProps = {
       fontSize: typography.sizes.md, // Same size as regular text
       color: colors.textPrimary, // Inherit color from parent
       lineHeight: typography.sizes.md * typography.lineHeights.relaxed, // Same line height
+    },
+    metadataPendingState: {
+      marginTop: spacing.sm,
+      marginBottom: spacing.sm,
     },
     settleFooter: {
       marginTop: spacing.md,

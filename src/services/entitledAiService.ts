@@ -84,7 +84,7 @@ const METADATA_EXTRACTION_RETRY_DELAYS_MS = [0, 15000, 45000];
 const REFLECTION_STATUS_MAX_ATTEMPTS = 90;
 const REFLECTION_STATUS_POLL_DELAY_MS = 1000;
 const REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000;
-const metadataExtractionInFlight = new Set<string>();
+const metadataExtractionInFlight = new Map<string, Promise<GatewayMetadataResponse | null>>();
 
 export type DreamReflectionProgress = {
   text: string;
@@ -279,7 +279,7 @@ async function pollEntitledDreamReflection(params: {
   throw new Error('The reflection is still being generated. Please reopen this dream in a moment.');
 }
 
-async function runMetadataExtractionWithRetry(interpretationId: string): Promise<void> {
+async function runMetadataExtractionWithRetry(interpretationId: string): Promise<GatewayMetadataResponse | null> {
   let lastError: unknown = null;
 
   for (const retryDelay of METADATA_EXTRACTION_RETRY_DELAYS_MS) {
@@ -306,7 +306,7 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         totalAiCostUsd: response.total_ai_cost_usd,
         durationMs: Date.now() - attemptStartedAt,
       });
-      return;
+      return response;
     } catch (error) {
       lastError = error;
       logWarn('dream_metadata_extract_attempt_failed', {
@@ -324,6 +324,22 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
       message: lastError instanceof Error ? lastError.message : 'Unknown metadata extraction error',
     });
   }
+  return null;
+}
+
+export function ensureDreamMetadataExtraction(interpretationId: string): Promise<GatewayMetadataResponse | null> {
+  const existing = metadataExtractionInFlight.get(interpretationId);
+  if (existing) {
+    logInfo('dream_metadata_extract_deduped', { interpretationId });
+    return existing;
+  }
+
+  logInfo('dream_metadata_extract_triggered', { interpretationId });
+  const promise = runMetadataExtractionWithRetry(interpretationId).finally(() => {
+    metadataExtractionInFlight.delete(interpretationId);
+  });
+  metadataExtractionInFlight.set(interpretationId, promise);
+  return promise;
 }
 
 export function triggerDreamMetadataExtraction(interpretationId: string): boolean {
@@ -331,12 +347,7 @@ export function triggerDreamMetadataExtraction(interpretationId: string): boolea
     logInfo('dream_metadata_extract_deduped', { interpretationId });
     return false;
   }
-
-  logInfo('dream_metadata_extract_triggered', { interpretationId });
-  metadataExtractionInFlight.add(interpretationId);
-  void runMetadataExtractionWithRetry(interpretationId).finally(() => {
-    metadataExtractionInFlight.delete(interpretationId);
-  });
+  void ensureDreamMetadataExtraction(interpretationId);
   return true;
 }
 

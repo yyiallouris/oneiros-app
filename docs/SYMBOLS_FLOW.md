@@ -16,7 +16,7 @@ DreamDetail should not expose raw extraction categories as primary UI. It shows 
 3. The client starts a separate `dream_metadata_extract` gateway request after the reflection response; extraction uses the saved reflection plus dream text to produce `display_distillation` plus pattern metadata.
 4. The same interpretation row is updated to `metadata_status: ready` when extraction succeeds, or `failed` when the enrichment request fails, returns malformed JSON, or returns no usable metadata.
 
-Pending rows are recoverable: when DreamDetail or the alternate chat route loads a pending interpretation, the client restarts metadata enrichment in the background with in-memory dedupe and short retries, while the user-facing reflection remains readable.
+Pending rows are recoverable: when DreamDetail or the alternate chat route loads a pending interpretation, the client restarts metadata enrichment in the background with in-memory dedupe and short retries, while the user-facing reflection remains readable. DreamDetail also refreshes immediately when its metadata extraction promise completes and tries a refresh when the chat is closed, so the Dream Details section does not depend only on the next scheduled refresh to show completed metadata.
 
 ## DreamDetail Display Priority
 
