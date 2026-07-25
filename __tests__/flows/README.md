@@ -40,6 +40,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `subscriptionBilling.policy.flow.test.ts` | flows-10 (quota math, monthly cadence, cache/read-only rules) |
 | `subscriptionBilling.runtime.flow.test.ts` | flows-10 (purchase persistence, webhook dedupe, reserve/commit/release orchestration) |
 | `insightsScreen.recentDreamField.flow.test.tsx` | flows-07 / flows-10 (Recent Dream Field generation, cache display, premium lock state) |
+| `insightsScrollRestore.flow.test.ts` | flows-07 (Insights landing soft-refresh + scroll restore when returning from a section) |
 | `insightsSection.offlineMessage.flow.test.tsx` | flows-05 / flows-07 / flows-10 (period reflection offline guard and premium lock state) |
 
 Run only these:

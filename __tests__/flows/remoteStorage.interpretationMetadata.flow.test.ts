@@ -27,7 +27,7 @@ const interpretation: Interpretation = {
   messages: [{ id: 'message-1', role: 'assistant', content: 'A reflection.', timestamp: 't' }],
   symbols: ['red door'],
   symbol_stances: [{ symbol: 'red door', stance: 'blocking, charged' }],
-  archetypes: ['Shadow'],
+  archetypes: [{ canonical_label: 'Shadow', expression: '', resonance: '', evidence: [] }],
   landscapes: ['hallway'],
   affects: ['tension'],
   motifs: ['blocked threshold'],
@@ -35,7 +35,7 @@ const interpretation: Interpretation = {
   thresholds: ['closed door'],
   central_conflicts: ['wanting entry vs blocked door'],
   core_mode: 'Core Tension',
-  amplifications: ['door as charged boundary'],
+  amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
   display_distillation: {
     essence_title: 'Guarded entry',
     essence_line: 'The dream gathers around a guarded threshold.',

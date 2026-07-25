@@ -27,11 +27,32 @@ For structured tasks (`dream_extraction`, `conversation_element_update`,
 
 `parse → coerce → Zod validate → one repair on the same provider → validate again`.
 
-If repair still fails schema validation, the proxy returns **HTTP 502** instead of
-silently forwarding invalid JSON. Safe logs include `task`, `provider`,
-`validationStage`, `schemaErrors`, `repairAttempted`, and `repairSucceeded`
-(never dream content). `conversation_element_update` must use explicit
-`{"status":"no_change"}` rather than bare `{}`.
+If repair still fails schema validation, the proxy returns **HTTP 502** with a
+sanitized diagnostic bag instead of silently forwarding invalid JSON:
+
+```json
+{
+  "error": {
+    "message": "Structured AI response failed schema validation",
+    "code": "structured_schema_invalid",
+    "details": {
+      "failureCode": "structured_schema_invalid",
+      "validationStage": "rejected",
+      "schemaErrors": ["…"],
+      "contentLength": 1234,
+      "looksTruncated": true,
+      "finishReason": "length",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "repairAttempted": true,
+      "tokenLimit": 4200
+    }
+  }
+}
+```
+
+Safe logs include the same fields (never dream content / prompts / raw assistant text).
+`conversation_element_update` must use explicit `{"status":"no_change"}` rather than bare `{}`.
 
 The proxy also forwards OpenAI `stream` / `stream_options` for server-side
 progressive reflection generation. Streaming responses are passed through as
@@ -50,9 +71,9 @@ can collect partial chunks and expose them through status polling.
   - **`fallbackAnthropicModel` (optional):** μόνο με `provider: "openai"`. Αν το OpenAI αποτύχει (429, 5xx, κενό completion), μία προσπάθεια στο Anthropic με αυτό το model, αρκεί να υπάρχει **`ANTHROPIC_API_KEY`**.
 
 Προεπιλογή στο repo (A/B-backed product mapping):
-- **`gpt-5.4-nano`** + fallback **`claude-haiku-4-5`** — `dream_extraction`, `conversation_element_update`, `semantic_grouping`
+- **`gpt-5.4-mini`** + fallback **`claude-haiku-4-5`** — `dream_extraction` (Fabric + Interpretive Echoes need mid-tier judgment), `chat_followup`
+- **`gpt-5.4-nano`** + fallback **`claude-haiku-4-5`** — `conversation_element_update`, `semantic_grouping`
 - **`gpt-5.4`** + fallback **`claude-sonnet-5`** — `interpretation_quick`, `interpretation_standard`, `interpretation_advanced`, `interpretation_retry_compact`, `pattern_insights`, `pattern_insights_retry_compact`
-- **`gpt-5.4-mini`** + fallback **`claude-haiku-4-5`** — `chat_followup`
 
 Missing or unknown `task` is **rejected with HTTP 400** (no silent unrouted default). Live Regenerate still picks `interpretation_quick|standard|advanced` from the user’s depth setting; όλα πάνε σε `gpt-5.4` με Sonnet 5 fallback.
 

@@ -181,7 +181,11 @@ describe('ai service', () => {
     expect(systemText).toMatch(/display_distillation/);
     expect(systemText).toMatch(/visible_anchors/);
     expect(systemText).toMatch(/symbol_stances: 1–5 items, only for genuinely charged symbols/);
-    expect(systemText).toMatch(/Do not infer archetypes unless strongly staged/);
+    expect(systemText).toMatch(/SOURCE BOUNDARY/);
+    expect(systemText).toMatch(/ARCHETYPAL ECHOES/);
+    expect(systemText).toMatch(/Return 0–2 classical archetypal patterns/);
+    expect(systemText).toMatch(/MOTIFS \/ DREAM MOTIFS/);
+    expect(systemText).toMatch(/Return 0–1 named parallel from world mythology/);
     expect(systemText).toMatch(/core_mode.*null/);
     expect(userMsg).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(userMsg).toMatch(/Final interpretation:/);
@@ -385,7 +389,7 @@ describe('ai service', () => {
     );
 
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
-    expect(interpretationBody.max_completion_tokens).toBe(2200);
+    expect(interpretationBody.max_completion_tokens).toBe(2800);
     expect(interpretationBody.temperature).toBe(0.6);
     const systemText = interpretationBody.messages
       .filter((m: { role: string }) => m.role === 'system')
@@ -430,6 +434,8 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Let unresolvedness appear only if the dream itself leaves something suspended/);
     expect(systemText).toMatch(/Somatic questions should refer to the remembered dream-body or bodily tone/);
     expect(systemText).toMatch(/Length: aim for 550–800 words/);
+    expect(systemText).toMatch(/Finish the full response, including both reflective questions/);
+    expect(systemText).toMatch(/Do not stop mid-sentence or mid-question/);
     const userMsg = interpretationBody.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
     expect(userMsg).toMatch(/Return to the dream sequence and charged images first/);
     expect(userMsg).toMatch(/Do not organize the reading around categories, tags, or frameworks/);
@@ -588,7 +594,7 @@ describe('ai service', () => {
             {
               message: {
                 content: JSON.stringify({
-                  archetypes: ['Shadow'],
+                  archetypes: [{ canonical_label: 'Shadow', expression: '', resonance: '', evidence: [] }],
                   affects: ['tension'],
                   motifs: ['blocked threshold'],
                   relational_dynamics: ['distance at entry'],
@@ -715,20 +721,79 @@ describe('ai service', () => {
     ).rejects.toThrow(/OpenAI API key/);
   });
 
+  it('formats rich archetypal and mythic echoes for period/recent essay context without object dumps', async () => {
+    mockFetch.mockResolvedValueOnce(
+      apiResponse({
+        choices: [{ message: { content: 'Essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+      })
+    );
+    const ai = await loadAiWithProxyEndpoint();
+
+    await ai.generateRecentDreamFieldReflection(
+      [
+        {
+          dreamId: 'dream-1',
+          date: '2024-01-01',
+          extracted: {
+            symbols: ['thread'],
+            symbol_stances: [],
+            archetypes: [
+              {
+                canonical_label: 'Divine Child',
+                expression: 'the guiding child at the end of the thread',
+                resonance: 'A childlike figure carries orientation through the descent.',
+                evidence: ['the girl directs the dreamer'],
+              },
+            ],
+            landscapes: [],
+            affects: [],
+            motifs: [],
+            relational_dynamics: [],
+            thresholds: [],
+            central_conflicts: [],
+            core_mode: null,
+            amplifications: [
+              {
+                title: 'Ariadne and the Labyrinth',
+                tradition: 'Greek',
+                resonance: 'A descent whose return stays unfinished.',
+                difference: 'No completed return is staged.',
+                evidence: ['well', 'labyrinth'],
+              },
+            ],
+          },
+          interpretation: 'A reading.',
+        },
+      ],
+      'en'
+    );
+
+    const body = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string);
+    const userText = body.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
+    expect(userText).toContain(
+      'Archetypal Echoes: The Divine Child (the guiding child at the end of the thread) — A childlike figure carries orientation through the descent.'
+    );
+    expect(userText).toContain(
+      'Mythic Echoes: Ariadne and the Labyrinth (Greek) — A descent whose return stays unfinished. No completed return is staged.'
+    );
+    expect(userText).not.toContain('[object Object]');
+    expect(userText).not.toContain('"canonical_label"');
+  });
+
   it('merges conversation element updates without changing dream symbols', () => {
     const merged = mergeConversationElementUpdates(
       {
-        archetypes: ['Shadow'],
+        archetypes: [{ canonical_label: 'Shadow', expression: '', resonance: '', evidence: [] }],
         affects: ['tension'],
         motifs: ['blocked passage'],
         relational_dynamics: ['distance'],
         thresholds: ['entering work'],
         central_conflicts: ['autonomy vs belonging'],
         core_mode: 'Core Tension',
-        amplifications: ['threshold charge'],
+        amplifications: [{ title: '', tradition: '', resonance: 'threshold charge', difference: '', evidence: [] }],
       },
       {
-        archetypes: ['Shadow', 'Trickster', 'Unknown Archetype'],
+        archetypes: ['Shadow', 'Trickster', 'Unknown Archetype'] as any,
         motifs: ['blocked passage', 'playful evasion'],
         thresholds: ['entering work', 'needing shelter'],
         central_conflicts: ['autonomy vs paternal inclusion'],
@@ -736,7 +801,7 @@ describe('ai service', () => {
       }
     );
 
-    expect(merged.archetypes).toEqual(['Shadow', 'Trickster']);
+    expect(merged.archetypes.map((a) => a.canonical_label)).toEqual(['Shadow', 'Trickster']);
     expect(merged.motifs).toEqual(['blocked passage', 'playful evasion']);
     expect(merged.thresholds).toEqual(['entering work', 'needing shelter']);
     expect(merged.central_conflicts).toEqual(['autonomy vs paternal inclusion']);
@@ -759,7 +824,7 @@ describe('ai service', () => {
       thresholds: ['standing in narrow kitchen'],
       central_conflicts: ['tight kitchen vs unreadable language'],
       core_mode: 'Core Tension',
-      amplifications: ['language as pressure'],
+      amplifications: [{ title: '', tradition: '', resonance: 'language as pressure', difference: '', evidence: [] }],
     });
 
     expect(displayMap).toEqual({

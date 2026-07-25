@@ -23,23 +23,33 @@ import {
 } from '../../src/utils/date';
 
 describe('symbol and archetype taxonomy flow', () => {
-  it('normalizes archetypes, aliases, and slash-separated pair labels', () => {
+  it('normalizes archetypes, aliases, and compound canonical labels', () => {
     expect(isWhitelistedArchetype('The Shadow')).toBe(true);
     expect(isInnerStructureArchetype('the persona')).toBe(true);
     expect(isInnerStructureArchetype('Hero')).toBe(false);
-    expect(normalizeArchetype('child (divine child)')).toBe('Child');
-    expect(normalizeArchetype('death archetype')).toBe('Death');
-    expect(normalizeArchetype('wise old')).toBe('Wise Old Woman');
+    expect(normalizeArchetype('child (divine child)')).toBe('Divine Child');
+    expect(normalizeArchetype('death archetype')).toBe('Death–Rebirth');
+    expect(normalizeArchetype('wise old')).toBe('Wise Old Man');
+    expect(normalizeArchetype('psychopomp')).toBe('Guide / Psychopomp');
+    expect(normalizeArchetype('guide')).toBe('Guide / Psychopomp');
     expect(normalizeArchetype('unknown current')).toBeNull();
     expect(normalizeArchetypeList('Wise Old Man / Wise Old Woman / unknown')).toEqual([
       'Wise Old Man',
       'Wise Old Woman',
     ]);
+    expect(normalizeArchetypeList('Guide / Psychopomp')).toEqual(['Guide / Psychopomp']);
+    expect(normalizeArchetypeList('Death–Rebirth')).toEqual(['Death–Rebirth']);
+    expect(normalizeArchetypeList('Child / Guide')).toEqual(['Divine Child', 'Guide / Psychopomp']);
   });
 
   it('maps archetype chips to dedicated modal content keys with generic fallback', () => {
     expect(getArchetypeInfoKey('The Shadow')).toBe('archetype-shadow');
-    expect(getArchetypeInfoKey('Wounded Healer')).toBe('archetype-wounded-healer');
+    expect(getArchetypeInfoKey('Divine Child')).toBe('archetype-child');
+    expect(getArchetypeInfoKey('Psychopomp')).toBe('archetype-guide');
+    expect(getArchetypeInfoKey('Guide')).toBe('archetype-guide');
+    expect(getArchetypeInfoKey('Guide / Psychopomp')).toBe('archetype-guide');
+    expect(getArchetypeInfoKey('Death–Rebirth')).toBe('archetype-death-rebirth');
+    expect(getArchetypeInfoKey('Wounded Healer')).toBe('archetypal-states');
     expect(getArchetypeInfoKey('unknown current')).toBe('archetypal-states');
     expect(SYMBOL_ARCHETYPE_INFO[getArchetypeInfoKey('Shadow')].sections?.length).toBeGreaterThan(0);
   });

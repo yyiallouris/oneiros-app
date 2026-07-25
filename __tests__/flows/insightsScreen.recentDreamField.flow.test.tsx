@@ -56,6 +56,7 @@ jest.mock('../../src/components/ui', () => {
 jest.mock('../../src/components/icons/InsightsIcons', () => ({
   ArchetypalEnergiesIcon: () => null,
   DreamPlacesIcon: () => null,
+  EmotionalWeatherIcon: () => null,
   InnerTensionsIcon: () => null,
   PatternRecognitionIcon: () => null,
   RepeatingPatternsIcon: () => null,
@@ -228,5 +229,14 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     fireEvent.press(screen.getAllByText('Unlock Premium')[0]);
 
     expect(screen.getByText('Paywall:insights:premium_only')).toBeTruthy();
+  });
+
+  it('keeps Forming Patterns visible after the first load instead of remounting a full loading screen', async () => {
+    const screen = render(<InsightsScreen />);
+
+    await waitFor(() => expect(screen.getByText('Forming Patterns')).toBeTruthy());
+    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.getByText('Thresholds')).toBeTruthy();
+    expect(screen.getByText('Emotional Weather')).toBeTruthy();
   });
 });

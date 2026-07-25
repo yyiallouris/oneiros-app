@@ -89,11 +89,11 @@ describe('symbol grouping service flow', () => {
     expect(mockGroupSimilarTerms).toHaveBeenCalledTimes(3);
   });
 
-  it('merges variant counts into canonical entries and preserves the strongest display name', () => {
-    const byKey = new Map<string, { count: number; displayName: string }>([
-      ['moon', { count: 2, displayName: 'Moon' }],
-      ['moons', { count: 5, displayName: 'Moons' }],
-      ['sun', { count: 1, displayName: 'Sun' }],
+  it('merges variant dream-id sets into canonical entries and preserves the strongest display name', () => {
+    const byKey = new Map([
+      ['moon', { displayName: 'Moon', dreamIds: new Set(['d1', 'd2']) }],
+      ['moons', { displayName: 'Moons', dreamIds: new Set(['d2', 'd3', 'd4', 'd5', 'd6']) }],
+      ['sun', { displayName: 'Sun', dreamIds: new Set(['d1']) }],
     ]);
 
     applyGroupMap(byKey, {
@@ -102,8 +102,9 @@ describe('symbol grouping service flow', () => {
       missing: 'moon',
     });
 
-    expect(byKey.get('moon')).toEqual({ count: 7, displayName: 'Moons' });
+    expect(byKey.get('moon')?.displayName).toBe('Moons');
+    expect(byKey.get('moon')?.dreamIds).toEqual(new Set(['d1', 'd2', 'd3', 'd4', 'd5', 'd6']));
     expect(byKey.has('moons')).toBe(false);
-    expect(byKey.get('sun')).toEqual({ count: 1, displayName: 'Sun' });
+    expect(byKey.get('sun')?.dreamIds).toEqual(new Set(['d1']));
   });
 });

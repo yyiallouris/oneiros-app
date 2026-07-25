@@ -12,8 +12,8 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, Card, DesignExportForeground, LoadingState } from '../components/ui';
 import {
-  ArchetypalEnergiesIcon,
   DreamPlacesIcon,
+  EmotionalWeatherIcon,
   InnerTensionsIcon,
   RepeatingPatternsIcon,
   ReturningImagesIcon,
@@ -63,7 +63,7 @@ const kindMeta = (item: CrossCategoryPatternItem): string => {
     case 'image':
       return 'Image';
     case 'motif':
-      return 'Pattern';
+      return 'Scene';
     case 'threshold':
       return 'Threshold';
     case 'tension':
@@ -73,7 +73,7 @@ const kindMeta = (item: CrossCategoryPatternItem): string => {
     case 'archetypal_echo':
       return 'Echo';
     case 'affect':
-      return 'Atmosphere';
+      return 'Weather';
     default:
       return 'Pattern';
   }
@@ -145,12 +145,21 @@ const PatternExplorerScreen: React.FC = () => {
     },
     {
       id: 'motifs',
-      title: 'Repeating Patterns',
-      description: 'Recurring dream situations and shapes.',
+      title: 'Recurring Scenes',
+      description: 'Scene-shapes and situations that keep returning.',
       sectionId: 'symbolic-motifs',
       items: overview.topMotifs,
-      emptyText: 'No repeating patterns in this period yet.',
+      emptyText: 'No recurring scenes in this period yet.',
       icon: <RepeatingPatternsIcon size={58} />,
+    },
+    {
+      id: 'affects',
+      title: 'Emotional Weather',
+      description: 'Felt tones that keep returning across your dreams.',
+      sectionId: 'emotional-weather',
+      items: overview.topAffects,
+      emptyText: 'No emotional weather in this period yet.',
+      icon: <EmotionalWeatherIcon size={58} />,
     },
     {
       id: 'thresholds',
@@ -178,15 +187,6 @@ const PatternExplorerScreen: React.FC = () => {
       items: overview.topPlaces,
       emptyText: 'No dream places in this period yet.',
       icon: <DreamPlacesIcon size={58} />,
-    },
-    {
-      id: 'echoes',
-      title: 'Archetypal Echoes',
-      description: 'Deep structures that echo across dreams.',
-      sectionId: 'recurring-archetypes',
-      items: overview.topArchetypalEchoes,
-      emptyText: 'No archetypal echoes in this period yet.',
-      icon: <ArchetypalEnergiesIcon size={58} />,
     },
   ];
 

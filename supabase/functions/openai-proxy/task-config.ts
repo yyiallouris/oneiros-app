@@ -12,9 +12,9 @@
  *     Αν το OpenAI αποτύχει (429, 5xx, ή κενό completion) και υπάρχει ANTHROPIC_API_KEY, μία προσπάθεια με αυτό το Anthropic model.
  *
  * Product mapping (A/B-backed, 2026-07):
- * - Nano + Haiku fallback  → mechanical understanding (extract / update / candidates)
+ * - Nano + Haiku fallback  → mechanical classify/update (conversation element update / candidates)
+ * - Mini + Haiku fallback  → dream metadata extraction (Fabric + Interpretive Echoes need judgment) + chat follow-up
  * - GPT-5.4 + Sonnet 5    → user-facing analysis (reflection / pattern essay)
- * - Mini + Haiku fallback → interactive follow-up chat
  * - Missing/unknown task  → reject (no silent unrouted default)
  *
  * Μετά: `supabase functions deploy openai-proxy`
@@ -34,9 +34,9 @@ export type TaskAiEntry = {
   fallbackAnthropicModel?: string | null;
 };
 
-/** Cheapest tier — metadata extract + pattern candidate grouping. */
+/** Cheapest tier — light classify / candidate grouping. */
 const OPENAI_NANO = "gpt-5.4-nano";
-/** Mid tier — follow-up chat (not the primary reflection product). */
+/** Mid tier — dream metadata extraction + follow-up chat. */
 const OPENAI_MINI = "gpt-5.4-mini";
 /** Full tier — core dream reflection + pattern essays. */
 const OPENAI_FULL = "gpt-5.4";
@@ -46,10 +46,10 @@ const ANTHROPIC_HAIKU = "claude-haiku-4-5";
 const ANTHROPIC_SONNET = "claude-sonnet-5";
 
 export const TASK_AI_BY_TASK: Record<OneirosTask, TaskAiEntry> = {
-  // dream_metadata_extract
+  // dream_metadata_extract — needs enough capacity for Interpretive Echoes judgment
   dream_extraction: {
     provider: "openai",
-    model: OPENAI_NANO,
+    model: OPENAI_MINI,
     fallbackAnthropicModel: ANTHROPIC_HAIKU,
   },
   conversation_element_update: {

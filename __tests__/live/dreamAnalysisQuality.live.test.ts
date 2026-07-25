@@ -36,7 +36,16 @@ type DreamExtraction = {
   };
   symbols?: string[];
   symbol_stances?: Array<{ symbol?: string; stance?: string }>;
-  archetypes?: string[];
+  archetypes?: Array<
+    | string
+    | {
+        canonical_label?: string;
+        expression?: string;
+        display_label?: string;
+        resonance?: string;
+        evidence?: string[];
+      }
+  >;
   landscapes?: string[];
   affects?: string[];
   motifs?: string[];
@@ -44,7 +53,19 @@ type DreamExtraction = {
   thresholds?: string[];
   central_conflicts?: string[];
   core_mode?: string | null;
-  amplifications?: string[];
+  amplifications?: Array<
+    | {
+        title?: string;
+        tradition?: string;
+        difference?: string;
+        echo_name?: string;
+        resonance?: string;
+        evidence?: string[];
+        dream_image?: string;
+        echo?: string;
+      }
+    | string
+  >;
 };
 
 const RUN_QUALITY_TESTS =

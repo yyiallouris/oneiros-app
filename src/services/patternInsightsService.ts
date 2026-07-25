@@ -11,6 +11,8 @@ import {
   type DreamExtraction,
   type PatternInsightDreamEntry,
 } from './ai';
+import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
+import { normalizeAmplifications } from '../ai/mythicEchoes';
 import type { Interpretation } from '../types/dream';
 import type { InsightsPeriod, RecentSequenceReflection } from '../types/insights';
 
@@ -25,7 +27,7 @@ export function canGeneratePatternReflection(interpretedDreamCount: number): boo
 function interpretationToExtraction(i: Interpretation): DreamExtraction {
   return {
     symbols: i.symbols ?? [],
-    archetypes: i.archetypes ?? [],
+    archetypes: normalizeArchetypalEchoes(i.archetypes ?? []),
     landscapes: i.landscapes ?? [],
     affects: i.affects ?? [],
     motifs: i.motifs ?? [],
@@ -33,7 +35,7 @@ function interpretationToExtraction(i: Interpretation): DreamExtraction {
     thresholds: i.thresholds ?? [],
     central_conflicts: i.central_conflicts ?? [],
     core_mode: i.core_mode ?? null,
-    amplifications: i.amplifications ?? [],
+    amplifications: normalizeAmplifications(i.amplifications ?? []),
     symbol_stances: i.symbol_stances ?? [],
   };
 }

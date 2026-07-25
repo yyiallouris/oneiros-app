@@ -7,6 +7,8 @@ import {
   type InterpretationMetadataStatus,
   type JungianSymbol,
 } from '../types/dream';
+import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
+import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -56,7 +58,7 @@ type InterpretationRow = {
   user_id: string;
   dream_id: string;
   symbols: string[];
-  archetypes: string[];
+  archetypes?: unknown[] | null;
   landscapes?: string[];
   affects?: string[];
   motifs?: string[];
@@ -64,7 +66,7 @@ type InterpretationRow = {
   thresholds?: string[];
   central_conflicts?: string[];
   core_mode?: string | null;
-  amplifications?: string[];
+  amplifications?: unknown[] | null;
   symbol_stances?: SymbolStanceRow[];
   display_distillation?: DisplayDistillation | null;
   metadata_status?: string | null;
@@ -116,7 +118,7 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     dreamId: row.dream_id,
     messages: row.messages as any,
     symbols: row.symbols,
-    archetypes: row.archetypes,
+    archetypes: normalizeArchetypalEchoes(row.archetypes ?? []),
     landscapes: row.landscapes && row.landscapes.length > 0 ? row.landscapes : undefined,
     affects: row.affects && row.affects.length > 0 ? row.affects : undefined,
     motifs: row.motifs && row.motifs.length > 0 ? row.motifs : undefined,
@@ -124,7 +126,10 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     thresholds: row.thresholds && row.thresholds.length > 0 ? row.thresholds : undefined,
     central_conflicts: row.central_conflicts && row.central_conflicts.length > 0 ? row.central_conflicts : undefined,
     core_mode: isCoreMode(row.core_mode) ? row.core_mode : undefined,
-    amplifications: row.amplifications && row.amplifications.length > 0 ? row.amplifications : undefined,
+    amplifications: (() => {
+      const normalized = normalizeAmplifications(row.amplifications ?? []);
+      return normalized.length > 0 ? normalized : undefined;
+    })(),
     symbol_stances: row.symbol_stances && row.symbol_stances.length > 0 ? row.symbol_stances : undefined,
     display_distillation: row.display_distillation ?? undefined,
     metadata_status: isMetadataStatus(row.metadata_status) ? row.metadata_status : undefined,
@@ -149,7 +154,7 @@ function mapInterpretationToRow(
     user_id: userId,
     dream_id: interpretation.dreamId,
     symbols: interpretation.symbols,
-    archetypes: interpretation.archetypes,
+    archetypes: normalizeArchetypalEchoes(interpretation.archetypes ?? []),
     landscapes: interpretation.landscapes,
     affects: interpretation.affects,
     motifs: interpretation.motifs,
@@ -157,7 +162,7 @@ function mapInterpretationToRow(
     thresholds: interpretation.thresholds,
     central_conflicts: interpretation.central_conflicts,
     core_mode: interpretation.core_mode ?? null,
-    amplifications: interpretation.amplifications,
+    amplifications: interpretation.amplifications ?? [],
     symbol_stances: interpretation.symbol_stances,
     display_distillation: interpretation.display_distillation,
     metadata_status: interpretation.metadata_status ?? 'ready',

@@ -105,12 +105,18 @@ export async function getLandscapeGroupMap(
   return landscapeGroupMap;
 }
 
+/** Aggregation bucket: distinct dream ids per normalized term key. */
+export type GroupableTerm = {
+  displayName: string;
+  dreamIds: Set<string>;
+};
+
 /**
  * Merges variant entries into their canonical entry in a byKey map.
- * Mutates the map in place.
+ * Mutates the map in place. Counts are distinct-dream sets (union on merge).
  */
 export function applyGroupMap(
-  byKey: Map<string, { count: number; displayName: string }>,
+  byKey: Map<string, GroupableTerm>,
   groupMap: Record<string, string>
 ): void {
   for (const [variant, canonical] of Object.entries(groupMap)) {
@@ -120,10 +126,10 @@ export function applyGroupMap(
     const canonicalEntry = byKey.get(canonical);
     if (!canonicalEntry) continue;
 
-    if (variantEntry.count > canonicalEntry.count) {
+    if (variantEntry.dreamIds.size > canonicalEntry.dreamIds.size) {
       canonicalEntry.displayName = variantEntry.displayName;
     }
-    canonicalEntry.count += variantEntry.count;
+    variantEntry.dreamIds.forEach((id) => canonicalEntry.dreamIds.add(id));
     byKey.delete(variant);
   }
 }

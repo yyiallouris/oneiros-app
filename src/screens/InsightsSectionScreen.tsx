@@ -21,6 +21,7 @@ import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModa
 import {
   ArchetypalEnergiesIcon,
   DreamPlacesIcon,
+  EmotionalWeatherIcon,
   InnerTensionsIcon,
   RepeatingPatternsIcon,
   ReturningImagesIcon,
@@ -32,6 +33,7 @@ import type {
   MotifCount,
   ThresholdCount,
   CentralConflictCount,
+  AffectCount,
 } from '../types/insights';
 import {
   getRecurringSymbols,
@@ -40,6 +42,7 @@ import {
   getRecurringMotifs,
   getRecurringThresholds,
   getRecurringCentralConflicts,
+  getRecurringAffects,
   getCollectiveInsights,
   getSymbolClusters,
   symbolHasAssociations,
@@ -109,14 +112,17 @@ const SectionArchetypalEnergiesIcon = () => (
 const SectionDreamPlacesIcon = () => (
   <DreamPlacesIcon size={SECTION_ICON_SIZE} />
 );
+const SectionEmotionalWeatherIcon = () => (
+  <EmotionalWeatherIcon size={SECTION_ICON_SIZE} />
+);
 const TOP_THEMES_LIMIT = 5;
 const FORMING_PATTERN_SECTION_IDS: InsightsSectionId[] = [
   'recurring-symbols',
   'symbolic-motifs',
+  'emotional-weather',
   'thresholds',
   'core-conflicts',
   'space-landscapes',
-  'recurring-archetypes',
 ];
 const PERIOD_PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'this_month', label: 'This month' },
@@ -223,6 +229,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
   const [landscapes, setLandscapes] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [motifs, setMotifs] = useState<MotifCount[]>([]);
+  const [affects, setAffects] = useState<AffectCount[]>([]);
   const [thresholds, setThresholds] = useState<ThresholdCount[]>([]);
   const [centralConflicts, setCentralConflicts] = useState<CentralConflictCount[]>([]);
   const [collective, setCollective] = useState<{
@@ -235,6 +242,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [clustersExpanded, setClustersExpanded] = useState(false);
   const [singleAppearancesExpanded, setSingleAppearancesExpanded] = useState(false);
   const [singleMotifsExpanded, setSingleMotifsExpanded] = useState(false);
+  const [singleAffectsExpanded, setSingleAffectsExpanded] = useState(false);
   const [singleCrossingsExpanded, setSingleCrossingsExpanded] = useState(false);
   const [singleTensionsExpanded, setSingleTensionsExpanded] = useState(false);
   const [singlePlacesExpanded, setSinglePlacesExpanded] = useState(false);
@@ -353,6 +361,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       } else if (currentSectionId === 'symbolic-motifs') {
         const data = await getRecurringMotifs(period);
         setMotifs(data);
+      } else if (currentSectionId === 'emotional-weather') {
+        const data = await getRecurringAffects(period);
+        setAffects(data);
       } else if (currentSectionId === 'thresholds') {
         const data = await getRecurringThresholds(period);
         setThresholds(data);
@@ -705,7 +716,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           </>
         )}
 
-        {/* Symbolic Motifs: recurring structural/spatial patterns */}
+        {/* Recurring Scenes: recurring structural/spatial patterns */}
         {sectionId === 'symbolic-motifs' && (() => {
           const recurringMotifs = motifs.filter((m) => m.count >= 2);
           const seenOnce = motifs.filter((m) => m.count < 2);
@@ -715,12 +726,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionRepeatingPatternsIcon />
               </View>
               {motifs.length === 0 ? (
-                <Text style={styles.empty}>No repeating patterns yet. Get dream interpretations to see recurring dream situations.</Text>
+                <Text style={styles.empty}>No recurring scenes yet. Get dream interpretations to see recurring dream situations.</Text>
               ) : (
                 <>
                   {recurringMotifs.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Patterns that keep shaping the dream space</Text>
+                      <Text style={styles.sectionFraming}>Scene-shapes that keep returning across dreams</Text>
                       {recurringMotifs.map((m) => (
                         <TouchableOpacity
                           key={m.normalizedKey}
@@ -734,7 +745,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No repeating patterns this period.</Text>
+                    <Text style={styles.mutedNote}>No recurring scenes this period.</Text>
                   )}
                   {seenOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
@@ -755,6 +766,55 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                         >
                           <Text style={styles.archetypeName} numberOfLines={1}>{m.name}</Text>
                         </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          );
+        })()}
+
+        {/* Emotional Weather: recurring felt tones from affects */}
+        {sectionId === 'emotional-weather' && (() => {
+          const recurringAffects = affects.filter((a) => a.count >= 2);
+          const seenOnce = affects.filter((a) => a.count < 2);
+          return (
+            <View style={styles.section}>
+              <View style={styles.sectionIcon}>
+                <SectionEmotionalWeatherIcon />
+              </View>
+              {affects.length === 0 ? (
+                <Text style={styles.empty}>No emotional weather yet. Interpret dreams to see felt tones that return.</Text>
+              ) : (
+                <>
+                  {recurringAffects.length > 0 ? (
+                    <>
+                      <Text style={styles.sectionFraming}>Felt tones that keep returning across your dreams</Text>
+                      {recurringAffects.map((a) => (
+                        <View key={a.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{a.name}</Text>
+                          <Text style={styles.archetypeCount}>×{a.count}</Text>
+                        </View>
+                      ))}
+                    </>
+                  ) : (
+                    <Text style={styles.mutedNote}>No recurring emotional weather this period.</Text>
+                  )}
+                  {seenOnce.length > 0 && (
+                    <View style={styles.collapsibleBlock}>
+                      <TouchableOpacity
+                        onPress={() => setSingleAffectsExpanded((v) => !v)}
+                        style={styles.collapsibleHeader}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.subSectionLabel}>Single Appearances</Text>
+                        <Text style={styles.expandHint}>{singleAffectsExpanded ? '▼' : '▶'}</Text>
+                      </TouchableOpacity>
+                      {singleAffectsExpanded && seenOnce.map((a) => (
+                        <View key={a.normalizedKey} style={styles.archetypeRow}>
+                          <Text style={styles.archetypeName} numberOfLines={1}>{a.name}</Text>
+                        </View>
                       ))}
                     </View>
                   )}

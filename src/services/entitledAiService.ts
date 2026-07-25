@@ -347,6 +347,11 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         retryDelayMs: retryDelay,
         durationMs: Date.now() - attemptStartedAt,
         message: error instanceof Error ? error.message : 'Unknown metadata extraction error',
+        // Prefer explicit failure phrases from gateway/proxy when present.
+        isSchemaInvalid:
+          error instanceof Error && /schema validation|invalid JSON/i.test(error.message),
+        isProxyFailed:
+          error instanceof Error && /AI proxy request failed|proxy request/i.test(error.message),
       });
     }
   }
@@ -387,7 +392,10 @@ export function triggerDreamMetadataExtraction(interpretationId: string): boolea
 export function triggerPendingDreamMetadataExtraction(
   interpretation: Pick<Interpretation, 'id' | 'metadata_status'>
 ): boolean {
-  if (interpretation.metadata_status !== 'pending') return false;
+  // Retry both pending and failed — failed often means proxy/schema blip, not permanent.
+  if (interpretation.metadata_status !== 'pending' && interpretation.metadata_status !== 'failed') {
+    return false;
+  }
   return triggerDreamMetadataExtraction(interpretation.id);
 }
 

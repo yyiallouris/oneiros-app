@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Dream, Interpretation, DreamDraft, PendingVoiceTranscription } from '../types/dream';
 import type { RecentSequenceReflection } from '../types/insights';
+import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
+import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { logEvent } from './logger';
 
 /**
@@ -71,11 +73,23 @@ export class LocalStorage {
     await AsyncStorage.removeItem(this.DREAMS_KEY);
   }
 
+  private static normalizeInterpretation(raw: Interpretation): Interpretation {
+    const archetypes = normalizeArchetypalEchoes(raw.archetypes ?? []);
+    const amplifications = normalizeAmplifications(raw.amplifications ?? []);
+    return {
+      ...raw,
+      archetypes,
+      amplifications: amplifications.length > 0 ? amplifications : undefined,
+    };
+  }
+
   // Interpretations
   static async getInterpretations(): Promise<Interpretation[]> {
     try {
       const data = await AsyncStorage.getItem(this.INTERPRETATIONS_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      const parsed = JSON.parse(data) as Interpretation[];
+      return Array.isArray(parsed) ? parsed.map((item) => this.normalizeInterpretation(item)) : [];
     } catch (error) {
       console.warn('[LocalStorage] Failed to get interpretations:', error);
       return [];
@@ -168,7 +182,9 @@ export class LocalStorage {
   static async getUnsyncedInterpretations(): Promise<Interpretation[]> {
     try {
       const data = await AsyncStorage.getItem(this.UNSYNCED_INTERPRETATIONS_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      const parsed = JSON.parse(data) as Interpretation[];
+      return Array.isArray(parsed) ? parsed.map((item) => this.normalizeInterpretation(item)) : [];
     } catch {
       return [];
     }

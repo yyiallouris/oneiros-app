@@ -43,7 +43,7 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 - Metadata extraction is protected by `interpretation_metadata_extraction_jobs` and SQL claim/finish RPCs, so retries and overlapping app calls cannot start two provider metadata requests for the same pending interpretation unless the previous lease expires.
 - Gateway and app logs include sanitized cost observability fields for committed reflections and metadata extraction (`reflectionCostUsd`, `metadataCostUsd`, `totalAiCostUsd`, plus flattened `costModel` / `costProvider` / token fields — and on metadata done, `reflectionCostModel` when the reflection leg is known), plus Recent Dream Field / Period Reflection generation costs, derived from provider usage tokens and the shared monthly pricing table in `src/billing/aiPricing.ts` without logging dream content or AI output.
 
-Advanced mode reads as continuous movement through the dream-field, not a forced descent. It targets denser 550–800 word depth and keeps somatic questions tied to the remembered dream-body rather than exercises.
+Advanced mode reads as continuous movement through the dream-field, not a forced descent. It targets denser 550–800 word depth and keeps somatic questions tied to the remembered dream-body rather than exercises. The Advanced token limit (2800) is loose headroom so the response can finish cleanly instead of cutting mid-sentence or mid-question; the word target still constrains verbosity.
 
 ## DreamDetail presentation
 
@@ -54,7 +54,13 @@ After reflection exists, DreamDetail presents the dream as a quiet reflection sp
 - **Inner movement:** one compact tension or movement line.
 - **Symbolic reflection:** preview of the assistant reflection.
 - **Continue exploring:** text-link action that opens the inline chat.
-- **Explore symbolic layers:** collapsed secondary metadata for affects, settings, thresholds, relationship field, motifs, tensions, archetypal echoes, and mythic parallels.
+- **Explore symbolic layers:** collapsed secondary metadata grouped as:
+  - **Dream Fabric** (grounded in dream text): Emotional Weather (`affects`), Dream Places (`landscapes`), Relationship Field (`relational_dynamics`), Thresholds, Dream Motifs (`motifs`). On a single dream, motifs are candidates — not yet confirmed recurrence.
+  - **Interpretive Echoes** (provisional): Inner Tensions (`central_conflicts`), Archetypal Echoes (`archetypes`), Mythic Echoes (`amplifications`).
+- Mythic Echoes are rare optional interpretive enrichment (0–1 named parallel `{ title, tradition, resonance, difference, evidence }`), not Dream Fabric. Prefer `[]` for ordinary dreams; when structural correspondence across several elements supports a recognized myth, return that single parallel and state an important difference. DreamDetail shows `title — tradition` plus resonance/difference. Field: `amplifications`. Not in Forming Patterns aggregation.
+- Archetypal Echoes return 0–2 objects `{ canonical_label, expression, resonance, evidence }` when converging structural evidence supports them (not automatic empty, not single-symbol inference). Bare string arrays are invalid for extraction and trigger repair. Primary label is classical whitelist (e.g. Divine Child, Guide / Psychopomp); `expression` is the dream-specific form and stays secondary. DreamDetail shows canonical title + expression/resonance; Insights aggregates `canonical_label`.
+- Fabric fields must map compactly: affects = felt tones only (never images); relational dynamics = pattern labels (not plot summary); thresholds/motifs = short canonical phrases.
+- Metadata extraction uses the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` with an explicit SOURCE BOUNDARY between Dream Fabric and Interpretive Echoes. User-facing extraction strings follow the dream's primary language; schema enums and whitelisted archetype `canonical_label` values stay English.
 
 Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips on DreamDetail.
 

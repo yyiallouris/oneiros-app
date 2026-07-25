@@ -15,6 +15,8 @@ describe('edge reflection prompt flow', () => {
     expect(clientAi).toMatch(/Core Constitution — non-negotiable principles/);
     expect(clientAi).toMatch(/ADVANCED mode \(Deeper Dive\)/);
     expect(clientAi).toMatch(/Length: aim for 550–800 words/);
+    expect(clientAi).toMatch(/Finish the full response, including both reflective questions/);
+    expect(clientAi).toMatch(/Do not stop mid-sentence or mid-question/);
 
     expect(billingAi).toMatch(/Keep this initial reflection contract in parity with src\/services\/ai\.ts/);
     expect(billingAi).toMatch(/Core Constitution — non-negotiable principles/);
@@ -28,12 +30,23 @@ describe('edge reflection prompt flow', () => {
     expect(billingAi).toMatch(/First question: somatic-observational when possible/);
     expect(billingAi).toMatch(/Second question: symbolic, relational, or imaginal/);
     expect(billingAi).toMatch(/Length: aim for 550–800 words/);
+    expect(billingAi).toMatch(/Finish the full response, including both reflective questions/);
+    expect(billingAi).toMatch(/Do not stop mid-sentence or mid-question/);
     expect(billingAi).toMatch(/After the complete response, append this exact hidden marker/);
     expect(billingAi).toMatch(/messages:\s*\[\s*\{\s*role: 'system' as const, content: DREAM_CONSTITUTION_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: INTERPRETATION_ROLE_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: formatPrompt\s*\},\s*\{\s*role: 'user' as const, content: userPrompt\s*\},\s*\]/);
     expect(billingAi).toMatch(/temperature: depth === 'quick' \? 0\.68 : depth === 'advanced' \? 0\.60 : 0\.55/);
-    expect(billingAi).toMatch(/tokenLimit: depth === 'quick' \? 550 : depth === 'advanced' \? 2200 : 1600/);
+    expect(billingAi).toMatch(/tokenLimit: depth === 'quick' \? 550 : depth === 'advanced' \? 2800 : 1600/);
     expect(billingAi).toMatch(/timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS/);
     expect(billingAi).toMatch(/stripEndMarker\(extractContent\(reflectionPayload\), END_MARKER_DREAM_READING\)/);
+  });
+
+  it('passes response_format into structured validation without ReferenceError', () => {
+    const proxyIndex = readFileSync(path.join(repoRoot, 'supabase/functions/openai-proxy/index.ts'), 'utf8');
+    // Bare `responseFormat,` inside maybeValidateAndRepairStructured calls throws at runtime
+    // because the request body field is destructured as `response_format`.
+    expect(proxyIndex).toMatch(/responseFormat: response_format/);
+    expect(proxyIndex.match(/responseFormat: response_format/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(proxyIndex).not.toMatch(/^\s*responseFormat,$/m);
   });
 
   it('routes interpretation depths to the accountant cost-tier models', () => {
@@ -50,7 +63,7 @@ describe('edge reflection prompt flow', () => {
     expect(taskConfig).toMatch(/interpretation_advanced:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
     expect(taskConfig).toMatch(/interpretation_retry_compact:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
     expect(taskConfig).toMatch(/pattern_insights:\s*{\s*provider: "openai",\s*model: OPENAI_FULL,\s*fallbackAnthropicModel: ANTHROPIC_SONNET,\s*}/);
-    expect(taskConfig).toMatch(/dream_extraction:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
+    expect(taskConfig).toMatch(/dream_extraction:\s*{\s*provider: "openai",\s*model: OPENAI_MINI,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
     expect(taskConfig).toMatch(/conversation_element_update:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
     expect(taskConfig).toMatch(/semantic_grouping:\s*{\s*provider: "openai",\s*model: OPENAI_NANO,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);
     expect(taskConfig).toMatch(/chat_followup:\s*{\s*provider: "openai",\s*model: OPENAI_MINI,\s*fallbackAnthropicModel: ANTHROPIC_HAIKU,\s*}/);

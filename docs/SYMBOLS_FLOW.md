@@ -7,6 +7,19 @@ Dream reflection now separates two concerns:
 - **Display distillation:** the calm user-facing DreamDetail summary (`display_distillation`) with dream essence, visible anchors, and inner movement.
 - **Pattern metadata:** structured fields used for Insights and long-term reports (`symbols`, `archetypes`, `landscapes`, `affects`, `motifs`, `relational_dynamics`, `thresholds`, `central_conflicts`, `core_mode`, `amplifications`, `symbol_stances`).
 
+User-facing metadata strings follow the dream's primary language; enum keys and whitelisted archetype names stay English.
+
+Extraction separates two epistemic layers (see `src/ai/dreamExtractionPrompt.ts` SOURCE BOUNDARY):
+
+- **Dream Fabric** (dream-text grounded / extracted): `symbols`, `affects`, `landscapes`, `relational_dynamics`, `thresholds`, `motifs`.
+- **Interpretive Echoes** (provisional; may use reflection): `central_conflicts`, `archetypes`, and rare Mythic Echoes in `amplifications`.
+
+`archetypes` are Archetypal Echoes: objects `{ canonical_label, expression, resonance, evidence[] }` (0–2). Primary label is a classical whitelist name (e.g. Divine Child, Guide / Psychopomp); `expression` is the dream-specific form (secondary). Extraction rejects bare string tags and poetic invented archetype titles as the primary label. DreamDetail shows canonical title + expression/resonance under Interpretive Echoes; Insights aggregates `canonical_label`.
+
+`amplifications` are not another Fabric metadata category. They are optional named mythic parallels (`{ title, tradition, resonance, difference, evidence[] }[]`), default empty, ideally 0–1 when structural correspondence is strong across several elements. Prefer recognized myths over generic invented titles; one tradition only; empty array when unsure. DreamDetail shows `title — tradition` + resonance/difference under Interpretive Echoes as **Mythic Echoes**.
+
+DreamDetail’s “Explore symbolic layers” accordion mirrors that grouping and labels single-dream `motifs` as **Dream Motifs** (not Recurring Scenes — recurrence is only confirmed across many dreams). Forming Patterns aggregates Fabric-facing categories (`symbols` as Returning Images, `motifs` as Recurring Scenes, `affects` as Emotional Weather, `thresholds`, `central_conflicts`, `landscapes`) with distinct-dream counts; archetypes and amplifications stay off the main grid.
+
 DreamDetail should not expose raw extraction categories as primary UI. It shows what the dream gathers around, not everything the system extracted.
 
 ## Reflection Flow
@@ -16,7 +29,7 @@ DreamDetail should not expose raw extraction categories as primary UI. It shows 
 3. The client starts a separate `dream_metadata_extract` gateway request after the reflection response; the gateway takes a server-side lease before extraction uses the saved reflection plus dream text to produce `display_distillation` plus pattern metadata. Structured extraction JSON is Zod-validated in `openai-proxy` (with one same-provider repair) and again in billing-ai before save.
 4. The same interpretation row is updated to `metadata_status: ready` when extraction succeeds, or `failed` when the enrichment request fails, returns malformed/domain-invalid JSON after repair, or returns no usable metadata.
 
-Pending rows are recoverable: when DreamDetail or the alternate chat route loads a pending interpretation, the client restarts metadata enrichment in the background with in-memory dedupe and short retries, while the user-facing reflection remains readable. Server-side lease claims prevent overlapping retries from starting duplicate OpenAI metadata calls for the same pending interpretation. DreamDetail also refreshes immediately when its metadata extraction promise completes and tries a refresh when the chat is closed, so the Dream Details section does not depend only on the next scheduled refresh to show completed metadata.
+Pending and failed metadata rows are recoverable: when DreamDetail or the alternate chat route loads a pending/failed interpretation, the client restarts metadata enrichment in the background with in-memory dedupe and short retries, while the user-facing reflection remains readable. Server-side lease claims prevent overlapping retries from starting duplicate OpenAI metadata calls for the same pending interpretation. DreamDetail also refreshes immediately when its metadata extraction promise completes and tries a refresh when the chat is closed, so the Dream Details section does not depend only on the next scheduled refresh to show completed metadata.
 
 ## DreamDetail Display Priority
 

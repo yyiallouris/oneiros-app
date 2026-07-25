@@ -118,7 +118,9 @@ describe('AI cost logging flow', () => {
     expect(gateway).toMatch(/finishMetadataExtraction\(\s*admin,\s*userId,\s*interpretation\.id,\s*'failed'/);
     expect(gateway).toMatch(/origin_quota_event_id/);
     expect(gateway).toMatch(/metadata_status: 'failed'/);
-    expect(gateway).toMatch(/throw error instanceof HttpError/);
+    expect(gateway).toMatch(/throw httpError \?\? new HttpError\(502, 'Metadata extraction failed'\)/);
+    expect(gateway).toMatch(/metadata extraction failed/);
+    expect(gateway).toMatch(/details: httpError\?\.details/);
     expect(gateway).toMatch(/recent dream field ai start/);
     expect(gateway).toMatch(/recent dream field ai done/);
     expect(gateway).toMatch(/recent_dream_field_ai_cost/);

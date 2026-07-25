@@ -20,13 +20,13 @@ type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/** Legacy swipeable journey order: images → motifs → thresholds → tensions → archetypes → places. */
+/** Legacy swipeable journey order: images → scenes → weather → thresholds → tensions → places. */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
   'recurring-symbols',
   'symbolic-motifs',
+  'emotional-weather',
   'thresholds',
   'core-conflicts',
-  'recurring-archetypes',
   'space-landscapes',
 ];
 

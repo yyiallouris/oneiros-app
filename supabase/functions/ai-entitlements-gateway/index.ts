@@ -399,15 +399,20 @@ async function persistReflectionMetadata(params: {
       metadata_error_code: 'metadata_generation_failed',
       updated_at: failedAt,
     });
+    const httpError = error instanceof HttpError ? error : null;
     console.error('[ai-entitlements-gateway] metadata extraction failed', {
       action: 'dream_metadata_extract',
       dreamId: params.dream.id,
       interpretationId: params.interpretationId,
       message: error instanceof Error ? error.message : 'Unknown metadata extraction error',
+      status: httpError?.status ?? null,
+      details: httpError?.details ?? null,
+      dreamLength: params.dream.content?.length ?? 0,
+      reflectionLength: params.reflection?.length ?? 0,
       totalMs: measureSince(startedAt),
       reflectionCostUsd: costUsd(params.reflectionCost),
     });
-    throw error instanceof HttpError ? error : new HttpError(502, 'Metadata extraction failed');
+    throw httpError ?? new HttpError(502, 'Metadata extraction failed');
   }
 }
 

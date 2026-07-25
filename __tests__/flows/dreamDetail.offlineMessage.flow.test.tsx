@@ -186,14 +186,14 @@ const interpretation = {
     },
   ],
   symbols: ['moon'],
-  archetypes: ['shadow'],
+  archetypes: [{ canonical_label: 'Shadow', expression: '', resonance: '', evidence: [] }],
   affects: ['wonder'],
   landscapes: ['moonlit water'],
   thresholds: ['shoreline'],
   relational_dynamics: ['watching from a distance'],
   motifs: ['light over water'],
   central_conflicts: ['distance vs contact'],
-  amplifications: ['moon over water'],
+  amplifications: [{ title: '', tradition: '', resonance: 'moon over water', difference: '', evidence: [] }],
   symbol_stances: [{ symbol: 'moon', stance: 'quietly luminous' }],
   display_distillation: {
     essence_title: 'Moonlit distance',
@@ -298,11 +298,13 @@ describe('DreamDetail offline message flow', () => {
     const screen = render(<DreamDetailScreen />);
 
     await screen.findByText('Explore symbolic layers');
-    expect(screen.queryByText('Emotional weather')).toBeNull();
+    expect(screen.queryByText('Emotional Weather')).toBeNull();
+    expect(screen.queryByText('Dream Fabric')).toBeNull();
 
     fireEvent.press(screen.getByText('Explore symbolic layers'));
 
-    expect(await screen.findByText('Emotional weather')).toBeTruthy();
+    expect(await screen.findByText('Dream Fabric')).toBeTruthy();
+    expect(screen.getByText('Emotional Weather')).toBeTruthy();
     expect(screen.getByText('wonder')).toBeTruthy();
   });
 

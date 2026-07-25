@@ -27,6 +27,7 @@ import {
   getRecurringMotifs,
   getInterpretedDreamsCountForPeriod,
   getInsightsOverview,
+  getRecurringAffects,
   buildStrongestPatterns,
   buildDreamFieldSummary,
 } from '../../src/services/insightsService';
@@ -339,9 +340,63 @@ describe('insights periods & keys flow', () => {
     expect(updated.topImages[0]).toEqual(expect.objectContaining({ label: 'red door', count: 2 }));
     expect(updated.topMotifs[0]).toEqual(expect.objectContaining({ label: 'blocked threshold', count: 2 }));
     expect(updated.topThresholds[0]).toEqual(expect.objectContaining({ label: 'closed door', count: 2 }));
-    expect(updated.strongestPatterns.map((pattern) => pattern.label)).toEqual(
-      expect.arrayContaining(['red door', 'closed door', 'blocked threshold'])
+    expect(updated.topAffects[0]).toEqual(
+      expect.objectContaining({ label: 'tension', count: 2, sectionId: 'emotional-weather' })
     );
+    expect(updated.strongestPatterns.map((pattern) => pattern.label)).toEqual(
+      expect.arrayContaining(['red door', 'closed door', 'blocked threshold', 'tension'])
+    );
+    expect(updated.strongestPatterns.some((pattern) => pattern.kind === 'archetypal_echo')).toBe(false);
     expect(updated.fieldSummary).toContain('red door');
+  });
+
+  it('getRecurringAffects counts distinct dreams, not repeated mentions in one dream', async () => {
+    mockStorageService.getDreams.mockResolvedValue([
+      {
+        id: 'dream-a',
+        date: '2026-04-01',
+        content: 'Calm water turns anxious.',
+        createdAt: 't',
+        updatedAt: 't',
+      },
+      {
+        id: 'dream-b',
+        date: '2026-04-02',
+        content: 'Anxiety again.',
+        createdAt: 't',
+        updatedAt: 't',
+      },
+    ]);
+    mockStorageService.getInterpretations.mockResolvedValue([
+      {
+        id: 'i-a',
+        dreamId: 'dream-a',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        affects: ['anxiety', 'anxiety', 'calm'],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+      {
+        id: 'i-b',
+        dreamId: 'dream-b',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        affects: ['anxiety'],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+    ]);
+
+    const affects = await getRecurringAffects({ startDate: '2026-04-01', endDate: '2026-04-30' });
+    expect(affects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'anxiety', count: 2 }),
+        expect.objectContaining({ name: 'calm', count: 1 }),
+      ])
+    );
+    expect(affects.find((a) => a.name === 'anxiety')?.count).toBe(2);
   });
 });

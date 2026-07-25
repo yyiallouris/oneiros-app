@@ -31,15 +31,23 @@ describe('edge pattern essay prompt flow', () => {
 
   it('passes the full canonical context fields into gateway pattern essays', () => {
     const billingAi = readFileSync(path.join(repoRoot, 'supabase/functions/_shared/billing-ai.ts'), 'utf8');
+    const clientAi = readFileSync(path.join(repoRoot, 'src/services/ai.ts'), 'utf8');
 
     expect(billingAi).toMatch(/Core Mode:/);
     expect(billingAi).toMatch(/Symbol stances:/);
     expect(billingAi).toMatch(/Landscapes:/);
     expect(billingAi).toMatch(/Relational dynamics:/);
     expect(billingAi).toMatch(/Central conflicts:/);
-    expect(billingAi).toMatch(/Amplifications:/);
+    expect(billingAi).toMatch(/Archetypal Echoes: \$\{formatArchetypesForEssay\(entry\.extracted\.archetypes\)\}/);
+    expect(billingAi).toMatch(/Mythic Echoes: \$\{formatAmplificationsForEssay\(entry\.extracted\.amplifications\)\}/);
     expect(billingAi).toMatch(/Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings/);
     expect(billingAi).toMatch(/buildEssayLanguageInstruction/);
     expect(billingAi).toMatch(/Keep all markdown section headings exactly as specified in English for UI consistency/);
+
+    // Client monthly + Recent Dream Field builders stay in parity (no raw object dumps).
+    expect(clientAi).toMatch(/Archetypal Echoes: \$\{formatArchetypesForEssay\(d\.extracted\.archetypes\)\}/);
+    expect(clientAi).toMatch(/Mythic Echoes: \$\{formatAmplificationsForEssay\(d\.extracted\.amplifications\)\}/);
+    expect(clientAi).not.toMatch(/Archetypal Echoes: \$\{[^}]*\.join/);
+    expect(billingAi).not.toMatch(/Archetypal Echoes: \$\{[^}]*\.join/);
   });
 });

@@ -8,6 +8,7 @@ export {
   validateStructuredTaskContent,
   buildStructuredRepairMessages,
   safeStructuredValidationLog,
+  safeAssistantJsonDiagnostics,
   dreamExtractionSchema,
   conversationElementUpdateSchema,
   semanticGroupingSchema,

@@ -62,7 +62,8 @@
         "npm:react-native@0.81.5",
         "npm:react-test-renderer@19.1.0",
         "npm:react@19.1.0",
-        "npm:typescript@~5.9.2"
+        "npm:typescript@~5.9.2",
+        "npm:zod@^3.23.8"
       ],
       "overrides": {
         "react-native-safe-area-context": "$react-native-safe-area-context"

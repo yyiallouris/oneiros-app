@@ -4,6 +4,7 @@
 
 - The landing screen no longer exposes a top-level period dropdown.
 - It loads the current-month insights overview via `getInsightsOverview(getPeriodThisMonth())` to preview the active field and the forming-pattern entry points.
+- Returning from an Insights section (e.g. Thresholds) soft-refreshes overview data without a full-screen loading remount, and restores the previous Insights scroll offset so Forming Patterns stays in view.
 
 ### Main structure and navigation
 
@@ -29,22 +30,23 @@
 
 ## Insights journey (`InsightsJourneyScreen`)
 
-- Horizontal pager order: **images → motifs → thresholds → tensions → archetypes → places**.
+- Horizontal pager order: **images → recurring scenes → emotional weather → thresholds → tensions → places**.
 - Each page embeds `InsightsSectionScreen` with `embedded` props (same period).
 
 ## Insights section (`InsightsSectionScreen`)
 
 Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Insight report language is configured from Account rather than inside report screens.
 
-- **Forming pattern period picker:** `Returning Images`, `Repeating Patterns`, `Thresholds`, `Inner Tensions`, `Dream Places`, and `Archetypal Echoes` now own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place.
+- **Forming pattern period picker:** `Returning Images`, `Recurring Scenes`, `Emotional Weather`, `Thresholds`, `Inner Tensions`, and `Dream Places` own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place. Archetypal Echoes remain extractable and routable for Dream Detail / deep links, but are no longer one of the six main Forming Patterns tiles.
 - **Insights icon refresh:** the Period Reflection entry and the six forming-pattern categories now render from the supplied PNG icon set. The shared icon renderer crops the transparent source canvases to their visible artwork bounds, and the previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
 
 Per `sectionId`:
 
 - **Returning Images / symbol details:** clusters, associations, bars; links to **`JournalFilter`** with `filterSymbol`. Single appearances are collapsed by default.
-- **Repeating Patterns / Dream Places:** similar aggregations; journal links with `filterMotif` / `filterLandscape`. Single/other items are collapsed by default.
+- **Recurring Scenes / Dream Places:** similar aggregations; journal links with `filterMotif` / `filterLandscape`. Single/other items are collapsed by default.
+- **Emotional Weather:** recurring felt tones from `affects` (`sectionId: emotional-weather`); count is distinct dreams per tone; single appearances are collapsed by default; no journal filter in this pass.
 - **Thresholds / Inner Tensions:** recurring transition points and tensions; single crossings/tensions are collapsed by default.
-- **Archetypal Echoes:** lower-hierarchy archetypal recurrence display.
+- **Archetypal Echoes:** still routable for deep/legacy views, but removed from the main Forming Patterns grid.
 - **Period Reflection:** AI calendar-period reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; current month uses month-to-date entries while report keys stay weekly via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered); generation now routes through `generateEntitledPeriodReflection`.
 - **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateEntitledRecentDreamField` for the standard paid path; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
 - **Collective:** `getCollectiveInsights()` — currently **placeholder** empty aggregates (`insightsService` TODO).
@@ -74,7 +76,7 @@ Per `sectionId`:
 
 ## Insights ↔ data dependencies
 
-- Aggregations use **local dreams** and interpretations. Full pattern metadata remains available for Insights: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances.
+- Aggregations use **local dreams** and interpretations. Full pattern metadata remains available for Insights synthesis: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances. Recent Dream Field and Period Reflection essay context includes Fabric fields plus formatted Archetypal Echoes (`canonical (expression) — resonance`) and Mythic Echoes (`title (tradition) — resonance/difference`) — never raw object dumps or bare disconnected tags. Forming Patterns grid counts use archetype `canonical_label` only and do not include amplifications.
 - `display_distillation` is for immediate DreamDetail presentation only; monthly/quarterly reports and recent reflections continue to synthesize from full metadata and interpretation excerpts.
 - The new backend gateway assumes remote dream + interpretation data is available and is now the default path for gated premium actions.
 - **Regression:** insights empty until user has reflections with extracted fields; changing period changes all section data.

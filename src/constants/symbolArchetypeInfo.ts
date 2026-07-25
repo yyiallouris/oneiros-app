@@ -40,12 +40,16 @@ export type InfoModalKey =
   | 'archetype-anima'
   | 'archetype-animus'
   | 'archetype-great-mother'
+  | 'archetype-terrible-mother'
   | 'archetype-father'
   | 'archetype-child'
   | 'archetype-hero'
   | 'archetype-trickster'
+  | 'archetype-guide'
+  | 'archetype-psychopomp'
   | 'archetype-wise-old-man'
   | 'archetype-wise-old-woman'
+  | 'archetype-wise-old-person'
   | 'archetype-maiden'
   | 'archetype-kore'
   | 'archetype-lover'
@@ -57,7 +61,12 @@ export type InfoModalKey =
   | 'archetype-wounded-healer'
   | 'archetype-destroyer'
   | 'archetype-death'
-  | 'archetype-rebirth';
+  | 'archetype-rebirth'
+  | 'archetype-double'
+  | 'archetype-orphan'
+  | 'archetype-ruler'
+  | 'archetype-death-rebirth'
+  | 'archetype-sacred-marriage';
 
 export interface InfoModalContent {
   title: string;
@@ -85,12 +94,12 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     bulletsAfterParagraph: 2,
   },
   'symbolic-motifs': {
-    title: 'What are symbolic motifs?',
+    title: 'What are recurring scenes?',
     subtitle: 'The form the dream takes',
     paragraphs: [
-      'Motifs describe the imaginal form of the dream — how it is structured, not what it means.',
-      'If symbols are the standout images, motifs are the recurring situations, pathways, or spatial shapes linking those images together.',
-      'They are recurring symbolic situations, not every transition point or psychological conflict.',
+      'Recurring scenes describe the imaginal form of the dream — how it is structured, not what it means.',
+      'If symbols are the standout images, recurring scenes are the situations, pathways, or spatial shapes linking those images together.',
+      'They are scene-shapes and situations, not every transition point or psychological conflict.',
       'Examples:',
       'These patterns often recur across dreams. They bridge concrete images and deeper psychic organization.',
     ],
@@ -98,8 +107,8 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       'descending underground',
       'crowded marketplace',
       'watching from outside',
-      'threshold crossing',
-      'hidden backstage area',
+      'being unable to enter',
+      'missing a departure',
     ],
     bulletsAfterParagraph: 2,
   },
@@ -374,18 +383,18 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     ],
   },
   'archetype-child': {
-    title: '✶ Child',
+    title: '✶ Divine Child',
     subtitle: 'Archetypal energies — dynamic',
     sections: [
       {
         heading: 'What it is',
         content:
-          'The Child carries beginning-energy: vulnerability, wonder, dependency, and future possibility. It points to what is still becoming.',
+          'The Divine Child carries beginning-energy: vulnerability, wonder, dependency, and future possibility. It points to what is still becoming — often as a new psychic centre.',
       },
       {
         heading: 'How it appears in dreams',
         content:
-          'Often as infants, young figures, first attempts, fragile tasks, or moments of innocence and spontaneous curiosity.',
+          'Often as infants, young figures, first attempts, fragile tasks, or moments of innocence and spontaneous curiosity that alter the dream\'s direction.',
       },
       {
         heading: 'Distortion',
@@ -451,6 +460,58 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       },
     ],
   },
+  'archetype-guide': {
+    title: '✶ Guide / Psychopomp',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Guide / Psychopomp is a figure or force that orients movement through the dream: offering a path, a condition, a name for the next crossing, or escort across underworld-like ground — without becoming the whole destination.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as an elder, stranger, animal, voice, or threshold-keeper who points, asks, escorts, or opens a passage the dreamer cannot invent alone.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'Guidance can harden into control or outsourcing: waiting for the figure to decide your life instead of using the orientation it offers.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What direction is being offered — and what responsibility remains yours in following or refusing it?',
+      },
+    ],
+  },
+  'archetype-psychopomp': {
+    title: '✶ Psychopomp',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Psychopomp is a conductor between psychic regions: underworld and surface, sleep and waking, forgotten and remembered. It accompanies transition more than it explains meaning.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as a ferryman, animal guide, elder at a crossing, station attendant, or figure who knows the way through water, darkness, doors, or names that unlock passage.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'This figure can be mistaken for a final authority or savior, when its true role is accompaniment across a threshold.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What territory is this guide helping you enter or leave — and what must remain your own crossing?',
+      },
+    ],
+  },
   'archetype-wise-old-man': {
     title: '✶ Wise Old Man',
     subtitle: 'Archetypal energies — dynamic',
@@ -500,6 +561,32 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
         heading: 'Orienting question',
         content:
           'What rhythm is asking for your trust now — and where are you rushing past what needs ripening?',
+      },
+    ],
+  },
+  'archetype-wise-old-person': {
+    title: '✶ Wise Old Person',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Wise Old Person is gender-open elder wisdom: perspective earned through time, able to name a path without claiming ownership of the dreamer’s life.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as an elder of unclear or secondary gender marking, a quiet authority at a threshold, or a concise phrase that orients the next move.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'Wisdom can become remoteness: advice without relationship, certainty without listening.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What lived knowing is being offered — and how do you keep it in contact with your own experience?',
       },
     ],
   },
@@ -815,6 +902,162 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       },
     ],
   },
+  'archetype-terrible-mother': {
+    title: '✶ Terrible Mother',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Terrible Mother is the devouring, engulfing, or annihilating face of maternal power — not ordinary cruelty, but archetypal overwhelm that swallows differentiation.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as engulfing waters, devouring figures, smothering care, or landscapes that refuse exit.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'It can freeze into paranoia about dependency, or into cold rejection of all nurture.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'Where is care becoming captivity — and what boundary would restore your separate life?',
+      },
+    ],
+  },
+  'archetype-double': {
+    title: '✶ Double',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Double is a counterpart or twin-image of the dreamer — mirror, rival, companion, or shadow-sibling that stages identity by reflection.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as lookalikes, twins, animal counterparts, or figures that move in parallel with the dreamer\'s fate.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'It can collapse into possession by the other, or into rigid denial of kinship with what is mirrored.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What part of you is being shown through this counterpart — and what happens if you meet it without fleeing?',
+      },
+    ],
+  },
+  'archetype-orphan': {
+    title: '✶ Orphan',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Orphan carries exile, unprotected beginning, and the search for belonging after a break in shelter or lineage.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as abandoned children, lost travellers, empty houses, or figures left outside the circle of care.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'It can harden into bitter self-sufficiency, or into endless waiting for rescue.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What kind of belonging are you seeking — and what shelter can you offer yourself without pretending the wound never happened?',
+      },
+    ],
+  },
+  'archetype-ruler': {
+    title: '✶ Ruler',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Ruler is the ordering, governing, and world-shaping function — authority that can bless a realm or freeze it into tyranny.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as kings, queens, officials, thrones, laws, ceremonies of crowning, or figures who decide who may enter.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'It becomes domination, empty pageantry, or abdication that leaves the inner world without centre.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What deserves rightful order here — and what rule has become a costume instead of a living centre?',
+      },
+    ],
+  },
+  'archetype-death-rebirth': {
+    title: '✶ Death–Rebirth',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'Death–Rebirth is the archetypal sequence of ending and renewal: something must die for a different form of life to emerge. It is process, not a mood label.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as funerals, winter, dismemberment, underground passages, then dawn, infants, green shoots, or a changed landscape after loss.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'Its shadow is spiritual bypass: rushing to rebirth while grief or accountability remain unfinished — or clinging to death as identity.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What has truly ended — and what new form is asking to be lived slowly, not just imagined?',
+      },
+    ],
+  },
+  'archetype-sacred-marriage': {
+    title: '✶ Sacred Marriage',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Sacred Marriage (hieros gamos) is the union of complementary psychic principles — not ordinary romance, but a symbolic joining that renews the whole.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as weddings, paired opposites meeting, royal couples, alchemical conjunction, or a rite that binds two previously split realms.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'It can become forced fusion that erases difference, or endless longing for a perfect union that never lands in lived life.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'What two sides of you are seeking relationship — without either one being swallowed?',
+      },
+    ],
+  },
 };
 
 const ARCHETYPE_INFO_KEY_MAP: Record<ArchetypeName, InfoModalKey> = {
@@ -824,25 +1067,20 @@ const ARCHETYPE_INFO_KEY_MAP: Record<ArchetypeName, InfoModalKey> = {
   Persona: 'archetype-persona',
   Anima: 'archetype-anima',
   Animus: 'archetype-animus',
+  'Divine Child': 'archetype-child',
   'Great Mother': 'archetype-great-mother',
-  Father: 'archetype-father',
-  Child: 'archetype-child',
+  'Terrible Mother': 'archetype-terrible-mother',
   Hero: 'archetype-hero',
   Trickster: 'archetype-trickster',
+  'Guide / Psychopomp': 'archetype-guide',
   'Wise Old Man': 'archetype-wise-old-man',
   'Wise Old Woman': 'archetype-wise-old-woman',
-  Maiden: 'archetype-maiden',
-  Kore: 'archetype-kore',
+  Double: 'archetype-double',
+  Orphan: 'archetype-orphan',
   Lover: 'archetype-lover',
-  Warrior: 'archetype-warrior',
-  King: 'archetype-king',
-  Queen: 'archetype-queen',
-  Magician: 'archetype-magician',
-  Healer: 'archetype-healer',
-  'Wounded Healer': 'archetype-wounded-healer',
-  Destroyer: 'archetype-destroyer',
-  Death: 'archetype-death',
-  Rebirth: 'archetype-rebirth',
+  Ruler: 'archetype-ruler',
+  'Death–Rebirth': 'archetype-death-rebirth',
+  'Sacred Marriage': 'archetype-sacred-marriage',
 };
 
 /** Map archetype name to dedicated modal content key, falling back to generic energies modal. */

@@ -17,7 +17,14 @@ const baseInterpretation: Interpretation = {
   dreamId: dream.id,
   messages: [{ id: 'm1', role: 'assistant', content: 'Reflection', timestamp: 't' }],
   symbols: ['locked house', 'watching figure'],
-  archetypes: ['Threshold Guardian'],
+  archetypes: [
+    {
+      canonical_label: 'Shadow',
+      expression: 'the watching figure outside the locked house',
+      resonance: 'An unseen presence holds the edge between approach and entry.',
+      evidence: ['someone watches from outside'],
+    },
+  ],
   createdAt: 't',
   updatedAt: 't',
 };
@@ -138,5 +145,40 @@ describe('dream detail display model', () => {
 
     expect(model.anchors.map((a) => a.label)).toEqual(['Locked house', 'Stale house', 'Old sea']);
     expect(model.anchors).toHaveLength(3);
+  });
+
+  it('surfaces rich Archetypal and at most one Mythic Echo under interpretive layers', () => {
+    const model = buildDreamDetailDisplayModel(dream, {
+      ...baseInterpretation,
+      amplifications: [
+        {
+          title: 'Ariadne and the Labyrinth',
+          tradition: 'Greek',
+          resonance: 'The thread and corridors recall the Cretan labyrinth cycle.',
+          difference: 'Here the waiting figure is fed rather than defeated.',
+          evidence: ['descending chambers', 'thread-like guidance'],
+        },
+        {
+          title: 'extra',
+          tradition: 'Greek',
+          resonance: 'should not appear',
+          difference: 'n/a',
+          evidence: ['a', 'b'],
+        },
+      ],
+    });
+
+    expect(model.symbolicLayers.archetypalEchoes).toEqual([
+      {
+        title: 'The Shadow',
+        body: 'Appears as the watching figure outside the locked house. An unseen presence holds the edge between approach and entry.',
+      },
+    ]);
+    expect(model.symbolicLayers.mythicEchoes).toEqual([
+      {
+        title: 'Ariadne and the Labyrinth — Greek',
+        body: 'The thread and corridors recall the Cretan labyrinth cycle. Here the waiting figure is fed rather than defeated.',
+      },
+    ]);
   });
 });

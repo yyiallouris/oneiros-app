@@ -57,6 +57,16 @@ This is a server-side lease for `dream_metadata_extract`, preventing overlapping
 
 Implementation note: `interpretation_metadata_extraction_jobs.interpretation_id` is `text` because `interpretations.id` is an app-generated text id, not a UUID.
 
+### `20260725120000_amplifications_to_jsonb.sql`
+Converts `interpretations.amplifications` from `text[]` to `jsonb`.
+
+Mythic Echoes are rare interpretive enrichment objects. Current shape: `{ title, tradition, resonance, difference, evidence[] }`. Legacy strings, `echo_name`, and older `{ dream_image, echo, resonance }` objects are still normalized by app readers. Prefer empty arrays; not used in Forming Patterns aggregation.
+
+### `20260725130000_archetypes_to_jsonb.sql`
+Converts `interpretations.archetypes` from `text[]` to `jsonb`.
+
+Uses a two-step transform (Postgres forbids subqueries in `ALTER ... USING`): `to_jsonb(text[])` first, then an `UPDATE` that wraps bare JSON strings into `{ canonical_label, expression, resonance, evidence[] }`. App readers also normalize legacy strings / `display_label`. Insights aggregates `canonical_label`. Prefer 0–2.
+
 ## Running Migrations
 
 ### Prerequisites

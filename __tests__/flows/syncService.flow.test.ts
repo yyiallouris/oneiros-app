@@ -59,7 +59,7 @@ const interpretation: Interpretation = {
   thresholds: ['closed door'],
   central_conflicts: ['entry vs protection'],
   core_mode: 'Core Tension',
-  amplifications: ['door as charged boundary'],
+  amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
   display_distillation: {
     essence_title: 'Guarded entry',
     essence_line: 'The dream gathers around a guarded threshold.',
@@ -128,7 +128,7 @@ describe('SyncService flow', () => {
       thresholds: ['closed door'],
       central_conflicts: ['entry vs protection'],
       core_mode: 'Core Tension',
-      amplifications: ['door as charged boundary'],
+      amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
       display_distillation: expect.objectContaining({ essence_title: 'Guarded entry' }),
     }));
     expect(LocalStorage.removeUnsyncedInterpretation).toHaveBeenCalledWith('interpretation-1');
@@ -214,7 +214,7 @@ describe('SyncService flow', () => {
       thresholds: ['closed door'],
       central_conflicts: ['entry vs protection'],
       core_mode: 'Core Tension',
-      amplifications: ['door as charged boundary'],
+      amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
     });
     expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
     expect(out[0].symbol_stances?.[0].stance).toBe('guarded, blocking');
@@ -256,7 +256,7 @@ describe('SyncService flow', () => {
       thresholds: ['closed door'],
       central_conflicts: ['entry vs protection'],
       core_mode: 'Core Tension',
-      amplifications: ['door as charged boundary'],
+      amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
       metadata_status: 'pending',
     });
     expect(saved[0].display_distillation?.essence_title).toBe('Guarded entry');
@@ -282,7 +282,7 @@ describe('SyncService flow', () => {
       thresholds: ['open door'],
       central_conflicts: ['blocked door vs open hall'],
       core_mode: 'Core Shift',
-      amplifications: ['threshold as transition'],
+      amplifications: [{ title: '', tradition: '', resonance: 'threshold as transition', difference: '', evidence: [] }],
       display_distillation: {
         ...interpretation.display_distillation!,
         essence_title: 'Remote opening',
@@ -306,7 +306,7 @@ describe('SyncService flow', () => {
       thresholds: ['open door'],
       central_conflicts: ['blocked door vs open hall'],
       core_mode: 'Core Shift',
-      amplifications: ['threshold as transition'],
+      amplifications: [{ title: '', tradition: '', resonance: 'threshold as transition', difference: '', evidence: [] }],
     });
     expect(mergedRemote?.display_distillation?.essence_title).toBe('Remote opening');
     expect(preservedLocal?.symbols).toEqual(['local moon']);

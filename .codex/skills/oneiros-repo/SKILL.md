@@ -46,6 +46,9 @@ Prefer existing tokens and shared components. If a token, type role, visual rule
 - Edge Function behavior changes require the relevant `supabase/functions/<name>/README.md` update and a final deploy note.
 - AI provider/model routing changes live in `supabase/functions/openai-proxy/task-config.ts` and require `supabase functions deploy openai-proxy`.
 - Dream metadata extraction prompts must stay on the shared canonical module `src/ai/dreamExtractionPrompt.ts` (client + gateway). Do not reintroduce a thinner gateway-only extraction stub.
+- `archetypes` are Archetypal Echoes: classical objects (`{ canonical_label, expression, resonance, evidence }`), default `[]`. Normalize via `src/ai/archetypalEchoes.ts`. Dream Detail shows canonical title + expression/resonance; Insights aggregates `canonical_label`. Prefer classical labels; keep expression secondary.
+- `amplifications` are Mythic Echoes: rare named parallels (`{ title, tradition, resonance, difference, evidence }`), default `[]`, not Dream Fabric and not Forming Patterns aggregation. Normalize via `src/ai/mythicEchoes.ts` (legacy string / `echo_name` / `{ dream_image, echo, resonance }` still accepted).
+- Single-dream `motifs` UI label is Dream Motifs; Insights aggregation of motifs is Recurring Scenes. Extraction should map compactly (felt-tone affects, pattern-label relational dynamics, short thresholds/motifs) and allow 0–2 archetypal / 0–1 mythic echoes on converging configurations — not automatic emptiness.
 - Never log raw dream content, prompts, messages, or AI responses. Use `src/services/logger.ts` patterns.
 
 ## Work style

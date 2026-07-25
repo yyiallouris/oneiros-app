@@ -1,3 +1,6 @@
+import type { ArchetypalEcho } from '../ai/archetypalEchoes.ts';
+import type { MythicEcho } from '../ai/mythicEchoes.ts';
+
 export interface Dream {
   id: string;
   date: string; // ISO date string
@@ -94,7 +97,12 @@ export interface Interpretation {
   dreamId: string;
   messages: ChatMessage[];
   symbols: string[];
-  archetypes: string[];
+  /**
+   * Archetypal Echoes: classical canonical labels with dream-specific expression.
+   * Prefer 0–2 objects. Readers should normalize via `normalizeArchetypalEchoes`.
+   * Legacy rows may still arrive as whitelist strings / display_label objects.
+   */
+  archetypes: ArchetypalEcho[];
   landscapes?: string[]; // Settings/places where the dream takes place
   /** Dominant emotional/bodily energies (felt-sense language) for pattern tracking */
   affects?: string[];
@@ -108,8 +116,12 @@ export interface Interpretation {
   central_conflicts?: string[];
   /** One of: Core Tension, Core State, Core Shift, Core Restoration */
   core_mode?: CoreMode;
-  /** Brief echoes/resonances for 1–2 key symbols (pattern/amplification) */
-  amplifications?: string[];
+  /**
+   * Mythic Echoes: rare provisional interpretive enrichment (not Dream Fabric).
+   * Prefer 0–1 named parallels `{ title, tradition, resonance, difference, evidence }`.
+   * Readers should normalize via `normalizeAmplifications`.
+   */
+  amplifications?: MythicEcho[];
   /** How each key symbol was experienced in the dream (e.g. playful, painful, stressful). */
   symbol_stances?: { symbol: string; stance: string }[];
   /** Minimal user-facing dream-field summary for DreamDetail. */

@@ -1,4 +1,6 @@
 import type { EntitlementSnapshot, GatewayAction, QuotaReservation, VerifiedPurchase, WebhookEventEnvelope } from '../../../src/billing/types.ts';
+import { normalizeArchetypalEchoes, type ArchetypalEcho } from '../../../src/ai/archetypalEchoes.ts';
+import { normalizeAmplifications, type MythicEcho } from '../../../src/ai/mythicEchoes.ts';
 import { HttpError } from './http.ts';
 import { createAdminClient } from './supabase.ts';
 
@@ -24,7 +26,7 @@ type InterpretationRow = {
   user_id: string;
   messages: unknown[];
   symbols: string[];
-  archetypes: string[];
+  archetypes?: unknown[] | null;
   landscapes?: string[] | null;
   affects?: string[] | null;
   motifs?: string[] | null;
@@ -32,7 +34,7 @@ type InterpretationRow = {
   thresholds?: string[] | null;
   central_conflicts?: string[] | null;
   core_mode?: string | null;
-  amplifications?: string[] | null;
+  amplifications?: unknown[] | null;
   symbol_stances?: Array<{ symbol: string; stance: string }> | null;
   display_distillation?: Record<string, unknown> | null;
   metadata_status?: 'pending' | 'ready' | 'failed' | null;
@@ -61,7 +63,7 @@ export type PatternEntry = {
   date: string;
   extracted: {
     symbols: string[];
-    archetypes: string[];
+    archetypes: ArchetypalEcho[];
     landscapes: string[];
     affects: string[];
     motifs: string[];
@@ -69,7 +71,7 @@ export type PatternEntry = {
     thresholds: string[];
     central_conflicts: string[];
     core_mode: string | null;
-    amplifications: string[];
+    amplifications: MythicEcho[];
     symbol_stances: Array<{ symbol: string; stance: string }>;
   };
   interpretation: string;
@@ -519,7 +521,7 @@ function toPatternEntry(row: InterpretationRow, dreamsById: Map<string, DreamRow
     date: dream.date,
     extracted: {
       symbols: row.symbols ?? [],
-      archetypes: row.archetypes ?? [],
+      archetypes: normalizeArchetypalEchoes(row.archetypes ?? []),
       landscapes: row.landscapes ?? [],
       affects: row.affects ?? [],
       motifs: row.motifs ?? [],
@@ -527,7 +529,7 @@ function toPatternEntry(row: InterpretationRow, dreamsById: Map<string, DreamRow
       thresholds: row.thresholds ?? [],
       central_conflicts: row.central_conflicts ?? [],
       core_mode: row.core_mode ?? null,
-      amplifications: row.amplifications ?? [],
+      amplifications: normalizeAmplifications(row.amplifications ?? []),
       symbol_stances: row.symbol_stances ?? [],
     },
     interpretation: firstAssistantText(row.messages),

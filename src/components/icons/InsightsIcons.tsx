@@ -88,6 +88,9 @@ export const DreamPlacesIcon = createInsightsPngIcon(ICON_SOURCES.dreamPlaces.so
 export const ArchetypalEnergiesIcon = createInsightsPngIcon(ICON_SOURCES.archetypalEnergies.source, ICON_SOURCES.archetypalEnergies.bounds);
 export const PatternRecognitionIcon = createInsightsPngIcon(ICON_SOURCES.patternRecognition.source, ICON_SOURCES.patternRecognition.bounds);
 
+// Temporary Emotional Weather tile icon until a dedicated PNG asset lands.
+export const EmotionalWeatherIcon = PatternRecognitionIcon;
+
 // Backward-compatible aliases while screens migrate to the explicit names above.
 export const SymbolsIcon = ReturningImagesIcon;
 export const MotifsIcon = RepeatingPatternsIcon;

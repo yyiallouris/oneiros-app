@@ -417,26 +417,69 @@ export async function invokeAiEntitlementsGateway<T = Record<string, unknown>>(b
       }
     }
 
+    const errorField =
+      details && typeof details === 'object' && details !== null && 'error' in details
+        ? (details as { error: unknown }).error
+        : null;
     const serverMessage =
+      typeof errorField === 'string'
+        ? errorField
+        : errorField && typeof errorField === 'object' && typeof (errorField as { message?: unknown }).message === 'string'
+          ? (errorField as { message: string }).message
+          : null;
+    const failureCode =
+      errorField && typeof errorField === 'object' && typeof (errorField as { code?: unknown }).code === 'string'
+        ? (errorField as { code: string }).code
+        : details && typeof details === 'object' && typeof (details as { details?: { failureCode?: unknown } }).details?.failureCode === 'string'
+          ? ((details as { details: { failureCode: string } }).details.failureCode)
+          : null;
+    const nestedFromError =
+      errorField && typeof errorField === 'object' && typeof (errorField as { details?: unknown }).details === 'object'
+        ? ((errorField as { details: Record<string, unknown> }).details ?? null)
+        : null;
+    const nestedFromBody =
+      details && typeof details === 'object' && typeof (details as { details?: unknown }).details === 'object'
+        ? ((details as { details: Record<string, unknown> }).details ?? null)
+        : null;
+    // Gateway may put the diagnostic bag at top-level `details` when `error` is a string.
+    const topLevelDetails =
       details &&
       typeof details === 'object' &&
       details !== null &&
-      'error' in details &&
-      typeof (details as { error: unknown }).error === 'string'
-        ? (details as { error: string }).error
+      (typeof (details as { failureCode?: unknown }).failureCode === 'string' ||
+        typeof (details as { contentLength?: unknown }).contentLength === 'number' ||
+        typeof (details as { looksTruncated?: unknown }).looksTruncated === 'boolean' ||
+        typeof (details as { upstreamMessage?: unknown }).upstreamMessage === 'string' ||
+        Array.isArray((details as { schemaErrors?: unknown }).schemaErrors))
+        ? (details as Record<string, unknown>)
         : null;
+    const diagnostic = nestedFromError ?? nestedFromBody ?? topLevelDetails;
 
     const durationMs = Date.now() - startedAt;
     console.error('[ai-entitlements-gateway] invoke failed', {
       message: error.message,
       serverMessage,
-      details,
+      failureCode,
+      looksTruncated: diagnostic?.looksTruncated ?? null,
+      contentLength: diagnostic?.contentLength ?? null,
+      finishReason: diagnostic?.finishReason ?? null,
+      schemaErrorCount: diagnostic?.schemaErrorCount ?? null,
+      schemaErrors: Array.isArray(diagnostic?.schemaErrors) ? diagnostic.schemaErrors.slice(0, 8) : null,
+      model: diagnostic?.model ?? null,
+      provider: diagnostic?.provider ?? null,
+      promptVersion: diagnostic?.promptVersion ?? null,
       action: body.action,
       durationMs,
     });
     logError('ai_gateway_invoke_failed', error, {
       action: body.action,
       serverMessage,
+      failureCode,
+      looksTruncated: diagnostic?.looksTruncated ?? null,
+      contentLength: diagnostic?.contentLength ?? null,
+      finishReason: diagnostic?.finishReason ?? null,
+      schemaErrorCount: diagnostic?.schemaErrorCount ?? null,
+      model: diagnostic?.model ?? null,
       durationMs,
     });
 

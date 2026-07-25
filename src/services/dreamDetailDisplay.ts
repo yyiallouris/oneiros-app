@@ -5,6 +5,11 @@ import type {
   Dream,
   Interpretation,
 } from '../types/dream';
+import {
+  formatArchetypalEchoesForDisplay,
+  type EchoDisplayCard,
+} from '../ai/archetypalEchoes';
+import { formatMythicEchoForDisplay, normalizeAmplifications } from '../ai/mythicEchoes';
 
 export type VisibleDreamAnchor = {
   label: string;
@@ -36,8 +41,8 @@ export type DreamDetailDisplayModel = {
     relationshipField: string[];
     repeatingPatterns: string[];
     innerTensions: string[];
-    archetypalEchoes: string[];
-    mythicParallels: string[];
+    archetypalEchoes: EchoDisplayCard[];
+    mythicEchoes: EchoDisplayCard[];
   };
 };
 
@@ -223,8 +228,15 @@ export const buildDreamDetailDisplayModel = (
       relationshipField: compactUnique(interpretation?.relational_dynamics ?? [], MAX_LAYER_ITEMS),
       repeatingPatterns: compactUnique(interpretation?.motifs ?? [], MAX_LAYER_ITEMS),
       innerTensions: compactUnique(interpretation?.central_conflicts ?? [], MAX_LAYER_ITEMS),
-      archetypalEchoes: compactUnique(interpretation?.archetypes ?? dream.archetypes ?? [], 3),
-      mythicParallels: compactUnique(interpretation?.amplifications ?? [], 2),
+      archetypalEchoes: formatArchetypalEchoesForDisplay(
+        interpretation?.archetypes?.length
+          ? interpretation.archetypes
+          : dream.archetypes ?? [],
+        2
+      ),
+      mythicEchoes: normalizeAmplifications(interpretation?.amplifications ?? [], 1).map(
+        formatMythicEchoForDisplay
+      ),
     },
   };
 };

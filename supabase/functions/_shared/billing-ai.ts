@@ -8,13 +8,26 @@ import { buildCurrentMonthScope, getRecentSequenceScopeKey } from '../../../src/
 import {
   buildDreamExtractionSystemPrompt,
   buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_PROMPT_VERSION,
   DREAM_EXTRACTION_TEMPERATURE,
   DREAM_EXTRACTION_TOKEN_LIMIT,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
+import {
+  formatArchetypesForEssay,
+  MAX_ARCHETYPAL_ECHOES,
+  normalizeArchetypalEchoes,
+  type ArchetypalEcho,
+} from '../../../src/ai/archetypalEchoes.ts';
+import {
+  formatAmplificationsForEssay,
+  MAX_MYTHIC_ECHOES,
+  normalizeAmplifications,
+  type MythicEcho,
+} from '../../../src/ai/mythicEchoes.ts';
 import type { PatternEntry } from './billing-db.ts';
 import { HttpError } from './http.ts';
 import { getFunctionsBaseUrl, getSupabaseAnonKey } from './supabase.ts';
-import { validateStructuredTaskContent } from './structuredTaskValidation.ts';
+import { safeAssistantJsonDiagnostics, validateStructuredTaskContent } from './structuredTaskValidation.ts';
 
 type ChatMessage = {
   id: string;
@@ -33,7 +46,7 @@ type DreamRecord = {
 type ExtractionResult = {
   display_distillation?: DisplayDistillation;
   symbols: string[];
-  archetypes: string[];
+  archetypes: ArchetypalEcho[];
   landscapes: string[];
   affects: string[];
   motifs: string[];
@@ -41,7 +54,7 @@ type ExtractionResult = {
   thresholds: string[];
   central_conflicts: string[];
   core_mode: string | null;
-  amplifications: string[];
+  amplifications: MythicEcho[];
   symbol_stances: Array<{ symbol: string; stance: string }>;
 };
 
@@ -433,6 +446,7 @@ Rules for this section:
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
 Length: aim for 550–800 words. Prefer density and continuity over coverage.
+Finish the full response, including both reflective questions and the end marker. Do not stop mid-sentence or mid-question.
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -519,12 +533,50 @@ async function invokeOpenAiProxy(params: {
   const provider = response.headers.get('X-AI-Provider')?.trim() || null;
   const data = await response.json();
   if (!response.ok) {
+    const proxyError = data && typeof data === 'object' ? (data as { error?: unknown; message?: unknown }).error : null;
+    const proxyMessage =
+      typeof proxyError === 'string'
+        ? proxyError
+        : proxyError && typeof proxyError === 'object' && typeof (proxyError as { message?: unknown }).message === 'string'
+          ? (proxyError as { message: string }).message
+          : data && typeof data === 'object' && typeof (data as { message?: unknown }).message === 'string'
+            ? (data as { message: string }).message
+            : null;
+    const nestedDetails =
+      proxyError && typeof proxyError === 'object' && typeof (proxyError as { details?: unknown }).details === 'object'
+        ? ((proxyError as { details: Record<string, unknown> }).details ?? null)
+        : data && typeof data === 'object' && typeof (data as { details?: unknown }).details === 'object'
+          ? ((data as { details: Record<string, unknown> }).details ?? null)
+          : null;
+    const failureCode =
+      nestedDetails && typeof nestedDetails.failureCode === 'string'
+        ? nestedDetails.failureCode
+        : proxyError && typeof proxyError === 'object' && typeof (proxyError as { code?: unknown }).code === 'string'
+          ? (proxyError as { code: string }).code
+          : null;
     console.error('[billing-ai] openai-proxy request failed', {
       task: params.task,
       status: response.status,
       durationMs: Date.now() - startedAt,
+      proxyMessage,
+      failureCode,
+      provider,
+      model: response.headers.get('X-AI-Model')?.trim() || null,
+      looksTruncated: nestedDetails?.looksTruncated ?? null,
+      contentLength: nestedDetails?.contentLength ?? null,
+      finishReason: nestedDetails?.finishReason ?? null,
+      schemaErrorCount: nestedDetails?.schemaErrorCount ?? null,
+      schemaErrors: Array.isArray(nestedDetails?.schemaErrors)
+        ? nestedDetails.schemaErrors.slice(0, 8)
+        : null,
     });
-    throw new HttpError(response.status, 'AI proxy request failed', data);
+    throw new HttpError(response.status, proxyMessage || 'AI proxy request failed', {
+      failureCode,
+      upstreamStatus: response.status,
+      provider,
+      model: response.headers.get('X-AI-Model')?.trim() || null,
+      ...(nestedDetails ?? {}),
+    });
   }
 
   const cost = estimateAiCallCost(data as Record<string, unknown>, provider);
@@ -813,7 +865,9 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
       { role: 'user' as const, content: userPrompt },
     ],
     temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.60 : 0.55,
-    tokenLimit: depth === 'quick' ? 550 : depth === 'advanced' ? 2200 : 1600,
+    // Advanced word target stays 550–800; 2800 is soft headroom so the model can finish
+    // the full response instead of truncating mid-sentence / mid-question.
+    tokenLimit: depth === 'quick' ? 550 : depth === 'advanced' ? 2800 : 1600,
     timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS,
   };
 }
@@ -825,19 +879,27 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
    ============================ */
 
 function buildExtractionMessages(dream: DreamRecord, interpretation: string) {
+  const system = buildDreamExtractionSystemPrompt();
+  const user = buildDreamExtractionUserPrompt({
+    title: dream.title,
+    date: dream.date,
+    content: dream.content,
+    finalInterpretation: interpretation,
+  });
+  console.log('[billing-ai] dream_extraction prompt prepared', {
+    promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    dreamLength: dream.content?.length ?? 0,
+    reflectionLength: interpretation?.length ?? 0,
+    systemPromptLength: system.length,
+    userPromptLength: user.length,
+    tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT,
+    temperature: DREAM_EXTRACTION_TEMPERATURE,
+  });
   return {
     task: 'dream_extraction',
     messages: [
-      { role: 'system' as const, content: buildDreamExtractionSystemPrompt() },
-      {
-        role: 'user' as const,
-        content: buildDreamExtractionUserPrompt({
-          title: dream.title,
-          date: dream.date,
-          content: dream.content,
-          finalInterpretation: interpretation,
-        }),
-      },
+      { role: 'system' as const, content: system },
+      { role: 'user' as const, content: user },
     ],
     temperature: DREAM_EXTRACTION_TEMPERATURE,
     tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT,
@@ -892,7 +954,8 @@ Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
 Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
 Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
 Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Amplifications: ${entry.extracted.amplifications.join('; ') || '(none)'}
+Archetypal Echoes: ${formatArchetypesForEssay(entry.extracted.archetypes)}
+Mythic Echoes: ${formatAmplificationsForEssay(entry.extracted.amplifications)}
 Interpretation excerpt: ${trim(entry.interpretation, 520)}
 `).join('\n');
 
@@ -947,7 +1010,8 @@ Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
 Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
 Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
 Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Amplifications: ${entry.extracted.amplifications.join('; ') || '(none)'}
+Archetypal Echoes: ${formatArchetypesForEssay(entry.extracted.archetypes)}
+Mythic Echoes: ${formatAmplificationsForEssay(entry.extracted.amplifications)}
 Interpretation excerpt: ${trim(entry.interpretation, 650)}
 `).join('\n');
 
@@ -1134,15 +1198,23 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
     provider: 'openai-or-fallback',
   });
   if (!validated.ok) {
+    const shape = safeAssistantJsonDiagnostics(content);
     console.error('[billing-ai] Extraction schema validation failed', {
-      contentLength: content.length,
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
       failOnInvalidOrEmpty: Boolean(options.failOnInvalidOrEmpty),
-      schemaErrors: validated.schemaErrors,
+      schemaErrors: validated.schemaErrors.slice(0, 12),
+      schemaErrorCount: validated.schemaErrors.length,
       repairAttempted: validated.log.repairAttempted,
       repairSucceeded: validated.log.repairSucceeded,
+      ...shape,
     });
     if (options.failOnInvalidOrEmpty) {
-      throw new HttpError(502, 'AI extraction returned invalid JSON');
+      throw new HttpError(502, 'AI extraction returned invalid JSON', {
+        failureCode: 'structured_schema_invalid',
+        promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+        schemaErrors: validated.schemaErrors.slice(0, 12),
+        ...shape,
+      });
     }
     return emptyExtraction();
   }
@@ -1152,7 +1224,7 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
   const extraction = {
     display_distillation: normalizeDisplayDistillation(parsed.display_distillation),
     symbols: asStringArray(parsed.symbols),
-    archetypes: asStringArray(parsed.archetypes),
+    archetypes: normalizeArchetypalEchoes(parsed.archetypes, MAX_ARCHETYPAL_ECHOES),
     landscapes: asStringArray(parsed.landscapes),
     affects: asStringArray(parsed.affects),
     motifs: asStringArray(parsed.motifs),
@@ -1160,7 +1232,7 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
     thresholds: asStringArray(parsed.thresholds),
     central_conflicts: asStringArray(parsed.central_conflicts),
     core_mode: (typeof parsed.core_mode === 'string' ? parsed.core_mode : null) as ExtractionResult['core_mode'],
-    amplifications: asStringArray(parsed.amplifications),
+    amplifications: normalizeAmplifications(parsed.amplifications, MAX_MYTHIC_ECHOES),
     symbol_stances: Array.isArray(parsed.symbol_stances)
       ? parsed.symbol_stances
           .map((item) => {
@@ -1177,11 +1249,38 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
       : [],
   };
 
+  console.log('[billing-ai] dream_extraction normalized', {
+    promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    symbolsCount: extraction.symbols.length,
+    archetypesCount: extraction.archetypes.length,
+    // Safe shape counts only — never echo labels/resonance text.
+    archetypeWithResonanceCount: extraction.archetypes.filter((echo) => echo.resonance.trim().length >= 12).length,
+    archetypeWithExpressionCount: extraction.archetypes.filter(
+      (echo) =>
+        echo.expression.trim().length > 0 &&
+        echo.expression.trim().toLowerCase() !== echo.canonical_label.trim().toLowerCase()
+    ).length,
+    landscapesCount: extraction.landscapes.length,
+    affectsCount: extraction.affects.length,
+    motifsCount: extraction.motifs.length,
+    relationalDynamicsCount: extraction.relational_dynamics.length,
+    thresholdsCount: extraction.thresholds.length,
+    centralConflictsCount: extraction.central_conflicts.length,
+    amplificationsCount: extraction.amplifications.length,
+    symbolStancesCount: extraction.symbol_stances.length,
+    hasDisplayDistillation: Boolean(extraction.display_distillation),
+    coreMode: extraction.core_mode,
+  });
+
   if (options.failOnInvalidOrEmpty && !hasExtractionContent(extraction)) {
     console.error('[billing-ai] Extraction returned no usable metadata', {
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
       parsedKeysCount: Object.keys(parsed).length,
     });
-    throw new HttpError(502, 'AI extraction returned no usable metadata');
+    throw new HttpError(502, 'AI extraction returned no usable metadata', {
+      failureCode: 'extraction_empty',
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    });
   }
 
   return extraction;

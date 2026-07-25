@@ -6,6 +6,7 @@ import { getTaskAiConfig, missingOrUnknownTaskMessage, type TaskAiEntry } from "
 import {
   buildStructuredRepairMessages,
   isStructuredAiTask,
+  safeAssistantJsonDiagnostics,
   safeStructuredValidationLog,
   validateStructuredTaskContent,
   type StructuredAiTask,
@@ -89,18 +90,24 @@ function tokenParameterForModel(model: string): "max_tokens" | "max_completion_t
 function evaluateOpenAICompletionBody(body: string): {
   ok: true;
   text: string;
+  finishReason: string | null;
 } | {
   ok: false;
   reason: "openai_invalid_json" | "openai_empty_content";
+  finishReason: string | null;
 } {
   try {
-    const data = JSON.parse(body) as { choices?: Array<{ message?: { content?: unknown } }> };
-    const raw = data?.choices?.[0]?.message?.content;
+    const data = JSON.parse(body) as {
+      choices?: Array<{ message?: { content?: unknown }; finish_reason?: unknown }>;
+    };
+    const choice = data?.choices?.[0];
+    const finishReason = typeof choice?.finish_reason === "string" ? choice.finish_reason : null;
+    const raw = choice?.message?.content;
     const text = typeof raw === "string" ? raw.trim() : "";
-    if (!text) return { ok: false, reason: "openai_empty_content" };
-    return { ok: true, text };
+    if (!text) return { ok: false, reason: "openai_empty_content", finishReason };
+    return { ok: true, text, finishReason };
   } catch {
-    return { ok: false, reason: "openai_invalid_json" };
+    return { ok: false, reason: "openai_invalid_json", finishReason: null };
   }
 }
 
@@ -123,6 +130,23 @@ function extractAssistantContentFromOpenAIBody(body: string): string {
   return ev.ok ? ev.text : "";
 }
 
+type StructuredRejectionDiagnostics = {
+  failureCode: "structured_schema_invalid";
+  validationStage: string;
+  schemaErrors: string[];
+  schemaErrorCount: number;
+  contentLength: number;
+  looksTruncated: boolean;
+  startsWithJson: boolean;
+  endsWithJsonCloser: boolean;
+  openBraceDelta: number;
+  finishReason: string | null;
+  provider: string;
+  model: string;
+  repairAttempted: boolean;
+  tokenLimit: number | null;
+};
+
 async function maybeValidateAndRepairStructured(params: {
   task: OneirosTask;
   responseText: string;
@@ -133,13 +157,48 @@ async function maybeValidateAndRepairStructured(params: {
   tokenLimit: unknown;
   responseFormat: unknown;
   requestId: string;
-}): Promise<{ responseText: string; rejected: boolean }> {
+}): Promise<
+  | { responseText: string; rejected: false }
+  | { responseText: string; rejected: true; diagnostics: StructuredRejectionDiagnostics }
+> {
   if (!isStructuredAiTask(params.task)) {
     return { responseText: params.responseText, rejected: false };
   }
 
   const task = params.task as StructuredAiTask;
-  const content = extractAssistantContentFromOpenAIBody(params.responseText);
+  const evaluated = evaluateOpenAICompletionBody(params.responseText);
+  const content = evaluated.ok ? evaluated.text : "";
+  const finishReason = evaluated.finishReason;
+  const tokenLimit =
+    typeof params.tokenLimit === "number" && Number.isFinite(params.tokenLimit)
+      ? Math.floor(params.tokenLimit)
+      : null;
+
+  const buildDiagnostics = (
+    schemaErrors: string[],
+    validationStage: string,
+    repairAttempted: boolean,
+    sampleContent: string,
+  ): StructuredRejectionDiagnostics => {
+    const shape = safeAssistantJsonDiagnostics(sampleContent);
+    return {
+      failureCode: "structured_schema_invalid",
+      validationStage,
+      schemaErrors: schemaErrors.slice(0, 12),
+      schemaErrorCount: schemaErrors.length,
+      contentLength: shape.contentLength,
+      looksTruncated: shape.looksTruncated || finishReason === "length",
+      startsWithJson: shape.startsWithJson,
+      endsWithJsonCloser: shape.endsWithJsonCloser,
+      openBraceDelta: shape.openBraceDelta,
+      finishReason,
+      provider: params.provider,
+      model: params.model,
+      repairAttempted,
+      tokenLimit,
+    };
+  };
+
   const first = validateStructuredTaskContent(task, content, {
     provider: params.provider,
     repairAttempted: false,
@@ -148,7 +207,13 @@ async function maybeValidateAndRepairStructured(params: {
   if (first.ok) {
     console.log(
       `[openai-proxy] structured validation`,
-      safeStructuredValidationLog(first.log),
+      {
+        ...safeStructuredValidationLog(first.log),
+        ...safeAssistantJsonDiagnostics(content),
+        finishReason,
+        model: params.model,
+        tokenLimit,
+      },
     );
     return {
       responseText: replaceOpenAIAssistantContent(params.responseText, first.normalizedContent),
@@ -158,7 +223,13 @@ async function maybeValidateAndRepairStructured(params: {
 
   console.log(
     `[openai-proxy] structured validation`,
-    safeStructuredValidationLog(first.log),
+    {
+      ...safeStructuredValidationLog(first.log),
+      ...safeAssistantJsonDiagnostics(content),
+      finishReason,
+      model: params.model,
+      tokenLimit,
+    },
   );
 
   const repairMessages = buildStructuredRepairMessages(
@@ -176,16 +247,12 @@ async function maybeValidateAndRepairStructured(params: {
     const ar = await callAnthropic(params.model, repairMessages, 0, params.tokenLimit);
     const raw = await ar.text();
     if (!ar.ok) {
+      const diagnostics = buildDiagnostics(first.schemaErrors, "rejected", true, content);
       console.log(`[openai-proxy] structured repair failed`, {
-        task,
-        provider: params.provider,
-        validationStage: "rejected",
-        schemaErrors: first.schemaErrors,
-        repairAttempted: true,
-        repairSucceeded: false,
-        status: ar.status,
+        ...diagnostics,
+        upstreamStatus: ar.status,
       });
-      return { responseText: params.responseText, rejected: true };
+      return { responseText: params.responseText, rejected: true, diagnostics };
     }
     try {
       const anthropicData = JSON.parse(raw) as unknown;
@@ -205,16 +272,12 @@ async function maybeValidateAndRepairStructured(params: {
     );
     const repairedBody = await oa.text();
     if (!oa.ok) {
+      const diagnostics = buildDiagnostics(first.schemaErrors, "rejected", true, content);
       console.log(`[openai-proxy] structured repair failed`, {
-        task,
-        provider: params.provider,
-        validationStage: "rejected",
-        schemaErrors: first.schemaErrors,
-        repairAttempted: true,
-        repairSucceeded: false,
-        status: oa.status,
+        ...diagnostics,
+        upstreamStatus: oa.status,
       });
-      return { responseText: params.responseText, rejected: true };
+      return { responseText: params.responseText, rejected: true, diagnostics };
     }
     repairedContent = extractAssistantContentFromOpenAIBody(repairedBody);
   }
@@ -238,7 +301,9 @@ async function maybeValidateAndRepairStructured(params: {
   );
 
   if (!second.ok) {
-    return { responseText: params.responseText, rejected: true };
+    const diagnostics = buildDiagnostics(second.schemaErrors, "rejected", true, repairedContent || content);
+    console.log(`[openai-proxy] structured validation rejected`, diagnostics);
+    return { responseText: params.responseText, rejected: true, diagnostics };
   }
 
   return {
@@ -515,9 +580,13 @@ const corsHeaders = {
     "x-request-id, x-ai-provider, x-ai-model",
 };
 
-function proxyJsonError(message: string, status: number): Response {
+function proxyJsonError(message: string, status: number, details?: Record<string, unknown>): Response {
   return new Response(
-    JSON.stringify({ error: { message } }),
+    JSON.stringify(
+      details
+        ? { error: { message, code: details.failureCode ?? null, details } }
+        : { error: { message } },
+    ),
     { status, headers: { ...corsHeaders, "Content-Type": "application/json" } },
   );
 }
@@ -654,11 +723,15 @@ serve(async (req: Request) => {
               model: fbModel,
               temperature,
               tokenLimit,
-              responseFormat,
+              responseFormat: response_format,
               requestId,
             });
             if (finalized.rejected) {
-              return proxyJsonError("Structured AI response failed schema validation", 502);
+              return proxyJsonError(
+                "Structured AI response failed schema validation",
+                502,
+                finalized.diagnostics,
+              );
             }
             return new Response(finalized.responseText, {
               status: 200,
@@ -759,11 +832,15 @@ serve(async (req: Request) => {
         model: resolvedModel,
         temperature,
         tokenLimit,
-        responseFormat,
+        responseFormat: response_format,
         requestId,
       });
       if (finalized.rejected) {
-        return proxyJsonError("Structured AI response failed schema validation", 502);
+        return proxyJsonError(
+          "Structured AI response failed schema validation",
+          502,
+          finalized.diagnostics,
+        );
       }
 
       return new Response(finalized.responseText, {
@@ -882,11 +959,15 @@ serve(async (req: Request) => {
       model: resolvedModel,
       temperature,
       tokenLimit,
-      responseFormat,
+      responseFormat: response_format,
       requestId,
     });
     if (finalized.rejected) {
-      return proxyJsonError("Structured AI response failed schema validation", 502);
+      return proxyJsonError(
+        "Structured AI response failed schema validation",
+        502,
+        finalized.diagnostics,
+      );
     }
 
     return new Response(finalized.responseText, {
@@ -906,7 +987,16 @@ serve(async (req: Request) => {
       return proxyJsonError(error.status === 401 ? "Unauthorized" : error.message, error.status);
     }
 
-    console.error("[openai-proxy] Unexpected error:", error);
-    return proxyJsonError("Internal server error", 500);
+    const errName = error instanceof Error ? error.name : "UnknownError";
+    const errMessage = error instanceof Error ? error.message : "Unexpected server error";
+    console.error("[openai-proxy] Unexpected error:", {
+      name: errName,
+      message: errMessage,
+    });
+    return proxyJsonError("Internal server error", 500, {
+      failureCode: "proxy_unhandled_exception",
+      upstreamErrorCode: errName,
+      upstreamMessage: errMessage.slice(0, 240),
+    });
   }
 });

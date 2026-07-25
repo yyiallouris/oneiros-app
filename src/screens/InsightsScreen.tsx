@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -15,8 +17,8 @@ import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
-  ArchetypalEnergiesIcon,
   DreamPlacesIcon,
+  EmotionalWeatherIcon,
   InnerTensionsIcon,
   PatternRecognitionIcon,
   RepeatingPatternsIcon,
@@ -77,7 +79,7 @@ const kindLabel = (item: CrossCategoryPatternItem): string => {
     case 'image':
       return 'Image';
     case 'motif':
-      return 'Pattern';
+      return 'Scene';
     case 'threshold':
       return 'Threshold';
     case 'tension':
@@ -87,7 +89,7 @@ const kindLabel = (item: CrossCategoryPatternItem): string => {
     case 'archetypal_echo':
       return 'Echo';
     case 'affect':
-      return 'Atmosphere';
+      return 'Weather';
     default:
       return 'Pattern';
   }
@@ -126,6 +128,11 @@ const InsightsScreen: React.FC = () => {
   const [recentLanguage, setRecentLanguage] = useState('en');
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const [upsellVisible, setUpsellVisible] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffsetRef = useRef(0);
+  const hasLoadedOnceRef = useRef(false);
+  const recentCountRef = useRef(recentCount);
+  recentCountRef.current = recentCount;
   const currentPeriod = getPeriodThisMonth();
   const periodLabel = getPeriodLabel(currentPeriod);
   const premiumPlan = useMemo(
@@ -136,28 +143,50 @@ const InsightsScreen: React.FC = () => {
   );
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
 
+  const restoreScrollOffset = useCallback(() => {
+    const y = scrollOffsetRef.current;
+    if (y <= 0) return;
+    // Wait a frame so layout after soft refresh / remount can accept scrollTo.
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y, animated: false });
+    });
+  }, []);
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      setLoading(true);
+      // Soft refresh on return: keep the ScrollView mounted so Forming Patterns scroll position survives back.
+      const isFirstLoad = !hasLoadedOnceRef.current;
+      if (isFirstLoad) {
+        setLoading(true);
+      } else {
+        restoreScrollOffset();
+      }
+
       (async () => {
         const p = getPeriodThisMonth();
         const effectiveLanguage = await getPatternInsightLanguage();
         const [nextOverview, recentEntries, cachedRecent] = await Promise.all([
           getInsightsOverview(p),
           getRecentPatternInsightEntries(5),
-          getCachedRecentDreamFieldReflection(recentCount, effectiveLanguage),
+          getCachedRecentDreamFieldReflection(recentCountRef.current, effectiveLanguage),
         ]);
         if (!mounted) return;
         setOverview(nextOverview);
         setRecentAvailableCount(recentEntries.length);
         setRecentLanguage(effectiveLanguage);
         setRecentCachedAt(cachedRecent?.generated_at ?? null);
+        hasLoadedOnceRef.current = true;
+        if (!isFirstLoad) restoreScrollOffset();
       })().finally(() => {
-        if (mounted) setLoading(false);
+        if (mounted && isFirstLoad) setLoading(false);
       });
       return () => { mounted = false; };
-    }, [])
+    }, [restoreScrollOffset])
   );
 
   const navigateToSection = (sectionId: InsightsSectionId) => {
@@ -241,8 +270,13 @@ const InsightsScreen: React.FC = () => {
     },
     {
       sectionId: 'symbolic-motifs',
-      title: 'Repeating Patterns',
+      title: 'Recurring Scenes',
       icon: <RepeatingPatternsIcon size={42} />,
+    },
+    {
+      sectionId: 'emotional-weather',
+      title: 'Emotional Weather',
+      icon: <EmotionalWeatherIcon size={42} />,
     },
     {
       sectionId: 'thresholds',
@@ -258,11 +292,6 @@ const InsightsScreen: React.FC = () => {
       sectionId: 'space-landscapes',
       title: 'Dream Places',
       icon: <DreamPlacesIcon size={42} />,
-    },
-    {
-      sectionId: 'recurring-archetypes',
-      title: 'Archetypal Echoes',
-      icon: <ArchetypalEnergiesIcon size={42} />,
     },
   ];
 
@@ -297,9 +326,12 @@ const InsightsScreen: React.FC = () => {
         <MysticHeader title="Insights" subtitle="Patterns rising into view." />
 
         <ScrollView
+          ref={scrollRef}
           style={[styles.scroll, Platform.OS === 'web' && styles.webScroll]}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
           {SHOW_LEGACY_DREAM_FIELD_OVERVIEW && (
             <Card transparent style={styles.card}>

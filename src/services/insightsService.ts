@@ -5,9 +5,16 @@
 
 import pluralize from 'pluralize';
 import { StorageService } from './storageService';
+import { canonicalArchetypeLabels } from '../ai/archetypalEchoes';
 import { ARCHETYPE_WHITELIST, normalizeArchetype } from '../constants/archetypes';
 import { isExplicitSymbol, toSafeSymbolLabel } from '../constants/safeLabels';
-import { getSymbolGroupMap, getLandscapeGroupMap, getMotifGroupMap, applyGroupMap } from './symbolGroupingService';
+import {
+  getSymbolGroupMap,
+  getLandscapeGroupMap,
+  getMotifGroupMap,
+  applyGroupMap,
+  type GroupableTerm,
+} from './symbolGroupingService';
 import type {
   SymbolCount,
   ArchetypeCount,
@@ -29,11 +36,9 @@ const LEADING_ARTICLE_RE = /^(the|a|an)\s+/;
 /**
  * Merge entries where all words of a shorter key appear in a longer key.
  * Requires ≥2 words in the shorter key to avoid false positives on single-word symbols.
- * Mutates the map in place.
+ * Mutates the map in place. Dream-id sets are unioned so counts stay distinct-dream.
  */
-function mergeSubsetKeys(
-  byKey: Map<string, { count: number; displayName: string }>
-): void {
+function mergeSubsetKeys(byKey: Map<string, GroupableTerm>): void {
   const entries = Array.from(byKey.entries()).map(([key, val]) => ({
     key,
     val,
@@ -56,14 +61,43 @@ function mergeSubsetKeys(
 
       const target = byKey.get(shorter.key)!;
       const source = byKey.get(longer.key)!;
-      if (source.count > target.count) {
+      if (source.dreamIds.size > target.dreamIds.size) {
         target.displayName = source.displayName;
       }
-      target.count += source.count;
+      source.dreamIds.forEach((id) => target.dreamIds.add(id));
       byKey.delete(longer.key);
       absorbed.add(longer.key);
     }
   }
+}
+
+function addTermToDreamAgg(
+  byKey: Map<string, GroupableTerm>,
+  raw: string,
+  dreamId: string,
+  normalizeKey: (raw: string) => string = normalizeSymbolKey
+): void {
+  if (!raw || typeof raw !== 'string') return;
+  const key = normalizeKey(raw);
+  if (!key) return;
+  const existing = byKey.get(key);
+  if (existing) {
+    existing.dreamIds.add(dreamId);
+    return;
+  }
+  byKey.set(key, { displayName: raw.trim(), dreamIds: new Set([dreamId]) });
+}
+
+function toSortedTermCounts(
+  byKey: Map<string, GroupableTerm>
+): { name: string; normalizedKey: string; count: number }[] {
+  return Array.from(byKey.entries())
+    .map(([key, v]) => ({
+      name: v.displayName,
+      normalizedKey: key,
+      count: v.dreamIds.size,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
 /** Normalize symbol for grouping: lowercase, trim, strip leading articles, singularize */
@@ -133,15 +167,13 @@ export function landscapeKeyMatches(candidateRaw: string, filterKey: string): bo
 }
 
 /** Pick display name (first occurrence wins; we keep original casing from dreams) */
-function symbolDisplayName(
-  counts: Map<string, { count: number; displayName: string }>
-): Map<string, SymbolCount> {
+function symbolDisplayName(counts: Map<string, GroupableTerm>): Map<string, SymbolCount> {
   const out = new Map<string, SymbolCount>();
   counts.forEach((v, key) => {
     out.set(key, {
       name: v.displayName,
       normalizedKey: key,
-      count: v.count,
+      count: v.dreamIds.size,
     });
   });
   return out;
@@ -172,26 +204,14 @@ export async function getRecurringSymbols(period?: InsightsPeriod): Promise<Symb
     const k = normalizeSymbolKey(s); if (k) globalSymbolKeys.add(k);
   }));
 
-  // Period-filtered counts
+  // Period-filtered counts (distinct dreams per symbol)
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
-  const byKey = new Map<string, { count: number; displayName: string }>();
+  const byKey = new Map<string, GroupableTerm>();
 
-  const addSymbol = (raw: string) => {
-    if (!raw || typeof raw !== 'string') return;
-    const key = normalizeSymbolKey(raw);
-    if (!key) return;
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      byKey.set(key, { count: 1, displayName: raw.trim() });
-    }
-  };
-
-  filtered.forEach((d) => d.symbols?.forEach(addSymbol));
+  filtered.forEach((d) => d.symbols?.forEach((s) => addTermToDreamAgg(byKey, s, d.id)));
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) i.symbols?.forEach(addSymbol);
+    if (dreamIds.has(i.dreamId)) i.symbols?.forEach((s) => addTermToDreamAgg(byKey, s, i.dreamId));
   });
 
   mergeSubsetKeys(byKey);
@@ -210,26 +230,31 @@ export async function getRecurringArchetypes(period?: InsightsPeriod): Promise<A
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
   const interpretations = await StorageService.getInterpretations();
-  const counts = new Map<string, number>();
+  const byName = new Map<string, Set<string>>();
 
-  const addArchetype = (raw: string) => {
+  const addArchetype = (raw: string, dreamId: string) => {
     const normalized = normalizeArchetype(raw);
     if (!normalized) return;
-    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+    const existing = byName.get(normalized);
+    if (existing) {
+      existing.add(dreamId);
+      return;
+    }
+    byName.set(normalized, new Set([dreamId]));
   };
 
   filtered.forEach((d) => {
-    d.archetypes?.forEach(addArchetype);
+    d.archetypes?.forEach((a) => addArchetype(a, d.id));
   });
   interpretations.forEach((i) => {
     if (dreamIds.has(i.dreamId)) {
-      i.archetypes?.forEach(addArchetype);
+      canonicalArchetypeLabels(i.archetypes).forEach((a) => addArchetype(a, i.dreamId));
     }
   });
 
-  return ARCHETYPE_WHITELIST.filter((a) => counts.has(a)).map((name) => ({
+  return ARCHETYPE_WHITELIST.filter((a) => byName.has(a)).map((name) => ({
     name,
-    count: counts.get(name) ?? 0,
+    count: byName.get(name)?.size ?? 0,
   })).sort((a, b) => b.count - a.count);
 }
 
@@ -251,37 +276,24 @@ export async function getRecurringLandscapes(period?: InsightsPeriod): Promise<L
     const k = normalizeLandscapeKey(l); if (k) globalLandscapeKeys.add(k);
   }));
 
-  // Period-filtered counts
+  // Period-filtered counts (distinct dreams per landscape)
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
-  const byKey = new Map<string, { count: number; displayName: string }>();
+  const byKey = new Map<string, GroupableTerm>();
 
-  const addLandscape = (raw: string) => {
-    if (!raw || typeof raw !== 'string') return;
-    const key = normalizeLandscapeKey(raw);
-    if (!key) return;
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      byKey.set(key, { count: 1, displayName: raw.trim() });
-    }
-  };
-
-  filtered.forEach((d) => d.landscapes?.forEach(addLandscape));
+  filtered.forEach((d) =>
+    d.landscapes?.forEach((l) => addTermToDreamAgg(byKey, l, d.id, normalizeLandscapeKey))
+  );
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) i.landscapes?.forEach(addLandscape);
+    if (dreamIds.has(i.dreamId)) {
+      i.landscapes?.forEach((l) => addTermToDreamAgg(byKey, l, i.dreamId, normalizeLandscapeKey));
+    }
   });
 
   mergeSubsetKeys(byKey);
   const landscapeGroupMap = await getLandscapeGroupMap(Array.from(globalLandscapeKeys));
   applyGroupMap(byKey, landscapeGroupMap);
-  const list = Array.from(byKey.entries()).map(([key, v]) => ({
-    name: v.displayName,
-    normalizedKey: key,
-    count: v.count,
-  }));
-  return list.sort((a, b) => b.count - a.count);
+  return toSortedTermCounts(byKey);
 }
 
 /**
@@ -299,34 +311,22 @@ export async function getRecurringMotifs(period?: InsightsPeriod): Promise<Motif
     const k = normalizeSymbolKey(m); if (k) globalMotifKeys.add(k);
   }));
 
-  // Period-filtered counts (motifs live on interpretations only)
+  // Period-filtered counts (motifs live on interpretations only; distinct dreams)
   const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
   const dreamIds = new Set(filtered.map((d) => d.id));
-  const byKey = new Map<string, { count: number; displayName: string }>();
-
-  const addMotif = (raw: string) => {
-    if (!raw || typeof raw !== 'string') return;
-    const key = normalizeSymbolKey(raw);
-    if (!key) return;
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      byKey.set(key, { count: 1, displayName: raw.trim() });
-    }
-  };
+  const byKey = new Map<string, GroupableTerm>();
 
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) (i.motifs ?? []).forEach(addMotif);
+    if (dreamIds.has(i.dreamId)) {
+      (i.motifs ?? []).forEach((m) => addTermToDreamAgg(byKey, m, i.dreamId));
+    }
   });
 
   mergeSubsetKeys(byKey);
   const motifGroupMap = await getMotifGroupMap(Array.from(globalMotifKeys));
   applyGroupMap(byKey, motifGroupMap);
 
-  return Array.from(byKey.entries())
-    .map(([key, v]) => ({ name: v.displayName, normalizedKey: key, count: v.count }))
-    .sort((a, b) => b.count - a.count);
+  return toSortedTermCounts(byKey);
 }
 
 function aggregateInterpretationTerms(
@@ -334,27 +334,15 @@ function aggregateInterpretationTerms(
   dreamIds: Set<string>,
   selectTerms: (interpretation: typeof interpretations[number]) => string[] | undefined
 ): { name: string; normalizedKey: string; count: number }[] {
-  const byKey = new Map<string, { count: number; displayName: string }>();
-  const addTerm = (raw: string) => {
-    if (!raw || typeof raw !== 'string') return;
-    const key = normalizeSymbolKey(raw);
-    if (!key) return;
-    const existing = byKey.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      byKey.set(key, { count: 1, displayName: raw.trim() });
-    }
-  };
+  const byKey = new Map<string, GroupableTerm>();
 
   interpretations.forEach((i) => {
-    if (dreamIds.has(i.dreamId)) (selectTerms(i) ?? []).forEach(addTerm);
+    if (!dreamIds.has(i.dreamId)) return;
+    (selectTerms(i) ?? []).forEach((term) => addTermToDreamAgg(byKey, term, i.dreamId));
   });
 
   mergeSubsetKeys(byKey);
-  return Array.from(byKey.entries())
-    .map(([key, v]) => ({ name: v.displayName, normalizedKey: key, count: v.count }))
-    .sort((a, b) => b.count - a.count);
+  return toSortedTermCounts(byKey);
 }
 
 /** Recurring thresholds: transition points, not symbolic motifs. */
@@ -399,11 +387,11 @@ export async function getInterpretedDreamsCountForPeriod(period: InsightsPeriod)
 
 const PATTERN_KIND_PRIORITY: Record<InsightPatternKind, number> = {
   image: 0,
-  threshold: 1,
-  tension: 2,
-  motif: 3,
-  place: 4,
-  affect: 5,
+  motif: 1,
+  affect: 2,
+  threshold: 3,
+  tension: 4,
+  place: 5,
   archetypal_echo: 6,
 };
 
@@ -412,7 +400,7 @@ const patternKindLabel = (kind: InsightPatternKind): string => {
     case 'image':
       return 'image';
     case 'motif':
-      return 'repeating pattern';
+      return 'recurring scene';
     case 'threshold':
       return 'threshold';
     case 'tension':
@@ -422,7 +410,7 @@ const patternKindLabel = (kind: InsightPatternKind): string => {
     case 'archetypal_echo':
       return 'archetypal echo';
     case 'affect':
-      return 'atmosphere';
+      return 'emotional weather';
     default:
       return 'pattern';
   }
@@ -456,18 +444,18 @@ export function buildStrongestPatterns(params: {
   thresholds?: CrossCategoryPatternItem[];
   tensions?: CrossCategoryPatternItem[];
   places?: CrossCategoryPatternItem[];
+  /** Kept for callers; excluded from main Forming Patterns ranking. */
   archetypalEchoes?: CrossCategoryPatternItem[];
   affects?: CrossCategoryPatternItem[];
   limit?: number;
 }): CrossCategoryPatternItem[] {
   const all = [
     ...(params.images ?? []),
+    ...(params.motifs ?? []),
+    ...(params.affects ?? []),
     ...(params.thresholds ?? []),
     ...(params.tensions ?? []),
-    ...(params.motifs ?? []),
     ...(params.places ?? []),
-    ...(params.affects ?? []),
-    ...(params.archetypalEchoes ?? []),
   ].filter((item) => item.label.trim().length > 0);
 
   const recurring = all.filter((item) => item.count >= 2);
@@ -550,14 +538,13 @@ export async function getInsightsOverview(period: InsightsPeriod): Promise<Insig
   const topTensions = toPatternItems(centralConflicts, 'tension', 'core-conflicts').slice(0, 5);
   const topPlaces = toPatternItems(landscapes, 'place', 'space-landscapes', 'landscape').slice(0, 5);
   const topArchetypalEchoes = toPatternItems(archetypes, 'archetypal_echo', 'recurring-archetypes').slice(0, 5);
-  const topAffects = toPatternItems(affects, 'affect', 'symbolic-motifs').slice(0, 5);
+  const topAffects = toPatternItems(affects, 'affect', 'emotional-weather').slice(0, 5);
   const strongestPatterns = buildStrongestPatterns({
     images: topImages,
     motifs: topMotifs,
     thresholds: topThresholds,
     tensions: topTensions,
     places: topPlaces,
-    archetypalEchoes: topArchetypalEchoes,
     affects: topAffects,
   });
 
@@ -900,7 +887,7 @@ export async function getPatternsOverTime(): Promise<{
     const dateStr = dreamDateByDreamId.get(i.dreamId);
     if (!dreamIds.has(i.dreamId) || !dateStr) return;
     i.symbols?.forEach((s) => addSymbolMonth(s, dateStr));
-    i.archetypes?.forEach((a) => addArchetypeMonth(a, dateStr));
+    canonicalArchetypeLabels(i.archetypes).forEach((a) => addArchetypeMonth(a, dateStr));
   });
 
   const symbolList: SymbolMonthCount[] = [];

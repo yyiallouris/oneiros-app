@@ -313,18 +313,38 @@ type IconProps = {
 
   const SymbolicLayersAccordion = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
     const [expanded, setExpanded] = useState(false);
-    const rows = [
-      ['Emotional weather', model.symbolicLayers.emotionalWeather],
-      ['Dream setting', model.symbolicLayers.dreamSetting],
-      ['Thresholds', model.symbolicLayers.thresholds],
-      ['Relationship field', model.symbolicLayers.relationshipField],
-      ['Repeating patterns', model.symbolicLayers.repeatingPatterns],
-      ['Inner tensions', model.symbolicLayers.innerTensions],
-      ['Archetypal echoes', model.symbolicLayers.archetypalEchoes],
-      ['Mythic parallels', model.symbolicLayers.mythicParallels],
-    ].filter(([, items]) => Array.isArray(items) && items.length > 0) as Array<[string, string[]]>;
+    type TagRow = { kind: 'tags'; title: string; items: string[] };
+    type EchoRow = {
+      kind: 'echoes';
+      title: string;
+      items: Array<{ title: string; body: string }>;
+    };
+    type LayerRow = TagRow | EchoRow;
 
-    if (rows.length === 0) return null;
+    const fabricRows: TagRow[] = (
+      [
+        { kind: 'tags' as const, title: 'Emotional Weather', items: model.symbolicLayers.emotionalWeather },
+        { kind: 'tags' as const, title: 'Dream Places', items: model.symbolicLayers.dreamSetting },
+        { kind: 'tags' as const, title: 'Relationship Field', items: model.symbolicLayers.relationshipField },
+        { kind: 'tags' as const, title: 'Thresholds', items: model.symbolicLayers.thresholds },
+        { kind: 'tags' as const, title: 'Dream Motifs', items: model.symbolicLayers.repeatingPatterns },
+      ] satisfies TagRow[]
+    ).filter((row) => row.items.length > 0);
+
+    const echoRows: LayerRow[] = (
+      [
+        { kind: 'tags' as const, title: 'Inner Tensions', items: model.symbolicLayers.innerTensions },
+        { kind: 'echoes' as const, title: 'Archetypal Echoes', items: model.symbolicLayers.archetypalEchoes },
+        { kind: 'echoes' as const, title: 'Mythic Echoes', items: model.symbolicLayers.mythicEchoes },
+      ] satisfies LayerRow[]
+    ).filter((row) => row.items.length > 0);
+
+    const groups: Array<{ title: string; rows: LayerRow[] }> = [
+      { title: 'Dream Fabric', rows: fabricRows },
+      { title: 'Interpretive Echoes', rows: echoRows },
+    ].filter((group) => group.rows.length > 0);
+
+    if (groups.length === 0) return null;
 
     return (
       <View style={styles.symbolicLayersPanel}>
@@ -338,10 +358,26 @@ type IconProps = {
         </TouchableOpacity>
         {expanded && (
           <View style={styles.symbolicLayersBody}>
-            {rows.map(([title, items]) => (
-              <View key={title} style={styles.layerRow}>
-                <Text style={styles.layerTitle}>{title}</Text>
-                <Text style={styles.layerText}>{items.join(', ')}</Text>
+            {groups.map((group) => (
+              <View key={group.title} style={styles.layerGroup}>
+                <Text style={styles.layerGroupTitle}>{group.title}</Text>
+                {group.rows.map((row) => (
+                  <View key={row.title} style={styles.layerRow}>
+                    <Text style={styles.layerTitle}>{row.title}</Text>
+                    {row.kind === 'tags' ? (
+                      <Text style={styles.layerText}>{row.items.join(', ')}</Text>
+                    ) : (
+                      <View style={styles.layerEchoList}>
+                        {row.items.map((echo) => (
+                          <View key={`${row.title}-${echo.title}`} style={styles.layerEchoItem}>
+                            <Text style={styles.layerEchoTitle}>{echo.title}</Text>
+                            {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ))}
               </View>
             ))}
           </View>
@@ -450,7 +486,12 @@ type IconProps = {
     }, []);
 
     const scheduleMetadataRefresh = useCallback((nextInterpretation: Interpretation) => {
-      if (nextInterpretation.metadata_status !== 'pending') return;
+      if (
+        nextInterpretation.metadata_status !== 'pending' &&
+        nextInterpretation.metadata_status !== 'failed'
+      ) {
+        return;
+      }
       logInfo('dream_detail_metadata_refresh_scheduled', {
         dreamId,
         interpretationId: nextInterpretation.id,
@@ -534,7 +575,10 @@ type IconProps = {
 
     const animateChatClose = () => {
       setShowChat(false);
-      if (interpretation?.metadata_status === 'pending') {
+      if (
+        interpretation?.metadata_status === 'pending' ||
+        interpretation?.metadata_status === 'failed'
+      ) {
         void ensureDreamMetadataExtraction(interpretation.id).then((result) => {
           if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
             void refreshInterpretationMetadata(interpretation.id);
@@ -1484,7 +1528,18 @@ type IconProps = {
     },
     symbolicLayersBody: {
       paddingTop: spacing.sm,
+      gap: spacing.md,
+    },
+    layerGroup: {
       gap: spacing.sm,
+    },
+    layerGroupTitle: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.medium,
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      marginBottom: spacing.xs,
     },
     layerRow: {
       paddingTop: spacing.xs,
@@ -1496,6 +1551,19 @@ type IconProps = {
       fontFamily: typography.medium,
       color: colors.textMuted,
       marginBottom: 2,
+    },
+    layerEchoList: {
+      gap: spacing.sm,
+      marginTop: 2,
+    },
+    layerEchoItem: {
+      gap: 2,
+    },
+    layerEchoTitle: {
+      fontSize: typography.sizes.sm,
+      fontFamily: typography.medium,
+      color: colors.textPrimary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
     },
     layerText: {
       fontSize: typography.sizes.sm,

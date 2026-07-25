@@ -66,7 +66,7 @@ const interpretation: Interpretation = {
   dreamId: 'dream-1',
   messages: [{ id: 'm1', role: 'assistant', content: 'A gentle reflection.', timestamp: 't' }],
   symbols: ['moon'],
-  archetypes: ['shadow'],
+  archetypes: [{ canonical_label: 'Shadow', expression: '', resonance: '', evidence: [] }],
   createdAt: '2025-04-01T00:00:00.000Z',
   updatedAt: '2025-04-01T00:00:00.000Z',
 };
