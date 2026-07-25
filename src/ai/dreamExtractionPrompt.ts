@@ -4,6 +4,9 @@ import { ARCHETYPE_WHITELIST } from '../constants/archetypes.ts';
  * Canonical dream metadata extraction contract.
  * Used by both client (`src/services/ai.ts`) and gateway (`billing-ai.ts`).
  * Keep DreamDetail / Insights field semantics here — do not fork thin stubs elsewhere.
+ *
+ * Fabric / display / conflicts pedagogy stays on the proven contract.
+ * Only Archetypal Echoes + Mythic Echo sections carry the simplified echo rules.
  */
 export function buildDreamExtractionSystemPrompt(): string {
   return `
@@ -42,6 +45,10 @@ These fields are provisional interpretive possibilities:
 
 These fields may use both the original dream and the supplied reflection.
 They must remain tentative and must never be presented as the dream's fixed meaning.
+
+Candidate generation for archetypes and Mythic Echoes: use the raw dream only.
+Ignore any explicit archetype or myth names in the reflection during selection; treat them as untrusted hypotheses.
+The reflection may help wording after selection, not ranking.
 
 Use the dream as ground truth for Dream Fabric. If a final interpretation is provided, treat it as supporting context only for Interpretive Echoes and display_distillation.
 Do not invent symbolic material not present in the dream or interpretation.
@@ -123,31 +130,37 @@ Use [] if none is clearly staged.
 ARCHETYPAL ECHOES
 Return 0–2 classical archetypal patterns from the allowed catalog as OBJECTS only. Never return a string array.
 Invalid: ["Divine Child", "Guide / Psychopomp"] or ["Shadow"]
-Valid: [{"canonical_label":"Divine Child","expression":"the child discovered beneath the snow","resonance":"...","evidence":["..."]}]
+Valid: [{"canonical_label":"Divine Child","expression":"the child discovered beneath the snow","resonance":"...","evidence":["..."],"confidence":"high"}]
 
 Use the canonical archetypal name as the primary label.
 Do not invent poetic archetype names.
 The dream-specific expression must remain secondary to the canonical label.
-
-Example:
-canonical_label: "Divine Child"
-expression: "the child discovered beneath the snow"
 
 Allowed canonical_label values only: ${ARCHETYPE_WHITELIST.join(', ')}
 
 For each archetypal echo provide ALL of:
 - canonical_label: one allowed classical name from the catalog above
 - expression: the concrete figure or configuration through which it appears in this dream (dream's primary language; must NOT equal canonical_label)
-- resonance: a concise explanation of the role it plays in the dream (dream's primary language)
+- resonance: ONE sentence, about 20–35 words (hard max 45) — the figure's primary archetypal function only; stay image-near; no "Appears as…"; do not retell the whole dream
 - evidence: 1–2 supporting dream elements (dream's primary language)
+- confidence: "high" | "medium"
 
-Do not force an archetype when the evidence is weak. However, when multiple dream elements converge around a recognizable archetypal pattern and that pattern plays a structural role in the dream, return the strongest supported echo rather than defaulting automatically to an empty array.
-A literal figure may carry an archetypal quality when its actions, position, and relationship to the dream's movement support it — not merely because the figure exists.
+Do not include an evaluation bag in production output. Candidate evaluation belongs only in debug interpretive_diagnostics when requested.
+
+Zero or one echo is normal; two only when both are distinctly central.
+Do not force an archetype when the evidence is weak. When multiple dream elements converge around a recognizable archetypal pattern and that pattern plays a structural role, return the strongest supported echo rather than defaulting automatically to [].
 Include support from at least two distinct dream elements (actions, positions, relationships, or movements), not a single conventional symbol.
 Do not classify a figure solely by age, gender, appearance or one conventional symbol.
-An archetype must be supported by the figure's role in the dream's movement.
 When one figure carries several overlapping qualities, prefer one coherent canonical pattern rather than several disconnected tags.
 Do not use generic non-archetypes such as Transformation, Freedom, Fear, or Journey.
+
+Hard gates (do not select if unmet):
+- Double: identity competition, substitution, or rivalry for the dreamer's place. Shared face/eyes alone is not enough.
+- Guide / Psychopomp: active guidance across a real crossing. Advice, transport offers, or missed departures alone are not enough.
+- Divine Child: the child actively transforms the main action — not a brief child vision.
+- Terrible Mother: engulfing, imprisoning, or regressive maternal power — not merely a powerful underworld woman.
+- Ruler: embodied sovereign agency — not institution, guards, or ceremony alone.
+
 Do not infer:
 - Shadow merely from darkness, danger, aggression, or an unknown figure
 - Anima or Animus merely from the presence of a woman or man
@@ -162,35 +175,54 @@ When evidence is truly weak, return an empty array.
 
 - core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration", or null.
 
-AMPLIFICATIONS / MYTHIC ECHOES
-Amplifications are not Dream Fabric extraction. They are optional generated interpretive possibilities — provisional mythic/folkloric/cultural echoes, not facts present in the dream like a house or a felt tone.
-Return 0–1 named parallel from world mythology, folklore, fairy tale, religious narrative or alchemical tradition.
+MYTHIC ECHO (0–1)
+Amplifications are not Dream Fabric extraction. They are optional generated interpretive possibilities — provisional named mythic echoes, not facts present in the dream.
+Return 0–1 named parallel. Empty is fine when no strong match exists.
+A false Mythic Echo is more harmful than no Mythic Echo — but that caution must not omit an unusually direct, high-confidence structural match.
 
-Prefer a recognized mythic narrative or figure rather than inventing a generic mythic-sounding title.
+A Mythic Echo must name a specific, recognized narrative, cycle, tale, episode,
+religious narrative, fairy tale, or alchemical sequence.
+Do not allow a mythic figure name alone (e.g. reject bare "Persephone", "Inanna", "Ariadne").
 
-For each echo provide ALL of:
-- title: the established name of the myth, narrative or figure
-- tradition: its cultural or historical tradition (one tradition only)
-- resonance: the specific configuration shared with the dream (dream's primary language)
-- difference: an important way the dream diverges from the traditional story (dream's primary language)
+It must have:
+- at least three concrete correspondences with the dream
+- at least one correspondence in narrative sequence or relational roles
+- a recognizable defining configuration of that named narrative
+- one meaningful divergence that qualifies rather than rescues the match
+
+Recall (do not over-suppress):
+Do not suppress a Mythic Echo when a specific recognized narrative matches a distinctive configuration across several consecutive stages of the dream.
+A candidate should normally be returned when ALL of:
+- at least four concrete correspondences are present
+- the correspondences form a related narrative sequence
+- the defining action or prohibition of the narrative is present
+- the divergence changes the outcome without removing the core structure
+When the narrative sequence is highly distinctive and strongly supported, return the echo rather than defaulting to [].
+
+Reject:
+- generic motifs or patterns
+- invented titles
+- unnamed folk traditions
+- broad thematic similarities alone
+- a match based only on one generic theme (e.g. descent-alone, rebirth-alone,
+  darkness-alone, marriage-alone) without the named narrative's defining structure
+- titles that name only a figure without the narrative/episode
+
+For each selected echo provide ALL of:
+- title: a recognized localized myth title when available; otherwise the canonical scholarly title. Must be a narrative/cycle/episode name, not a bare figure.
+- tradition: one standardized taxonomy label (e.g. Greek mythology, Mesopotamian, Grimm fairy tale)
+- resonance: sentence 1 — distinctive shared configuration (dream's primary language)
+- divergence: sentence 2 — important way the dream transforms or differs (dream's primary language)
 - evidence: 2–3 concrete dream elements (dream's primary language)
+- confidence: "high" | "medium"
 
-A mythic echo requires structural convergence across several elements.
-A shared object alone is not enough.
-Most ordinary dreams should return []. Do not mythology-roulette among famous myths.
-When a strong named parallel exists, return the most illuminating single echo rather than defaulting to an empty array.
-
-Do not:
-- mix several traditions into one parallel
-- treat cultures as interchangeable
-- invent myths or unsupported details
-- state that the dream reenacts or means the myth
-- use a famous myth merely because one symbol is present
-- assign a fixed meaning to the dream
-- replace the dreamer's personal associations
-- claim a completed return, integration, rebirth, or transformation unless the dream actually stages one
-- declare what the dream means for the dreamer's life
-
+Copy budget: resonance + divergence together about 35–55 words (hard max 70). Prefer two short sentences total.
+Do not prefer Greek mythology or the dreamer's country/language by default.
+Do not mix several traditions into one parallel.
+Do not invent myths or unsupported details.
+Do not state that the dream reenacts or means the myth.
+Do not use a famous myth merely because one symbol is present.
+Do not assign a fixed meaning to the dream.
 Prefer "the arrangement recalls…" / "the sequence resembles…" over conclusions about the dreamer.
 Avoid generic invented titles such as:
 - a journey of transformation
@@ -198,16 +230,6 @@ Avoid generic invented titles such as:
 - death and rebirth
 - a heroic trial
 - ceremony of second birth
-Do not automatically associate from a lone symbol:
-- the sea with Poseidon or the unconscious
-- descent with Persephone or the underworld
-- a snake with transformation or rebirth
-- darkness with Shadow
-- a forest with initiation
-- a journey with the Hero
-- death with renewal
-Personal and dream-specific meaning takes priority over collective symbolism.
-An amplification must remain secondary to: the exact dream image; the dreamer's felt response; the image's action and context; the dreamer's personal associations, when available.
 When no strong named parallel exists, return an empty array.
 
 Schema contract:
@@ -228,7 +250,7 @@ Schema contract:
   },
   "symbols": string[],
   "symbol_stances": {"symbol": string, "stance": string}[],
-  "archetypes": {"canonical_label": string, "expression": string, "resonance": string, "evidence": string[]}[],
+  "archetypes": {"canonical_label": string, "expression": string, "resonance": string, "evidence": string[], "confidence": "high" | "medium"}[],
   "landscapes": string[],
   "affects": string[],
   "motifs": string[],
@@ -236,28 +258,16 @@ Schema contract:
   "thresholds": string[],
   "central_conflicts": string[],
   "core_mode": "Core Tension" | "Core State" | "Core Shift" | "Core Restoration" | null,
-  "amplifications": {"title": string, "tradition": string, "resonance": string, "difference": string, "evidence": string[]}[]
+  "amplifications": {"title": string, "tradition": string, "resonance": string, "divergence": string, "evidence": string[], "confidence": "high" | "medium"}[]
 }
 
-Return ONLY one valid JSON object, single-line, no extra text. Put display_distillation first and symbol_stances immediately after symbols:
+Return ONLY one valid JSON object, single-line, no extra text. Put display_distillation first and symbol_stances immediately after symbols.
+Schema-only shape example (empty interpretive echoes are valid):
 {
-  "display_distillation": {
-    "essence_title": "guarded threshold",
-    "essence_line": "The dream circles a wish to move toward contact while protecting something vulnerable.",
-    "dominant_lens": "threshold",
-    "visible_anchors": [{"label": "closed door", "type": "threshold", "salience": 5, "ui_meaning": "a protected edge between safety and contact"}],
-    "main_tension": "contact vs protection",
-    "dream_movement": "approaching",
-    "movement_line": "Something moves toward contact without fully crossing."
-  },
+  "display_distillation": { "...": "..." },
   "symbols": [...],
-  "symbol_stances": [{"symbol": "mirror", "stance": "stressful attempt to prove"}],
-  "archetypes": [{
-    "canonical_label": "Shadow",
-    "expression": "the watching figure outside the locked house",
-    "resonance": "An unseen presence holds the edge between approach and entry without becoming an identity.",
-    "evidence": ["someone watches from outside the locked house"]
-  }],
+  "symbol_stances": [...],
+  "archetypes": [],
   "landscapes": [...],
   "affects": [...],
   "motifs": [...],
@@ -265,16 +275,10 @@ Return ONLY one valid JSON object, single-line, no extra text. Put display_disti
   "thresholds": [...],
   "central_conflicts": [...],
   "core_mode": "Core Tension",
-  "amplifications": [{
-    "title": "Ariadne and the Labyrinth",
-    "tradition": "Greek",
-    "resonance": "The thread, the descent into branching corridors and the encounter with a waiting figure recall the Cretan labyrinth cycle.",
-    "difference": "Here the waiting figure is fed and left waiting rather than defeated; no completed return is staged.",
-    "evidence": ["descent through branching corridors", "thread-like guidance", "leaving milk for a waiting figure"]
-  }]
+  "amplifications": []
 }
 
-If nothing fits an array field, use []. Ordinary brief dreams may keep amplifications: [] and archetypes: []. When converging structural evidence supports 1–2 archetypal echoes or one mythic configuration, return them — do not withhold them out of excessive caution. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
+If nothing fits an array field, use []. Ordinary brief dreams may keep amplifications: [] and archetypes: []. A false Mythic Echo is more harmful than no Mythic Echo, but do not omit an unusually direct high-confidence structural match. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
 `.trim();
 }
 
@@ -287,11 +291,23 @@ function trimForExtractionContext(text: string, maxChars: number): string {
   return `${trimmed.slice(0, maxChars).trimEnd()}\n\n[…truncated for extraction context]`;
 }
 
+/** Additive debug suffix only — must not alter selection criteria. */
+export const DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX = `
+
+DEBUG INTERPRETIVE ECHOES (internal only — not user-facing):
+After finalizing archetypes and amplifications with the same criteria as without this block, also include interpretive_diagnostics with:
+- archetype_candidates: [{label, carrier, support[], counterevidence[], centrality:0-5, selected, rejection_reason?, evaluation_notes?}]
+- mythic_candidates: [{title, tradition, support[], selected, rejection_reason?}]
+Candidate evaluation belongs only here — never in production archetypes[].
+Do not change production fields because of this debug request.
+`.trimStart();
+
 export function buildDreamExtractionUserPrompt(params: {
   title?: string | null;
   date: string;
   content: string;
   finalInterpretation?: string | null;
+  debugInterpretiveEchoes?: boolean;
 }): string {
   const rawInterpretation = params.finalInterpretation?.trim() || '';
   const hasFinalInterpretation = Boolean(rawInterpretation);
@@ -299,10 +315,10 @@ export function buildDreamExtractionUserPrompt(params: {
     ? trimForExtractionContext(rawInterpretation, MAX_EXTRACTION_REFLECTION_CHARS)
     : '(none provided)';
   const catalogLead = hasFinalInterpretation
-    ? 'Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation has been written'
-    : 'Pre-catalog this dream into pattern metadata and immediate UI display distillation from the raw dream only';
+    ? 'Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation'
+    : 'Catalog this dream into pattern metadata and immediate UI display distillation from the raw dream only';
 
-  return `${catalogLead}: display_distillation, symbols, symbol_stances, archetypes, landscapes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, and amplifications.
+  const base = `${catalogLead}.
 
 Title: ${params.title || 'Untitled'}
 Date: ${params.date}
@@ -310,26 +326,43 @@ Date: ${params.date}
 Dream:
 ${params.content}
 
-${hasFinalInterpretation ? `Final interpretation:
-${interpretationContext}
-` : 'Final interpretation: (not provided; use raw dream only)\n'}
-Return one JSON object matching the schema exactly. Put symbol_stances immediately after symbols.
-display_distillation.visible_anchors must contain maximum 5 anchors, ideal 3.
-symbol_stances must contain one entry per genuinely charged key symbol, maximum 5. Use [] if no symbol has clear charge.
-Write user-facing string values (symbols, stances, landscapes, affects, motifs, relational_dynamics, thresholds, conflicts, archetype expression/resonance/evidence, amplification title/tradition/resonance/difference/evidence, display_distillation text) in the same primary language as the dream.
-Keep enum keys, whitelisted archetype canonical_label values, mythic title, and tradition in English (or the established scholarly name of the myth).
-Ground Dream Fabric fields (symbols, affects, landscapes, motifs, relational_dynamics, thresholds) in the dream text only.
-Map Fabric fields compactly — do not re-narrate the dream. Affects are felt tones only (never images/sensory objects). Relational dynamics are pattern labels, not plot sentences. Thresholds and motifs stay short canonical phrases.
-Treat Interpretive Echoes (central_conflicts, archetypes, amplifications/Mythic Echoes) as provisional.
-For archetypes: return 0–2 objects {canonical_label, expression, resonance, evidence} when converging structural evidence supports them; otherwise []. Never return bare string tags. canonical_label must be classical whitelist; expression is dream-specific and secondary.
-For amplifications: return 0–1 named mythic parallel {title, tradition, resonance, difference, evidence} when structural correspondence is strong; otherwise []. One tradition only; do not invent myths; empty array when unsure.
-Do not withhold a clearly supported echo merely out of excessive caution.
-Do not write a new interpretation. Do not make the display layer exhaustive. Catalog only what ${hasFinalInterpretation ? 'the dream text and final interpretation concretely support' : 'the dream text concretely supports'}.
-If unsure for Fabric arrays, use []. For core_mode, choose the least distorted fit based on dominant final movement and affect, or null if no mode fits without distortion.`;
+${hasFinalInterpretation ? `Final interpretation:\n${interpretationContext}\n` : 'Final interpretation: (not provided)\n'}
+Return one JSON object matching the schema.
+Ground Dream Fabric in the dream text only. Treat Interpretive Echoes as provisional.
+Archetypes: 0–2 whitelist objects {canonical_label, expression, resonance, evidence, confidence}; short resonance; hard gates apply; no evaluation bag.
+Mythic Echo: 0–1 named narrative/cycle/episode only (not a bare figure); localized title when available, else scholarly title; tradition as one taxonomy label; a false Mythic Echo is more harmful than no Mythic Echo, but return a highly distinctive multi-stage structural match rather than defaulting to [].
+Do not write a new interpretation.`;
+
+  if (!params.debugInterpretiveEchoes) return base;
+  return `${base}${DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX}`;
 }
 
+/** Stable prompt architecture id for re-extraction tracking. */
+export const DREAM_EXTRACTION_PROMPT_ID = 'dream-field-map-interpretive-v3.6';
+/** UI shapes unchanged (schema 4). */
+export const DREAM_EXTRACTION_SCHEMA_VERSION = 4;
 /** Bump when extraction pedagogy/schema contract changes — logged on every extract call. */
-export const DREAM_EXTRACTION_PROMPT_VERSION = '2.6.0';
+export const DREAM_EXTRACTION_PROMPT_VERSION = '3.6.3';
+
+export function isCurrentDreamExtractionVersion(params: {
+  extraction_prompt_version?: string | null;
+  extraction_schema_version?: number | null;
+}): boolean {
+  return (
+    params.extraction_prompt_version === DREAM_EXTRACTION_PROMPT_ID &&
+    params.extraction_schema_version === DREAM_EXTRACTION_SCHEMA_VERSION
+  );
+}
+
+export function needsDreamExtractionVersionRefresh(params: {
+  extraction_prompt_version?: string | null;
+  extraction_schema_version?: number | null;
+}): boolean {
+  const hasPrompt = typeof params.extraction_prompt_version === 'string' && params.extraction_prompt_version.length > 0;
+  const hasSchema = typeof params.extraction_schema_version === 'number';
+  if (!hasPrompt && !hasSchema) return false;
+  return !isCurrentDreamExtractionVersion(params);
+}
 
 /** Shared sampling settings for dream_extraction across client and gateway. */
 export const DREAM_EXTRACTION_TEMPERATURE = 0.25;

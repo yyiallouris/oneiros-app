@@ -27,6 +27,7 @@ export type {
 } from './colors';
 export { typography } from './typography';
 export { spacing, borderRadius } from './spacing';
+export { layout, resolveWebContentWidth, isWebContentConstrained } from './layout';
 export {
   buttonStyles,
   buttonSizes,

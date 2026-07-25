@@ -40,6 +40,8 @@ type InterpretationRow = {
   metadata_status?: 'pending' | 'ready' | 'failed' | null;
   metadata_generated_at?: string | null;
   metadata_error_code?: string | null;
+  extraction_prompt_version?: string | null;
+  extraction_schema_version?: number | null;
   reflection_origin?: string | null;
   origin_quota_event_id?: string | null;
   origin_entitlement_id?: string | null;
@@ -390,6 +392,28 @@ export async function saveInterpretation(
   }
 
   return (data as { id: string }).id;
+}
+
+/** Reopen a ready interpretation for re-extraction after a prompt/schema version bump. */
+export async function markInterpretationMetadataPending(
+  client: AdminClient,
+  userId: string,
+  interpretationId: string
+): Promise<void> {
+  const db = client as any;
+  const { error } = await db
+    .from('interpretations')
+    .update({
+      metadata_status: 'pending',
+      metadata_error_code: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', interpretationId)
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new HttpError(500, 'Failed to reopen metadata extraction', error);
+  }
 }
 
 function normalizeMetadataExtractionClaim(data: unknown): MetadataExtractionClaim {

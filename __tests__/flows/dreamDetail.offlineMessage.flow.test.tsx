@@ -57,7 +57,7 @@ jest.mock('../../src/components/ui', () => {
     ),
     BreathingLine: () => null,
     PrintPatchLoader: () => null,
-    LinoSkeletonCard: () => null,
+    DreamDetailSkeleton: () => null,
     LoadingState: ({ preset }: any) => (
       <View>
         <Text>{preset === 'dreamReflection' ? 'Reflecting on your dream...' : 'Loading...'}</Text>
@@ -143,9 +143,22 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
 
 jest.mock('../../src/services/entitledAiService', () => ({
   EntitlementError: class EntitlementError extends Error {},
+  ReflectionStillGeneratingError: class ReflectionStillGeneratingError extends Error {
+    dreamId: string;
+    quotaEventId: string;
+    constructor(dreamId = '', quotaEventId = '') {
+      super('still generating');
+      this.dreamId = dreamId;
+      this.quotaEventId = quotaEventId;
+    }
+  },
   generateEntitledDreamReflection: (...args: unknown[]) => mockGenerateEntitledDreamReflection(...args),
   generateEntitledFollowupReply: (...args: unknown[]) => mockGenerateEntitledFollowupReply(...args),
+  ensureDreamMetadataExtraction: jest.fn(() => Promise.resolve(null)),
   triggerPendingDreamMetadataExtraction: jest.fn(),
+  resumeOrAttachDreamReflection: jest.fn(() => Promise.resolve(null)),
+  hasPendingReflectionJob: jest.fn(() => Promise.resolve(false)),
+  hasReflectionInFlight: jest.fn(() => false),
 }));
 
 jest.mock('../../src/constants/symbolArchetypeInfo', () => ({
@@ -193,7 +206,7 @@ const interpretation = {
   relational_dynamics: ['watching from a distance'],
   motifs: ['light over water'],
   central_conflicts: ['distance vs contact'],
-  amplifications: [{ title: '', tradition: '', resonance: 'moon over water', difference: '', evidence: [] }],
+  amplifications: [{ title: '', tradition: '', resonance: 'moon over water', divergence: '', evidence: [] }],
   symbol_stances: [{ symbol: 'moon', stance: 'quietly luminous' }],
   display_distillation: {
     essence_title: 'Moonlit distance',

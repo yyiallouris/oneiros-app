@@ -35,7 +35,7 @@ const interpretation: Interpretation = {
   thresholds: ['closed door'],
   central_conflicts: ['wanting entry vs blocked door'],
   core_mode: 'Core Tension',
-  amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', difference: '', evidence: [] }],
+  amplifications: [{ title: '', tradition: '', resonance: 'door as charged boundary', divergence: '', evidence: [] }],
   display_distillation: {
     essence_title: 'Guarded entry',
     essence_line: 'The dream gathers around a guarded threshold.',

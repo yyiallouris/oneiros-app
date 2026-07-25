@@ -183,9 +183,9 @@ describe('ai service', () => {
     expect(systemText).toMatch(/symbol_stances: 1–5 items, only for genuinely charged symbols/);
     expect(systemText).toMatch(/SOURCE BOUNDARY/);
     expect(systemText).toMatch(/ARCHETYPAL ECHOES/);
-    expect(systemText).toMatch(/Return 0–2 classical archetypal patterns/);
+    expect(systemText).toMatch(/Identify 0–2 established archetypal patterns/);
     expect(systemText).toMatch(/MOTIFS \/ DREAM MOTIFS/);
-    expect(systemText).toMatch(/Return 0–1 named parallel from world mythology/);
+    expect(systemText).toMatch(/Identify 0–1 named parallel from world mythology/);
     expect(systemText).toMatch(/core_mode.*null/);
     expect(userMsg).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(userMsg).toMatch(/Final interpretation:/);
@@ -757,7 +757,7 @@ describe('ai service', () => {
                 title: 'Ariadne and the Labyrinth',
                 tradition: 'Greek',
                 resonance: 'A descent whose return stays unfinished.',
-                difference: 'No completed return is staged.',
+                divergence: 'No completed return is staged.',
                 evidence: ['well', 'labyrinth'],
               },
             ],
@@ -790,7 +790,7 @@ describe('ai service', () => {
         thresholds: ['entering work'],
         central_conflicts: ['autonomy vs belonging'],
         core_mode: 'Core Tension',
-        amplifications: [{ title: '', tradition: '', resonance: 'threshold charge', difference: '', evidence: [] }],
+        amplifications: [{ title: '', tradition: '', resonance: 'threshold charge', divergence: '', evidence: [] }],
       },
       {
         archetypes: ['Shadow', 'Trickster', 'Unknown Archetype'] as any,
@@ -824,7 +824,7 @@ describe('ai service', () => {
       thresholds: ['standing in narrow kitchen'],
       central_conflicts: ['tight kitchen vs unreadable language'],
       core_mode: 'Core Tension',
-      amplifications: [{ title: '', tradition: '', resonance: 'language as pressure', difference: '', evidence: [] }],
+      amplifications: [{ title: '', tradition: '', resonance: 'language as pressure', divergence: '', evidence: [] }],
     });
 
     expect(displayMap).toEqual({

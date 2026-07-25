@@ -2,7 +2,12 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { HttpError } from "../_shared/http.ts";
 import { requireUser } from "../_shared/supabase.ts";
 import { normalizeTask, type OneirosTask } from "./ai-routing.ts";
-import { getTaskAiConfig, missingOrUnknownTaskMessage, type TaskAiEntry } from "./task-config.ts";
+import {
+  getAnthropicFallbackModels,
+  getTaskAiConfig,
+  missingOrUnknownTaskMessage,
+  type TaskAiEntry,
+} from "./task-config.ts";
 import {
   buildStructuredRepairMessages,
   isStructuredAiTask,
@@ -11,6 +16,10 @@ import {
   validateStructuredTaskContent,
   type StructuredAiTask,
 } from "../_shared/structuredTaskValidation.ts";
+import {
+  shouldOmitSamplingTemperature,
+  temperatureForProvider,
+} from "../_shared/modelSamplingParams.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY") ?? "";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -439,10 +448,12 @@ function shouldTryAnthropicAfterOpenAI(
   oaResponse: Response,
   responseText: string,
 ): boolean {
-  const fb = taskCfg.fallbackAnthropicModel?.trim();
-  if (!fb || !ANTHROPIC_API_KEY || taskCfg.provider !== "openai") return false;
+  if (!ANTHROPIC_API_KEY || taskCfg.provider !== "openai") return false;
+  if (getAnthropicFallbackModels(taskCfg).length === 0) return false;
   if (!oaResponse.ok) {
-    return oaResponse.status === 429 || oaResponse.status >= 500;
+    // Include 400: OpenAI often rejects unsupported sampling params with 400.
+    // Fallback must still run (with Anthropic-safe params) or reflection dies.
+    return oaResponse.status === 400 || oaResponse.status === 429 || oaResponse.status >= 500;
   }
   const ev = evaluateOpenAICompletionBody(responseText);
   return !ev.ok;
@@ -528,10 +539,11 @@ async function callOpenAI(
   stream: unknown,
   streamOptions: unknown,
 ): Promise<Response> {
+  const safeTemperature = temperatureForProvider("openai", model, temperature);
   const payload: Record<string, unknown> = {
     model,
     messages,
-    ...(temperature !== undefined && { temperature }),
+    ...(safeTemperature !== undefined && { temperature: safeTemperature }),
     ...(responseFormat !== undefined && { response_format: responseFormat }),
     ...(stream !== undefined && { stream }),
     ...(streamOptions !== undefined && { stream_options: streamOptions }),
@@ -555,14 +567,15 @@ async function callAnthropic(
   tokenLimit: unknown,
 ): Promise<Response> {
   const converted = toAnthropicMessages(messages);
+  const safeTemperature = temperatureForProvider("anthropic", model, temperature);
   const payload: Record<string, unknown> = {
     model,
     messages: converted.messages,
     max_tokens: anthropicMaxTokens(tokenLimit),
     ...(converted.system && { system: converted.system }),
   };
-  if (typeof temperature === "number" && Number.isFinite(temperature)) {
-    payload.temperature = temperature;
+  if (safeTemperature !== undefined) {
+    payload.temperature = safeTemperature;
   }
 
   return await fetch(ANTHROPIC_API_URL, {
@@ -696,57 +709,157 @@ serve(async (req: Request) => {
 
       let responseText = await oaResponse.text();
 
-      if (shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText)) {
-        const fbModel = taskCfg.fallbackAnthropicModel!.trim();
-        const fallbackStart = Date.now();
-        const ar = await callAnthropic(fbModel, messages, temperature, tokenLimit);
-        const fallbackUpstreamMs = Date.now() - fallbackStart;
-        const raw = await ar.text();
-        if (ar.ok) {
-          const fbResp = responseFromAnthropicSuccess(requestId, raw, fbModel, {
-            dreamId,
-            task,
-            requestedModel: model,
-            appVersion,
-            userId,
-            messageCount: messages.length,
-            usedFallback: true,
-            upstreamMs: openAIUpstreamMs + fallbackUpstreamMs,
-          });
-          if (fbResp) {
-            const fbText = await fbResp.clone().text();
-            const finalized = await maybeValidateAndRepairStructured({
-              task,
-              responseText: fbText,
-              messages,
-              provider: "anthropic",
-              model: fbModel,
-              temperature,
-              tokenLimit,
-              responseFormat: response_format,
-              requestId,
-            });
-            if (finalized.rejected) {
-              return proxyJsonError(
-                "Structured AI response failed schema validation",
-                502,
-                finalized.diagnostics,
-              );
-            }
-            return new Response(finalized.responseText, {
-              status: 200,
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-                "X-Request-Id": requestId,
-                "X-AI-Provider": "anthropic",
-                "X-AI-Model": fbModel,
-                "X-AI-Fallback": "1",
-                "X-AI-Upstream-Ms": String(openAIUpstreamMs + fallbackUpstreamMs),
-              },
-            });
-          }
+      if (!oaResponse.ok) {
+        let openAIErrorCode: string | null = null;
+        let openAIErrorMessage: string | null = null;
+        try {
+          const parsed = JSON.parse(responseText) as {
+            error?: { code?: string; type?: string; message?: string };
+          };
+          openAIErrorCode = parsed?.error?.code ?? parsed?.error?.type ?? null;
+          openAIErrorMessage =
+            typeof parsed?.error?.message === "string"
+              ? parsed.error.message.slice(0, 180)
+              : null;
+        } catch {
+          // non-JSON error body
         }
+        console.error(`[openai-proxy] openai upstream failed`, {
+          requestId,
+          task,
+          resolvedModel,
+          status: oaResponse.status,
+          openAIErrorCode,
+          openAIErrorMessage,
+          stream: stream === true,
+          upstreamMs: openAIUpstreamMs,
+          willTryAnthropicFallback: shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText),
+        });
+      }
+
+      if (shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText)) {
+        const fallbackModels = getAnthropicFallbackModels(taskCfg);
+        let fallbackUpstreamTotalMs = 0;
+        console.log(`[openai-proxy] anthropic fallback chain start`, {
+          requestId,
+          task,
+          openAIStatus: oaResponse.status,
+          openAIModel: resolvedModel,
+          fallbackModels,
+        });
+
+        for (let i = 0; i < fallbackModels.length; i += 1) {
+          const fbModel = fallbackModels[i];
+          const fallbackStart = Date.now();
+          console.log(`[openai-proxy] anthropic fallback attempt`, {
+            requestId,
+            task,
+            attempt: i + 1,
+            fallbackModel: fbModel,
+            omittedTemperature: shouldOmitSamplingTemperature("anthropic", fbModel),
+          });
+          const ar = await callAnthropic(fbModel, messages, temperature, tokenLimit);
+          const fallbackUpstreamMs = Date.now() - fallbackStart;
+          fallbackUpstreamTotalMs += fallbackUpstreamMs;
+          const raw = await ar.text();
+
+          if (ar.ok) {
+            const fbResp = responseFromAnthropicSuccess(requestId, raw, fbModel, {
+              dreamId,
+              task,
+              requestedModel: model,
+              appVersion,
+              userId,
+              messageCount: messages.length,
+              usedFallback: true,
+              upstreamMs: openAIUpstreamMs + fallbackUpstreamTotalMs,
+            });
+            if (fbResp) {
+              const fbText = await fbResp.clone().text();
+              const finalized = await maybeValidateAndRepairStructured({
+                task,
+                responseText: fbText,
+                messages,
+                provider: "anthropic",
+                model: fbModel,
+                temperature,
+                tokenLimit,
+                responseFormat: response_format,
+                requestId,
+              });
+              if (finalized.rejected) {
+                console.error(`[openai-proxy] anthropic fallback schema rejected`, {
+                  requestId,
+                  task,
+                  fallbackModel: fbModel,
+                  attempt: i + 1,
+                });
+                // Try next Anthropic model if any remain.
+                continue;
+              }
+              console.log(`[openai-proxy] anthropic fallback succeeded`, {
+                requestId,
+                task,
+                fallbackModel: fbModel,
+                attempt: i + 1,
+                fallbackUpstreamMs,
+              });
+              return new Response(finalized.responseText, {
+                status: 200,
+                headers: {
+                  ...corsHeaders,
+                  "Content-Type": "application/json",
+                  "X-Request-Id": requestId,
+                  "X-AI-Provider": "anthropic",
+                  "X-AI-Model": fbModel,
+                  "X-AI-Fallback": "1",
+                  "X-AI-Upstream-Ms": String(openAIUpstreamMs + fallbackUpstreamTotalMs),
+                },
+              });
+            }
+            console.error(`[openai-proxy] anthropic fallback empty/invalid body`, {
+              requestId,
+              task,
+              fallbackModel: fbModel,
+              fallbackStatus: ar.status,
+              fallbackUpstreamMs,
+              attempt: i + 1,
+            });
+            continue;
+          }
+
+          let fallbackErrorCode: string | null = null;
+          let fallbackMessage: string | null = null;
+          try {
+            const parsed = JSON.parse(raw) as { error?: { type?: string; message?: string } };
+            fallbackErrorCode = parsed?.error?.type ?? null;
+            fallbackMessage =
+              typeof parsed?.error?.message === "string"
+                ? parsed.error.message.slice(0, 180)
+                : null;
+          } catch {
+            // non-JSON error body
+          }
+          console.error(`[openai-proxy] anthropic fallback failed`, {
+            requestId,
+            task,
+            openAIStatus: oaResponse.status,
+            fallbackModel: fbModel,
+            fallbackStatus: ar.status,
+            fallbackErrorCode,
+            fallbackMessage,
+            fallbackUpstreamMs,
+            attempt: i + 1,
+            remainingFallbacks: fallbackModels.length - i - 1,
+          });
+        }
+
+        console.error(`[openai-proxy] anthropic fallback chain exhausted`, {
+          requestId,
+          task,
+          openAIStatus: oaResponse.status,
+          fallbackModels,
+        });
       }
 
       let usage: unknown = null;

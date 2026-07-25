@@ -150,6 +150,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - origin quota / entitlement references
 - Free-origin reflections keep their 5 replies even after the weekly free gate closes.
 - Paid-origin reflections become read-only if paid access lapses.
+- `billing_commit_quota` must treat follow-up `interpretation_id` as **text** (same as `interpretations.id`). Casting to `uuid` breaks `dream_followup_reply` with `Failed to commit quota` after the AI reply runs. Contract: `__tests__/flows/billingCommitQuota.interpretationIdText.contract.flow.test.ts`.
 
 ### Recent Dream Field
 

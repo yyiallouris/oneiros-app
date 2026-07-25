@@ -72,6 +72,8 @@ type InterpretationRow = {
   metadata_status?: string | null;
   metadata_generated_at?: string | null;
   metadata_error_code?: string | null;
+  extraction_prompt_version?: string | null;
+  extraction_schema_version?: number | null;
   reflection_origin?: 'free_weekly' | 'paid_cycle' | null;
   chat_replies_used?: number | null;
   chat_replies_limit?: number | null;
@@ -135,6 +137,12 @@ function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpret
     metadata_status: isMetadataStatus(row.metadata_status) ? row.metadata_status : undefined,
     metadata_generated_at: row.metadata_generated_at ?? null,
     metadata_error_code: row.metadata_error_code ?? null,
+    ...(row.extraction_prompt_version
+      ? { extraction_prompt_version: row.extraction_prompt_version }
+      : {}),
+    ...(typeof row.extraction_schema_version === 'number'
+      ? { extraction_schema_version: row.extraction_schema_version }
+      : {}),
     reflection_origin: row.reflection_origin ?? undefined,
     chat_replies_used: row.chat_replies_used ?? undefined,
     chat_replies_limit: row.chat_replies_limit ?? undefined,
@@ -168,6 +176,8 @@ function mapInterpretationToRow(
     metadata_status: interpretation.metadata_status ?? 'ready',
     metadata_generated_at: interpretation.metadata_generated_at ?? null,
     metadata_error_code: interpretation.metadata_error_code ?? null,
+    extraction_prompt_version: interpretation.extraction_prompt_version ?? null,
+    extraction_schema_version: interpretation.extraction_schema_version ?? null,
     reflection_origin: interpretation.reflection_origin ?? null,
     chat_replies_used: interpretation.chat_replies_used ?? null,
     chat_replies_limit: interpretation.chat_replies_limit ?? null,

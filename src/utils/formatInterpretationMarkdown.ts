@@ -9,9 +9,9 @@ export function formatInterpretationMarkdown(text: string): string {
   let formatted = text;
 
   try {
-    // Convert headers to plain text with spacing (keep content, remove ## markers)
-    formatted = formatted.replace(/^#{1,6}\s+(.+)$/gm, (match, content) => {
-      return content ? `\n${content}\n` : match;
+    // Convert headers to plain text; one newline after the title (no blank-line gap)
+    formatted = formatted.replace(/^#{1,6}\s+(.+)\n*/gm, (_, content: string) => {
+      return content ? `${content}\n` : _;
     });
 
     // Convert bold (**text** or __text__) to plain text (keep the text)

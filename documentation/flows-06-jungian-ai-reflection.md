@@ -8,14 +8,70 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 - Constants in `constants/interpretation.ts` (e.g. `MAX_AI_RESPONSES`).
 - Dream reflection, regenerate, and follow-up chat now run through `ai-entitlements-gateway`.
 
+## Locked contract: metadata extraction resilience
+
+**Status: locked engineering contract. Do not ship extraction/prompt/schema edits that reintroduce `structured_schema_invalid` / gateway invoke failures for otherwise valid rich echoes.**
+
+This exists because Interpretive Echo field additions repeatedly caused production `dream_metadata_extract` 502s (example: model omitted `confidence` → `archetypes.N.confidence: Required` / `amplifications.N.confidence: Required`) even when reflection succeeded.
+
+### Required resilience
+
+1. Shared validation lives in `src/ai/structuredTaskValidation.ts` (proxy + gateway). Path: `parse → coerce → Zod → one repair → validate again`.
+2. Soft defaults for common omissions must stay in place (today: `DREAM_EXTRACTION_SOFT_DEFAULTS.missingEchoConfidence = "medium"` via coerce **and** Zod preprocess on archetypal/mythic objects).
+3. Canonical mythic key is `divergence` (legacy `difference` accepted on read/coerce only).
+4. Prompt example JSON, repair hints, TS types, and Zod must stay aligned when echo shapes change.
+5. Bump `extraction_schema_version` / prompt version when the wire shape or pedagogy changes.
+6. After changing shared prompt or validation: deploy **`openai-proxy` and `ai-entitlements-gateway`** (not client-only).
+7. Contract tests must cover “rich echo without confidence still validates” and must not be weakened to hide regressions.
+
+### Forbidden
+
+- Adding a new **required** echo field without coerce/preprocess fallback (or an intentional optional design + tests).
+- Assuming Metro/client reload updates production extract (it does not).
+- Marking metadata `ready` with empty garbage to avoid 502s.
+- Dropping Interpretive Echoes entirely as a “fix” for schema pain.
+
+### Contract tests / docs
+
+- `__tests__/flows/dreamMetadataExtraction.resilience.contract.flow.test.ts`
+- `__tests__/structuredTaskValidation.test.ts`
+- `docs/SYMBOLS_FLOW.md`, `documentation/architecture-interpretation.md`, `AGENTS.md`, `.codex/skills/oneiros-repo/SKILL.md`
+
+## Locked UX contract: reflection streaming typing
+
+**Status: locked. Do not change without the product owner’s explicit approval in the current conversation.**
+
+This contract exists because agents previously “fixed” a layout/streaming visibility bug by **removing the typing effect**. That is not allowed.
+
+### Required behavior
+
+1. After roughly **15 seconds** (`REFLECTION_PARTIAL_REVEAL_AFTER_MS`), if partial reflection text exists, DreamDetail must open the Exploring chat and grow a temporary assistant message with **append-aware phased typing** via `PhasedTypingText`.
+2. While `isStreaming` is true, assistant content **must** render through `PhasedTypingText` — same family of reveal as settle typing.
+3. Catch-up acceleration inside `PhasedTypingText` is allowed when the gateway buffer outpaces the typewriter.
+4. If a stream was shown, commit must not replay the typewriter from the beginning.
+5. Layout fixes (no `overflow: 'hidden'` / `flex: 1` on the Exploring card; nested chat `maxHeight`; streaming `minHeight`) must preserve typing — never replace typing to “make text show”.
+
+### Forbidden without explicit user approval
+
+- Replacing streamed `PhasedTypingText` with instant full text (`FormattedMessageText` / raw `Text` dump) for the live partial.
+- Removing `isStreaming` typing while keeping only settle typing.
+- Weakening or deleting the contract tests below to sneak the change through.
+- Any analogous “delete the UX to fix the bug” overcorrection on intentional motion/reveal.
+
+### Contract tests / docs
+
+- `__tests__/flows/dreamDetail.streamingTyping.contract.flow.test.ts`
+- Related guards in `__tests__/flows/aiCostLogging.flow.test.ts`, `__tests__/dreamDetailChatLayout.test.ts`
+- Agent rules: `AGENTS.md`, `.codex/skills/oneiros-repo/SKILL.md`
+
 ## Happy path — first reflection
 
 1. User opens dream with no interpretation (or stale handling per screen logic).
 2. User triggers **generate** / initial reflection (online required — see below).
-3. Client sends `dream_reflection_generate` with a client idempotency key and async start enabled.
-4. `ai-entitlements-gateway` reserves quota and returns a pending `quota_event_id` quickly, then continues the full-depth reflection in a background Edge task.
-5. DreamDetail keeps a calm loading state, explains longer Deeper Dive work after the wait becomes noticeable, and polls `dream_reflection_status` for the quota event.
-6. If the reflection is still running after roughly 15 seconds and the gateway has streamed partial text into the quota event, DreamDetail opens the chat area with a temporary assistant message that grows through status polling using the same phased typing treatment as completed assistant reflections. The chat input remains disabled because the reflection is not persisted or quota-committed yet.
+3. Client sends `dream_reflection_generate` with a **stable** idempotency key (`dream_reflection_generate:{dreamId}`) and async start enabled. Regenerate uses `dream_reflection_regenerate:{dreamId}:{dream.updatedAt}` so an edit starts a new job while re-tap during the same edit rejoins.
+4. `ai-entitlements-gateway` reserves quota and returns a pending `quota_event_id` quickly, then continues the full-depth reflection in a background Edge task. It stamps `result_context.async_background_started` so a later reserve with the same key returns `pending` without starting a second worker.
+5. Client persists `{ dreamId, quotaEventId, action, depth, startedAt }` locally, keeps a calm loading state, explains longer Deeper Dive work after the wait becomes noticeable, and polls `dream_reflection_status` for the quota event. Leaving the screen or killing the app does **not** cancel the server job; reopening DreamDetail resumes the poll (or attaches a remote interpretation if the job already committed). Soft poll timeout keeps the local handle so focus can resume instead of forcing Reflect again. If the user returns after the ~15s partial-reveal threshold (or already had streaming text), DreamDetail keeps the Exploring chat surface instead of snapping back to the calm skeleton loader.
+6. If the reflection is still running after roughly 15 seconds and the gateway has streamed partial text into the quota event, DreamDetail opens the Exploring chat with a temporary assistant message that grows through append-aware phased typing (same treatment as settled assistant reflections; catch-up accelerates when the stream outpaces the typewriter). The chat panel must not use `overflow: 'hidden'` / `flex: 1` on the card wrapper (those collapse/clip the nested scroll). The chat input remains disabled because the reflection is not persisted or quota-committed yet.
 7. When the background task saves the canonical interpretation with `metadata_status: pending` and commits quota, the status poll returns the interpretation payload and the client replaces the temporary partial message with the persisted interpretation without a second immediate remote fetch.
 8. Client starts a separate `dream_metadata_extract` gateway request after the reflection response, then the gateway takes a server-side lease for that interpretation before any metadata AI call. Only the lease holder updates the same interpretation with `display_distillation`, long-term metadata, and `metadata_status: ready` (or `failed` if the enrichment request fails, returns malformed JSON, or returns no usable metadata); concurrent callers receive a processing response and retry without duplicate OpenAI spend. DreamDetail refreshes from remote as soon as the deduped metadata extraction promise completes, tries an immediate refresh when the user closes chat, and keeps scheduled refreshes as fallback. While metadata is still pending, DreamDetail shows a small pending state instead of an empty metadata area. Pending rows restart enrichment on later DreamDetail / alternate chat loads without blocking the reflection UI.
 
@@ -38,7 +94,7 @@ Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack al
 - Reflection AI calls have a gateway timeout; timeout/error releases the quota reservation and leaves the existing UI/input intact.
 - Reflection prompts preserve the canonical initial interpretation structure from `src/services/ai.ts`: constitution, role, selected depth format, and user prompt. Body text and reflective questions stay in the dream's primary language; markdown headings stay in English for UI consistency.
 - Standard and Advanced reflections end with exactly 2 reflective questions.
-- Progressive reflection display is status-poll based: the Edge task streams model chunks into `quota_events.result_context.partial_reflection`, while mobile reveals partial text only after the 15-second threshold and keeps polling until final commit. Streamed partial text uses append-aware phased typing with the same markdown formatter as the settled reflection (`formatInterpretationMarkdown`), so list markers such as Reflective Questions stay as `•` through stream and settle instead of flashing raw `-` then dropping later bullets. If partial text was shown, the final committed reflection replaces it without replaying the typewriter animation from the beginning.
+- Progressive reflection display is status-poll based: the Edge task streams model chunks into `quota_events.result_context.partial_reflection`, while mobile reveals partial text only after the 15-second threshold and keeps polling until final commit. Streamed partials use append-aware phased typing with the same markdown formatter as the settled reflection (`formatInterpretationMarkdown`), with catch-up when the gateway buffer grows faster than the typewriter. If partial text was shown, the final committed reflection replaces it without replaying the typewriter from the beginning.
 - Metadata extraction requests use the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` (client and gateway), enforce OpenAI JSON response format through `openai-proxy`, then Zod domain validation with one same-provider repair attempt; invalid or empty extraction output fails fast (502) so the client retry loop can recover instead of saving an empty ready metadata state.
 - Metadata extraction is protected by `interpretation_metadata_extraction_jobs` and SQL claim/finish RPCs, so retries and overlapping app calls cannot start two provider metadata requests for the same pending interpretation unless the previous lease expires.
 - Gateway and app logs include sanitized cost observability fields for committed reflections and metadata extraction (`reflectionCostUsd`, `metadataCostUsd`, `totalAiCostUsd`, plus flattened `costModel` / `costProvider` / token fields — and on metadata done, `reflectionCostModel` when the reflection leg is known), plus Recent Dream Field / Period Reflection generation costs, derived from provider usage tokens and the shared monthly pricing table in `src/billing/aiPricing.ts` without logging dream content or AI output.
@@ -57,8 +113,11 @@ After reflection exists, DreamDetail presents the dream as a quiet reflection sp
 - **Explore symbolic layers:** collapsed secondary metadata grouped as:
   - **Dream Fabric** (grounded in dream text): Emotional Weather (`affects`), Dream Places (`landscapes`), Relationship Field (`relational_dynamics`), Thresholds, Dream Motifs (`motifs`). On a single dream, motifs are candidates — not yet confirmed recurrence.
   - **Interpretive Echoes** (provisional): Inner Tensions (`central_conflicts`), Archetypal Echoes (`archetypes`), Mythic Echoes (`amplifications`).
-- Mythic Echoes are rare optional interpretive enrichment (0–1 named parallel `{ title, tradition, resonance, difference, evidence }`), not Dream Fabric. Prefer `[]` for ordinary dreams; when structural correspondence across several elements supports a recognized myth, return that single parallel and state an important difference. DreamDetail shows `title — tradition` plus resonance/difference. Field: `amplifications`. Not in Forming Patterns aggregation.
-- Archetypal Echoes return 0–2 objects `{ canonical_label, expression, resonance, evidence }` when converging structural evidence supports them (not automatic empty, not single-symbol inference). Bare string arrays are invalid for extraction and trigger repair. Primary label is classical whitelist (e.g. Divine Child, Guide / Psychopomp); `expression` is the dream-specific form and stays secondary. DreamDetail shows canonical title + expression/resonance; Insights aggregates `canonical_label`.
+- Mythic Echoes are rare optional interpretive enrichment (0–1 named parallel `{ title, tradition, resonance, divergence, evidence, confidence }`), not Dream Fabric. Selected **open-world in the same `dream_extraction` call**. **Precision over coverage** — false positives are more harmful than empty output; most dreams should return `amplifications: []`. Allowed sources: specific named myth/tale/cycle/epic episode/religious narrative/alchemical sequence only — **not** generic folkloric patterns or invented folk titles. Candidate generation from **raw dream only** (reflection may help wording after selection). Lightweight post-validator rejects generic/invented titles. Production prompt must not contain test-dream answer-key clusters. No mythology corpus/resolver/retrieval. DreamDetail shows `high` and `medium` (legacy missing confidence still display) as `title — tradition` plus one compact resonance+divergence paragraph (generation budget ~35–55 words). Field: `amplifications`. Not in Forming Patterns. Legacy `difference` → `divergence` on read.
+- Archetypal Echoes return 0–2 objects `{ canonical_label, expression, resonance, evidence, confidence }` with closed whitelist + concise hard gates for Double, Guide/Psychopomp, Divine Child, Terrible Mother, and Ruler (`evaluation` optional; explicit failed signals reject; missing evaluation must not empty the section; stripped before UI). Zero or one echo is normal; two is exceptional. Candidate generation from raw dream only. Resonance is shortened at generation (~20–35 words, hard max 45). DreamDetail keeps the prior accordion structure and shows all returned echoes. Insights aggregates `canonical_label`.
+- Successful extractions store `extraction_prompt_version` (`dream-field-map-interpretive-v3.6`) and `extraction_schema_version` (`4`) (`prompt_version` `3.6.3`). Single-call architecture: Fabric + Archetypal Echoes + Mythic Echo or `[]` → lightweight validators → persist. No production archetype `evaluation` bag; mythic titles must be narratives/episodes not bare figures. False echoes still prefer `[]`, but unusually direct multi-stage structural matches should be returned. Schema stays at `4`. Versioned ready rows that no longer match reopen for re-extraction; legacy null versions stay cached.
+- Dream Fabric / Inner Tensions Dream Detail rendering, counts, and formatting are unchanged from the pre-copy-reduction behaviour. Echo length is a prompt-copy adjustment only — no Show more, line clamps, or Fabric redesign.
+- **Dev/test diagnostics:** `debug_interpretive_echoes: true` (auto in `__DEV__`) appends an additive suffix only — must not change selection. Prefer eventual always-on hidden evaluation (v4) so debug on/off does not change the prompt. Diagnostics never persist / never UI.
 - Fabric fields must map compactly: affects = felt tones only (never images); relational dynamics = pattern labels (not plot summary); thresholds/motifs = short canonical phrases.
 - Metadata extraction uses the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` with an explicit SOURCE BOUNDARY between Dream Fabric and Interpretive Echoes. User-facing extraction strings follow the dream's primary language; schema enums and whitelisted archetype `canonical_label` values stay English.
 
@@ -67,7 +126,9 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 ## Follow-up chat (same screen)
 
 - Inline chat after initial assistant message.
-- Follow-ups send `dream_followup_reply` through the entitlement gateway.
+- The **Exploring the dream** panel is a single content vessel: assistant reflection/chat prose sits on that surface (full width), without a nested glass bubble. Section titles sit tight above body copy; scroll content keeps bottom padding clear of the Ask composer. User follow-ups stay as distinct chat chips.
+- **Nested scroll contract (do not regress):** the Exploring chat is a nested `ScrollView` inside the page `ScrollView`, with a bounded `maxHeight` (`src/screens/dreamDetailChatLayout.ts`) and `nestedScrollEnabled`. Never put `overflow: 'hidden'` on that chat scroll style, and avoid forcing `width: '100%'` on assistant `Text` inside it — those clip or under-measure long reflections so users only see the first section (e.g. Core Shift + one paragraph) and cannot reach later body or Reflective Questions. Covered by `__tests__/dreamDetailChatLayout.test.ts` and `__tests__/flows/dreamDetail.chatScroll.flow.test.tsx`.
+- Follow-ups send `dream_followup_reply` through the entitlement gateway. Quota commit increments `chat_replies_used` via `billing_commit_quota` using **text** `interpretation_id` (same type as `interpretations.id` — never cast to uuid). Chat turns persist only after a successful commit so a commit failure does not leave orphan messages.
 - Limit comes from `chat_replies_used` and `chat_replies_limit`, with a 5-reply fallback.
 - Paid-origin reflections become read-only after lapse and route to renewal / premium upsell messaging.
 
@@ -94,10 +155,14 @@ Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips 
 
 ## Regression ideas
 
+- DreamDetail Exploring chat: open a long multi-section reflection (Core Shift + later body + Reflective Questions) and confirm the nested chat scrolls; do not reintroduce `overflow: 'hidden'` on `dreamDetailChatLayout` / `chatScrollView`.
 - Reflection with each depth level + mythic on/off (advanced only).
 - Gateway reflection success: committed response can carry the canonical interpretation directly, mirrors it locally, and avoids an immediate second fetch.
+- Leave/kill mid-loading: reopen DreamDetail → loading resumes from the persisted `quota_event_id` (or remote attach if already committed); Reflect is not required again. Soft client poll timeout keeps the handle. After partial reveal, reopen keeps the Exploring stream UI (no skeleton flash).
+- Double-tap Reflect / stable idempotency replay: gateway returns the same pending event without a second background worker.
 - Async metadata: pending rows render the reflection/chat immediately, a separate metadata action fills `display_distillation` and metadata, pending rows restart enrichment on later loads, and remote refresh brings the completed fields local without changing quota usage.
-- Reflection timeout: quota is released and no pending interpretation row is shown as completed.
+- Reflection timeout (server failure): quota is released and no pending interpretation row is shown as completed; client clears the local job handle on `released` / `denied`.
+- If `openai-proxy` fails OpenAI, it tries ordered Anthropic fallbacks (`claude-sonnet-5` then `claude-haiku-4-5` for reflection). Misconfigured sampling (e.g. sending `temperature` to Sonnet 5) used to kill the whole rescue; the proxy must omit forbidden params and continue to Haiku. See `supabase/functions/openai-proxy/README.md` “Sampling params”. After `task-config` fallback changes, redeploy `openai-proxy` and smoke-test Advanced reflection.
 - Metadata prefetch: unchanged dream content reuses cached extraction, changed content re-extracts, and in-flight prefetches are deduped.
 - Hit follow-up limit → send disabled / messaging.
 - Paid-origin reflection after lapse → read-only messaging + premium upsell.

@@ -28,6 +28,12 @@ jest.mock('../../src/services/localStorage', () => ({
   },
 }));
 
+jest.mock('../../src/services/pendingReflectionJobService', () => ({
+  setPendingReflectionJob: jest.fn(() => Promise.resolve()),
+  getPendingReflectionJob: jest.fn(() => Promise.resolve(null)),
+  clearPendingReflectionJob: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('../../src/services/patternInsightsService', () => ({
   getRecentPatternInsightEntries: jest.fn(),
   getRecentSequenceScopeKey: jest.fn((dreamIds: string[], count: number) => `recent:${count}:${dreamIds.join('|')}`),
@@ -39,7 +45,14 @@ import {
   generateEntitledFollowupReply,
   generateEntitledPeriodReflection,
   generateEntitledRecentDreamField,
+  ReflectionStillGeneratingError,
+  resumeOrAttachDreamReflection,
 } from '../../src/services/entitledAiService';
+import {
+  clearPendingReflectionJob,
+  getPendingReflectionJob,
+  setPendingReflectionJob,
+} from '../../src/services/pendingReflectionJobService';
 import { LocalStorage } from '../../src/services/localStorage';
 import { StorageService } from '../../src/services/storageService';
 import { invokeAiEntitlementsGateway } from '../../src/services/subscriptionService';
@@ -77,6 +90,10 @@ const interpretation: Interpretation = {
 describe('entitled AI service flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
+    (getPendingReflectionJob as jest.Mock).mockResolvedValue(null);
+    (setPendingReflectionJob as jest.Mock).mockResolvedValue(undefined);
+    (clearPendingReflectionJob as jest.Mock).mockResolvedValue(undefined);
     mockRemoteByDreamId.mockResolvedValue(interpretation);
     mockRemoteById.mockResolvedValue(interpretation);
     mockRecentEntries.mockResolvedValue([
@@ -130,7 +147,7 @@ describe('entitled AI service flow', () => {
 
     expect(mockGateway).toHaveBeenCalledWith({
       action: 'dream_reflection_generate',
-      idempotencyKey: 'idem:dream_reflection_generate:dream-1',
+      idempotencyKey: 'dream_reflection_generate:dream-1',
       dreamId: dream.id,
       depth: 'standard',
       async: true,
@@ -169,7 +186,7 @@ describe('entitled AI service flow', () => {
     expect(LocalStorage.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
     expect(mockGateway).toHaveBeenNthCalledWith(1, {
       action: 'dream_reflection_generate',
-      idempotencyKey: 'idem:dream_reflection_generate:dream-1',
+      idempotencyKey: 'dream_reflection_generate:dream-1',
       dreamId: dream.id,
       depth: 'standard',
       async: true,
@@ -246,19 +263,92 @@ describe('entitled AI service flow', () => {
 
     expect(mockGateway).toHaveBeenNthCalledWith(1, {
       action: 'dream_reflection_generate',
-      idempotencyKey: 'idem:dream_reflection_generate:dream-1',
+      idempotencyKey: 'dream_reflection_generate:dream-1',
       dreamId: dream.id,
       depth: 'advanced',
       async: true,
     });
+    expect(setPendingReflectionJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dreamId: dream.id,
+        quotaEventId: 'quota-1',
+        action: 'dream_reflection_generate',
+        depth: 'advanced',
+      })
+    );
     expect(mockGateway).toHaveBeenNthCalledWith(2, {
       action: 'dream_reflection_status',
       idempotencyKey: 'idem:dream_reflection_status:quota-1',
       dreamId: dream.id,
       quotaEventId: 'quota-1',
     });
+    expect(clearPendingReflectionJob).toHaveBeenCalledWith(dream.id);
     expect(LocalStorage.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
     expect(mockRemoteByDreamId).not.toHaveBeenCalled();
+  });
+
+  it('resumes a persisted pending reflection job and clears the handle on commit', async () => {
+    const pendingInterpretation: Interpretation = {
+      ...interpretation,
+      metadata_status: 'pending',
+      metadata_generated_at: null,
+      metadata_error_code: null,
+    };
+    (getPendingReflectionJob as jest.Mock).mockResolvedValueOnce({
+      dreamId: dream.id,
+      quotaEventId: 'quota-resume',
+      action: 'dream_reflection_generate',
+      depth: 'advanced',
+      startedAt: new Date(Date.now() - 5000).toISOString(),
+    });
+    mockGateway.mockResolvedValueOnce({
+      status: 'committed',
+      quota_event_id: 'quota-resume',
+      interpretation_id: interpretation.id,
+      reflection: 'A reflection.',
+      interpretation: pendingInterpretation,
+    });
+
+    await expect(resumeOrAttachDreamReflection(dream.id)).resolves.toEqual(pendingInterpretation);
+    expect(mockGateway).toHaveBeenCalledWith({
+      action: 'dream_reflection_status',
+      idempotencyKey: 'idem:dream_reflection_status:quota-resume',
+      dreamId: dream.id,
+      quotaEventId: 'quota-resume',
+    });
+    expect(clearPendingReflectionJob).toHaveBeenCalledWith(dream.id);
+  });
+
+  it('keeps the pending handle on soft poll timeout', async () => {
+    jest.useFakeTimers();
+    mockGateway
+      .mockResolvedValueOnce({
+        status: 'pending',
+        quota_event_id: 'quota-slow',
+      })
+      .mockResolvedValue({
+        status: 'pending',
+        quota_event_id: 'quota-slow',
+      });
+
+    const promise = generateEntitledDreamReflection(dream, 'advanced', 'dream_reflection_generate');
+    const expectation = expect(promise).rejects.toBeInstanceOf(ReflectionStillGeneratingError);
+
+    await jest.runAllTimersAsync();
+    await expectation;
+
+    expect(setPendingReflectionJob).toHaveBeenCalled();
+    expect(clearPendingReflectionJob).not.toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  it('attaches a remote interpretation when no pending handle exists', async () => {
+    (getPendingReflectionJob as jest.Mock).mockResolvedValueOnce(null);
+    mockRemoteByDreamId.mockResolvedValueOnce(interpretation);
+
+    await expect(resumeOrAttachDreamReflection(dream.id)).resolves.toEqual(interpretation);
+    expect(StorageService.saveInterpretation).toHaveBeenCalledWith(interpretation);
+    expect(mockGateway).not.toHaveBeenCalled();
   });
 
   it('generates a follow-up reply and syncs the updated interpretation by id', async () => {

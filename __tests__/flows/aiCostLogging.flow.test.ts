@@ -158,6 +158,8 @@ describe('AI cost logging flow', () => {
     expect(dreamDetailScreen).toMatch(/!isTyping && !isStreaming/);
     expect(dreamDetailScreen).toMatch(/hadStreamingReflectionRef/);
     expect(dreamDetailScreen).toMatch(/shouldTypeFinalReflection = !hadStreamingReflectionRef\.current/);
+    expect(dreamDetailScreen).toMatch(/No overflow:'hidden' \/ flex:1/);
+    expect(dreamDetailScreen).toMatch(/chatScrollViewStreaming/);
     expect(dreamDetailScreen).toMatch(/ensureDreamMetadataExtraction\(nextInterpretation\.id\)\.then/);
     expect(dreamDetailScreen).toMatch(/Dream details are still forming/);
     expect(dreamDetailScreen).toMatch(/refreshInterpretationMetadata\(interpretation\.id\)/);
@@ -188,14 +190,24 @@ describe('AI cost logging flow', () => {
     expect(gatewayReadme).toMatch(/duplicate OpenAI metadata calls/);
   });
 
-  it('keeps streamed reflection typing append-aware instead of restarting on each partial', () => {
+  it('keeps streamed reflection typing append-aware with catch-up instead of restarting', () => {
+    const dreamDetailScreen = readFileSync(path.join(repoRoot, 'src/screens/DreamDetailScreen.tsx'), 'utf8');
     const phasedTypingText = readFileSync(path.join(repoRoot, 'src/components/ui/PhasedTypingText.tsx'), 'utf8');
     const formatter = readFileSync(path.join(repoRoot, 'src/utils/formatInterpretationMarkdown.ts'), 'utf8');
 
+    expect(dreamDetailScreen).toMatch(/\(isTyping \|\| isStreaming\) && !isUser/);
+    expect(dreamDetailScreen).toMatch(/PhasedTypingText/);
+    // Locked UX: never reintroduce the instant full-text stream shortcut without approval.
+    expect(dreamDetailScreen).not.toMatch(
+      /isStreaming && !isUser \?\s*\(\s*<FormattedMessageText/
+    );
     expect(phasedTypingText).toMatch(/formatInterpretationMarkdown/);
     expect(phasedTypingText).toMatch(/const previousNormalized = normalizedTextRef\.current/);
     expect(phasedTypingText).toMatch(/const previousRaw = rawTextRef\.current/);
     expect(phasedTypingText).toMatch(/const isAppendOnlyUpdate = isNormalizedAppend \|\| isRawAppend/);
+    expect(phasedTypingText).toMatch(/CATCH_UP_BEHIND_WORDS/);
+    expect(phasedTypingText).toMatch(/WORD_DELAY_CATCH_UP_MS/);
+    expect(phasedTypingText).toMatch(/Keep an already-running timer alive across append-only partial updates/);
     expect(phasedTypingText).toMatch(/setDisplayedWords\(tokens\.slice\(0, keepCount\)\)/);
     expect(phasedTypingText).toMatch(/wordIdxRef\.current = 0/);
     expect(formatter).toMatch(/Consecutive list items must each keep a bullet/);

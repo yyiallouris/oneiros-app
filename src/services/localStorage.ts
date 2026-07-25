@@ -24,6 +24,7 @@ export class LocalStorage {
   private static readonly INTERPRETATION_DEPTH_KEY = '@interpretation_depth';
   private static readonly LEGACY_MYTHIC_RESONANCE_KEY = '@mythic_resonance_enabled';
   private static readonly PENDING_VOICE_TRANSCRIPTIONS_KEY = '@pending_voice_transcriptions_v1';
+  private static readonly PENDING_REFLECTION_JOBS_KEY = '@pending_reflection_jobs_v1';
 
   // Dreams
   static async getDreams(): Promise<Dream[]> {
@@ -228,6 +229,23 @@ export class LocalStorage {
       return;
     }
     await AsyncStorage.setItem(this.PENDING_VOICE_TRANSCRIPTIONS_KEY, JSON.stringify(items));
+  }
+
+  static async getPendingReflectionJobs(): Promise<unknown[]> {
+    try {
+      const data = await AsyncStorage.getItem(this.PENDING_REFLECTION_JOBS_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  static async savePendingReflectionJobs(items: unknown[]): Promise<void> {
+    if (items.length === 0) {
+      await AsyncStorage.removeItem(this.PENDING_REFLECTION_JOBS_KEY);
+      return;
+    }
+    await AsyncStorage.setItem(this.PENDING_REFLECTION_JOBS_KEY, JSON.stringify(items));
   }
 
   // Pattern insight reports (monthKey YYYY-MM -> { generatedAt, text })

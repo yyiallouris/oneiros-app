@@ -2,6 +2,13 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { executeQuotaJob } from '../../../src/billing/runtime.ts';
 import type { GatewayAction, QuotaReservation } from '../../../src/billing/types.ts';
 import {
+  DREAM_EXTRACTION_PROMPT_ID,
+  DREAM_EXTRACTION_PROMPT_VERSION,
+  DREAM_EXTRACTION_SCHEMA_VERSION,
+  isCurrentDreamExtractionVersion,
+  needsDreamExtractionVersionRefresh,
+} from '../../../src/ai/dreamExtractionPrompt.ts';
+import {
   buildMonthScope,
   buildRecentScope,
   type AiCallCost,
@@ -24,6 +31,7 @@ import {
   getRecentPatternEntries,
   getSubscriptionStatus,
   getUserTimeZone,
+  markInterpretationMetadataPending,
   mirrorPatternReport,
   patchQuotaEventResultContext,
   releaseQuota,
@@ -46,6 +54,8 @@ type GatewayBody = {
   count?: 2 | 3 | 5;
   monthKey?: string;
   language?: string;
+  /** Dev/test only — returns interpretive candidate diagnostics; never persisted to the interpretation row. */
+  debug_interpretive_echoes?: boolean;
 };
 
 type DreamExtraction = ReturnType<typeof emptyExtraction>;
@@ -159,6 +169,10 @@ function extractionRowFields(
     metadata_status: metadataStatus,
     metadata_generated_at: metadataGeneratedAt,
     metadata_error_code: metadataErrorCode,
+    extraction_prompt_version:
+      metadataStatus === 'ready' ? DREAM_EXTRACTION_PROMPT_ID : null,
+    extraction_schema_version:
+      metadataStatus === 'ready' ? DREAM_EXTRACTION_SCHEMA_VERSION : null,
   };
 }
 
@@ -196,6 +210,10 @@ function clientInterpretationPayload(params: {
     metadata_status: params.metadataStatus,
     metadata_generated_at: params.metadataGeneratedAt ?? undefined,
     metadata_error_code: params.metadataErrorCode ?? undefined,
+    extraction_prompt_version:
+      params.metadataStatus === 'ready' ? DREAM_EXTRACTION_PROMPT_ID : undefined,
+    extraction_schema_version:
+      params.metadataStatus === 'ready' ? DREAM_EXTRACTION_SCHEMA_VERSION : undefined,
     reflection_origin: params.reflectionOrigin,
     chat_replies_used: 0,
     chat_replies_limit: 5,
@@ -346,7 +364,17 @@ async function persistReflectionMetadata(params: {
   dream: Awaited<ReturnType<typeof getDreamById>>;
   reflection: string;
   reflectionCost?: AiCallCost | null;
-}): Promise<{ metadataStatus: 'ready' | 'failed'; metadataCost: AiCallCost | null; totalCostUsd: number | null }> {
+  debugInterpretiveEchoes?: boolean;
+}): Promise<{
+  metadataStatus: 'ready' | 'failed';
+  metadataCost: AiCallCost | null;
+  totalCostUsd: number | null;
+  interpretiveDiagnostics: unknown | null;
+  promptId: string;
+  promptVersion: string;
+  schemaVersion: number;
+  model: string | null;
+}> {
   const startedAt = measureStart();
   try {
     const extractionStartedAt = measureStart();
@@ -354,6 +382,7 @@ async function persistReflectionMetadata(params: {
       authHeader: params.authHeader,
       dream: params.dream,
       interpretation: params.reflection,
+      debugInterpretiveEchoes: Boolean(params.debugInterpretiveEchoes),
     });
     const extraction = extractionResult.extraction;
     const metadataCost = extractionResult.cost;
@@ -361,6 +390,7 @@ async function persistReflectionMetadata(params: {
     const extractionAiMs = measureSince(extractionStartedAt);
     const metadataGeneratedAt = new Date().toISOString();
     const saveStartedAt = measureStart();
+    // Never persist interpretive_diagnostics into the interpretation row.
     await saveInterpretation(params.admin, {
       id: params.interpretationId,
       user_id: params.userId,
@@ -379,6 +409,7 @@ async function persistReflectionMetadata(params: {
       reflectionCostUsd: costUsd(params.reflectionCost),
       metadataCostUsd: costUsd(metadataCost),
       totalAiCostUsd: totalCostUsd,
+      debugInterpretiveEchoes: Boolean(params.debugInterpretiveEchoes),
     });
     console.log('[ai-entitlements-gateway] reflection total ai cost', {
       action: 'dream_reflection_generate',
@@ -388,7 +419,16 @@ async function persistReflectionMetadata(params: {
       metadataAiCost: safeCostLog(metadataCost),
       totalAiCostUsd: totalCostUsd,
     });
-    return { metadataStatus: 'ready', metadataCost, totalCostUsd };
+    return {
+      metadataStatus: 'ready',
+      metadataCost,
+      totalCostUsd,
+      interpretiveDiagnostics: params.debugInterpretiveEchoes ? extractionResult.diagnostics : null,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+      model: extractionResult.model,
+    };
   } catch (error) {
     const failedAt = new Date().toISOString();
     await saveInterpretation(params.admin, {
@@ -569,6 +609,34 @@ serve(async (req: Request) => {
           return jsonResponse(normalizeReservation(reservation), 200, methods);
         }
 
+        // Stable idempotency replays must not start a second Edge worker.
+        const quotaEvent = await getQuotaEvent(admin, reservation.quotaEventId);
+        const resultContext =
+          quotaEvent.result_context && typeof quotaEvent.result_context === 'object'
+            ? (quotaEvent.result_context as Record<string, unknown>)
+            : {};
+        if (resultContext.async_background_started === true) {
+          console.log('[ai-entitlements-gateway] async reflection replay pending', {
+            action: body.action,
+            dreamId: body.dreamId,
+            quotaEventId: reservation.quotaEventId,
+            ...timings,
+            totalMs: measureSince(totalStartedAt),
+          });
+          return jsonResponse(
+            {
+              status: 'pending',
+              quota_event_id: reservation.quotaEventId,
+            },
+            200,
+            methods
+          );
+        }
+
+        await patchQuotaEventResultContext(admin, reservation.quotaEventId, {
+          async_background_started: true,
+        });
+
         runInBackground((async () => {
           const backgroundStartedAt = measureStart();
           try {
@@ -700,22 +768,45 @@ serve(async (req: Request) => {
       });
       const interpretation = await getInterpretationById(admin, userId, body.interpretationId);
       if (interpretation.metadata_status === 'ready') {
-        console.log('[ai-entitlements-gateway] metadata request cached', {
+        const versioned = {
+          extraction_prompt_version: interpretation.extraction_prompt_version ?? null,
+          extraction_schema_version: interpretation.extraction_schema_version ?? null,
+        };
+        if (
+          isCurrentDreamExtractionVersion(versioned) ||
+          !needsDreamExtractionVersionRefresh(versioned)
+        ) {
+          console.log('[ai-entitlements-gateway] metadata request cached', {
+            action: body.action,
+            interpretationId: interpretation.id,
+            promptId: DREAM_EXTRACTION_PROMPT_ID,
+            schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+            storedPromptVersion: versioned.extraction_prompt_version,
+            storedSchemaVersion: versioned.extraction_schema_version,
+            totalMs: measureSince(totalStartedAt),
+          });
+          return jsonResponse(
+            {
+              status: 'committed',
+              interpretation_id: interpretation.id,
+              metadata_status: 'ready',
+              cached: true,
+              total_ms: measureSince(totalStartedAt),
+            },
+            200,
+            methods
+          );
+        }
+
+        console.log('[ai-entitlements-gateway] metadata request stale version — reopening', {
           action: body.action,
           interpretationId: interpretation.id,
-          totalMs: measureSince(totalStartedAt),
+          promptId: DREAM_EXTRACTION_PROMPT_ID,
+          schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+          storedPromptVersion: versioned.extraction_prompt_version,
+          storedSchemaVersion: versioned.extraction_schema_version,
         });
-        return jsonResponse(
-          {
-            status: 'committed',
-            interpretation_id: interpretation.id,
-            metadata_status: 'ready',
-            cached: true,
-            total_ms: measureSince(totalStartedAt),
-          },
-          200,
-          methods
-        );
+        await markInterpretationMetadataPending(admin, userId, interpretation.id);
       }
 
       const firstAssistant = ((interpretation.messages ?? []) as Array<{ role?: string; content?: string }>)
@@ -793,6 +884,7 @@ serve(async (req: Request) => {
           dream,
           reflection,
           reflectionCost,
+          debugInterpretiveEchoes: body.debug_interpretive_echoes === true,
         });
         await finishMetadataExtraction(admin, userId, interpretation.id, 'completed');
       } catch (error) {
@@ -825,6 +917,17 @@ serve(async (req: Request) => {
         totalAiCostUsd: metadataResult.totalCostUsd,
         totalMs: measureSince(totalStartedAt),
       });
+      const debugPayload =
+        body.debug_interpretive_echoes === true
+          ? {
+              prompt_id: metadataResult.promptId,
+              prompt_version: metadataResult.promptVersion,
+              schema_version: metadataResult.schemaVersion,
+              model: metadataResult.model,
+              interpretive_diagnostics: metadataResult.interpretiveDiagnostics,
+              selection_summary: 'See interpretive_diagnostics candidate selected/rejected fields.',
+            }
+          : null;
       return jsonResponse(
         {
           status: 'committed',
@@ -836,6 +939,7 @@ serve(async (req: Request) => {
           reflection_cost_usd: costUsd(reflectionCost),
           total_ai_cost_usd: metadataResult.totalCostUsd,
           total_ms: measureSince(totalStartedAt),
+          ...(debugPayload ? { debug_interpretive_echoes: debugPayload } : {}),
         },
         200,
         methods
@@ -869,6 +973,9 @@ serve(async (req: Request) => {
             assistantRepliesLimit: interpretation.chat_replies_limit ?? 5,
           });
 
+          // Persist messages only after quota commit succeeds (see executeQuotaJob).
+          // Saving before commit left orphan chat turns when billing_commit_quota failed
+          // on text interpretation ids cast to uuid.
           const nextMessages = [
             ...((interpretation.messages ?? []) as Record<string, unknown>[]),
             {
@@ -885,18 +992,11 @@ serve(async (req: Request) => {
             },
           ];
 
-          await saveInterpretation(admin, {
-            id: interpretation.id,
-            user_id: userId,
-            dream_id: interpretation.dream_id,
-            messages: nextMessages,
-            updated_at: new Date().toISOString(),
-          });
-
           return {
             value: {
               interpretation_id: interpretation.id,
               assistant_reply: assistantReply,
+              next_messages: nextMessages,
             },
             result: { interpretation_id: interpretation.id },
           };
@@ -907,7 +1007,29 @@ serve(async (req: Request) => {
         return jsonResponse(normalizeReservation(result.reservation), 200, methods);
       }
 
-      return jsonResponse({ status: 'committed', ...result.value }, 200, methods);
+      const committed = result.value as {
+        interpretation_id: string;
+        assistant_reply: string;
+        next_messages: Record<string, unknown>[];
+      };
+
+      await saveInterpretation(admin, {
+        id: interpretation.id,
+        user_id: userId,
+        dream_id: interpretation.dream_id,
+        messages: committed.next_messages,
+        updated_at: new Date().toISOString(),
+      });
+
+      return jsonResponse(
+        {
+          status: 'committed',
+          interpretation_id: committed.interpretation_id,
+          assistant_reply: committed.assistant_reply,
+        },
+        200,
+        methods
+      );
     }
 
     if (body.action === 'recent_dream_field_generate') {

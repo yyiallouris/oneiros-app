@@ -7,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { LoadingScreen } from './src/components/ui';
+import { LoadingScreen, WebContentShell } from './src/components/ui';
 import { SubscriptionProvider } from './src/providers/SubscriptionProvider';
 import {
   DESIGN_EXPORT_DEVICE_HEIGHT,
@@ -105,7 +105,9 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <LoadingScreen onComplete={DESIGN_EXPORT_HOLD_SPLASH ? undefined : handleLoadingComplete} />
+        <WebContentShell>
+          <LoadingScreen onComplete={DESIGN_EXPORT_HOLD_SPLASH ? undefined : handleLoadingComplete} />
+        </WebContentShell>
       </SafeAreaProvider>
     );
   }
@@ -114,9 +116,11 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <SubscriptionProvider>
-          <RootNavigator />
-        </SubscriptionProvider>
+        <WebContentShell>
+          <SubscriptionProvider>
+            <RootNavigator />
+          </SubscriptionProvider>
+        </WebContentShell>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

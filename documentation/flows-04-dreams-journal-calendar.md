@@ -38,6 +38,7 @@
 ## Dream detail (`DreamDetailScreen`)
 
 - Shows the dream as an open page section with hairline edges rather than a heavy card; **Dream essence**, anchors, movement, and symbolic layers are presented as unboxed ritual text blocks/rows; **Jungian reflection** section (interpretation) — see [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md).
+- Initial load uses `DreamDetailSkeleton` — a layout-faithful placeholder for the dream page + reflection summary. Do **not** use journal-list `LinoSkeletonCard` rows here (those look like two small cards and do not match the loaded layout).
 - Header **Edit** → **`DreamEditor`** with `dreamId`.
 
 ## Dream editor (`DreamEditorScreen`)

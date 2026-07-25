@@ -6,7 +6,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 
 | Feature | Entry points | Core dependencies | Update when changed |
 |---------|--------------|-------------------|---------------------|
-| App entry and loading | `App.tsx`, `LoadingScreen` | Expo splash, droplet brand assets, paper background, design export flags, safe area | flows 00/01, theme docs for visual changes |
+| App entry and loading | `App.tsx`, `LoadingScreen`, `WebContentShell` | Expo splash, droplet brand assets, paper background, design export flags, safe area, web content column | flows 00/01, theme docs for visual/web layout changes |
 | Auth and recovery | `AuthScreen`, `SetPasswordScreen`, `authDeepLink.ts`, `authOAuth.ts` | Supabase Auth (email + Apple/Google/Discord; PKCE for browser OAuth), deep links, `PENDING_PASSWORD_RESET_KEY` | flows 01/02, `AUTH_SETUP.md`, auth flow tests |
 | Legal consent | `LegalConsentScreen`, `legalConsentService.ts` | `LEGAL_CONSENT_VERSION`, per-user AsyncStorage | flows 03/08, legal consent flow test |
 | Onboarding | `OnboardingNavigator`, onboarding screens (name, depth, language, subscription, secure) | user settings, pattern insight language, biometric service, onboarding service | flows 03, onboarding flow tests |
@@ -15,7 +15,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 | Journal and filters | `JournalScreen`, `JournalFilterScreen` | local dreams/interpretations, search, Insights filter params | flows 04/07, filter/key tests |
 | Dream detail and editor | `DreamDetailScreen`, `DreamEditorScreen` | storage helpers, interpretation services, metadata display, delete/save | flows 04/06, display/offline tests |
 | Calendar | `CalendarScreen`, `CircularCalendar` | local dreams by date, editor route params | flows 04, route/flow tests if behavior changes |
-| AI interpretation and chat | `DreamDetailScreen`, `InterpretationChatScreen`, `ai.ts` | OpenAI/proxy, extraction, metadata cache, interpretation sync | flow 06, architecture interpretation, AI/display tests |
+| AI interpretation and chat | `DreamDetailScreen`, `InterpretationChatScreen`, `ai.ts` | OpenAI/proxy, extraction, metadata cache, interpretation sync | flow 06 (incl. metadata resilience + streaming typing locks), architecture interpretation, AI/display tests |
 | Insights overview | `InsightsScreen`, `insightsService.ts` | local dreams, interpretations, grouping cache, period math | flow 07, insights/key/grouping tests |
 | Pattern reports | `InsightsSectionScreen`, `patternInsightsService.ts`, `remoteStorage.ts` | AI pattern generation, report keys, languages, remote/local report storage | flow 07, pattern tests, Supabase notes if persistence changes |
 | Subscription and quotas | `supabase/functions/subscription-status`, `billing-register-purchase`, `billing-apple-notifications`, `billing-google-rtdn`, `ai-entitlements-gateway` | store verification, entitlement normalization, SQL quota RPCs, billing artifacts, account deletion | flow 10, billing/quota tests, Supabase deploy notes |
@@ -37,6 +37,7 @@ Use this as the quick impact map for feature work. Each row names entry points, 
 
 - iOS and Android can differ for safe areas, keyboard behavior, biometrics, voice permissions, deep links, and network reachability.
 - Any mobile UI, native permission, auth redirect, biometrics, voice, storage, or networking change must consider both platforms before closing.
+- Expo web uses a centered phone-scale `WebContentShell` (`src/components/ui/WebContentShell.tsx`, tokens in `src/theme/layout.ts`) so the same mobile UI stays readable on tablet/desktop browsers. Prefer `useContentWidth()` for width-bound UI. Design-export capture mode keeps its fixed phone frame and bypasses the shell.
 - Detox exists today for Android auth smoke. Add iOS config/tests when a cross-platform visible flow cannot be covered well by Jest.
 
 ## Deployment considerations

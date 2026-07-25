@@ -1,3 +1,8 @@
+import {
+  DREAM_EXTRACTION_PROMPT_ID,
+  DREAM_EXTRACTION_SCHEMA_VERSION,
+  needsDreamExtractionVersionRefresh,
+} from '../ai/dreamExtractionPrompt';
 import { LocalStorage } from './localStorage';
 import { StorageService } from './storageService';
 import {
@@ -9,10 +14,22 @@ import {
   remoteGetInterpretationById,
 } from './remoteStorage';
 import { getRecentPatternInsightEntries, getRecentSequenceScopeKey, type RecentDreamFieldCount } from './patternInsightsService';
+import {
+  clearPendingReflectionJob,
+  getPendingReflectionJob,
+  setPendingReflectionJob,
+} from './pendingReflectionJobService';
 import { logInfo, logWarn } from './logger';
 import type { Dream, Interpretation } from '../types/dream';
 import type { GatewayAction } from '../billing/types';
 import type { PatternInsightDreamEntry } from './ai';
+
+function metadataExtractIdempotencyKey(interpretationId: string): string {
+  return createIdempotencyKey(
+    'dream_metadata_extract',
+    `${interpretationId}:${DREAM_EXTRACTION_PROMPT_ID}:s${DREAM_EXTRACTION_SCHEMA_VERSION}`
+  );
+}
 
 type GatewayDeniedResponse = {
   status: 'denied' | 'released' | 'pending';
@@ -58,6 +75,15 @@ type GatewayMetadataResponse = {
   reflection_ai_cost?: Record<string, unknown> | null;
   reflection_cost_usd?: number | null;
   total_ai_cost_usd?: number | null;
+  /** Dev/test only — never render in Dream Detail UI. */
+  debug_interpretive_echoes?: {
+    prompt_id: string;
+    prompt_version: string;
+    schema_version: number;
+    model?: string | null;
+    interpretive_diagnostics?: unknown;
+    selection_summary?: string;
+  } | null;
 };
 
 type GatewayFollowupResponse = {
@@ -89,8 +115,10 @@ const READ_ONLY_REASONS = new Set([
 const METADATA_EXTRACTION_RETRY_DELAYS_MS = [0, 15000, 45000];
 const REFLECTION_STATUS_MAX_ATTEMPTS = 90;
 const REFLECTION_STATUS_POLL_DELAY_MS = 1000;
-const REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000;
+/** After this, DreamDetail prefers the streaming chat surface over the calm skeleton. */
+export const REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000;
 const metadataExtractionInFlight = new Map<string, Promise<GatewayMetadataResponse | null>>();
+const reflectionInFlight = new Map<string, Promise<Interpretation>>();
 
 export type DreamReflectionProgress = {
   text: string;
@@ -115,6 +143,31 @@ export class EntitlementError extends Error {
     this.premiumRequired = PREMIUM_REQUIRED_REASONS.has(reason);
     this.readOnlyAfterLapse = READ_ONLY_REASONS.has(reason);
   }
+}
+
+/** Soft poll timeout — job handle stays persisted so focus/reopen can resume. */
+export class ReflectionStillGeneratingError extends Error {
+  dreamId: string;
+  quotaEventId: string;
+
+  constructor(dreamId: string, quotaEventId: string) {
+    super(
+      'The reflection is still being generated. You can leave and return; it will attach when ready.'
+    );
+    this.name = 'ReflectionStillGeneratingError';
+    this.dreamId = dreamId;
+    this.quotaEventId = quotaEventId;
+  }
+}
+
+function reflectionIdempotencyKey(
+  action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>,
+  dream: Dream
+): string {
+  if (action === 'dream_reflection_generate') {
+    return `dream_reflection_generate:${dream.id}`;
+  }
+  return `dream_reflection_regenerate:${dream.id}:${dream.updatedAt}`;
 }
 
 function assertCommitted<T extends { status?: string }>(response: T | GatewayDeniedResponse): asserts response is T {
@@ -229,7 +282,7 @@ async function saveCommittedReflectionPayload(
   return interpretation;
 }
 
-async function pollEntitledDreamReflection(params: {
+export async function pollEntitledDreamReflection(params: {
   action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>;
   dreamId: string;
   quotaEventId: string;
@@ -265,6 +318,7 @@ async function pollEntitledDreamReflection(params: {
     });
 
     if (response.status === 'committed') {
+      await clearPendingReflectionJob(params.dreamId);
       return saveCommittedReflectionPayload(params.action, params.dreamId, response, params.totalStartedAt);
     }
 
@@ -287,11 +341,23 @@ async function pollEntitledDreamReflection(params: {
     }
 
     if (response.status === 'released' || response.status === 'denied') {
+      await clearPendingReflectionJob(params.dreamId);
       throw new EntitlementError(response.reason ?? 'dream_reflection_generation_failed');
     }
   }
 
-  throw new Error('The reflection is still being generated. Please reopen this dream in a moment.');
+  // Keep the pending handle so leave/reopen can resume polling.
+  throw new ReflectionStillGeneratingError(params.dreamId, params.quotaEventId);
+}
+
+function trackReflectionInFlight(dreamId: string, promise: Promise<Interpretation>): Promise<Interpretation> {
+  const tracked = promise.finally(() => {
+    if (reflectionInFlight.get(dreamId) === tracked) {
+      reflectionInFlight.delete(dreamId);
+    }
+  });
+  reflectionInFlight.set(dreamId, tracked);
+  return tracked;
 }
 
 async function runMetadataExtractionWithRetry(interpretationId: string): Promise<GatewayMetadataResponse | null> {
@@ -310,8 +376,10 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
       });
       const response = await invokeAiEntitlementsGateway<GatewayMetadataResponse | GatewayDeniedResponse>({
         action: 'dream_metadata_extract',
-        idempotencyKey: createIdempotencyKey('dream_metadata_extract', interpretationId),
+        idempotencyKey: metadataExtractIdempotencyKey(interpretationId),
         interpretationId,
+        // Dev/test feedback loop only — never shown in production UI.
+        ...(typeof __DEV__ !== 'undefined' && __DEV__ ? { debug_interpretive_echoes: true } : {}),
       });
       assertCommitted(response);
       logInfo('dream_metadata_extract_attempt_done', {
@@ -330,7 +398,20 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         reflectionCostModel: response.reflection_ai_cost?.model ?? null,
         totalAiCostUsd: response.total_ai_cost_usd,
         durationMs: Date.now() - attemptStartedAt,
+        hasInterpretiveDiagnostics: Boolean(response.debug_interpretive_echoes?.interpretive_diagnostics),
+        extractionPromptVersion: response.debug_interpretive_echoes?.prompt_version ?? null,
       });
+      if (typeof __DEV__ !== 'undefined' && __DEV__ && response.debug_interpretive_echoes) {
+        // Intentionally log the debug bag in Metro for feedback packets — never render in UI.
+        console.log('[APP][DEBUG] interpretive_echoes_packet', {
+          interpretationId,
+          prompt_id: response.debug_interpretive_echoes.prompt_id,
+          prompt_version: response.debug_interpretive_echoes.prompt_version,
+          schema_version: response.debug_interpretive_echoes.schema_version,
+          model: response.debug_interpretive_echoes.model ?? null,
+          interpretive_diagnostics: response.debug_interpretive_echoes.interpretive_diagnostics ?? null,
+        });
+      }
       return response;
     } catch (error) {
       lastError = error;
@@ -390,10 +471,21 @@ export function triggerDreamMetadataExtraction(interpretationId: string): boolea
 }
 
 export function triggerPendingDreamMetadataExtraction(
-  interpretation: Pick<Interpretation, 'id' | 'metadata_status'>
+  interpretation: Pick<
+    Interpretation,
+    'id' | 'metadata_status' | 'extraction_prompt_version' | 'extraction_schema_version'
+  >
 ): boolean {
-  // Retry both pending and failed — failed often means proxy/schema blip, not permanent.
-  if (interpretation.metadata_status !== 'pending' && interpretation.metadata_status !== 'failed') {
+  // Retry pending/failed, and versioned-ready rows after a prompt/schema bump.
+  const needsRetry =
+    interpretation.metadata_status === 'pending' ||
+    interpretation.metadata_status === 'failed' ||
+    (interpretation.metadata_status === 'ready' &&
+      needsDreamExtractionVersionRefresh({
+        extraction_prompt_version: interpretation.extraction_prompt_version,
+        extraction_schema_version: interpretation.extraction_schema_version,
+      }));
+  if (!needsRetry) {
     return false;
   }
   return triggerDreamMetadataExtraction(interpretation.id);
@@ -405,51 +497,136 @@ export async function generateEntitledDreamReflection(
   action: Extract<GatewayAction, 'dream_reflection_generate' | 'dream_reflection_regenerate'>,
   options: EntitledDreamReflectionOptions = {}
 ): Promise<Interpretation> {
-  const totalStartedAt = Date.now();
-  logInfo('dream_reflection_generate_start', {
-    action,
-    dreamId: dream.id,
-    depth,
-  });
+  const existingInFlight = reflectionInFlight.get(dream.id);
+  if (existingInFlight) {
+    logInfo('dream_reflection_generate_deduped', { dreamId: dream.id, action });
+    return existingInFlight;
+  }
 
-  const gatewayStartedAt = Date.now();
-  const response = await invokeAiEntitlementsGateway<GatewayReflectionResponse | GatewayReflectionPendingResponse | GatewayDeniedResponse>({
-    action,
-    idempotencyKey: createIdempotencyKey(action, dream.id),
-    dreamId: dream.id,
-    depth,
-    async: true,
-  });
-  const gatewayDurationMs = Date.now() - gatewayStartedAt;
-
-  if (response.status === 'pending') {
-    const quotaEventId = response.quota_event_id;
-    if (!quotaEventId) {
-      throw new Error('Reflection started without a status reference. Please try again.');
-    }
-    logInfo('dream_reflection_async_started', {
+  const run = (async () => {
+    const totalStartedAt = Date.now();
+    logInfo('dream_reflection_generate_start', {
       action,
       dreamId: dream.id,
-      quotaEventId,
-      gatewayDurationMs,
+      depth,
     });
-    return pollEntitledDreamReflection({
+
+    const gatewayStartedAt = Date.now();
+    const response = await invokeAiEntitlementsGateway<
+      GatewayReflectionResponse | GatewayReflectionPendingResponse | GatewayDeniedResponse
+    >({
+      action,
+      idempotencyKey: reflectionIdempotencyKey(action, dream),
+      dreamId: dream.id,
+      depth,
+      async: true,
+    });
+    const gatewayDurationMs = Date.now() - gatewayStartedAt;
+
+    if (response.status === 'pending') {
+      const quotaEventId = response.quota_event_id;
+      if (!quotaEventId) {
+        throw new Error('Reflection started without a status reference. Please try again.');
+      }
+      await setPendingReflectionJob({
+        dreamId: dream.id,
+        quotaEventId,
+        action,
+        depth,
+        startedAt: new Date(totalStartedAt).toISOString(),
+      });
+      logInfo('dream_reflection_async_started', {
+        action,
+        dreamId: dream.id,
+        quotaEventId,
+        gatewayDurationMs,
+      });
+      return pollEntitledDreamReflection({
+        action,
+        dreamId: dream.id,
+        quotaEventId,
+        totalStartedAt,
+        onPartialReflection: options.onPartialReflection,
+      });
+    }
+
+    assertCommitted(response);
+    await clearPendingReflectionJob(dream.id);
+    logInfo('dream_reflection_gateway_committed_after_sync_wait', {
       action,
       dreamId: dream.id,
-      quotaEventId,
+      gatewayDurationMs,
+      reflectionCostUsd: response.reflection_cost_usd,
+    });
+    return saveCommittedReflectionPayload(action, dream.id, response, totalStartedAt);
+  })();
+
+  return trackReflectionInFlight(dream.id, run);
+}
+
+/**
+ * Resume an in-flight reflection or attach one that finished while away.
+ * Returns null when there is nothing to resume/attach (show Reflect CTA).
+ */
+export async function resumeOrAttachDreamReflection(
+  dreamId: string,
+  options: EntitledDreamReflectionOptions = {}
+): Promise<Interpretation | null> {
+  const existingInFlight = reflectionInFlight.get(dreamId);
+  if (existingInFlight) {
+    logInfo('dream_reflection_resume_deduped', { dreamId });
+    return existingInFlight;
+  }
+
+  const pending = await getPendingReflectionJob(dreamId);
+  if (pending) {
+    logInfo('dream_reflection_resume_poll', {
+      dreamId,
+      quotaEventId: pending.quotaEventId,
+      action: pending.action,
+    });
+    const startedAt = Date.parse(pending.startedAt);
+    const totalStartedAt = Number.isFinite(startedAt) ? startedAt : Date.now();
+    const run = pollEntitledDreamReflection({
+      action: pending.action,
+      dreamId,
+      quotaEventId: pending.quotaEventId,
       totalStartedAt,
       onPartialReflection: options.onPartialReflection,
     });
+    return trackReflectionInFlight(dreamId, run);
   }
 
-  assertCommitted(response);
-  logInfo('dream_reflection_gateway_committed_after_sync_wait', {
-    action,
-    dreamId: dream.id,
-    gatewayDurationMs,
-    reflectionCostUsd: response.reflection_cost_usd,
-  });
-  return saveCommittedReflectionPayload(action, dream.id, response, totalStartedAt);
+  try {
+    const remote = await remoteGetInterpretationByDreamId(dreamId);
+    if (!remote) {
+      logInfo('dream_reflection_resume_none', { dreamId });
+      return null;
+    }
+    await StorageService.saveInterpretation(remote);
+    triggerPendingDreamMetadataExtraction(remote);
+    logInfo('dream_reflection_resume_attached_remote', {
+      dreamId,
+      interpretationId: remote.id,
+      metadataStatus: remote.metadata_status,
+    });
+    return remote;
+  } catch (error) {
+    logWarn('dream_reflection_resume_remote_failed', {
+      dreamId,
+      message: error instanceof Error ? error.message : 'Unknown remote attach error',
+    });
+    return null;
+  }
+}
+
+/** True when a local pending handle exists for this dream (UI can show loading before poll starts). */
+export async function hasPendingReflectionJob(dreamId: string): Promise<boolean> {
+  return Boolean(await getPendingReflectionJob(dreamId));
+}
+
+export function hasReflectionInFlight(dreamId: string): boolean {
+  return reflectionInFlight.has(dreamId);
 }
 
 export async function generateEntitledFollowupReply(

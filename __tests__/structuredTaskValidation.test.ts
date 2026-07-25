@@ -73,6 +73,7 @@ describe('structuredTaskValidation', () => {
             expression: 'the child discovered beneath the snow',
             resonance: 'A vulnerable new life emerges from beneath a frozen surface.',
             evidence: ['the child beneath the snow'],
+            confidence: 'high',
           },
         ],
         amplifications: [
@@ -80,8 +81,9 @@ describe('structuredTaskValidation', () => {
             title: 'Ariadne and the Labyrinth',
             tradition: 'Greek',
             resonance: 'The thread and labyrinth recall the Cretan cycle.',
-            difference: 'Here the waiting figure is fed rather than defeated.',
+            divergence: 'Here the waiting figure is fed rather than defeated.',
             evidence: ['thread-like guidance', 'branching corridors', 'waiting figure'],
+            confidence: 'high',
           },
         ],
       })
@@ -89,13 +91,78 @@ describe('structuredTaskValidation', () => {
     expect(objectShape.ok).toBe(true);
     if (objectShape.ok) {
       const data = objectShape.data as {
-        archetypes: Array<{ expression: string; canonical_label: string }>;
-        amplifications: Array<{ title: string; tradition: string }>;
+        archetypes: Array<{ expression: string; canonical_label: string; confidence: string }>;
+        amplifications: Array<{
+          title: string;
+          tradition: string;
+          confidence: string;
+          divergence: string;
+        }>;
       };
       expect(data.archetypes[0].canonical_label).toBe('Divine Child');
       expect(data.archetypes[0].expression).toBe('the child discovered beneath the snow');
+      expect(data.archetypes[0].confidence).toBe('high');
       expect(data.amplifications[0].title).toBe('Ariadne and the Labyrinth');
       expect(data.amplifications[0].tradition).toBe('Greek');
+      expect(data.amplifications[0].divergence).toMatch(/fed rather than defeated/i);
+      expect(data.amplifications[0].confidence).toBe('high');
+    }
+
+    const missingConfidenceDefaultsToMedium = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        symbols: ['door'],
+        archetypes: [
+          {
+            canonical_label: 'Shadow',
+            expression: 'the watching figure outside the locked house',
+            resonance: 'An unseen presence holds the edge between approach and entry.',
+            evidence: ['someone watches from outside'],
+          },
+        ],
+        amplifications: [
+          {
+            title: 'Ariadne and the Labyrinth',
+            tradition: 'Greek',
+            resonance: 'The thread and labyrinth recall the Cretan cycle.',
+            divergence: 'Here the waiting figure is fed rather than defeated.',
+            evidence: ['thread-like guidance', 'branching corridors', 'waiting figure'],
+          },
+        ],
+      })
+    );
+    expect(missingConfidenceDefaultsToMedium.ok).toBe(true);
+    if (missingConfidenceDefaultsToMedium.ok) {
+      const data = missingConfidenceDefaultsToMedium.data as {
+        archetypes: Array<{ confidence: string }>;
+        amplifications: Array<{ confidence: string }>;
+      };
+      expect(data.archetypes[0].confidence).toBe('medium');
+      expect(data.amplifications[0].confidence).toBe('medium');
+    }
+
+    const legacyDifferenceKey = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        symbols: ['door'],
+        amplifications: [
+          {
+            title: 'Inanna',
+            tradition: 'Mesopotamian',
+            resonance: 'Descent through gates without a secured return.',
+            difference: 'No completed ascent is staged.',
+            evidence: ['gates', 'descent', 'stripped adornment'],
+            confidence: 'medium',
+          },
+        ],
+      })
+    );
+    expect(legacyDifferenceKey.ok).toBe(true);
+    if (legacyDifferenceKey.ok) {
+      const data = legacyDifferenceKey.data as {
+        amplifications: Array<{ divergence: string }>;
+      };
+      expect(data.amplifications[0].divergence).toBe('No completed ascent is staged.');
     }
 
     const bareTags = validateStructuredTaskContent(
@@ -121,6 +188,7 @@ describe('structuredTaskValidation', () => {
             expression: 'Divine Child',
             resonance: 'A vulnerable new life emerges from beneath a frozen surface.',
             evidence: ['the child beneath the snow'],
+            confidence: 'high',
           },
         ],
       })
@@ -143,6 +211,7 @@ describe('structuredTaskValidation', () => {
             display_label: 'the guiding child at the end of the thread',
             resonance: 'A childlike figure carries orientation through the descent.',
             evidence: ['the girl directs the dreamer'],
+            confidence: 'medium',
           },
         ],
         amplifications: [],

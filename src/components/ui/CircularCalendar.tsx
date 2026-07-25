@@ -1,14 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, typography, calendar } from '../../theme';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import { useContentWidth } from '../../layout/WebLayoutContext';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CALENDAR_SIZE = Math.min(SCREEN_WIDTH - spacing.lg * 2, 320);
-const CENTER_X = CALENDAR_SIZE / 2;
-const CENTER_Y = CALENDAR_SIZE / 2;
-const RADIUS = CALENDAR_SIZE * 0.38; // Days circle radius - slightly larger for breathing room
 const DAY_RADIUS = 12; // Individual day circle size
+const MAX_CALENDAR_SIZE = 320;
 
 interface DayData {
   date: string;
@@ -50,14 +47,6 @@ const getDayNumber = (dateStr: string): number => {
   return parseInt(dateStr.split('-')[2]);
 };
 
-// Calculate position for a day in the circle (all days of month, arranged in circle)
-const getDayPosition = (index: number, totalDays: number) => {
-  const angle = (index / totalDays) * 2 * Math.PI - Math.PI / 2; // Start from top
-  const x = CENTER_X + RADIUS * Math.cos(angle);
-  const y = CENTER_Y + RADIUS * Math.sin(angle);
-  return { x, y, angle };
-};
-
 export const CircularCalendar: React.FC<CircularCalendarProps> = ({
   days,
   onDayPress,
@@ -67,6 +56,19 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
   onMonthChange,
   today,
 }) => {
+  const contentWidth = useContentWidth();
+  const calendarSize = Math.min(contentWidth - spacing.lg * 2, MAX_CALENDAR_SIZE);
+  const centerX = calendarSize / 2;
+  const centerY = calendarSize / 2;
+  const radius = calendarSize * 0.38;
+
+  const getDayPosition = (index: number, totalDays: number) => {
+    const angle = (index / totalDays) * 2 * Math.PI - Math.PI / 2; // Start from top
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    return { x, y, angle };
+  };
+
   // Sort days by day number (1-31) for circular display
   const sortedDays = useMemo(() => {
     return [...days].sort((a, b) => {
@@ -106,8 +108,8 @@ export const CircularCalendar: React.FC<CircularCalendarProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.calendarWrapper}>
-        <Svg width={CALENDAR_SIZE} height={CALENDAR_SIZE}>
+      <View style={[styles.calendarWrapper, { width: calendarSize, height: calendarSize }]}>
+        <Svg width={calendarSize} height={calendarSize}>
           <Defs>
             {/* Glow gradient for each day with dreams */}
             {sortedDays.map((day, index) => {
@@ -242,8 +244,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   calendarWrapper: {
-    width: CALENDAR_SIZE,
-    height: CALENDAR_SIZE,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',

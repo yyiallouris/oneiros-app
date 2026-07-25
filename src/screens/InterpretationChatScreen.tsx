@@ -190,12 +190,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
   
   return (
     <View style={[styles.messageContainer, isUser && styles.userMessageContainer]}>
-      <View style={[styles.messageBubble, isUser && styles.userBubble]}>
+      {/* Assistant text sits on the chat surface — no nested card. */}
+      <View style={isUser ? styles.userBubble : styles.assistantMessage}>
         {isTyping && !isUser ? (
           <PhasedTypingText
             text={message.content}
             onComplete={onTypingComplete}
-            style={[styles.messageText, isUser && styles.userMessageText]}
+            style={styles.messageText}
           />
         ) : (
           <>
@@ -686,40 +687,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   chatContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xxl,
   },
   messageContainer: {
     flexDirection: 'row',
+    alignSelf: 'stretch',
     marginBottom: spacing.md,
     alignItems: 'flex-start',
   },
   userMessageContainer: {
     justifyContent: 'flex-end',
   },
-  messageBubble: {
-    maxWidth: '95%', // Use more width
-    backgroundColor: colors.cardBackground,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    paddingRight: spacing.xl + spacing.sm, // Extra padding for copy button
+  /** Full-width prose on the chat panel — avoids card-in-card. */
+  assistantMessage: {
+    flex: 1,
+    flexShrink: 1,
+    paddingRight: spacing.md,
+    minHeight: 40,
     position: 'relative',
   },
   copyButton: {
     position: 'absolute',
-    top: spacing.xs,
-    right: spacing.xs,
+    top: -spacing.xs,
+    right: -spacing.xs,
     padding: spacing.xs,
     opacity: 0.6,
+    zIndex: 1,
   },
   userBubble: {
+    maxWidth: '88%',
     backgroundColor: colors.buttonPrimary,
     marginLeft: 'auto',
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    minHeight: 40,
   },
   messageText: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
-    lineHeight: typography.sizes.md * typography.lineHeights.relaxed, // More relaxed line height
+    lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     textAlign: 'left',
   },
   italicText: {

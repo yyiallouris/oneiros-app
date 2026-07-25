@@ -4,21 +4,18 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  Dimensions,
   ViewToken,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text } from '../theme';
+import { colors, spacing, typography } from '../theme';
 import { PaperBackground, DesignExportForeground } from '../components/ui';
 import { InsightsSectionScreen } from './InsightsSectionScreen';
 import { INSIGHTS_SECTION_TITLES } from '../constants/insightsSections';
 import type { InsightsSectionId, InsightsPeriod } from '../types/insights';
-type NavProp = StackNavigationProp<RootStackParamList, 'InsightsJourney'>;
-type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
+import { useContentWidth } from '../layout/WebLayoutContext';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
 /** Legacy swipeable journey order: images → scenes → weather → thresholds → tensions → places. */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
@@ -31,8 +28,8 @@ const JOURNEY_SECTIONS: InsightsSectionId[] = [
 ];
 
 const InsightsJourneyScreen: React.FC = () => {
-  const navigation = useNavigation<NavProp>();
   const route = useRoute<JourneyRoute>();
+  const pageWidth = useContentWidth();
   const period: InsightsPeriod | undefined = useMemo(
     () =>
       route.params?.periodStart != null && route.params?.periodEnd != null
@@ -61,10 +58,9 @@ const InsightsJourneyScreen: React.FC = () => {
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 80 }).current;
 
-
   const renderPage = useCallback(
     ({ item }: { item: InsightsSectionId }) => (
-      <View style={styles.page}>
+      <View style={[styles.page, { width: pageWidth }]}>
         <InsightsSectionScreen
           embedded
           overrideSectionId={item}
@@ -73,10 +69,19 @@ const InsightsJourneyScreen: React.FC = () => {
         />
       </View>
     ),
-    [period?.startDate, period?.endDate, periodLabel]
+    [pageWidth, period?.startDate, period?.endDate, periodLabel]
   );
 
   const keyExtractor = useCallback((id: InsightsSectionId) => id, []);
+
+  const getItemLayout = useCallback(
+    (_: ArrayLike<InsightsSectionId> | null | undefined, index: number) => ({
+      length: pageWidth,
+      offset: pageWidth * index,
+      index,
+    }),
+    [pageWidth]
+  );
 
   return (
     <View style={styles.container}>
@@ -108,17 +113,15 @@ const InsightsJourneyScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
-          getItemLayout={(_, index) => ({
-            length: SCREEN_WIDTH,
-            offset: SCREEN_WIDTH * index,
-            index,
-          })}
+          getItemLayout={getItemLayout}
           initialScrollIndex={safeInitialIndex}
           initialNumToRender={Math.max(1, safeInitialIndex + 1)}
           maxToRenderPerBatch={1}
           windowSize={2}
           removeClippedSubviews={false}
           decelerationRate="fast"
+          // Remount when the shell width changes so paging math stays correct on web resize.
+          key={`insights-journey-${pageWidth}`}
         />
       </DesignExportForeground>
     </View>
@@ -161,7 +164,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   page: {
-    width: SCREEN_WIDTH,
     flex: 1,
   },
 });

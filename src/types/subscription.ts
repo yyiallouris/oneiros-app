@@ -69,4 +69,6 @@ export type AiGatewayRequest = {
   count?: 2 | 3 | 5;
   monthKey?: string;
   language?: string;
+  /** Dev/test only — request interpretive candidate diagnostics; never shown in production UI. */
+  debug_interpretive_echoes?: boolean;
 };

@@ -4,7 +4,7 @@ This is the end-to-end Oneiros path for agents who need the whole product shape 
 
 ## 1. Launch and route gate
 
-1. `App.tsx` loads brand fonts, hides the native splash, then shows `LoadingScreen`.
+1. `App.tsx` loads brand fonts, hides the native splash, then shows `LoadingScreen` inside `WebContentShell` (Expo web centers a phone-scale column; native is unchanged).
 2. Native splash now uses the droplet symbol only on a warm paper field.
 3. `LoadingScreen` continues the same paper-first entry moment with the droplet logo plus the `Oneiros` wordmark.
 4. `RootNavigator` initializes storage and auth deep links in parallel.
@@ -68,7 +68,7 @@ Related docs: [flows-08-support-legal-contact.md](./flows-08-support-legal-conta
 
 - Navigation gates affect app entry, auth, onboarding, legal consent, biometric lock, and offline session tests.
 - Dream save/edit/delete affects Write, Journal, Calendar, DreamDetail, sync queues, remote storage, and Insights aggregations.
-- AI reflection changes affect DreamDetail, `InterpretationChatScreen`, metadata extraction, Insights, remote schema, AI proxy config, and offline messaging.
+- AI reflection changes affect DreamDetail, `InterpretationChatScreen`, metadata extraction, Insights, remote schema, AI proxy config, and offline messaging. Metadata extract edits must keep the resilience lock in flows-06 (soft defaults + deploy both `openai-proxy` and `ai-entitlements-gateway`) so `structured_schema_invalid` does not recur.
 - Insights changes affect period math, filter routes, pattern reports, local caches, remote reports, and flow tests.
 - Subscription / billing changes affect store purchase binding, quota ledgers, live onboarding/account/paywall UX, period-reflection archival, account deletion, and store-management flows.
 - UI theme changes affect `src/theme/COLORS.md`, `src/theme/TYPOGRAPHY.md`, shared UI components, design exports, iPhone/iOS and Android visual behavior.

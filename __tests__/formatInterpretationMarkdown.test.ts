@@ -30,6 +30,11 @@ describe('formatInterpretationMarkdown', () => {
     expect(formatted).toContain('• Second?');
   });
 
+  it('keeps a single newline after section titles (no blank-line gap)', () => {
+    const formatted = formatInterpretationMarkdown('## Core Shift\n\nBody paragraph here.');
+    expect(formatted).toBe('Core Shift\nBody paragraph here.');
+  });
+
   it('keeps Evidence lines as plain text without a bullet', () => {
     const formatted = formatInterpretationMarkdown('- Evidence: the locked door');
     expect(formatted).toBe('Evidence: the locked door');

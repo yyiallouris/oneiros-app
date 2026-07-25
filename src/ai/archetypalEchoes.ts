@@ -9,12 +9,19 @@ import {
   normalizeArchetypeList,
 } from '../constants/archetypes.ts';
 
+export type ArchetypalEchoConfidence = 'high' | 'medium';
+
 export type ArchetypalEcho = {
   canonical_label: string;
   /** Concrete figure/configuration through which the archetype appears in this dream. */
   expression: string;
   resonance: string;
   evidence: string[];
+  /**
+   * Extraction confidence. Dream Detail shows high and medium.
+   * Absent on legacy rows (still displayable until re-extract).
+   */
+  confidence?: ArchetypalEchoConfidence;
 };
 
 export type EchoDisplayCard = {
@@ -36,6 +43,12 @@ function asEvidence(raw: unknown): string[] {
     if (out.length >= 2) break;
   }
   return out;
+}
+
+function readConfidence(o: Record<string, unknown>): ArchetypalEchoConfidence | undefined {
+  const raw = typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
+  if (raw === 'high' || raw === 'medium') return raw;
+  return undefined;
 }
 
 function fromLegacyLabel(raw: string): ArchetypalEcho[] {
@@ -61,19 +74,20 @@ function readExpression(o: Record<string, unknown>): string {
   return '';
 }
 
-function formatExpressionLead(expression: string): string {
-  const trimmed = expression.trim();
-  if (!trimmed) return '';
-  if (/^appears\b/i.test(trimmed)) {
-    return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
-  }
-  const lead = `Appears as ${trimmed}`;
-  return /[.!?]$/.test(lead) ? lead : `${lead}.`;
+/** Strip formulaic lead-ins the model may still emit in resonance. */
+function stripFormulaicResonanceLead(resonance: string): string {
+  return resonance
+    .replace(
+      /^(appears as|manifests as|this archetype appears through|represents|symbolizes)\s+/i,
+      ''
+    )
+    .trim();
 }
 
 /**
  * Normalize model/DB/local values into ArchetypalEcho objects.
  * Accepts legacy bare strings, display_label objects, and expression objects.
+ * Drops explicit low-confidence echoes (never stored for display).
  */
 export function normalizeArchetypalEchoes(
   raw: unknown,
@@ -96,6 +110,11 @@ export function normalizeArchetypalEchoes(
 
     if (!item || typeof item !== 'object') continue;
     const o = item as Record<string, unknown>;
+    const confidenceRaw =
+      typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
+    if (confidenceRaw === 'low') continue;
+    const confidence = readConfidence(o);
+
     const canonicalRaw =
       typeof o.canonical_label === 'string'
         ? o.canonical_label
@@ -130,12 +149,14 @@ export function normalizeArchetypalEchoes(
         ? expression
         : '';
 
-    out.push({
+    const echo: ArchetypalEcho = {
       canonical_label: canonical,
       expression: expressionDistinct,
       resonance,
       evidence,
-    });
+    };
+    if (confidence) echo.confidence = confidence;
+    out.push(echo);
     if (out.length >= max) break;
   }
 
@@ -146,29 +167,26 @@ function stripThe(name: string): string {
   return name.replace(/^\s*The\s+/i, '').trim();
 }
 
+/** Dream Detail shows high, medium, and legacy (missing confidence). */
+export function isDisplayableArchetypalEcho(_item: ArchetypalEcho): boolean {
+  return true;
+}
+
 export function formatArchetypalEchoForDisplay(item: ArchetypalEcho): EchoDisplayCard {
   const title = formatCanonicalArchetypeTitle(item.canonical_label);
-  const expressionLead = formatExpressionLead(item.expression);
-  const resonance = item.resonance.trim();
-  const bodyParts: string[] = [];
-  if (expressionLead) bodyParts.push(expressionLead);
-  if (resonance) {
-    const resonanceAlreadyShown =
-      expressionLead &&
-      expressionLead.toLowerCase().includes(resonance.toLowerCase().slice(0, Math.min(24, resonance.length)));
-    if (!resonanceAlreadyShown) bodyParts.push(resonance);
-  }
-  return {
-    title,
-    body: bodyParts.join(' ').trim(),
-  };
+  // Dream Detail shows canonical heading + natural resonance only (expression stays in data).
+  // Length is controlled at generation time in the extraction prompt — do not truncate here.
+  const body = stripFormulaicResonanceLead(item.resonance.trim());
+  return { title, body };
 }
 
 export function formatArchetypalEchoesForDisplay(
   raw: unknown,
   max: number = MAX_ARCHETYPAL_ECHOES
 ): EchoDisplayCard[] {
-  return normalizeArchetypalEchoes(raw, max).map(formatArchetypalEchoForDisplay);
+  return normalizeArchetypalEchoes(raw, max)
+    .filter(isDisplayableArchetypalEcho)
+    .map(formatArchetypalEchoForDisplay);
 }
 
 /** Canonical whitelist labels for Insights aggregation / pattern counts. */

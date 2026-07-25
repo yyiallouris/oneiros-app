@@ -21,6 +21,19 @@ import {
   type MythicEcho,
 } from '../ai/mythicEchoes';
 import { validateStructuredTaskContent } from '../ai/structuredTaskValidation';
+import {
+  parseInterpretiveEchoDiagnostics,
+  safeInterpretiveDiagnosticsLog,
+} from '../ai/interpretiveEchoDiagnostics';
+import {
+  asArchetypeEvaluation,
+  toPersistedArchetypalEcho,
+  validateArchetypalEchoes,
+} from '../ai/validators/archetypalEchoValidator';
+import {
+  toPersistedMythicEcho,
+  validateMythicEchoes,
+} from '../ai/validators/mythicEchoValidator';
 import type { ArchetypeName } from '../constants/archetypes';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
@@ -1912,6 +1925,8 @@ export const extractDreamSymbolsAndArchetypes = async (
     date: dream.date,
     content: dream.content,
     finalInterpretation,
+    // Dev/test feedback loop only — diagnostics stay out of persisted DreamExtraction.
+    debugInterpretiveEchoes: typeof __DEV__ !== 'undefined' && __DEV__,
   });
 
   const { requestId, model } = startRequest();
@@ -1990,7 +2005,35 @@ export const extractDreamSymbolsAndArchetypes = async (
         return emptyDreamExtraction();
       }
 
-      const extraction = parseDreamExtractionRecord(validated.data as Record<string, unknown>);
+      const rawParsed = validated.data as Record<string, unknown>;
+      const extraction = parseDreamExtractionRecord(rawParsed);
+      // Re-attach evaluation per item so hard-gate checks stay index-aligned.
+      const archetypesForValidation = (
+        Array.isArray(rawParsed.archetypes) ? rawParsed.archetypes : []
+      )
+        .map((row) => {
+          const normalized = normalizeArchetypalEchoes([row], 1)[0];
+          if (!normalized) return null;
+          const evaluation =
+            row && typeof row === 'object'
+              ? asArchetypeEvaluation((row as { evaluation?: unknown }).evaluation)
+              : null;
+          return evaluation ? { ...normalized, evaluation } : normalized;
+        })
+        .filter((echo): echo is ArchetypalEcho & { evaluation?: unknown } => Boolean(echo))
+        .slice(0, MAX_ARCHETYPAL_ECHOES);
+      const archetypeValidation = validateArchetypalEchoes(archetypesForValidation, {
+        max: MAX_ARCHETYPAL_ECHOES,
+      });
+      extraction.archetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
+
+      const mythicValidation = validateMythicEchoes(extraction.amplifications, {
+        max: MAX_MYTHIC_ECHOES,
+      });
+      extraction.amplifications = mythicValidation.accepted.map(toPersistedMythicEcho);
+
+      // Diagnostics are never part of DreamExtraction / Dream Detail UI.
+      const diagnostics = parseInterpretiveEchoDiagnostics(rawParsed.interpretive_diagnostics);
 
       if (__DEV__) {
         console.log('[AI] Extracted:', {
@@ -2004,7 +2047,14 @@ export const extractDreamSymbolsAndArchetypes = async (
           symbol_stancesCount: extraction.symbol_stances.length,
           displayAnchorsCount: extraction.display_distillation?.visible_anchors.length ?? 0,
           core_mode: extraction.core_mode,
+          amplificationsCount: extraction.amplifications.length,
+          archetypesRejected: archetypeValidation.rejected.length,
+          mythicRejected: mythicValidation.rejected.length,
+          ...safeInterpretiveDiagnosticsLog(diagnostics),
         });
+        if (diagnostics) {
+          console.log('[AI][DEBUG] interpretive_echoes_diagnostics', diagnostics);
+        }
       }
 
       return extraction;
@@ -2140,7 +2190,7 @@ ${conversationForExtractionPrompt(conversation)}
 Rules:
 - Return the full revised values for these fields only: archetypes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications.
 - central_conflicts: at most 2 items; use [] unless the conversation clearly grounds opposing pressures. Avoid generic "X vs Y" pairs without concrete dream support.
-- amplifications (Mythic Echoes): prefer []. At most 1 named parallel {title, tradition, resonance, difference, evidence}. Not Dream Fabric; never mythology-roulette from generic symbols; require structural correspondence and a clear difference.
+- amplifications (Mythic Echo): at most 1 named parallel {title, tradition, resonance, divergence, evidence, confidence}. Not Dream Fabric; specific recognized narrative only; prefer [] when unsure.
 - Do NOT return or revise key symbols, symbol_stances, or landscapes. Key symbols must remain grounded in the original dream text only.
 - Use the user's follow-up clarifications to update or add symbolic motifs, inner structures, and archetypal energies.
 - Do not add elements from assistant speculation unless the user confirms or clearly grounds them.

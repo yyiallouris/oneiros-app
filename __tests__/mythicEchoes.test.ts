@@ -2,6 +2,7 @@ import {
   formatAmplificationsForEssay,
   formatMythicEchoForDisplay,
   formatMythicEchoLine,
+  isDisplayableMythicEcho,
   normalizeAmplifications,
 } from '../src/ai/mythicEchoes';
 
@@ -12,7 +13,7 @@ describe('mythicEchoes', () => {
         title: '',
         tradition: '',
         resonance: 'door as charged boundary',
-        difference: '',
+        divergence: '',
         evidence: [],
       },
     ]);
@@ -39,28 +40,56 @@ describe('mythicEchoes', () => {
       title: 'katabasis',
       tradition: '',
       resonance: 'May faintly echo stories of descent.',
-      difference: '',
+      divergence: '',
       evidence: ['descending chambers'],
     });
   });
 
-  it('keeps the named mythic parallel shape', () => {
+  it('keeps the named mythic parallel shape including confidence', () => {
     const items = normalizeAmplifications(
       [
         {
           title: 'Ariadne and the Labyrinth',
           tradition: 'Greek',
           resonance: 'The thread and labyrinth recall the Cretan cycle.',
-          difference: 'The creature is fed rather than defeated.',
+          divergence: 'The creature is fed rather than defeated.',
           evidence: ['thread', 'labyrinth', 'bull-like being'],
+          confidence: 'high',
         },
       ],
       1
     );
     expect(items[0].title).toBe('Ariadne and the Labyrinth');
     expect(items[0].tradition).toBe('Greek');
-    expect(items[0].difference).toContain('fed');
+    expect(items[0].divergence).toContain('fed');
     expect(items[0].evidence).toHaveLength(3);
+    expect(items[0].confidence).toBe('high');
+  });
+
+  it('maps legacy difference key to canonical divergence and reads confidence', () => {
+    const items = normalizeAmplifications([
+      {
+        title: 'Inanna',
+        tradition: 'Mesopotamian',
+        resonance: 'Descent through gates without a secured return.',
+        difference: 'No completed ascent is staged.',
+        evidence: ['gates', 'descent', 'stripped adornment'],
+        confidence: 'medium',
+      },
+    ]);
+    expect(items[0].divergence).toBe('No completed ascent is staged.');
+    expect(items[0].confidence).toBe('medium');
+    expect(isDisplayableMythicEcho(items[0])).toBe(true);
+    expect(isDisplayableMythicEcho({ ...items[0], confidence: 'high' })).toBe(true);
+    expect(
+      isDisplayableMythicEcho({
+        title: 'legacy',
+        tradition: '',
+        resonance: 'old row',
+        divergence: '',
+        evidence: [],
+      })
+    ).toBe(true);
   });
 
   it('maps legacy echo_name into title', () => {
@@ -74,13 +103,14 @@ describe('mythicEchoes', () => {
     expect(items[0].title).toBe('Katabasis through the labyrinth');
   });
 
-  it('formats display cards and essay lines', () => {
+  it('formats display cards as paragraphs and essay lines', () => {
     const echo = {
       title: 'Ariadne and the Labyrinth',
       tradition: 'Greek',
       resonance: 'The thread and labyrinth recall the Cretan cycle.',
-      difference: 'Here the creature is fed rather than defeated.',
+      divergence: 'Here the creature is fed rather than defeated.',
       evidence: ['thread', 'labyrinth'],
+      confidence: 'high' as const,
     };
     expect(formatMythicEchoForDisplay(echo)).toEqual({
       title: 'Ariadne and the Labyrinth — Greek',

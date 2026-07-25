@@ -9,7 +9,11 @@ import {
   formatArchetypalEchoesForDisplay,
   type EchoDisplayCard,
 } from '../ai/archetypalEchoes';
-import { formatMythicEchoForDisplay, normalizeAmplifications } from '../ai/mythicEchoes';
+import {
+  formatMythicEchoForDisplay,
+  isDisplayableMythicEcho,
+  normalizeAmplifications,
+} from '../ai/mythicEchoes';
 
 export type VisibleDreamAnchor = {
   label: string;
@@ -234,9 +238,9 @@ export const buildDreamDetailDisplayModel = (
           : dream.archetypes ?? [],
         2
       ),
-      mythicEchoes: normalizeAmplifications(interpretation?.amplifications ?? [], 1).map(
-        formatMythicEchoForDisplay
-      ),
+      mythicEchoes: normalizeAmplifications(interpretation?.amplifications ?? [], 1)
+        .filter(isDisplayableMythicEcho)
+        .map(formatMythicEchoForDisplay),
     },
   };
 };

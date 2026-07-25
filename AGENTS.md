@@ -86,12 +86,57 @@ npm run detox:test:android
 - If existing modified files are unrelated, leave them alone.
 - If existing modified files affect the task, read them and work with the changes.
 
+## UX And Product Contracts Require Explicit Approval
+
+**Do not silently remove, replace, or “simplify away” user-visible product behavior while fixing a bug.**
+
+Especially locked (requires the user’s explicit approval in the current conversation before changing):
+
+- DreamDetail live reflection **typing / streaming reveal** (`PhasedTypingText` while `isStreaming` or settle `isTyping`).
+- The ~15s partial-reveal threshold and Exploring-chat stream surface.
+- Other intentional motion / reveal UX that users already rely on (typewriter, phased reveal, stream catch-up).
+
+Hard rules:
+
+1. Fix the actual failure mode (layout, clipping, resume, schema, deploy). Do **not** delete the UX as a shortcut.
+2. Never replace streamed `PhasedTypingText` with instant full-text dumps “because the typewriter is slow” without approval.
+3. If a locked UX contract and a bug appear to conflict, keep the contract and ask the user before changing product feel.
+4. Keep the matching Markdown + contract tests updated in the same change; do not weaken tests to allow a silent UX removal.
+5. Same rule for analogous product locks: if docs/tests mark a behavior as **user-approval required**, stop and ask.
+
+Canonical docs:
+
+- `documentation/flows-06-jungian-ai-reflection.md` → **Locked UX contract: reflection streaming typing**
+- `.codex/skills/oneiros-repo/SKILL.md`
+- Contract tests: `__tests__/flows/dreamDetail.streamingTyping.contract.flow.test.ts`
+
+## Metadata Extraction Must Stay Bulletproof
+
+Recurring `dream_metadata_extract` / `structured_schema_invalid` invoke failures after prompt or schema edits are **unacceptable**. The reflection can succeed and metadata still 502 — users see broken Dream Details.
+
+**Whenever you change** extraction prompts, echo shapes, Zod schemas, normalizers, or repair hints:
+
+1. Keep **soft defaults** for fields the model commonly omits (today: missing echo `confidence` → `medium` via coerce **and** Zod preprocess). Do not add a new required echo field without a coerce/preprocess fallback or an explicit optional design.
+2. Keep prompt example JSON, TypeScript types, Zod, normalizers, and repair hints in lockstep (canonical mythic key is `divergence`).
+3. Bump `DREAM_EXTRACTION_SCHEMA_VERSION` (and prompt semver when pedagogy changes).
+4. Extend `__tests__/flows/dreamMetadataExtraction.resilience.contract.flow.test.ts` + unit validation tests for the new omission case.
+5. Deploy **both** `openai-proxy` and `ai-entitlements-gateway` after shared validation/prompt changes — client Metro reload alone is not enough for production extract.
+6. Never “fix” extract failures by silently dropping all Interpretive Echoes or by weakening validation so empty garbage becomes `ready`.
+
+Canonical docs:
+
+- `documentation/flows-06-jungian-ai-reflection.md` → **Locked contract: metadata extraction resilience**
+- `docs/SYMBOLS_FLOW.md`, `documentation/architecture-interpretation.md`
+- `supabase/functions/openai-proxy/README.md`
+
 ## Completion Checklist
 
 Before final response, verify:
 
 - Relevant Markdown docs were updated, or no doc update was needed.
 - Relevant Jest/flow tests were added or updated, or no test update was needed.
+- No locked UX/product contract was changed without explicit user approval (especially DreamDetail streaming typing).
+- Metadata extraction schema/prompt changes kept soft defaults + contract tests, and required gateway/proxy deploy was called out.
 - Any required Supabase/database push or function deploy was called out explicitly.
 - iPhone/iOS and Android impact was considered for mobile-facing changes.
 - Commands run are reported, including failures or skipped checks.

@@ -57,6 +57,8 @@ type DreamExtraction = {
     | {
         title?: string;
         tradition?: string;
+        divergence?: string;
+        /** Legacy key — normalizeAmplifications maps to divergence. */
         difference?: string;
         echo_name?: string;
         resonance?: string;

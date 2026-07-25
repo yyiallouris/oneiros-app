@@ -118,8 +118,9 @@ export interface Interpretation {
   core_mode?: CoreMode;
   /**
    * Mythic Echoes: rare provisional interpretive enrichment (not Dream Fabric).
-   * Prefer 0–1 named parallels `{ title, tradition, resonance, difference, evidence }`.
-   * Readers should normalize via `normalizeAmplifications`.
+   * Prefer 0–1 named parallels `{ title, tradition, resonance, divergence, evidence, confidence }`.
+   * Dream Detail shows high and medium confidence (legacy missing confidence still displays).
+   * Readers should normalize via `normalizeAmplifications` (legacy `difference` → `divergence` on read).
    */
   amplifications?: MythicEcho[];
   /** How each key symbol was experienced in the dream (e.g. playful, painful, stressful). */
@@ -130,6 +131,10 @@ export interface Interpretation {
   metadata_status?: InterpretationMetadataStatus;
   metadata_generated_at?: string | null;
   metadata_error_code?: string | null;
+  /** Stable prompt architecture id used for this extraction (re-extract when outdated). */
+  extraction_prompt_version?: string | null;
+  /** Structured echo schema generation used for this extraction. */
+  extraction_schema_version?: number | null;
   reflection_origin?: 'free_weekly' | 'paid_cycle';
   chat_replies_used?: number;
   chat_replies_limit?: number;

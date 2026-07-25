@@ -22,12 +22,16 @@ describe('structured AI validation flow', () => {
     expect(validation).toMatch(/status: z\.literal\('no_change'\)/);
     expect(validation).toMatch(/buildStructuredRepairMessages/);
     expect(validation).toMatch(/safeStructuredValidationLog/);
+    expect(validation).toMatch(/DREAM_EXTRACTION_SOFT_DEFAULTS/);
+    expect(validation).toMatch(/withSoftEchoConfidence/);
+    expect(validation).toMatch(/missingEchoConfidence: 'medium'/);
 
     expect(proxy).toMatch(/maybeValidateAndRepairStructured/);
     expect(proxy).toMatch(/Structured AI response failed schema validation/);
     expect(proxy).toMatch(/provider: "anthropic"/);
     expect(proxyReadme).toMatch(/Zod/);
     expect(proxyReadme).toMatch(/one repair on the same provider/);
+    expect(proxyReadme).toMatch(/DREAM_EXTRACTION_SOFT_DEFAULTS/);
 
     expect(billingAi).toMatch(/validateStructuredTaskContent\('dream_extraction'/);
     expect(clientAi).toMatch(/validateStructuredTaskContent\('conversation_element_update'/);

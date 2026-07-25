@@ -6,10 +6,10 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 
 | Layer | Main files | Responsibility |
 |------|------------|----------------|
-| App shell | `App.tsx`, `src/components/ui/LoadingScreen.tsx` | Font loading, native splash handoff, in-app brand loading state |
+| App shell | `App.tsx`, `src/components/ui/LoadingScreen.tsx`, `src/components/ui/WebContentShell.tsx` | Font loading, native splash handoff, in-app brand loading state, Expo web centered content column |
 | Navigation gate | `src/navigation/RootNavigator.tsx` | Session, password reset, biometric lock, legal consent, onboarding, tabs, authenticated stack |
 | Tabs and screens | `src/navigation/MainTabsNavigator.tsx`, `src/screens/*` | Product UI and user journeys |
-| Shared UI/theme | `src/components/ui/*`, `src/theme/*` | Paper-first visual system, typography, spacing, reusable surfaces |
+| Shared UI/theme | `src/components/ui/*`, `src/theme/*`, `src/layout/WebLayoutContext.tsx` | Paper-first visual system, typography, spacing, web content-width tokens, reusable surfaces |
 | Local data | `src/services/localStorage.ts` | AsyncStorage-only persistence and queues |
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
 | Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
@@ -43,7 +43,8 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 - Colors: `src/theme/colors.ts`; docs: `src/theme/COLORS.md`.
 - Typography: `src/theme/typography.ts`; docs: `src/theme/TYPOGRAPHY.md`.
-- Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `PaperBackground`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.
+- Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `PaperBackground`, `WebContentShell`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.
+- Web layout tokens: `src/theme/layout.ts` + `useContentWidth()` for shell-aware widths.
 - Legacy visuals: `LegacyWaveBackground` and `LegacyMountainWaveBackground` remain in the repo for fallback/reference only and should not be used for active screens.
 - Visual direction: textured warm paper base, Deep Ink text, Night/Ritual Plum actions, and a floating parchment bottom nav. Avoid hardcoded colors in components unless truly local.
 - UI changes must consider both iPhone/iOS and Android safe areas, keyboard behavior, native permissions, and the absolute bottom tab bar.

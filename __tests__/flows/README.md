@@ -18,9 +18,13 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
 | `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering, pending metadata skip) |
 | `dreamMetadataPrefetchService.flow.test.ts` | architecture-interpretation (extraction cache, dream content hashes, in-flight prefetch, offline prefetch skip) |
-| `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, async reflection polling, direct interpretation payloads, local persistence/cache, entitlement denial reasons) |
+| `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, async reflection polling/resume handles, stable generate keys, direct interpretation payloads, local persistence/cache, entitlement denial reasons) |
+| `dreamDetail.reflectionResume.flow.test.tsx` | flows-06 (DreamDetail focus resumes pending reflection loading / remote attach without Reflect again) |
+| `gatewayReflectionResume.flow.test.ts` | flows-06 (gateway async_background_started prevents second Edge worker on idempotency replay) |
 | `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
 | `edgeExtractionPrompt.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (Edge dream metadata extraction prompt parity via shared canonical module) |
+| `interpretiveEchoesV31.ranking.flow.test.ts` | flows-06 / SYMBOLS_FLOW (Interpretive Echoes v3.6 single-call + lightweight validators) |
+| `../ai/interpretiveCatalogs.v1.test.ts` | catalogs / retrieval / validators for archetypes + myths (v1 knowledge architecture) |
 | `edgePatternEssayPrompt.flow.test.ts` | flows-07 (Edge Recent Dream Field and period reflection prompt parity) |
 | `aiCostLogging.flow.test.ts` | architecture-interpretation / flows-07 / flows-10 (safe AI token-cost logging for reflection, metadata, Recent Dream Field, and Period Reflection via shared pricing table, plus metadata extraction duplicate-spend guard) |
 | `symbolTaxonomy.flow.test.ts` | flows-07 (safe labels, archetype taxonomy, modal key mapping, date labels) |
@@ -30,8 +34,15 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `network.flow.test.ts` | flows-05 (forced offline, subscription callback) |
 | `constants.flow.test.ts` | flows-02 / flows-06 (password length, AI message cap) |
 | `openaiProxySecurity.flow.test.ts` | architecture-interpretation / openai-proxy README (authenticated AI proxy boundary) |
+| `openaiProxySamplingParams.flow.test.ts` | flows-06 / openai-proxy README (omit forbidden temperature so Sonnet 5 / gpt-5 fallback stays alive) |
+| `openaiProxyFallbackChain.flow.test.ts` | flows-06 / openai-proxy README (Sonnet→Haiku fallback chains for reflection/essay tasks) |
 | `structuredAiValidation.flow.test.ts` | architecture-interpretation / openai-proxy README (Zod schemas + one repair for structured AI tasks) |
 | `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
+| `dreamDetail.chatScroll.flow.test.tsx` | flows-06 (DreamDetail Exploring nested chat keeps full multi-section reflection scrollable; no overflow:hidden) |
+| `dreamDetail.streamingTyping.contract.flow.test.ts` | flows-06 **locked UX** (DreamDetail ~15s streamed reflection must keep `PhasedTypingText`; user approval required to change; forbids instant full-text dump shortcut) |
+| `dreamDetail.skeleton.flow.test.ts` | flows-04 (DreamDetail initial load uses layout-faithful `DreamDetailSkeleton`, not dual journal `LinoSkeletonCard`) |
+| `dreamMetadataExtraction.resilience.contract.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW **locked resilience** (metadata extract soft-defaults missing echo confidence; dual deploy; forbids recurring `structured_schema_invalid` after schema edits) |
+| `billingCommitQuota.interpretationIdText.contract.flow.test.ts` | flows-10 / flows-06 (billing_commit_quota keeps interpretation_id as text — never uuid; prevents dream_followup_reply Failed to commit quota) |
 | `dreamSaveLoading.flow.test.ts` | flows-04 (Save dream disables immediately but delays visible loading to avoid fast-save flashes) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
 | `voiceTranscription.flow.test.tsx` | flows-04 / flows-05 / flows-06 / flows-09 (record → transcribe → append, successful local-audio cleanup, retryable clip contract) |
@@ -42,6 +53,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `insightsScreen.recentDreamField.flow.test.tsx` | flows-07 / flows-10 (Recent Dream Field generation, cache display, premium lock state) |
 | `insightsScrollRestore.flow.test.ts` | flows-07 (Insights landing soft-refresh + scroll restore when returning from a section) |
 | `insightsSection.offlineMessage.flow.test.tsx` | flows-05 / flows-07 / flows-10 (period reflection offline guard and premium lock state) |
+| `webContentShell.flow.test.tsx` | architecture-features / DESIGN.md (Expo web centered content column; native passthrough; content width context) |
 
 Run only these:
 

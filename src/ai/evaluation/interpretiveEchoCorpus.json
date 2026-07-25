@@ -1,0 +1,60 @@
+{
+  "version": "0.1.0",
+  "notes": "Development corpus scaffold. Expand to 15 dev + 25–40 holdout + 10 adversarial. Do not paste answer keys into production prompts.",
+  "sets": {
+    "development": [
+      {
+        "id": "T01",
+        "label": "theatre / bride / double / baby / fox",
+        "status": "placeholder",
+        "dreamText": "",
+        "acceptableArchetypes": [],
+        "rejectedArchetypes": ["Ruler"],
+        "acceptableMythCatalogIds": [],
+        "expectEmptyMythic": true
+      },
+      {
+        "id": "T02",
+        "label": "well / labyrinth / thread / bull-being",
+        "status": "placeholder",
+        "dreamText": "",
+        "acceptableArchetypes": ["Shadow", "Guide / Psychopomp", "Death–Rebirth"],
+        "rejectedArchetypes": ["Double"],
+        "acceptableMythCatalogIds": ["greek.cretan_labyrinth"],
+        "expectEmptyMythic": false
+      },
+      {
+        "id": "T03",
+        "label": "flooded family home / child / key / tree",
+        "status": "placeholder",
+        "dreamText": "",
+        "acceptableArchetypes": ["Divine Child", "Great Mother", "Death–Rebirth"],
+        "rejectedArchetypes": [],
+        "acceptableMythCatalogIds": [],
+        "expectEmptyMythic": null
+      },
+      {
+        "id": "T04",
+        "label": "everyday dream without clear myth",
+        "status": "placeholder",
+        "dreamText": "",
+        "acceptableArchetypes": [],
+        "rejectedArchetypes": [],
+        "acceptableMythCatalogIds": [],
+        "expectEmptyMythic": true
+      },
+      {
+        "id": "T05",
+        "label": "non-Greek mythic structure (gates / stripping)",
+        "status": "placeholder",
+        "dreamText": "",
+        "acceptableArchetypes": [],
+        "rejectedArchetypes": [],
+        "acceptableMythCatalogIds": ["mesopotamian.inanna_descent"],
+        "expectEmptyMythic": false
+      }
+    ],
+    "holdout": [],
+    "adversarial": []
+  }
+}

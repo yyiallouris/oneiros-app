@@ -226,6 +226,12 @@ export class SyncService {
             metadata_status: remoteI.metadata_status ?? localI?.metadata_status,
             metadata_generated_at: remoteI.metadata_generated_at ?? localI?.metadata_generated_at,
             metadata_error_code: remoteI.metadata_error_code ?? localI?.metadata_error_code,
+            extraction_prompt_version: !remoteMetadataPending
+              ? remoteI.extraction_prompt_version ?? localI?.extraction_prompt_version
+              : localI?.extraction_prompt_version,
+            extraction_schema_version: !remoteMetadataPending
+              ? remoteI.extraction_schema_version ?? localI?.extraction_schema_version
+              : localI?.extraction_schema_version,
           };
           mergedById.set(remoteI.id, merged);
         });

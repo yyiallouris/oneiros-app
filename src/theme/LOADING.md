@@ -61,9 +61,17 @@ When generating essays/reports:
 
 Example: Insights period reflection (`InsightsSectionScreen`).
 
+### DreamDetail reflection streaming (locked)
+
+After the calm `dreamReflection` loader, once the ~15s partial-reveal threshold is hit, DreamDetail switches to Exploring chat with **phased typing** on the live partial (`PhasedTypingText` + `isStreaming`).
+
+**Do not remove that typing effect** to fix layout/clipping/resume bugs without the user’s explicit approval. Fix the layout (`dreamDetailChatLayout.ts` / Exploring card styles) instead. See `documentation/flows-06-jungian-ai-reflection.md` → Locked UX contract.
+
 ## List placeholders
 
 Journal initial load still uses `LinoSkeletonCard` rows — that is list scaffolding, not action loading. Do not replace list skeletons with `LoadingState`.
+
+DreamDetail initial load uses `DreamDetailSkeleton` (`src/components/ui/DreamDetailSkeleton.tsx`) so the placeholder mirrors the dream page + reflection summary. Do not reuse `LinoSkeletonCard` there.
 
 ## Do not use
 

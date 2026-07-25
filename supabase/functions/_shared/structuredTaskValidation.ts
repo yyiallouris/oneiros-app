@@ -3,6 +3,7 @@
  */
 export {
   STRUCTURED_AI_TASKS,
+  DREAM_EXTRACTION_SOFT_DEFAULTS,
   isStructuredAiTask,
   parseStructuredJsonObject,
   validateStructuredTaskContent,

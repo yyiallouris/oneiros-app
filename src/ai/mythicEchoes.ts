@@ -5,6 +5,8 @@
 
 import type { EchoDisplayCard } from './archetypalEchoes.ts';
 
+export type MythicEchoConfidence = 'high' | 'medium';
+
 export type MythicEcho = {
   /** Established name of the myth, narrative, or figure. */
   title: string;
@@ -13,8 +15,15 @@ export type MythicEcho = {
   /** Structural kinship with the dream. */
   resonance: string;
   /** Important way the dream diverges from the traditional story. */
-  difference: string;
+  divergence: string;
   evidence: string[];
+  /**
+   * Extraction confidence. Dream Detail shows `high` and `medium`.
+   * Absent on legacy rows (still displayable until re-extract).
+   */
+  confidence?: MythicEchoConfidence;
+  /** Optional curated catalog id (v4). Resolved to title/tradition when present. */
+  catalog_id?: string;
 };
 
 /** New extractions should stay at 0–1; legacy rows may still have 2 brief items. */
@@ -42,6 +51,19 @@ function readTitle(o: Record<string, unknown>): string {
   return '';
 }
 
+/** Canonical key is `divergence`; accept legacy `difference` on read only. */
+function readDivergence(o: Record<string, unknown>): string {
+  if (typeof o.divergence === 'string' && o.divergence.trim()) return o.divergence.trim();
+  if (typeof o.difference === 'string' && o.difference.trim()) return o.difference.trim();
+  return '';
+}
+
+function readConfidence(o: Record<string, unknown>): MythicEchoConfidence | undefined {
+  const raw = typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
+  if (raw === 'high' || raw === 'medium') return raw;
+  return undefined;
+}
+
 export function normalizeAmplifications(
   raw: unknown,
   max: number = MAX_LEGACY_MYTHIC_ECHOES
@@ -57,28 +79,36 @@ export function normalizeAmplifications(
         title: '',
         tradition: '',
         resonance,
-        difference: '',
+        divergence: '',
         evidence: [],
       });
     } else if (item && typeof item === 'object') {
       const o = item as Record<string, unknown>;
+      const confidenceRaw =
+        typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
+      if (confidenceRaw === 'low') continue;
       const title = readTitle(o);
       const tradition = typeof o.tradition === 'string' ? o.tradition.trim() : '';
       const resonance = typeof o.resonance === 'string' ? o.resonance.trim() : '';
-      const difference = typeof o.difference === 'string' ? o.difference.trim() : '';
+      const divergence = readDivergence(o);
+      const confidence = readConfidence(o);
+      const catalog_id = typeof o.catalog_id === 'string' ? o.catalog_id.trim() : '';
       const dreamImage = typeof o.dream_image === 'string' ? o.dream_image.trim() : '';
       const evidence = asEvidence(o.evidence);
       if (dreamImage && !evidence.includes(dreamImage) && evidence.length < 3) {
         evidence.unshift(dreamImage);
       }
-      if (!title && !tradition && !resonance && !difference && evidence.length === 0) continue;
-      out.push({
+      if (!title && !tradition && !resonance && !divergence && evidence.length === 0 && !catalog_id) continue;
+      const echo: MythicEcho = {
         title: title || (dreamImage ? dreamImage.slice(0, 80) : ''),
         tradition,
         resonance,
-        difference,
+        divergence,
         evidence: evidence.slice(0, 3),
-      });
+      };
+      if (confidence) echo.confidence = confidence;
+      if (catalog_id) echo.catalog_id = catalog_id;
+      out.push(echo);
     }
     if (out.length >= max) break;
   }
@@ -86,17 +116,24 @@ export function normalizeAmplifications(
   return out;
 }
 
-/** Title + body for Dream Detail Interpretive Echoes. */
+/**
+ * Dream Detail shows high and medium confidence, plus legacy rows without confidence.
+ * Low-confidence echoes are dropped during normalize and never displayed.
+ */
+export function isDisplayableMythicEcho(_item: MythicEcho): boolean {
+  return true;
+}
+
+/** Title + one compact paragraph for Dream Detail Interpretive Echoes. */
 export function formatMythicEchoForDisplay(item: MythicEcho): EchoDisplayCard {
   const name = item.title.trim() || 'Mythic echo';
   const tradition = item.tradition.trim();
   const title = tradition ? `${name} — ${tradition}` : name;
   const resonance = item.resonance.trim();
-  const difference = item.difference.trim();
-  const bodyParts: string[] = [];
-  if (resonance) bodyParts.push(resonance);
-  if (difference) bodyParts.push(difference);
-  return { title, body: bodyParts.join(' ').trim() };
+  const divergence = item.divergence.trim();
+  // One paragraph only — length is controlled at generation time, not via UI truncation.
+  const body = [resonance, divergence].filter(Boolean).join(' ').trim();
+  return { title, body };
 }
 
 /** Compact line for essay context / legacy string consumers. */
@@ -104,13 +141,13 @@ export function formatMythicEchoLine(item: MythicEcho): string {
   const name = item.title.trim();
   const tradition = item.tradition.trim();
   const resonance = item.resonance.trim();
-  const difference = item.difference.trim();
+  const divergence = item.divergence.trim();
   const headed = name
     ? tradition
       ? `${name} (${tradition})`
       : name
     : '';
-  const detail = [resonance, difference].filter(Boolean).join(' ');
+  const detail = [resonance, divergence].filter(Boolean).join(' ');
   if (headed && detail) return `${headed} — ${detail}`;
   return detail || headed;
 }

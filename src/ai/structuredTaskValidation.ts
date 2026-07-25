@@ -50,15 +50,57 @@ const symbolStanceSchema = z.object({
   stance: z.string().optional(),
 });
 
-/** Extraction must return rich Archetypal Echo objects — bare tags are invalid. */
-const extractionArchetypalEchoSchema = z
+/**
+ * Soft defaults for dream_extraction so common model omissions do not 502 the
+ * whole metadata pass. Keep in sync with coerce helpers + contract tests.
+ * See docs: Locked contract — metadata extraction resilience.
+ */
+export const DREAM_EXTRACTION_SOFT_DEFAULTS = {
+  missingEchoConfidence: 'medium' as const,
+};
+
+function withSoftEchoConfidence(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const o = raw as Record<string, unknown>;
+  const conf = typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
+  if (conf === 'high' || conf === 'medium') return o;
+  // Omit / unknown → medium. Explicit "low" stays and fails the enum (we never store low).
+  if (conf === 'low') return o;
+  return { ...o, confidence: DREAM_EXTRACTION_SOFT_DEFAULTS.missingEchoConfidence };
+}
+
+const archetypeEvaluationSchema = z
   .object({
-    canonical_label: z.string().min(1),
-    expression: z.string().min(1),
-    resonance: z.string().min(12),
-    evidence: z.array(z.string().min(1)).min(1).max(2),
+    centrality: z.number().min(0).max(5),
+    activeInMainAction: z.boolean().optional(),
+    carrierType: z.enum(['figure', 'relationship', 'field', 'process']).optional(),
+    agency: z.number().optional(),
+    identityCompetition: z.boolean().optional(),
+    actualCrossing: z.boolean().optional(),
+    maternalFunction: z.boolean().optional(),
+    fieldTransformation: z.boolean().optional(),
+    futureBearing: z.boolean().optional(),
+    excludedOrDisownedRole: z.boolean().optional(),
+    engulfingOrPossessiveDynamic: z.boolean().optional(),
+    embodiedSovereign: z.boolean().optional(),
   })
   .passthrough();
+
+/** Extraction must return rich Archetypal Echo objects — bare tags are invalid. */
+const extractionArchetypalEchoSchema = z.preprocess(
+  withSoftEchoConfidence,
+  z
+    .object({
+      canonical_label: z.string().min(1),
+      expression: z.string().min(1),
+      resonance: z.string().min(12),
+      evidence: z.array(z.string().min(1)).min(1).max(2),
+      confidence: z.enum(['high', 'medium']),
+      /** Required at runtime for Double / Guide / Divine Child / Terrible Mother / Ruler. */
+      evaluation: archetypeEvaluationSchema.optional(),
+    })
+    .passthrough()
+);
 
 /** Conversation updates / legacy may still carry bare strings; readers normalize. */
 const legacyArchetypalEchoSchema = z.union([
@@ -70,20 +112,36 @@ const legacyArchetypalEchoSchema = z.union([
       display_label: z.string().optional(),
       resonance: z.string().optional(),
       evidence: z.array(z.string()).optional(),
+      confidence: z.enum(['high', 'medium']).optional(),
     })
     .passthrough(),
 ]);
 
 /** Extraction Mythic Echo: named parallel from a real tradition. */
-const extractionMythicEchoSchema = z
+const extractionMythicEchoSchema = z.preprocess((raw) => {
+  if (!raw || typeof raw !== 'object') return raw;
+  const o = raw as Record<string, unknown>;
+  let next: Record<string, unknown> = o;
+  // Canonical key is divergence; accept legacy difference only during coerce/repair.
+  if (
+    (typeof next.divergence !== 'string' || !String(next.divergence).trim()) &&
+    typeof next.difference === 'string' &&
+    next.difference.trim()
+  ) {
+    const { difference: _legacyDifference, ...rest } = next;
+    next = { ...rest, divergence: next.difference };
+  }
+  return withSoftEchoConfidence(next);
+}, z
   .object({
     title: z.string().min(1),
     tradition: z.string().min(1),
     resonance: z.string().min(12),
-    difference: z.string().min(8),
+    divergence: z.string().min(8),
     evidence: z.array(z.string().min(1)).min(2).max(3),
+    confidence: z.enum(['high', 'medium']),
   })
-  .passthrough();
+  .passthrough());
 
 /** Conversation updates / legacy Mythic Echo shapes during transition. */
 const amplificationSchema = z.union([
@@ -93,8 +151,11 @@ const amplificationSchema = z.union([
       title: z.string().optional(),
       tradition: z.string().optional(),
       resonance: z.string().optional(),
+      divergence: z.string().optional(),
+      // Legacy key — readers normalize to divergence.
       difference: z.string().optional(),
       evidence: z.array(z.string()).optional(),
+      confidence: z.enum(['high', 'medium']).optional(),
       // Legacy Mythic Echo fields
       echo_name: z.string().optional(),
       dream_image: z.string().optional(),
@@ -115,6 +176,7 @@ export const dreamExtractionSchema = z
     thresholds: stringArray.default([]),
     central_conflicts: stringArray.default([]),
     core_mode: coreModeSchema,
+    // Direct 0–1 Mythic Echo from the same extraction call (open-world).
     amplifications: z.array(extractionMythicEchoSchema).default([]),
     symbol_stances: z.array(symbolStanceSchema).default([]),
   })
@@ -272,12 +334,18 @@ function asStringArray(value: unknown): string[] {
   return value.map((item) => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
 }
 
-function coerceAmplifications(value: unknown): unknown[] {
+function coerceAmplifications(value: unknown) {
   return normalizeAmplifications(value, MAX_LEGACY_MYTHIC_ECHOES);
 }
 
 function coerceArchetypes(value: unknown): unknown[] {
   return normalizeArchetypalEchoes(value, MAX_LEGACY_ARCHETYPAL_ECHOES);
+}
+
+/** Model often omits confidence; if the echo is otherwise kept, treat as medium. */
+function withDefaultMediumConfidence<T extends { confidence?: string }>(echo: T): T {
+  if (echo.confidence === 'high' || echo.confidence === 'medium') return echo;
+  return { ...echo, confidence: DREAM_EXTRACTION_SOFT_DEFAULTS.missingEchoConfidence };
 }
 
 /**
@@ -290,7 +358,17 @@ function coerceExtractionArchetypes(value: unknown): unknown[] {
   return value.map((item) => {
     if (typeof item === 'string') return item.trim();
     const normalized = normalizeArchetypalEchoes([item], 1);
-    return normalized[0] ?? item;
+    if (!normalized[0]) return item;
+    // normalizeArchetypalEchoes already drops evaluation; keep production shape only.
+    return withDefaultMediumConfidence(normalized[0]);
+  });
+}
+
+function coerceExtractionAmplifications(value: unknown): unknown[] {
+  return coerceAmplifications(value).map((echo) => {
+    // Only default confidence on named parallels that already have structure.
+    if (!echo.title.trim() && !echo.tradition.trim()) return echo;
+    return withDefaultMediumConfidence(echo);
   });
 }
 
@@ -307,7 +385,7 @@ function coerceDreamExtraction(raw: unknown): unknown {
     relational_dynamics: asStringArray(o.relational_dynamics),
     thresholds: asStringArray(o.thresholds),
     central_conflicts: asStringArray(o.central_conflicts),
-    amplifications: coerceAmplifications(o.amplifications),
+    amplifications: coerceExtractionAmplifications(o.amplifications),
     symbol_stances: Array.isArray(o.symbol_stances) ? o.symbol_stances : [],
     core_mode: o.core_mode === undefined ? null : o.core_mode,
   };
@@ -459,9 +537,9 @@ export function buildStructuredRepairMessages(
 ): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
   const schemaHint =
     task === 'dream_extraction'
-      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {canonical_label, expression, resonance, evidence[]} — never bare strings like ["Divine Child","Guide / Psychopomp"]. canonical_label must be a classical whitelist name; expression is the dream-specific form (not equal to canonical_label); resonance min ~12 chars; evidence 1–2 concrete dream elements. amplifications use 0–1 named mythic parallel {title, tradition, resonance, difference, evidence[]} (evidence 2–3); empty array when no strong parallel.'
+      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {canonical_label, expression, resonance, evidence[], confidence:"high"|"medium"} — never bare strings, never an evaluation bag. Include confidence on every selected echo. canonical_label must be a classical whitelist name; expression is the dream-specific form (not equal to canonical_label); resonance one short sentence (~20–35 words) without "Appears as…"; evidence 1–2 concrete dream elements. amplifications is 0–1 named Mythic Echo {title, tradition, resonance, divergence, evidence[2–3], confidence} or []. Title must be a recognized narrative/cycle/episode (not a bare figure). Prefer amplifications:[] when unsure — a false Mythic Echo is more harmful than no Mythic Echo — but do not omit an unusually direct high-confidence structural match.'
       : task === 'conversation_element_update'
-        ? 'Return either {"status":"no_change"} or {"status":"updated", "archetypes":[], "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. When updating archetypes, prefer rich objects {canonical_label, expression, resonance, evidence[]}.'
+        ? 'Return either {"status":"no_change"} or {"status":"updated", "archetypes":[], "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. When updating archetypes, prefer rich objects {canonical_label, expression, resonance, evidence[], confidence}.'
         : 'Return {"symbol_groups":[{"canonical":"...","members":["...","..."]}],"landscape_groups":[...]} with members length >= 2 when present. Empty arrays are allowed.';
 
   const system = `You repair invalid JSON for the Oneiros task "${task}". Return ONLY valid JSON. No markdown. ${schemaHint}`;

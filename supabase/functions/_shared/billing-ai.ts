@@ -8,7 +8,9 @@ import { buildCurrentMonthScope, getRecentSequenceScopeKey } from '../../../src/
 import {
   buildDreamExtractionSystemPrompt,
   buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_PROMPT_ID,
   DREAM_EXTRACTION_PROMPT_VERSION,
+  DREAM_EXTRACTION_SCHEMA_VERSION,
   DREAM_EXTRACTION_TEMPERATURE,
   DREAM_EXTRACTION_TOKEN_LIMIT,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
@@ -24,6 +26,20 @@ import {
   normalizeAmplifications,
   type MythicEcho,
 } from '../../../src/ai/mythicEchoes.ts';
+import {
+  parseInterpretiveEchoDiagnostics,
+  safeInterpretiveDiagnosticsLog,
+  type InterpretiveEchoDiagnostics,
+} from '../../../src/ai/interpretiveEchoDiagnostics.ts';
+import {
+  asArchetypeEvaluation,
+  toPersistedArchetypalEcho,
+  validateArchetypalEchoes,
+} from '../../../src/ai/validators/archetypalEchoValidator.ts';
+import {
+  toPersistedMythicEcho,
+  validateMythicEchoes,
+} from '../../../src/ai/validators/mythicEchoValidator.ts';
 import type { PatternEntry } from './billing-db.ts';
 import { HttpError } from './http.ts';
 import { getFunctionsBaseUrl, getSupabaseAnonKey } from './supabase.ts';
@@ -671,12 +687,28 @@ async function invokeOpenAiProxyStream(params: {
         details = null;
       }
     }
+    const proxyError =
+      details && typeof details === 'object'
+        ? (details as { error?: unknown; message?: unknown }).error
+        : null;
+    const proxyMessage =
+      typeof proxyError === 'string'
+        ? proxyError
+        : proxyError && typeof proxyError === 'object' && typeof (proxyError as { message?: unknown }).message === 'string'
+          ? (proxyError as { message: string }).message
+          : details && typeof details === 'object' && typeof (details as { message?: unknown }).message === 'string'
+            ? (details as { message: string }).message
+            : null;
     console.error('[billing-ai] openai-proxy stream request failed', {
       task: params.task,
       status: response.status,
       durationMs: Date.now() - startedAt,
+      proxyMessage,
+      provider: response.headers.get('X-AI-Provider')?.trim() || null,
+      model: response.headers.get('X-AI-Model')?.trim() || null,
+      usedFallback: response.headers.get('X-AI-Fallback') === '1',
     });
-    throw new HttpError(response.status, 'AI proxy request failed', details);
+    throw new HttpError(response.status, proxyMessage || 'AI proxy request failed', details);
   }
 
   const contentType = response.headers.get('Content-Type') ?? '';
@@ -878,16 +910,24 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
    via the shared canonical module src/ai/dreamExtractionPrompt.ts.
    ============================ */
 
-function buildExtractionMessages(dream: DreamRecord, interpretation: string) {
+function buildExtractionMessages(
+  dream: DreamRecord,
+  interpretation: string,
+  options: { debugInterpretiveEchoes?: boolean } = {}
+) {
   const system = buildDreamExtractionSystemPrompt();
   const user = buildDreamExtractionUserPrompt({
     title: dream.title,
     date: dream.date,
     content: dream.content,
     finalInterpretation: interpretation,
+    debugInterpretiveEchoes: Boolean(options.debugInterpretiveEchoes),
   });
   console.log('[billing-ai] dream_extraction prompt prepared', {
     promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    promptId: DREAM_EXTRACTION_PROMPT_ID,
+    schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+    debugInterpretiveEchoes: Boolean(options.debugInterpretiveEchoes),
     dreamLength: dream.content?.length ?? 0,
     reflectionLength: interpretation?.length ?? 0,
     systemPromptLength: system.length,
@@ -1193,7 +1233,29 @@ function hasExtractionContent(extraction: ExtractionResult): boolean {
     extraction.symbol_stances.length > 0;
 }
 
-function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: boolean } = {}): ExtractionResult {
+function archetypesWithEvaluation(raw: unknown): Array<ArchetypalEcho & { evaluation?: unknown }> {
+  if (!Array.isArray(raw)) return [];
+  const out: Array<ArchetypalEcho & { evaluation?: unknown }> = [];
+  for (const row of raw) {
+    const normalized = normalizeArchetypalEchoes([row], 1)[0];
+    if (!normalized) continue;
+    const evaluation =
+      row && typeof row === 'object'
+        ? asArchetypeEvaluation((row as { evaluation?: unknown }).evaluation)
+        : null;
+    out.push(evaluation ? { ...normalized, evaluation } : normalized);
+    if (out.length >= MAX_ARCHETYPAL_ECHOES) break;
+  }
+  return out;
+}
+
+function parseExtraction(
+  content: string,
+  options: { failOnInvalidOrEmpty?: boolean; captureDiagnostics?: boolean } = {}
+): {
+  extraction: ExtractionResult;
+  diagnostics: InterpretiveEchoDiagnostics | null;
+} {
   const validated = validateStructuredTaskContent('dream_extraction', content, {
     provider: 'openai-or-fallback',
   });
@@ -1201,6 +1263,8 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
     const shape = safeAssistantJsonDiagnostics(content);
     console.error('[billing-ai] Extraction schema validation failed', {
       promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
       failOnInvalidOrEmpty: Boolean(options.failOnInvalidOrEmpty),
       schemaErrors: validated.schemaErrors.slice(0, 12),
       schemaErrorCount: validated.schemaErrors.length,
@@ -1212,19 +1276,28 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
       throw new HttpError(502, 'AI extraction returned invalid JSON', {
         failureCode: 'structured_schema_invalid',
         promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+        promptId: DREAM_EXTRACTION_PROMPT_ID,
+        schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
         schemaErrors: validated.schemaErrors.slice(0, 12),
         ...shape,
       });
     }
-    return emptyExtraction();
+    return {
+      extraction: emptyExtraction(),
+      diagnostics: null,
+    };
   }
 
   const parsed = validated.data as Record<string, unknown>;
+  const diagnostics = options.captureDiagnostics
+    ? parseInterpretiveEchoDiagnostics(parsed.interpretive_diagnostics)
+    : null;
 
   const extraction = {
     display_distillation: normalizeDisplayDistillation(parsed.display_distillation),
     symbols: asStringArray(parsed.symbols),
-    archetypes: normalizeArchetypalEchoes(parsed.archetypes, MAX_ARCHETYPAL_ECHOES),
+    // Keep evaluation attached until after validators (indices stay aligned).
+    archetypes: archetypesWithEvaluation(parsed.archetypes) as ArchetypalEcho[],
     landscapes: asStringArray(parsed.landscapes),
     affects: asStringArray(parsed.affects),
     motifs: asStringArray(parsed.motifs),
@@ -1251,6 +1324,8 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
 
   console.log('[billing-ai] dream_extraction normalized', {
     promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    promptId: DREAM_EXTRACTION_PROMPT_ID,
+    schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
     symbolsCount: extraction.symbols.length,
     archetypesCount: extraction.archetypes.length,
     // Safe shape counts only — never echo labels/resonance text.
@@ -1270,20 +1345,28 @@ function parseExtraction(content: string, options: { failOnInvalidOrEmpty?: bool
     symbolStancesCount: extraction.symbol_stances.length,
     hasDisplayDistillation: Boolean(extraction.display_distillation),
     coreMode: extraction.core_mode,
+    ...safeInterpretiveDiagnosticsLog(diagnostics),
   });
 
   if (options.failOnInvalidOrEmpty && !hasExtractionContent(extraction)) {
     console.error('[billing-ai] Extraction returned no usable metadata', {
       promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
       parsedKeysCount: Object.keys(parsed).length,
     });
     throw new HttpError(502, 'AI extraction returned no usable metadata', {
       failureCode: 'extraction_empty',
       promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
     });
   }
 
-  return extraction;
+  return {
+    extraction,
+    diagnostics,
+  };
 }
 
 export async function generateDreamInterpretation(params: {
@@ -1336,14 +1419,65 @@ export async function generateDreamExtractionWithCost(params: {
   authHeader: string;
   dream: DreamRecord;
   interpretation: string;
-}): Promise<{ extraction: ExtractionResult; cost: AiCallCost | null }> {
+  debugInterpretiveEchoes?: boolean;
+}): Promise<{
+  extraction: ExtractionResult;
+  cost: AiCallCost | null;
+  diagnostics: InterpretiveEchoDiagnostics | null;
+  model: string | null;
+}> {
+  const debugInterpretiveEchoes = Boolean(params.debugInterpretiveEchoes);
+  const prepared = buildExtractionMessages(params.dream, params.interpretation, { debugInterpretiveEchoes });
   const extractionPayload = await invokeOpenAiProxy({
     authHeader: params.authHeader,
-    ...buildExtractionMessages(params.dream, params.interpretation),
+    ...prepared,
   });
+  const parsed = parseExtraction(extractContent(extractionPayload), {
+    failOnInvalidOrEmpty: true,
+    captureDiagnostics: debugInterpretiveEchoes,
+  });
+
+  const archetypeValidation = validateArchetypalEchoes(
+    parsed.extraction.archetypes as Array<ArchetypalEcho & { evaluation?: unknown }>,
+    { max: MAX_ARCHETYPAL_ECHOES }
+  );
+  parsed.extraction.archetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
+
+  const mythicValidation = validateMythicEchoes(parsed.extraction.amplifications, {
+    max: MAX_MYTHIC_ECHOES,
+  });
+  parsed.extraction.amplifications = mythicValidation.accepted.map(toPersistedMythicEcho);
+
+  console.log('[billing-ai] interpretive_echo_validators', {
+    promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    archetypesAccepted: archetypeValidation.accepted.length,
+    archetypesRejected: archetypeValidation.rejected.length,
+    archetypeRejectReasons: archetypeValidation.rejected.map((r) => r.reason).slice(0, 6),
+    mythicAccepted: mythicValidation.accepted.length,
+    mythicRejected: mythicValidation.rejected.length,
+    mythicRejectReasons: mythicValidation.rejected.map((r) => r.reason).slice(0, 6),
+  });
+
+  const model =
+    typeof (extractionPayload as { model?: unknown })?.model === 'string'
+      ? ((extractionPayload as { model: string }).model)
+      : null;
+  if (debugInterpretiveEchoes) {
+    console.log('[billing-ai] interpretive_echo_diagnostics', {
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+      model,
+      ...safeInterpretiveDiagnosticsLog(parsed.diagnostics),
+      // Full candidate bags only in debug mode (dev/test). Never dream/reflection text.
+      interpretive_diagnostics: parsed.diagnostics,
+    });
+  }
   return {
-    extraction: parseExtraction(extractContent(extractionPayload), { failOnInvalidOrEmpty: true }),
+    extraction: parsed.extraction,
     cost: aiCallCostFromPayload(extractionPayload),
+    diagnostics: parsed.diagnostics,
+    model,
   };
 }
 
@@ -1351,6 +1485,7 @@ export async function generateDreamExtraction(params: {
   authHeader: string;
   dream: DreamRecord;
   interpretation: string;
+  debugInterpretiveEchoes?: boolean;
 }): Promise<ExtractionResult> {
   const result = await generateDreamExtractionWithCost(params);
   return result.extraction;

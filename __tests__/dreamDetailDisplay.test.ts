@@ -155,15 +155,17 @@ describe('dream detail display model', () => {
           title: 'Ariadne and the Labyrinth',
           tradition: 'Greek',
           resonance: 'The thread and corridors recall the Cretan labyrinth cycle.',
-          difference: 'Here the waiting figure is fed rather than defeated.',
+          divergence: 'Here the waiting figure is fed rather than defeated.',
           evidence: ['descending chambers', 'thread-like guidance'],
+          confidence: 'high',
         },
         {
           title: 'extra',
           tradition: 'Greek',
           resonance: 'should not appear',
-          difference: 'n/a',
+          divergence: 'n/a',
           evidence: ['a', 'b'],
+          confidence: 'high',
         },
       ],
     });
@@ -171,7 +173,7 @@ describe('dream detail display model', () => {
     expect(model.symbolicLayers.archetypalEchoes).toEqual([
       {
         title: 'The Shadow',
-        body: 'Appears as the watching figure outside the locked house. An unseen presence holds the edge between approach and entry.',
+        body: 'An unseen presence holds the edge between approach and entry.',
       },
     ]);
     expect(model.symbolicLayers.mythicEchoes).toEqual([
@@ -180,5 +182,41 @@ describe('dream detail display model', () => {
         body: 'The thread and corridors recall the Cretan labyrinth cycle. Here the waiting figure is fed rather than defeated.',
       },
     ]);
+  });
+
+  it('shows medium-confidence Mythic Echoes and legacy rows without confidence', () => {
+    const mediumShown = buildDreamDetailDisplayModel(dream, {
+      ...baseInterpretation,
+      amplifications: [
+        {
+          title: 'Persephone',
+          tradition: 'Greek mythology',
+          resonance: 'May faintly recall the seasonal cycle under snow.',
+          divergence: 'No completed return is staged.',
+          evidence: ['snow', 'bride', 'buried life'],
+          confidence: 'medium',
+        },
+      ],
+    });
+    expect(mediumShown.symbolicLayers.mythicEchoes).toEqual([
+      {
+        title: 'Persephone — Greek mythology',
+        body: 'May faintly recall the seasonal cycle under snow. No completed return is staged.',
+      },
+    ]);
+
+    const legacyShown = buildDreamDetailDisplayModel(dream, {
+      ...baseInterpretation,
+      amplifications: [
+        {
+          title: 'Ariadne and the Labyrinth',
+          tradition: 'Greek',
+          resonance: 'The thread and corridors recall the Cretan labyrinth cycle.',
+          divergence: 'Here the waiting figure is fed rather than defeated.',
+          evidence: ['descending chambers', 'thread-like guidance'],
+        },
+      ],
+    });
+    expect(legacyShown.symbolicLayers.mythicEchoes).toHaveLength(1);
   });
 });

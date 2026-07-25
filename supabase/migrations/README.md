@@ -60,12 +60,22 @@ Implementation note: `interpretation_metadata_extraction_jobs.interpretation_id`
 ### `20260725120000_amplifications_to_jsonb.sql`
 Converts `interpretations.amplifications` from `text[]` to `jsonb`.
 
-Mythic Echoes are rare interpretive enrichment objects. Current shape: `{ title, tradition, resonance, difference, evidence[] }`. Legacy strings, `echo_name`, and older `{ dream_image, echo, resonance }` objects are still normalized by app readers. Prefer empty arrays; not used in Forming Patterns aggregation.
+Mythic Echoes are rare interpretive enrichment objects. Current shape: `{ title, tradition, resonance, divergence, evidence[], confidence }`. Legacy strings, `echo_name`, older `{ dream_image, echo, resonance }` objects, and legacy `difference` keys are still normalized by app readers to canonical `divergence`. Prefer empty arrays; not used in Forming Patterns aggregation.
 
 ### `20260725130000_archetypes_to_jsonb.sql`
 Converts `interpretations.archetypes` from `text[]` to `jsonb`.
 
 Uses a two-step transform (Postgres forbids subqueries in `ALTER ... USING`): `to_jsonb(text[])` first, then an `UPDATE` that wraps bare JSON strings into `{ canonical_label, expression, resonance, evidence[] }`. App readers also normalize legacy strings / `display_label`. Insights aggregates `canonical_label`. Prefer 0–2.
+
+### `20260725140000_add_extraction_prompt_versioning.sql`
+Adds `extraction_prompt_version` and `extraction_schema_version` to `interpretations`.
+
+Successful metadata extraction stores the current prompt architecture id (`dream-field-map-interpretive-v3.6`, prompt_version `3.6.3`) and schema generation (`4`) so version bumps can selectively reopen ready rows for re-extraction without auto-busting legacy null versions.
+
+### `20260725150000_fix_billing_commit_quota_interpretation_id_text.sql`
+Rewrites `billing_commit_quota` so follow-up `interpretation_id` stays **text** (matching `interpretations.id`).
+
+The original billing-domain RPC cast `interpretation_id` to `uuid`, which made `dream_followup_reply` fail at commit with gateway `Failed to commit quota` after the model reply had already been generated. Do not reintroduce `::uuid` casts on interpretation ids.
 
 ## Running Migrations
 
