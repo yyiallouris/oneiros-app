@@ -2,7 +2,7 @@
 
 This folder catalogs **user journeys, technical flow paths, and practical architecture maps** found in the codebase, grouped for onboarding, QA, regression planning, and AI-agent change impact analysis. It is derived from navigation (`RootNavigator`, tabs, stack routes), auth (`AuthScreen`, Supabase, deep links), storage/sync (`StorageService`, `SyncService`), AI interpretation services, theme docs, and feature screens.
 
-**Related technical doc:** symbol extraction and interpretation text are detailed in [`../docs/SYMBOLS_FLOW.md`](../docs/SYMBOLS_FLOW.md).
+**Related technical docs:** symbol extraction and interpretation text are detailed in [`../docs/SYMBOLS_FLOW.md`](../docs/SYMBOLS_FLOW.md). Full dumped AI prompt texts (reflection, chat, extraction, essays, repair) live in [`../docs/AI_PROMPTS_INVENTORY.md`](../docs/AI_PROMPTS_INVENTORY.md). Archetypal/Mythic Echo prompt sections + operational catalog: [`../docs/ECHOES_PROMPTS_AND_CATALOG.md`](../docs/ECHOES_PROMPTS_AND_CATALOG.md).
 
 ## Documents in this folder
 

@@ -370,10 +370,13 @@ async function persistReflectionMetadata(params: {
   metadataCost: AiCallCost | null;
   totalCostUsd: number | null;
   interpretiveDiagnostics: unknown | null;
+  postValidationArchetypes: unknown;
+  postValidationAmplifications: unknown;
   promptId: string;
   promptVersion: string;
   schemaVersion: number;
   model: string | null;
+  cached: false;
 }> {
   const startedAt = measureStart();
   try {
@@ -424,10 +427,13 @@ async function persistReflectionMetadata(params: {
       metadataCost,
       totalCostUsd,
       interpretiveDiagnostics: params.debugInterpretiveEchoes ? extractionResult.diagnostics : null,
+      postValidationArchetypes: extraction.archetypes,
+      postValidationAmplifications: extraction.amplifications,
       promptId: DREAM_EXTRACTION_PROMPT_ID,
       promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
       schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
       model: extractionResult.model,
+      cached: false,
     };
   } catch (error) {
     const failedAt = new Date().toISOString();
@@ -762,9 +768,12 @@ serve(async (req: Request) => {
     if (body.action === 'dream_metadata_extract') {
       if (!body.interpretationId) throw new HttpError(400, 'interpretationId is required');
       const totalStartedAt = measureStart();
+      // Debug mode must bypass ready-cache so diagnostics are freshly generated.
+      const forceFreshDebug = body.debug_interpretive_echoes === true;
       console.log('[ai-entitlements-gateway] metadata request start', {
         action: body.action,
         interpretationId: body.interpretationId,
+        forceFreshDebug,
       });
       const interpretation = await getInterpretationById(admin, userId, body.interpretationId);
       if (interpretation.metadata_status === 'ready') {
@@ -772,10 +781,11 @@ serve(async (req: Request) => {
           extraction_prompt_version: interpretation.extraction_prompt_version ?? null,
           extraction_schema_version: interpretation.extraction_schema_version ?? null,
         };
-        if (
-          isCurrentDreamExtractionVersion(versioned) ||
-          !needsDreamExtractionVersionRefresh(versioned)
-        ) {
+        const canServeCache =
+          !forceFreshDebug &&
+          (isCurrentDreamExtractionVersion(versioned) ||
+            !needsDreamExtractionVersionRefresh(versioned));
+        if (canServeCache) {
           console.log('[ai-entitlements-gateway] metadata request cached', {
             action: body.action,
             interpretationId: interpretation.id,
@@ -798,9 +808,10 @@ serve(async (req: Request) => {
           );
         }
 
-        console.log('[ai-entitlements-gateway] metadata request stale version — reopening', {
+        console.log('[ai-entitlements-gateway] metadata request reopening', {
           action: body.action,
           interpretationId: interpretation.id,
+          reason: forceFreshDebug ? 'debug_interpretive_echoes' : 'stale_version',
           promptId: DREAM_EXTRACTION_PROMPT_ID,
           schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
           storedPromptVersion: versioned.extraction_prompt_version,
@@ -824,9 +835,17 @@ serve(async (req: Request) => {
         }
       }
 
-      const claim = await claimMetadataExtraction(admin, userId, interpretation.id);
+      let claim = await claimMetadataExtraction(admin, userId, interpretation.id);
       if (claim.status === 'not_found') {
         throw new HttpError(404, 'Interpretation not found');
+      }
+      if (claim.status === 'ready' && forceFreshDebug) {
+        // Race: became ready between reopen and claim — force another reopen + reclaim.
+        await markInterpretationMetadataPending(admin, userId, interpretation.id);
+        claim = await claimMetadataExtraction(admin, userId, interpretation.id);
+        if (claim.status === 'not_found') {
+          throw new HttpError(404, 'Interpretation not found');
+        }
       }
       if (claim.status === 'ready') {
         console.log('[ai-entitlements-gateway] metadata request cached by claim', {
@@ -924,7 +943,10 @@ serve(async (req: Request) => {
               prompt_version: metadataResult.promptVersion,
               schema_version: metadataResult.schemaVersion,
               model: metadataResult.model,
+              cached: false,
               interpretive_diagnostics: metadataResult.interpretiveDiagnostics,
+              post_validation_archetypes: metadataResult.postValidationArchetypes,
+              post_validation_amplifications: metadataResult.postValidationAmplifications,
               selection_summary: 'See interpretive_diagnostics candidate selected/rejected fields.',
             }
           : null;
@@ -933,6 +955,7 @@ serve(async (req: Request) => {
           status: 'committed',
           interpretation_id: interpretation.id,
           metadata_status: metadataResult.metadataStatus,
+          cached: false,
           metadata_ai_cost: safeCostLog(metadataResult.metadataCost),
           metadata_cost_usd: costUsd(metadataResult.metadataCost),
           reflection_ai_cost: safeCostLog(reflectionCost),

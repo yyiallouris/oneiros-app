@@ -138,6 +138,6 @@ describe('dream metadata extraction resilience contract', () => {
     expect(system).toMatch(/Do not include an evaluation bag in production output/);
     expect(system).not.toMatch(/"mythic_signature"/);
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBeGreaterThanOrEqual(4);
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.3');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.7');
   });
 });

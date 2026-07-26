@@ -214,6 +214,16 @@ async function maybeValidateAndRepairStructured(params: {
   });
 
   if (first.ok) {
+    if (task === "dream_extraction") {
+      console.log("[echo-debug-flow]", {
+        stage: "proxy_validate_ok",
+        rawHasDiagnostics: content.includes('"interpretive_diagnostics"'),
+        normalizedHasDiagnostics: first.normalizedContent.includes('"interpretive_diagnostics"'),
+        finishReason,
+        model: params.model,
+        tokenLimit,
+      });
+    }
     console.log(
       `[openai-proxy] structured validation`,
       {

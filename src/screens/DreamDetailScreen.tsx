@@ -40,6 +40,7 @@ import { useSubscription } from '../providers/SubscriptionProvider';
 import {
   EntitlementError,
   ensureDreamMetadataExtraction,
+  forceDreamMetadataExtractionForDebug,
   generateEntitledDreamReflection,
   generateEntitledFollowupReply,
   hasPendingReflectionJob,
@@ -331,7 +332,7 @@ type IconProps = {
     type EchoRow = {
       kind: 'echoes';
       title: string;
-      items: Array<{ title: string; body: string }>;
+      items: Array<{ title: string; subtitle?: string; body: string }>;
     };
     type LayerRow = TagRow | EchoRow;
 
@@ -345,11 +346,21 @@ type IconProps = {
       ] satisfies TagRow[]
     ).filter((row) => row.items.length > 0);
 
+    const archetypalItems = model.symbolicLayers.archetypalEchoes;
+    const mythicItems = model.symbolicLayers.mythicEchoes;
     const echoRows: LayerRow[] = (
       [
         { kind: 'tags' as const, title: 'Inner Tensions', items: model.symbolicLayers.innerTensions },
-        { kind: 'echoes' as const, title: 'Archetypal Echoes', items: model.symbolicLayers.archetypalEchoes },
-        { kind: 'echoes' as const, title: 'Mythic Echoes', items: model.symbolicLayers.mythicEchoes },
+        {
+          kind: 'echoes' as const,
+          title: archetypalItems.length === 1 ? 'Archetypal Echo' : 'Archetypal Echoes',
+          items: archetypalItems,
+        },
+        {
+          kind: 'echoes' as const,
+          title: 'Mythic Echo',
+          items: mythicItems,
+        },
       ] satisfies LayerRow[]
     ).filter((row) => row.items.length > 0);
 
@@ -383,8 +394,14 @@ type IconProps = {
                     ) : (
                       <View style={styles.layerEchoList}>
                         {row.items.map((echo) => (
-                          <View key={`${row.title}-${echo.title}`} style={styles.layerEchoItem}>
+                          <View
+                            key={`${row.title}-${echo.title}-${echo.subtitle ?? ''}`}
+                            style={styles.layerEchoItem}
+                          >
                             <Text style={styles.layerEchoTitle}>{echo.title}</Text>
+                            {echo.subtitle ? (
+                              <Text style={styles.layerEchoSubtitle}>{echo.subtitle}</Text>
+                            ) : null}
                             {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
                           </View>
                         ))}
@@ -1249,6 +1266,42 @@ type IconProps = {
                   </View>
 
                   <SymbolicLayersAccordion model={displayModel} />
+                  {typeof __DEV__ !== 'undefined' && __DEV__ && interpretation?.id ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const started = forceDreamMetadataExtractionForDebug(interpretation.id);
+                        Alert.alert(
+                          'Debug re-extract',
+                          started
+                            ? Platform.OS === 'web'
+                              ? 'Fresh extraction started.\n\nOpen browser DevTools → Console (not the terminal).\nFilter: interpretive_echoes\nOr run: copy(window.__ONEIROS_ECHO_DEBUG_JSON__)'
+                              : 'Fresh extraction started. Check Metro/device logs for [APP][DEBUG] interpretive_echoes_packet_json (cached:false).'
+                            : 'Extraction already in flight — wait a moment and check the browser console.'
+                        );
+                        void ensureDreamMetadataExtraction(interpretation.id).then(async (result) => {
+                          if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
+                            void refreshInterpretationMetadata(interpretation.id);
+                          }
+                          const g = globalThis as typeof globalThis & {
+                            __ONEIROS_ECHO_DEBUG_JSON__?: string;
+                          };
+                          const json = g.__ONEIROS_ECHO_DEBUG_JSON__;
+                          if (json && Platform.OS === 'web') {
+                            try {
+                              Clipboard.setString(json);
+                              console.log('[APP][DEBUG] Packet also copied to clipboard.');
+                            } catch {
+                              // ignore clipboard failures
+                            }
+                          }
+                        });
+                      }}
+                      style={styles.debugReextractButton}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.debugReextractLabel}>↻ Re-extract echoes (debug packet)</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               ) : (
                 <View style={styles.noInterpretationPanel}>
@@ -1722,6 +1775,26 @@ type IconProps = {
       fontFamily: typography.medium,
       color: colors.textPrimary,
       lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    },
+    layerEchoSubtitle: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.regular,
+      color: colors.textMuted,
+      lineHeight: typography.sizes.xs * typography.lineHeights.normal,
+    },
+    debugReextractButton: {
+      marginTop: spacing.sm,
+      alignSelf: 'flex-start',
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      borderRadius: borderRadius.sm,
+      borderWidth: 1,
+      borderColor: colors.contourLineFaint,
+    },
+    debugReextractLabel: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.medium,
+      color: colors.textMuted,
     },
     layerText: {
       fontSize: typography.sizes.sm,

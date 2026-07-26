@@ -75,13 +75,17 @@ type GatewayMetadataResponse = {
   reflection_ai_cost?: Record<string, unknown> | null;
   reflection_cost_usd?: number | null;
   total_ai_cost_usd?: number | null;
+  cached?: boolean;
   /** Dev/test only — never render in Dream Detail UI. */
   debug_interpretive_echoes?: {
     prompt_id: string;
     prompt_version: string;
     schema_version: number;
     model?: string | null;
+    cached?: boolean;
     interpretive_diagnostics?: unknown;
+    post_validation_archetypes?: unknown;
+    post_validation_amplifications?: unknown;
     selection_summary?: string;
   } | null;
 };
@@ -374,12 +378,20 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         interpretationId,
         retryDelayMs: retryDelay,
       });
+      const debugRequested = typeof __DEV__ !== 'undefined' && __DEV__;
+      if (debugRequested) {
+        console.log('[echo-debug-flow]', {
+          stage: 'client_request',
+          interpretationId,
+          debugRequested: true,
+        });
+      }
       const response = await invokeAiEntitlementsGateway<GatewayMetadataResponse | GatewayDeniedResponse>({
         action: 'dream_metadata_extract',
         idempotencyKey: metadataExtractIdempotencyKey(interpretationId),
         interpretationId,
         // Dev/test feedback loop only — never shown in production UI.
-        ...(typeof __DEV__ !== 'undefined' && __DEV__ ? { debug_interpretive_echoes: true } : {}),
+        ...(debugRequested ? { debug_interpretive_echoes: true } : {}),
       });
       assertCommitted(response);
       logInfo('dream_metadata_extract_attempt_done', {
@@ -401,16 +413,44 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
         hasInterpretiveDiagnostics: Boolean(response.debug_interpretive_echoes?.interpretive_diagnostics),
         extractionPromptVersion: response.debug_interpretive_echoes?.prompt_version ?? null,
       });
-      if (typeof __DEV__ !== 'undefined' && __DEV__ && response.debug_interpretive_echoes) {
-        // Intentionally log the debug bag in Metro for feedback packets — never render in UI.
-        console.log('[APP][DEBUG] interpretive_echoes_packet', {
-          interpretationId,
-          prompt_id: response.debug_interpretive_echoes.prompt_id,
-          prompt_version: response.debug_interpretive_echoes.prompt_version,
-          schema_version: response.debug_interpretive_echoes.schema_version,
-          model: response.debug_interpretive_echoes.model ?? null,
-          interpretive_diagnostics: response.debug_interpretive_echoes.interpretive_diagnostics ?? null,
-        });
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        // Web: look in the *browser* DevTools console (not the Metro terminal).
+        // Also stash on globalThis for `copy(window.__ONEIROS_ECHO_DEBUG__)` in Chrome.
+        if (response.debug_interpretive_echoes) {
+          const packet = {
+            interpretationId,
+            cached: response.cached ?? response.debug_interpretive_echoes.cached ?? false,
+            prompt_id: response.debug_interpretive_echoes.prompt_id,
+            prompt_version: response.debug_interpretive_echoes.prompt_version,
+            schema_version: response.debug_interpretive_echoes.schema_version,
+            model: response.debug_interpretive_echoes.model ?? null,
+            interpretive_diagnostics: response.debug_interpretive_echoes.interpretive_diagnostics ?? null,
+            post_validation_archetypes:
+              response.debug_interpretive_echoes.post_validation_archetypes ?? null,
+            post_validation_amplifications:
+              response.debug_interpretive_echoes.post_validation_amplifications ?? null,
+          };
+          const g = globalThis as typeof globalThis & {
+            __ONEIROS_ECHO_DEBUG__?: unknown;
+            __ONEIROS_ECHO_DEBUG_JSON__?: string;
+          };
+          g.__ONEIROS_ECHO_DEBUG__ = packet;
+          g.__ONEIROS_ECHO_DEBUG_JSON__ = JSON.stringify(packet, null, 2);
+          console.log('[APP][DEBUG] interpretive_echoes_packet', packet);
+          console.log('[APP][DEBUG] interpretive_echoes_packet_json\n' + g.__ONEIROS_ECHO_DEBUG_JSON__);
+          console.log(
+            '[APP][DEBUG] Tip (web): inspect window.__ONEIROS_ECHO_DEBUG__ or copy(window.__ONEIROS_ECHO_DEBUG_JSON__)'
+          );
+        } else if (response.cached) {
+          console.warn(
+            '[APP][DEBUG] metadata extract returned cached:true with no debug_interpretive_echoes. Deploy ai-entitlements-gateway with debug cache-bypass, then tap Re-extract again.'
+          );
+        } else {
+          console.warn(
+            '[APP][DEBUG] metadata extract finished without debug_interpretive_echoes payload.',
+            { interpretationId, metadataStatus: response.metadata_status, cached: response.cached ?? null }
+          );
+        }
       }
       return response;
     } catch (error) {
@@ -489,6 +529,20 @@ export function triggerPendingDreamMetadataExtraction(
     return false;
   }
   return triggerDreamMetadataExtraction(interpretation.id);
+}
+
+/**
+ * __DEV__ only: force a fresh metadata extraction even when status is ready.
+ * Gateway bypasses cache when `debug_interpretive_echoes` is set (auto in __DEV__).
+ * Use to capture a full interpretive_echoes diagnostics packet.
+ */
+export function forceDreamMetadataExtractionForDebug(interpretationId: string): boolean {
+  if (typeof __DEV__ === 'undefined' || !__DEV__) {
+    logWarn('dream_metadata_extract_force_debug_blocked', { interpretationId });
+    return false;
+  }
+  logInfo('dream_metadata_extract_force_debug', { interpretationId });
+  return triggerDreamMetadataExtraction(interpretationId);
 }
 
 export async function generateEntitledDreamReflection(

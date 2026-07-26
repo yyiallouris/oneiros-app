@@ -113,7 +113,8 @@ describe('mythicEchoes', () => {
       confidence: 'high' as const,
     };
     expect(formatMythicEchoForDisplay(echo)).toEqual({
-      title: 'Ariadne and the Labyrinth — Greek',
+      title: 'Ariadne and the Labyrinth',
+      subtitle: 'Greek',
       body: 'The thread and labyrinth recall the Cretan cycle. Here the creature is fed rather than defeated.',
     });
     expect(formatMythicEchoLine(echo)).toContain('Ariadne and the Labyrinth');

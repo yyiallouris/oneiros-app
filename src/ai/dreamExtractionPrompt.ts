@@ -1,4 +1,4 @@
-import { ARCHETYPE_WHITELIST } from '../constants/archetypes.ts';
+import { formatArchetypeCatalogForPromptV1 } from './catalogs/archetypeCatalog.v1.ts';
 
 /**
  * Canonical dream metadata extraction contract.
@@ -6,9 +6,10 @@ import { ARCHETYPE_WHITELIST } from '../constants/archetypes.ts';
  * Keep DreamDetail / Insights field semantics here — do not fork thin stubs elsewhere.
  *
  * Fabric / display / conflicts pedagogy stays on the proven contract.
- * Only Archetypal Echoes + Mythic Echo sections carry the simplified echo rules.
+ * Only Archetypal Echoes + Mythic Echo sections carry selection theory + catalog.
  */
 export function buildDreamExtractionSystemPrompt(): string {
+  const archetypeCatalogBlock = formatArchetypeCatalogForPromptV1();
   return `
 You map dream elements for two different purposes:
 
@@ -127,110 +128,242 @@ English shape examples (translate): "locked room vs open street", "wanting to en
 Avoid generic pairs like "fear vs desire", "control vs surrender", or "autonomy vs belonging" unless the dream concretely stages both sides.
 Use [] if none is clearly staged.
 
-ARCHETYPAL ECHOES
-Return 0–2 classical archetypal patterns from the allowed catalog as OBJECTS only. Never return a string array.
+ARCHETYPAL ECHOES (0–2)
+
+Purpose:
+Offer an archetypal name only when the name sharpens the specific dream
+image and reveals a structural function that ordinary relational language
+would not express as precisely.
+
+Use the raw dream only for selection.
+The reflection may help tone and wording after selection, but it must not
+introduce, strengthen, or rank an archetypal candidate.
+
+Use only labels from the supplied Oneiros archetype catalog.
+The catalog contains Jungian and post-Jungian psychic structures,
+figures, relational roles, and transformational patterns.
+Do not treat every catalog entry as the same kind of phenomenon.
+Do not invent poetic archetype names.
+Return OBJECTS only — never a string array.
 Invalid: ["Divine Child", "Guide / Psychopomp"] or ["Shadow"]
 Valid: [{"canonical_label":"Divine Child","expression":"the child discovered beneath the snow","resonance":"...","evidence":["..."],"confidence":"high"}]
 
-Use the canonical archetypal name as the primary label.
-Do not invent poetic archetype names.
-The dream-specific expression must remain secondary to the canonical label.
+ONEIROS ARCHETYPE CATALOG (operational — selection knowledge lives here):
+${archetypeCatalogBlock}
 
-Allowed canonical_label values only: ${ARCHETYPE_WHITELIST.join(', ')}
+SELECTION PROCESS
 
-For each archetypal echo provide ALL of:
-- canonical_label: one allowed classical name from the catalog above
-- expression: the concrete figure or configuration through which it appears in this dream (dream's primary language; must NOT equal canonical_label)
-- resonance: ONE sentence, about 20–35 words (hard max 45) — the figure's primary archetypal function only; stay image-near; no "Appears as…"; do not retell the whole dream
-- evidence: 1–2 supporting dream elements (dream's primary language)
-- confidence: "high" | "medium"
+CANDIDATE COVERAGE (before ranking — do not skip):
+
+First identify internally (do not skip):
+- the decisive turning point of the dream
+- the action that reverses the power balance
+- the action that changes what becomes possible afterward
+
+These may include tricks, refusals, sacrifices, betrayals, protective acts,
+revelations, identity reversals, or alliance shifts — not only openings,
+arrivals, or late restorative gestures.
+
+Then identify candidate carriers separately across these classes:
+- figures
+- dream-ego actions / modes of action
+- relationships
+- configurations
+- transformations
+
+Do not search only among personified or numinous figures.
+The decisive turning-point action MUST be included among candidate carriers
+before any ranking — even when an earlier preparatory action (opening a vessel,
+breaking a chain, following a guide) is more visually striking.
+Prefer the action that reorganizes the whole relation or outcome over a merely
+initiating or concluding gesture.
+Do not force an archetype from every carrier class — coverage means consider,
+not invent.
+
+Then, for each considered carrier:
+
+1. Track the dream-ego's relation to it:
+   approaching, avoiding, following, resisting, replacing, protecting,
+   surrendering, confronting, depending on, or being transformed by it.
+
+2. Ask whether the carrier remains primarily literal/personal, or whether
+   it also gathers archetypal weight.
+
+Archetypal weight requires support from at least two of:
+- it organizes more than one phase of the dream
+- it substantially changes the dream-ego's position, agency, or belonging
+- it acts with relative autonomy or numinous force
+- it transforms the surrounding dream-field
+- several images, relationships, or tensions gather around it
+- its function exceeds its ordinary social or literal role
+
+Intense emotion, unusual appearance, familiarity, age, gender, darkness,
+authority, danger, attraction, or one conventional symbol are not sufficient.
+
+3. Generate internally up to three plausible catalog candidates drawn from
+   the covered carriers (not only from the most personified figure).
+
+4. Compare them by:
+- functional fit
+- centrality to the dream's movement
+- relation to the dream-ego
+- specificity to this exact dream
+- number of unsupported assumptions required
+- risk of flattening or inflating the image
+
+Select the candidate that explains the carrier's primary function with the
+fewest assumptions.
+
+Return a second echo only when it has a distinctly different carrier or
+function, is nearly as central as the first, and adds real precision.
+Zero or one echo is normal.
+
+A literal or personal relationship may still carry archetypal resonance,
+but personal intensity alone does not make it archetypal.
+
+For Anima or Animus, never infer from sex, gender, attraction, or the mere
+presence of a man or woman. Select only when the figure mediates a distinct
+relation between the dream-ego and autonomous imaginal, relational, or
+unknown psychic life, and no other catalog pattern describes the function
+more precisely.
+
+Return [] when the archetypal label would add grandeur or taxonomy but not
+greater understanding of the image.
+
+Do not select Ego as a user-facing Archetypal Echo. Ambient dream-ego agency,
+choice, or self-observation alone is not an echo label.
 
 Do not include an evaluation bag in production output. Candidate evaluation belongs only in debug interpretive_diagnostics when requested.
-
-Zero or one echo is normal; two only when both are distinctly central.
-Do not force an archetype when the evidence is weak. When multiple dream elements converge around a recognizable archetypal pattern and that pattern plays a structural role, return the strongest supported echo rather than defaulting automatically to [].
-Include support from at least two distinct dream elements (actions, positions, relationships, or movements), not a single conventional symbol.
-Do not classify a figure solely by age, gender, appearance or one conventional symbol.
-When one figure carries several overlapping qualities, prefer one coherent canonical pattern rather than several disconnected tags.
 Do not use generic non-archetypes such as Transformation, Freedom, Fear, or Journey.
-
-Hard gates (do not select if unmet):
-- Double: identity competition, substitution, or rivalry for the dreamer's place. Shared face/eyes alone is not enough.
-- Guide / Psychopomp: active guidance across a real crossing. Advice, transport offers, or missed departures alone are not enough.
-- Divine Child: the child actively transforms the main action — not a brief child vision.
-- Terrible Mother: engulfing, imprisoning, or regressive maternal power — not merely a powerful underworld woman.
-- Ruler: embodied sovereign agency — not institution, guards, or ceremony alone.
-
-Do not infer:
-- Shadow merely from darkness, danger, aggression, or an unknown figure
-- Anima or Animus merely from the presence of a woman or man
-- Self merely from a circle, centre, mandala, or sacred-looking image
-- Death–Rebirth merely from an ending, beginning, departure, or arrival
-- Hero merely because the dreamer takes action
-- Trickster merely because something confusing or strange occurs
-- Divine Child merely because a child is present without structural role
-- Guide / Psychopomp merely because an older person speaks
 Archetypal echoes are provisional, not diagnoses, identities, or definitive explanations.
-When evidence is truly weak, return an empty array.
+
+OUTPUT
+
+For each selected echo return:
+- canonical_label: exact catalog label (not the UI displayLabel)
+- expression: the concrete carrier in this dream (figure, action, relationship, configuration, or transformation; dream's primary language; must NOT equal canonical_label)
+- resonance: one sentence, ideally 18–32 words, hard maximum 40. Begin with the concrete carrier or its action. Describe only its primary function and its effect on the dream's movement. Do not retell the plot. Avoid abstract explanatory language such as "represents", "symbolizes", "functions as", "acts as a carrier of", or generic claims about wholeness, power, integrity, transformation, the unconscious, or the psyche. No "Appears as…".
+- evidence: 1–2 short, concrete, dream-grounded phrases from distinct moments or actions (dream's primary language)
+- confidence: "high" when central, specific, and strongly enacted across the dream; "medium" when meaningful and structurally supported but partial. Do not return low-confidence echoes.
 
 - core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration", or null.
 
 MYTHIC ECHO (0–1)
-Amplifications are not Dream Fabric extraction. They are optional generated interpretive possibilities — provisional named mythic echoes, not facts present in the dream.
-Return 0–1 named parallel. Empty is fine when no strong match exists.
-A false Mythic Echo is more harmful than no Mythic Echo — but that caution must not omit an unusually direct, high-confidence structural match.
 
-A Mythic Echo must name a specific, recognized narrative, cycle, tale, episode,
-religious narrative, fairy tale, or alchemical sequence.
-Do not allow a mythic figure name alone (e.g. reject bare "Persephone", "Inanna", "Ariadne").
+Purpose:
+A Mythic Echo is an amplification: a specific cultural narrative that
+widens the dream while preserving the dream's own difference.
+It is not a decoding key and must never replace the dream with the myth.
 
-It must have:
-- at least three concrete correspondences with the dream
-- at least one correspondence in narrative sequence or relational roles
-- a recognizable defining configuration of that named narrative
-- one meaningful divergence that qualifies rather than rescues the match
+Use the raw dream only for candidate selection.
+The reflection may help localized wording only after selection.
 
-Recall (do not over-suppress):
-Do not suppress a Mythic Echo when a specific recognized narrative matches a distinctive configuration across several consecutive stages of the dream.
-A candidate should normally be returned when ALL of:
-- at least four concrete correspondences are present
-- the correspondences form a related narrative sequence
-- the defining action or prohibition of the narrative is present
-- the divergence changes the outcome without removing the core structure
-When the narrative sequence is highly distinctive and strongly supported, return the echo rather than defaulting to [].
+INTERNAL SELECTION PROCESS
+
+Before recalling any narrative, derive the dream's configuration internally:
+
+- ordered sequence of major events
+- relational roles
+- defining action, prohibition, bargain, test, or reversal
+- distinctive linked images
+- decisive turning point
+- transformation or ending
+
+Then generate internally up to four specific, recognized narratives from
+world mythology, epic, fairy tale, religious narrative, or alchemical
+tradition.
+
+CANONICALIZE before ranking:
+Title variants, translations, and alternate spellings of the SAME specific
+narrative must become ONE candidate (merge aliases). They must not compete
+as separate stories or split support artificially.
+
+Preserve narrative specificity — do NOT collapse a specific recognized tale
+into a generic motif or folktale complex.
+Hierarchy (keep the most specific reliably identified level):
+specific episode/tale > recognized cycle > generic narrative complex > motif
+When a specific tale is reliably identified, discard or subordinate its
+generic parent candidate — never replace the specific tale with the parent.
+
+Score each remaining candidate separately on these dimensions (0–5 each):
+1. ordered sequence
+2. relational roles
+3. defining action / rule / bargain / reversal
+4. turning point and outcome
+5. distinctive linked images
+6. object / figure association (weakest dimension)
+
+Object or figure association alone must never receive high structural strength.
+A more famous narrative must lose when a less famous one matches ordered
+sequence and roles more precisely.
+Do not begin from a famous name/object and search the dream for supporting details.
+Do not borrow defining events from one narrative to justify another.
+
+Evidence for a high-strength candidate must include ordered events from
+different stages of the dream — not only objects or broad motifs.
+Debug/production evidence phrases must be exact spans from the dream text or
+clearly marked summaries — never altered pseudo-quotes that reverse the action.
+
+WINNER CONSISTENCY
+The selected Mythic Echo should normally be the valid candidate with the
+strongest combination of:
+- ordered sequence
+- relational roles
+- defining action / rule / reversal
+- turning point
+Priority: specific multi-stage sequence + defining reversal
+> broad restoration / ending / wasteland frame
+> object association
+A late restoration ending may enrich divergence; it must not erase a more
+exact distinctive sequence earlier in the dream.
+If a candidate with structural_strength "high" loses to one marked "medium",
+diagnostics MUST state a concrete gate failure (invalid title, unreliable
+tradition, missing defining action, etc.) — not a mere preference for the ending.
+
+SELECTION GATE
+
+Return one candidate only when all are true:
+
+- it is a specific recognized narrative, cycle, tale, or episode
+  (prefer specific tale over generic complex when both compete)
+- its title and source tradition are known reliably
+- at least three structural dimensions among sequence / roles / defining action /
+  turning point / linked images score strongly
+- sequence or relational roles are among the strongest matches
+- the narrative's defining action, rule, conflict, or reversal remains recognizable
+- no considered candidate offers a clearly more exact structural match
+- the divergence changes or redirects the pattern without revealing that
+  the defining structure is absent
 
 Reject:
-- generic motifs or patterns
-- invented titles
-- unnamed folk traditions
-- broad thematic similarities alone
-- a match based only on one generic theme (e.g. descent-alone, rebirth-alone,
-  darkness-alone, marriage-alone) without the named narrative's defining structure
-- titles that name only a figure without the narrative/episode
+- generic motifs or thematic names
+- bare mythic figures
+- invented or uncertain titles
+- unnamed folk traditions / vague "folktale complex" titles when a specific tale fits better
+- matches based mostly on atmosphere, one object, one creature, or one theme
+- candidates that require the dream sequence to be simplified or rearranged
+- candidates whose divergence exists mainly to excuse a weak match
+- high structural strength justified only by object/figure association
 
-For each selected echo provide ALL of:
-- title: a recognized localized myth title when available; otherwise the canonical scholarly title. Must be a narrative/cycle/episode name, not a bare figure.
-- tradition: one standardized taxonomy label (e.g. Greek mythology, Mesopotamian, Grimm fairy tale)
-- resonance: sentence 1 — distinctive shared configuration (dream's primary language)
-- divergence: sentence 2 — important way the dream transforms or differs (dream's primary language)
-- evidence: 2–3 concrete dream elements (dream's primary language)
-- confidence: "high" | "medium"
+Return [] when narrative identity, tradition, or structural fit is uncertain.
+Silence is preferable to false cultural authority.
+An unusually direct structural match should nevertheless be returned.
 
-Copy budget: resonance + divergence together about 35–55 words (hard max 70). Prefer two short sentences total.
+OUTPUT
+
+- title: recognized localized title when established; otherwise the canonical scholarly title. Never invent a translation. Narrative/cycle/episode only — never a bare figure. Prefer one canonical title after alias merge.
+- tradition: one accurate, standardized source-tradition label
+- resonance: one concise sentence naming the distinctive shared sequence or configuration (dream's primary language)
+- divergence: one concise sentence showing how the dream changes, reverses, softens, intensifies, or leaves unfinished that pattern (dream's primary language)
+- evidence: 2–3 concrete dream details drawn from different stages of the sequence (dream's primary language)
+- confidence: measures structural fit only. Title and tradition themselves must already be reliable. "high" only when multi-stage sequence/roles/defining action are strong — never from object association alone; "medium" for clear structural correspondence with meaningful differences.
+
+resonance + divergence: target 35–55 words total; hard maximum 65.
 Do not prefer Greek mythology or the dreamer's country/language by default.
 Do not mix several traditions into one parallel.
 Do not invent myths or unsupported details.
 Do not state that the dream reenacts or means the myth.
-Do not use a famous myth merely because one symbol is present.
 Do not assign a fixed meaning to the dream.
-Prefer "the arrangement recalls…" / "the sequence resembles…" over conclusions about the dreamer.
-Avoid generic invented titles such as:
-- a journey of transformation
-- descent and return
-- death and rebirth
-- a heroic trial
-- ceremony of second birth
-When no strong named parallel exists, return an empty array.
 
 Schema contract:
 {
@@ -278,7 +411,7 @@ Schema-only shape example (empty interpretive echoes are valid):
   "amplifications": []
 }
 
-If nothing fits an array field, use []. Ordinary brief dreams may keep amplifications: [] and archetypes: []. A false Mythic Echo is more harmful than no Mythic Echo, but do not omit an unusually direct high-confidence structural match. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
+If nothing fits an array field, use []. Ordinary brief dreams may keep amplifications: [] and archetypes: []. For Mythic Echo, silence is preferable to false cultural authority, but an unusually direct structural match should be returned. If core_mode cannot be chosen without distortion, use null. Return only the JSON object with no markdown fences or commentary.
 `.trim();
 }
 
@@ -295,9 +428,30 @@ function trimForExtractionContext(text: string, maxChars: number): string {
 export const DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX = `
 
 DEBUG INTERPRETIVE ECHOES (internal only — not user-facing):
-After finalizing archetypes and amplifications with the same criteria as without this block, also include interpretive_diagnostics with:
-- archetype_candidates: [{label, carrier, support[], counterevidence[], centrality:0-5, selected, rejection_reason?, evaluation_notes?}]
-- mythic_candidates: [{title, tradition, support[], selected, rejection_reason?}]
+CRITICAL: The same single JSON object MUST include a top-level key "interpretive_diagnostics".
+This key is allowed in addition to the schema contract above. Do not omit it.
+After finalizing archetypes and amplifications with the same criteria as without this block, set:
+"interpretive_diagnostics": {
+  "decisive_turning_point": "short exact-or-summary description of the action that reverses power / changes what becomes possible",
+  "archetype_candidates": [{
+    "label", "carrier", "carrier_kind": "figure"|"dream_ego_action"|"relationship"|"configuration"|"transformation",
+    "support": [], "counterevidence": [], "centrality": 0-5, "selected": true|false, "rejection_reason"?, "evaluation_notes"?
+  }],
+  "mythic_candidates": [{
+    "canonical_id", "title", "tradition", "narrative_specificity": "specific_tale"|"cycle"|"generic_complex"|"motif",
+    "aliases_merged": [],
+    "sequence_match": 0-5, "role_match": 0-5, "defining_action_match": 0-5,
+    "turning_point_match": 0-5, "linked_image_match": 0-5, "object_association": 0-5,
+    "support": [], "structural_strength": "high"|"medium"|"low",
+    "selected": true|false, "rejection_reason"?, "gate_failure"?
+  }]
+}
+support[] / evidence phrases: prefer exact dream-text spans; if summarizing, prefix with "summary:". Never reverse or invent the action.
+Include decisive_turning_point whenever one exists.
+Include up to 3 archetype candidates after carrier coverage — at least one must use the decisive turning-point action as carrier when such an action exists (even if that candidate is later rejected).
+Include up to 4 mythic candidates AFTER alias merge of the same specific tale — never collapse a specific tale into a generic complex, and never list title variants as separate competitors.
+If structural_strength "high" loses to "medium", rejection_reason or gate_failure MUST name a concrete gate failure.
+Use empty candidate arrays only when no candidates were considered.
 Candidate evaluation belongs only here — never in production archetypes[].
 Do not change production fields because of this debug request.
 `.trimStart();
@@ -329,8 +483,8 @@ ${params.content}
 ${hasFinalInterpretation ? `Final interpretation:\n${interpretationContext}\n` : 'Final interpretation: (not provided)\n'}
 Return one JSON object matching the schema.
 Ground Dream Fabric in the dream text only. Treat Interpretive Echoes as provisional.
-Archetypes: 0–2 whitelist objects {canonical_label, expression, resonance, evidence, confidence}; short resonance; hard gates apply; no evaluation bag.
-Mythic Echo: 0–1 named narrative/cycle/episode only (not a bare figure); localized title when available, else scholarly title; tradition as one taxonomy label; a false Mythic Echo is more harmful than no Mythic Echo, but return a highly distinctive multi-stage structural match rather than defaulting to [].
+Archetypes: 0–2; identify decisive turning-point / power-reversal action first, then cover carriers across figures/actions/relationships/configurations/transformations; no Ego as user-facing echo; image-near resonance; no evaluation bag.
+Mythic Echo: 0–1; configuration first; merge aliases of the same specific tale but keep specific tale over generic complex; winner = strongest sequence/roles/defining-action/turning-point (not broad restoration frame); silence preferred to false authority.
 Do not write a new interpretation.`;
 
   if (!params.debugInterpretiveEchoes) return base;
@@ -342,7 +496,10 @@ export const DREAM_EXTRACTION_PROMPT_ID = 'dream-field-map-interpretive-v3.6';
 /** UI shapes unchanged (schema 4). */
 export const DREAM_EXTRACTION_SCHEMA_VERSION = 4;
 /** Bump when extraction pedagogy/schema contract changes — logged on every extract call. */
-export const DREAM_EXTRACTION_PROMPT_VERSION = '3.6.3';
+export const DREAM_EXTRACTION_PROMPT_VERSION = '3.6.7';
+
+/** Extra completion budget when debug diagnostics must fit in the same JSON object. */
+export const DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT = 5600;
 
 export function isCurrentDreamExtractionVersion(params: {
   extraction_prompt_version?: string | null;

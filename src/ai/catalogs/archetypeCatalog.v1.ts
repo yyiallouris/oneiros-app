@@ -1,286 +1,325 @@
 /**
- * Operational archetype catalog v1 — machine-readable definitions for all whitelist labels.
+ * Operational archetype catalog v1 — machine-readable definitions for selection.
  * Canonical labels must stay aligned with src/constants/archetypes.ts.
+ * `kind` / operational fields guide the model; `displayLabel` is user-facing.
  */
 
-export type ArchetypeLineage = 'core-jungian' | 'post-jungian' | 'archetypal-figure' | 'process';
-export type ArchetypeTier = 'A' | 'B' | 'C';
-export type ArchetypeCarrierType = 'figure' | 'relationship' | 'field' | 'process';
+export type ArchetypeKind =
+  | 'psychic_structure'
+  | 'archetypal_figure'
+  | 'relational_role'
+  | 'transformational_pattern';
 
 export type ArchetypeDefinition = {
   id: string;
   canonicalLabel: string;
-  lineage: ArchetypeLineage;
-  tier: ArchetypeTier;
-  carrierTypes: ArchetypeCarrierType[];
-  definition: string;
-  requiredSignals: string[];
-  supportingSignals: string[];
-  insufficientSignals: string[];
-  contraindications: string[];
-  competingArchetypes: string[];
+  /** Exact UI title — do not auto-prefix "The". */
+  displayLabel: string;
+  kind: ArchetypeKind;
+  /** What the pattern primarily does in a dream (compact). */
+  coreFunction: string;
+  /** Positive selection cues (compact phrases). */
+  selectWhen: string[];
+  /** Common false positives — not enough alone. */
+  insufficientWhen: string[];
+  /** Nearby labels that often compete for the same carrier. */
+  competingLabels: string[];
 };
 
 export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
   {
     id: 'self',
     canonicalLabel: 'Self',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['field', 'process', 'figure'],
-    definition: 'The organizing centre of the psyche — wholeness, mandala-like order, or a figure that unifies opposing movements.',
-    requiredSignals: ['organizing_wholeness_or_unifying_centre'],
-    supportingSignals: ['mandala_or_centre_image', 'reconciliation_of_opposites', 'numinous_ordering'],
-    insufficientSignals: ['positive_feeling_alone', 'wise_advice_alone', 'any_spiritual_symbol'],
-    contraindications: ['fragmented_field_without_unifying_movement'],
-    competingArchetypes: ['Ego', 'Wise Old Man', 'Wise Old Woman'],
+    displayLabel: 'Self',
+    kind: 'psychic_structure',
+    coreFunction: 'Organizing centre of the psyche — wholeness or a unifying order that gathers opposing movements.',
+    selectWhen: [
+      'a centre, mandala, or figure unifies opposing movements',
+      'numinous ordering reshapes the whole field',
+      'reconciliation produces a new whole rather than a local truce',
+    ],
+    insufficientWhen: ['positive feeling alone', 'wise advice alone', 'any spiritual symbol'],
+    competingLabels: ['Ego', 'Wise Old Man', 'Wise Old Woman'],
   },
   {
     id: 'ego',
     canonicalLabel: 'Ego',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['figure', 'process'],
-    definition: 'The dream-ego or conscious centre of agency — the I that acts, refuses, chooses, or narrates.',
-    requiredSignals: ['conscious_agency_or_dream_ego_stance'],
-    supportingSignals: ['deliberate_choice', 'self_observation', 'identity_maintenance'],
-    insufficientSignals: ['any_first_person_presence', 'ordinary_protagonist_without_stance'],
-    contraindications: ['purely_passive_witness_with_no_agency_conflict'],
-    competingArchetypes: ['Self', 'Persona'],
+    displayLabel: 'Ego',
+    kind: 'psychic_structure',
+    coreFunction: 'Conscious centre of agency — the dream-I that chooses, refuses, observes, or maintains identity.',
+    selectWhen: [
+      'deliberate choice or refusal organizes the scene',
+      'self-observation or identity maintenance is the structural issue',
+      'agency stance is contested or newly claimed',
+    ],
+    insufficientWhen: ['any first-person presence', 'ordinary protagonist without stance conflict'],
+    competingLabels: ['Self', 'Persona', 'Hero'],
   },
   {
     id: 'shadow',
     canonicalLabel: 'Shadow',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['figure', 'relationship', 'field'],
-    definition: 'Excluded, disowned, neglected, or morally rejected qualities kept outside accepted identity.',
-    requiredSignals: ['excluded_or_disowned_role'],
-    supportingSignals: ['moral_rejection', 'neglected_other', 'feared_instinct', 'bound_or_hidden_counterpart'],
-    insufficientSignals: ['darkness_alone', 'danger_alone', 'animal_form_alone', 'underground_alone', 'frightening_atmosphere'],
-    contraindications: ['integrated_ally_without_disowning_dynamic'],
-    competingArchetypes: ['Double', 'Death–Rebirth', 'Trickster'],
+    displayLabel: 'Shadow',
+    kind: 'psychic_structure',
+    coreFunction: 'Excluded, disowned, neglected, or morally rejected qualities kept outside accepted identity.',
+    selectWhen: [
+      'a rejected or neglected counterpart carries disowned force',
+      'moral rejection or hidden instinct presses for recognition',
+      'the excluded other organizes more than one phase of the dream',
+    ],
+    insufficientWhen: ['darkness alone', 'danger alone', 'animal form alone', 'frightening atmosphere'],
+    competingLabels: ['Double', 'Trickster', 'Death–Rebirth'],
   },
   {
     id: 'persona',
     canonicalLabel: 'Persona',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['figure', 'relationship', 'process'],
-    definition: 'A social mask, role, or adapted face presented to others — often tense with a more private self.',
-    requiredSignals: ['social_mask_or_adapted_role'],
-    supportingSignals: ['performance_for_others', 'costume_or_title_as_identity', 'public_vs_private_split'],
-    insufficientSignals: ['any_clothing', 'any_job_title', 'being_in_public'],
-    contraindications: ['authentic_private_encounter_without_role_pressure'],
-    competingArchetypes: ['Ego', 'Ruler', 'Lover'],
+    displayLabel: 'Persona',
+    kind: 'psychic_structure',
+    coreFunction: 'Social mask or adapted role presented to others — often tense with a more private self.',
+    selectWhen: [
+      'performance for others or costume/title as identity is central',
+      'public vs private split organizes action',
+      'adapted role pressure changes belonging or agency',
+    ],
+    insufficientWhen: ['any clothing', 'any job title', 'being in public'],
+    competingLabels: ['Ego', 'Ruler', 'Lover'],
   },
   {
     id: 'anima',
     canonicalLabel: 'Anima',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'A soul-image or mediating feminine figure that draws the dreamer toward relatedness, depth, or inner life.',
-    requiredSignals: ['mediating_soul_image_or_relatedness_pull'],
-    supportingSignals: ['guides_inward', 'erotic_or_soulful_charge', 'bridges_conscious_and_unconscious'],
-    insufficientSignals: ['any_female_figure', 'attractiveness_alone', 'mother_role_alone'],
-    contraindications: ['purely_maternal_or_terrible_mother_dynamic_without_soul_mediation'],
-    competingArchetypes: ['Great Mother', 'Terrible Mother', 'Lover', 'Animus'],
+    displayLabel: 'Anima',
+    kind: 'psychic_structure',
+    coreFunction:
+      'Mediating soul-image that opens relation between the dream-ego and autonomous imaginal, relational, or unknown psychic life.',
+    selectWhen: [
+      'a figure mediates ego and unknown inner/relational life',
+      'the encounter redirects inward belonging or desire with autonomy',
+      'no better catalog pattern (Lover, Guide, Shadow, known person) fits the function',
+    ],
+    insufficientWhen: [
+      'presence of a woman alone',
+      'attraction or romance alone',
+      'mystery or beauty alone',
+      'mother role alone',
+      'assumed from dreamer sex/gender',
+    ],
+    competingLabels: ['Great Mother', 'Terrible Mother', 'Lover', 'Animus', 'Guide / Psychopomp'],
   },
   {
     id: 'animus',
     canonicalLabel: 'Animus',
-    lineage: 'core-jungian',
-    tier: 'A',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'A mediating masculine soul-image associated with logos, conviction, discrimination, or directed spirit.',
-    requiredSignals: ['mediating_masculine_soul_image_or_logos_pull'],
-    supportingSignals: ['opinionated_inner_voice', 'directed_discrimination', 'bridges_to_meaning_or_spirit'],
-    insufficientSignals: ['any_male_figure', 'authority_alone', 'father_role_alone'],
-    contraindications: ['mere_external_authority_without_inner_mediation'],
-    competingArchetypes: ['Wise Old Man', 'Hero', 'Ruler', 'Anima'],
+    displayLabel: 'Animus',
+    kind: 'psychic_structure',
+    coreFunction:
+      'Mediating soul-image associated with directed discrimination, conviction, or spirit that opens unknown psychic life to the ego.',
+    selectWhen: [
+      'a figure mediates ego and logos/spirit/unknown inner direction',
+      'autonomous conviction or discrimination redirects the dream-ego',
+      'no better catalog pattern (Hero, Guide, Ruler, known person) fits the function',
+    ],
+    insufficientWhen: [
+      'presence of a man alone',
+      'authority alone',
+      'father role alone',
+      'assumed from dreamer sex/gender',
+    ],
+    competingLabels: ['Wise Old Man', 'Hero', 'Ruler', 'Anima'],
   },
   {
     id: 'divine_child',
     canonicalLabel: 'Divine Child',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure'],
-    definition: 'A child/infant configuration that organizes renewal, vulnerable future, or decisive transformation.',
-    requiredSignals: ['active_structural_agency', 'future_bearing_or_renewal'],
-    supportingSignals: ['changes_dream_field', 'organizes_decision', 'unusual_autonomy', 'protected_or_contested_centrally'],
-    insufficientSignals: ['literal_child_only', 'brief_memory', 'background_image', 'childhood_injury_only'],
-    contraindications: ['child_is_incidental_scenery'],
-    competingArchetypes: ['Orphan'],
+    displayLabel: 'The Divine Child',
+    kind: 'archetypal_figure',
+    coreFunction: 'Child/infant configuration that carries renewal, vulnerable future, or decisive transformation.',
+    selectWhen: [
+      'the child actively changes the main action or field',
+      'future-bearing renewal is contested or protected centrally',
+      'unusual autonomy organizes decisions around the child',
+    ],
+    insufficientWhen: ['literal child only', 'brief memory', 'background image', 'childhood injury only'],
+    competingLabels: ['Orphan'],
   },
   {
     id: 'great_mother',
     canonicalLabel: 'Great Mother',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'field', 'relationship'],
-    definition: 'A nurturing, containing, fertile maternal matrix that supports growth or belonging.',
-    requiredSignals: ['maternal_containing_or_nourishing_function'],
-    supportingSignals: ['shelter', 'feeding', 'fertile_ground', 'protective_embrace'],
-    insufficientSignals: ['any_mother', 'any_woman', 'house_alone', 'food_alone'],
-    contraindications: ['engulfing_or_devouring_dynamic_without_nourishment'],
-    competingArchetypes: ['Terrible Mother', 'Anima'],
+    displayLabel: 'The Great Mother',
+    kind: 'archetypal_figure',
+    coreFunction: 'Nurturing, containing, fertile maternal matrix that supports growth or belonging.',
+    selectWhen: [
+      'maternal containing or nourishing organizes the field',
+      'shelter, feeding, or fertile ground is the structural gift',
+      'protective embrace enables growth rather than binding',
+    ],
+    insufficientWhen: ['any mother', 'any woman', 'house alone', 'food alone'],
+    competingLabels: ['Terrible Mother', 'Anima'],
   },
   {
     id: 'terrible_mother',
     canonicalLabel: 'Terrible Mother',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'A maternal configuration that engulfes, possesses, or regressively binds.',
-    requiredSignals: ['maternal_function', 'engulfing_or_possessive_or_regressive_dynamic'],
-    supportingSignals: ['devouring_care', 'binding_dependency', 'refusal_of_separation'],
-    insufficientSignals: ['powerful_woman', 'underworld_queen', 'death_authority', 'older_woman', 'punishment_or_deprivation_alone'],
-    contraindications: ['non_maternal_authority_only'],
-    competingArchetypes: ['Great Mother', 'Ruler'],
+    displayLabel: 'The Terrible Mother',
+    kind: 'archetypal_figure',
+    coreFunction: 'Maternal configuration that engulfs, possesses, or regressively binds.',
+    selectWhen: [
+      'maternal function binds, engulfs, or refuses separation',
+      'devouring care or possessive holding organizes the conflict',
+      'regressive pull prevents crossing or growth',
+    ],
+    insufficientWhen: ['powerful woman', 'underworld queen', 'older woman', 'punishment alone'],
+    competingLabels: ['Great Mother', 'Ruler'],
   },
   {
     id: 'wise_old_man',
     canonicalLabel: 'Wise Old Man',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure'],
-    definition: 'An elder masculine wisdom figure offering orientation, meaning, or initiatory knowledge.',
-    requiredSignals: ['elder_wisdom_function'],
-    supportingSignals: ['initiates_or_orients', 'transmits_knowledge', 'appears_at_threshold'],
-    insufficientSignals: ['any_old_man', 'any_teacher', 'advice_without_wisdom_charge'],
-    contraindications: ['mere_bureaucratic_authority'],
-    competingArchetypes: ['Guide / Psychopomp', 'Animus', 'Ruler'],
+    displayLabel: 'The Wise Old Man',
+    kind: 'archetypal_figure',
+    coreFunction: 'Elder masculine wisdom offering orientation, meaning, or initiatory knowledge.',
+    selectWhen: [
+      'elder wisdom orients at a threshold',
+      'knowledge transmission changes the dream-ego’s path',
+      'numinous counsel exceeds ordinary advice',
+    ],
+    insufficientWhen: ['any old man', 'any teacher', 'advice without wisdom charge'],
+    competingLabels: ['Guide / Psychopomp', 'Animus', 'Ruler'],
   },
   {
     id: 'wise_old_woman',
     canonicalLabel: 'Wise Old Woman',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure'],
-    definition: 'An elder feminine wisdom figure offering orientation, craft, fate-knowledge, or initiatory counsel.',
-    requiredSignals: ['elder_feminine_wisdom_function'],
-    supportingSignals: ['initiates_or_orients', 'craft_or_fate_knowledge', 'appears_at_threshold'],
-    insufficientSignals: ['any_old_woman', 'grandmother_role_alone', 'advice_without_wisdom_charge'],
-    contraindications: ['mere_domestic_elder_without_numinous_function'],
-    competingArchetypes: ['Guide / Psychopomp', 'Great Mother', 'Anima'],
+    displayLabel: 'The Wise Old Woman',
+    kind: 'archetypal_figure',
+    coreFunction: 'Elder feminine wisdom offering orientation, craft, fate-knowledge, or initiatory counsel.',
+    selectWhen: [
+      'elder feminine wisdom orients at a threshold',
+      'craft or fate-knowledge changes the path',
+      'numinous counsel exceeds ordinary domestic advice',
+    ],
+    insufficientWhen: ['any old woman', 'grandmother role alone', 'advice without wisdom charge'],
+    competingLabels: ['Guide / Psychopomp', 'Great Mother', 'Anima'],
   },
   {
     id: 'hero',
     canonicalLabel: 'Hero',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'process'],
-    definition: 'An ego-strengthening questing figure that confronts an ordeal to win a boon or crossing.',
-    requiredSignals: ['quest_or_ordeal_agency'],
-    supportingSignals: ['combat_or_trial', 'rescue_mission', 'earns_crossing_or_boon'],
-    insufficientSignals: ['any_courage', 'any_journey', 'winning_an_argument'],
-    contraindications: ['passive_victim_without_agency'],
-    competingArchetypes: ['Ego', 'Orphan', 'Death–Rebirth'],
+    displayLabel: 'The Hero',
+    kind: 'archetypal_figure',
+    coreFunction: 'Ego-strengthening questing agency that confronts an ordeal to win a boon or crossing.',
+    selectWhen: [
+      'quest or ordeal agency organizes the movement',
+      'trial, combat, or rescue earns a crossing or boon',
+      'courageous agency is the structural function, not mere action',
+    ],
+    insufficientWhen: ['any courage', 'any journey', 'dreamer takes any action'],
+    competingLabels: ['Ego', 'Orphan', 'Death–Rebirth'],
   },
   {
     id: 'trickster',
     canonicalLabel: 'Trickster',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'process'],
-    definition: 'A boundary-crossing disruptor that inverts order, exposes hypocrisy, or creates possibility through cunning.',
-    requiredSignals: ['boundary_crossing_disruption_or_cunning_inversion'],
-    supportingSignals: ['rule_breaking', 'comic_or_chaotic_reversal', 'exposes_false_order'],
-    insufficientSignals: ['any_liar', 'any_joke', 'any_animal'],
-    contraindications: ['pure_villainy_without_liminal_function'],
-    competingArchetypes: ['Shadow', 'Guide / Psychopomp'],
+    displayLabel: 'The Trickster',
+    kind: 'archetypal_figure',
+    coreFunction:
+      'Boundary-crossing disruption that inverts order, exposes false structure, or opens possibility through cunning — as figure or mode of action.',
+    selectWhen: [
+      'rules are inverted or boundaries crossed with cunning',
+      'comic or chaotic reversal exposes false order',
+      'disruption creates a new possibility rather than mere villainy',
+    ],
+    insufficientWhen: ['any liar', 'any joke', 'anything strange or confusing'],
+    competingLabels: ['Shadow', 'Guide / Psychopomp'],
   },
   {
     id: 'guide_psychopomp',
     canonicalLabel: 'Guide / Psychopomp',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'A figure that meaningfully leads between psychic grounds, thresholds, realms, or modes of awareness.',
-    requiredSignals: ['actual_crossing', 'active_guidance_across_realms'],
-    supportingSignals: ['threshold_escort', 'changes_mode_of_awareness'],
-    insufficientSignals: ['offers_transport_only', 'gives_advice_only', 'missed_departure', 'does_not_know_route', 'guards_entry_without_guiding'],
-    contraindications: ['mere_helper_or_companion'],
-    competingArchetypes: ['Divine Child', 'Wise Old Man', 'Wise Old Woman'],
+    displayLabel: 'The Guide / Psychopomp',
+    kind: 'relational_role',
+    coreFunction: 'Leads meaningfully between psychic grounds, thresholds, realms, or modes of awareness.',
+    selectWhen: [
+      'active guidance across a real crossing or realm-shift',
+      'threshold escort changes mode of awareness',
+      'guidance is structural, not mere companionship',
+    ],
+    insufficientWhen: ['offers transport only', 'gives advice only', 'missed departure', 'guards without guiding'],
+    competingLabels: ['Divine Child', 'Wise Old Man', 'Wise Old Woman'],
   },
   {
     id: 'double',
     canonicalLabel: 'Double',
-    lineage: 'archetypal-figure',
-    tier: 'B',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'A rival, substitute, or split-off self that occupies or competes for the dreamer\'s place, role, identity, or agency.',
-    requiredSignals: ['identity_competition_or_substitution'],
-    supportingSignals: ['occupies_dreamer_place', 'claims_possession_or_recognition', 'split_counterpart'],
-    insufficientSignals: ['shared_face_or_eyes_only', 'mirror_resemblance_only', 'vague_familiarity'],
-    contraindications: ['bound_or_neglected_other_without_rivalry'],
-    competingArchetypes: ['Shadow', 'Death–Rebirth'],
+    displayLabel: 'The Double',
+    kind: 'relational_role',
+    coreFunction: 'Rival, substitute, or split-off self competing for the dreamer’s place, role, identity, or agency.',
+    selectWhen: [
+      'identity competition, substitution, or rivalry for the dreamer’s place',
+      'a counterpart occupies or claims the dreamer’s recognition',
+      'split agency is the organizing conflict',
+    ],
+    insufficientWhen: ['shared face or eyes only', 'mirror resemblance only', 'vague familiarity'],
+    competingLabels: ['Shadow', 'Death–Rebirth'],
   },
   {
     id: 'orphan',
     canonicalLabel: 'Orphan',
-    lineage: 'post-jungian',
-    tier: 'C',
-    carrierTypes: ['figure', 'relationship', 'process'],
-    definition: 'Abandonment, exile, or lack of belonging that organizes the dream\'s emotional centre.',
-    requiredSignals: ['abandonment_or_exile_as_central_organizer'],
-    supportingSignals: ['search_for_home', 'rejected_by_kin', 'alone_without_protection'],
-    insufficientSignals: ['brief_loneliness', 'any_child', 'missing_one_parent_incidentally'],
-    contraindications: ['secure_belonging_without_exile_theme'],
-    competingArchetypes: ['Divine Child', 'Hero'],
+    displayLabel: 'The Orphan',
+    kind: 'archetypal_figure',
+    coreFunction: 'Abandonment, exile, or lack of belonging that organizes the dream’s emotional centre.',
+    selectWhen: [
+      'exile or abandonment organizes the centre',
+      'search for home or kin-protection drives movement',
+      'aloneness without belonging is structural, not incidental',
+    ],
+    insufficientWhen: ['brief loneliness', 'any child', 'missing one parent incidentally'],
+    competingLabels: ['Divine Child', 'Hero'],
   },
   {
     id: 'lover',
     canonicalLabel: 'Lover',
-    lineage: 'post-jungian',
-    tier: 'C',
-    carrierTypes: ['figure', 'relationship'],
-    definition: 'Erotic or devoted relatedness that organizes desire, union, or heart-risk at the dream\'s centre.',
-    requiredSignals: ['erotic_or_devotional_relatedness_as_central_organizer'],
-    supportingSignals: ['union_or_longing', 'heart_risk', 'choosing_the_beloved'],
-    insufficientSignals: ['any_romance_cue', 'attractiveness_alone', 'wedding_scenery_alone'],
-    contraindications: ['purely_political_marriage_without_erotic_or_devotional_charge'],
-    competingArchetypes: ['Anima', 'Animus', 'Sacred Marriage', 'Persona'],
+    displayLabel: 'The Lover',
+    kind: 'relational_role',
+    coreFunction: 'Erotic or devoted relatedness that organizes desire, union, or heart-risk at the centre.',
+    selectWhen: [
+      'erotic or devoted relatedness organizes the dream',
+      'union, longing, or heart-risk is the structural stake',
+      'choosing the beloved changes the field',
+    ],
+    insufficientWhen: ['any romance cue', 'attractiveness alone', 'wedding scenery alone'],
+    competingLabels: ['Anima', 'Animus', 'Sacred Marriage', 'Persona'],
   },
   {
     id: 'ruler',
     canonicalLabel: 'Ruler',
-    lineage: 'post-jungian',
-    tier: 'C',
-    carrierTypes: ['figure'],
-    definition: 'An embodied sovereign or sustained ruling function that organizes the dream field through authority.',
-    requiredSignals: ['embodied_sovereign_or_sustained_ruling_function'],
-    supportingSignals: ['commands_obedience', 'holds_throne_or_court_as_active_agent'],
-    insufficientSignals: ['institution_alone', 'guards_or_audience_alone', 'ceremonial_setting_alone', 'title_without_agency'],
-    contraindications: ['passive_institutional_backdrop'],
-    competingArchetypes: ['Persona', 'Terrible Mother', 'Wise Old Man'],
+    displayLabel: 'The Ruler',
+    kind: 'archetypal_figure',
+    coreFunction: 'Embodied sovereign or sustained ruling function that organizes the field through authority.',
+    selectWhen: [
+      'embodied sovereign agency commands the field',
+      'throne, court, or ruling will is actively exercised',
+      'authority is personal and structural, not mere backdrop',
+    ],
+    insufficientWhen: ['institution alone', 'guards or audience alone', 'ceremony alone', 'title without agency'],
+    competingLabels: ['Persona', 'Terrible Mother', 'Wise Old Man'],
   },
   {
     id: 'death_rebirth',
     canonicalLabel: 'Death–Rebirth',
-    lineage: 'process',
-    tier: 'B',
-    carrierTypes: ['process', 'field', 'figure'],
-    definition: 'A dying-and-becoming sequence: dissolution, loss of old form, and emergence of a new psychic state.',
-    requiredSignals: ['dissolution_and_emergent_renewal_sequence'],
-    supportingSignals: ['dismemberment_or_stripping', 'burial_or_descent', 'return_in_new_form'],
-    insufficientSignals: ['death_image_alone', 'sadness_alone', 'any_change', 'night_falling'],
-    contraindications: ['static_threat_without_transformative_arc'],
-    competingArchetypes: ['Shadow', 'Divine Child', 'Hero'],
+    displayLabel: 'Death–Rebirth',
+    kind: 'transformational_pattern',
+    coreFunction: 'Dying-and-becoming sequence — dissolution of old form and emergence of a new psychic state.',
+    selectWhen: [
+      'dissolution and emergent renewal form a sequence',
+      'stripping, burial, or descent precedes return in new form',
+      'the ending is transformative, not merely sad or threatening',
+    ],
+    insufficientWhen: ['death image alone', 'any change', 'departure or arrival alone', 'night falling'],
+    competingLabels: ['Shadow', 'Divine Child', 'Hero'],
   },
   {
     id: 'sacred_marriage',
     canonicalLabel: 'Sacred Marriage',
-    lineage: 'process',
-    tier: 'B',
-    carrierTypes: ['relationship', 'process', 'figure'],
-    definition: 'Hieros gamos — a union of opposing principles that creates a new psychic wholeness.',
-    requiredSignals: ['union_of_opposing_principles'],
-    supportingSignals: ['ritual_or_numinous_coupling', 'reconciliation_producing_new_third', 'inner_marriage_imagery'],
-    insufficientSignals: ['ordinary_wedding', 'romance_alone', 'any_couple'],
-    contraindications: ['mere_social_ceremony_without_opposites_united'],
-    competingArchetypes: ['Lover', 'Self', 'Anima', 'Animus'],
+    displayLabel: 'Sacred Marriage',
+    kind: 'transformational_pattern',
+    coreFunction: 'Hieros gamos — union of opposing principles that creates a new psychic third/wholeness.',
+    selectWhen: [
+      'opposing principles unite into a new third',
+      'ritual or numinous coupling reconciles a structural split',
+      'inner marriage imagery produces wholeness, not mere romance',
+    ],
+    insufficientWhen: ['ordinary wedding', 'romance alone', 'any couple'],
+    competingLabels: ['Lover', 'Self', 'Anima', 'Animus'],
   },
 ];
 
@@ -289,14 +328,33 @@ export function getArchetypeDefinitionV1(canonicalLabel: string): ArchetypeDefin
   return ARCHETYPE_CATALOG_V1.find((d) => d.canonicalLabel.toLowerCase() === key);
 }
 
-export function formatArchetypeHardGatesForPromptV1(): string {
+/** Exact Dream Detail / essay title from catalog; never auto-prefix "The". */
+export function getArchetypeDisplayLabel(canonicalLabel: string): string {
+  const def = getArchetypeDefinitionV1(canonicalLabel);
+  if (def) return def.displayLabel;
+  const trimmed = canonicalLabel.trim();
+  return trimmed;
+}
+
+/**
+ * Compact operational block injected into dream_extraction.
+ * Keeps positive definitions in the catalog, not scattered hard gates.
+ */
+export function formatArchetypeCatalogForPromptV1(): string {
   return ARCHETYPE_CATALOG_V1.map((d) => {
     return [
-      `${d.canonicalLabel} (tier ${d.tier} / ${d.lineage}):`,
-      `  required: ${d.requiredSignals.join('; ')}`,
-      `  insufficient alone: ${d.insufficientSignals.join('; ')}`,
+      `- ${d.canonicalLabel} [${d.kind}] UI:"${d.displayLabel}"`,
+      `  function: ${d.coreFunction}`,
+      `  select when: ${d.selectWhen.join('; ')}`,
+      `  insufficient: ${d.insufficientWhen.join('; ')}`,
+      `  competes with: ${d.competingLabels.join(', ')}`,
     ].join('\n');
   }).join('\n');
+}
+
+/** @deprecated Prefer formatArchetypeCatalogForPromptV1 — kept for import compatibility. */
+export function formatArchetypeHardGatesForPromptV1(): string {
+  return formatArchetypeCatalogForPromptV1();
 }
 
 /** Assert catalog covers every whitelist label (used by tests). */

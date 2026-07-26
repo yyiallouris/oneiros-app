@@ -10,13 +10,23 @@ import { canonicalizeOntologyLabel, AFFECT_ONTOLOGY_V1 } from '../../src/ai/cata
 import { MYTHIC_ECHOES_OPEN_WORLD } from '../../src/ai/mythicCatalog';
 
 describe('interpretive catalogs v1 / open-world mythic echoes', () => {
-  it('covers every whitelist archetype with an operational definition', () => {
+  it('covers every whitelist archetype with operational kind + selection fields', () => {
     const labels = new Set(archetypeCatalogLabels());
     for (const name of ARCHETYPE_WHITELIST) {
       expect(labels.has(name)).toBe(true);
-      expect(getArchetypeDefinitionV1(name)?.requiredSignals.length).toBeGreaterThan(0);
+      const def = getArchetypeDefinitionV1(name);
+      expect(def?.kind).toBeTruthy();
+      expect(def?.displayLabel).toBeTruthy();
+      expect(def?.coreFunction.length).toBeGreaterThan(20);
+      expect(def?.selectWhen.length).toBeGreaterThan(0);
+      expect(def?.insufficientWhen.length).toBeGreaterThan(0);
     }
     expect(ARCHETYPE_CATALOG_V1.length).toBe(ARCHETYPE_WHITELIST.length);
+    expect(getArchetypeDefinitionV1('Shadow')?.displayLabel).toBe('Shadow');
+    expect(getArchetypeDefinitionV1('Divine Child')?.displayLabel).toBe('The Divine Child');
+    expect(getArchetypeDefinitionV1('Anima')?.kind).toBe('psychic_structure');
+    expect(getArchetypeDefinitionV1('Guide / Psychopomp')?.kind).toBe('relational_role');
+    expect(getArchetypeDefinitionV1('Death–Rebirth')?.kind).toBe('transformational_pattern');
   });
 
   it('keeps Mythic Echoes open-world (no closed corpus)', () => {

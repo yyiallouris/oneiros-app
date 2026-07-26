@@ -277,4 +277,50 @@ describe('structuredTaskValidation', () => {
     expect(complete.looksTruncated).toBe(false);
     expect(complete.endsWithJsonCloser).toBe(true);
   });
+
+  it('preserves interpretive_diagnostics through dream_extraction normalization', () => {
+    const result = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        symbols: ['jar'],
+        archetypes: [
+          {
+            canonical_label: 'Trickster',
+            expression: 'the jar trick',
+            resonance: 'The dreamer traps the giant by cunning and reverses the threat.',
+            evidence: ['jar', 'giant'],
+            confidence: 'high',
+          },
+        ],
+        landscapes: [],
+        affects: [],
+        motifs: [],
+        relational_dynamics: [],
+        thresholds: [],
+        central_conflicts: [],
+        core_mode: null,
+        amplifications: [],
+        symbol_stances: [],
+        interpretive_diagnostics: {
+          archetype_candidates: [
+            {
+              label: 'Trickster',
+              carrier: 'jar trick',
+              support: ['traps giant'],
+              counterevidence: [],
+              centrality: 5,
+              selected: true,
+            },
+          ],
+          mythic_candidates: [],
+        },
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.normalizedContent).toContain('interpretive_diagnostics');
+    expect(result.data.interpretive_diagnostics).toMatchObject({
+      archetype_candidates: [expect.objectContaining({ label: 'Trickster', selected: true })],
+    });
+  });
 });

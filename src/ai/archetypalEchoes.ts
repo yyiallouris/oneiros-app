@@ -4,10 +4,10 @@
  */
 
 import {
-  formatCanonicalArchetypeTitle,
   normalizeArchetype,
   normalizeArchetypeList,
 } from '../constants/archetypes.ts';
+import { getArchetypeDisplayLabel } from './catalogs/archetypeCatalog.v1.ts';
 
 export type ArchetypalEchoConfidence = 'high' | 'medium';
 
@@ -26,6 +26,8 @@ export type ArchetypalEcho = {
 
 export type EchoDisplayCard = {
   title: string;
+  /** Optional muted line (e.g. mythic tradition). */
+  subtitle?: string;
   body: string;
 };
 
@@ -173,8 +175,8 @@ export function isDisplayableArchetypalEcho(_item: ArchetypalEcho): boolean {
 }
 
 export function formatArchetypalEchoForDisplay(item: ArchetypalEcho): EchoDisplayCard {
-  const title = formatCanonicalArchetypeTitle(item.canonical_label);
-  // Dream Detail shows canonical heading + natural resonance only (expression stays in data).
+  const title = getArchetypeDisplayLabel(item.canonical_label);
+  // Dream Detail shows catalog displayLabel + natural resonance only (expression stays in data).
   // Length is controlled at generation time in the extraction prompt — do not truncate here.
   const body = stripFormulaicResonanceLead(item.resonance.trim());
   return { title, body };
@@ -186,6 +188,8 @@ export function formatArchetypalEchoesForDisplay(
 ): EchoDisplayCard[] {
   return normalizeArchetypalEchoes(raw, max)
     .filter(isDisplayableArchetypalEcho)
+    // Ego is a psychic-structure term for ambient agency — not a Dream Detail echo whisper.
+    .filter((echo) => echo.canonical_label !== 'Ego')
     .map(formatArchetypalEchoForDisplay);
 }
 
@@ -199,7 +203,7 @@ export function formatArchetypesForEssay(raw: unknown): string {
   if (echoes.length === 0) return '(none)';
   return echoes
     .map((echo) => {
-      const title = formatCanonicalArchetypeTitle(echo.canonical_label);
+      const title = getArchetypeDisplayLabel(echo.canonical_label);
       const expression = echo.expression.trim();
       const resonance = echo.resonance.trim();
       if (expression && resonance) return `${title} (${expression}) — ${resonance}`;

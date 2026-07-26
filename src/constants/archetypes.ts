@@ -150,10 +150,12 @@ export function normalizeArchetypeList(value: string): ArchetypeName[] {
   return out;
 }
 
-/** User-facing title: classical label with leading "The " when absent. */
+/**
+ * User-facing title fallback.
+ * Prefer `getArchetypeDisplayLabel` from the archetype catalog — it owns exact
+ * article morphology (Shadow vs The Divine Child). This helper no longer
+ * auto-prefixes "The".
+ */
 export function formatCanonicalArchetypeTitle(label: string): string {
-  const trimmed = label.trim();
-  if (!trimmed) return '';
-  if (/^the\s+/i.test(trimmed)) return trimmed;
-  return `The ${trimmed}`;
+  return label.trim();
 }

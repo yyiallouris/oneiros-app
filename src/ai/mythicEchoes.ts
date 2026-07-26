@@ -124,16 +124,19 @@ export function isDisplayableMythicEcho(_item: MythicEcho): boolean {
   return true;
 }
 
-/** Title + one compact paragraph for Dream Detail Interpretive Echoes. */
+/** Title + muted tradition + one compact paragraph for Dream Detail. */
 export function formatMythicEchoForDisplay(item: MythicEcho): EchoDisplayCard {
-  const name = item.title.trim() || 'Mythic echo';
+  const title = item.title.trim() || 'Mythic echo';
   const tradition = item.tradition.trim();
-  const title = tradition ? `${name} — ${tradition}` : name;
   const resonance = item.resonance.trim();
   const divergence = item.divergence.trim();
   // One paragraph only — length is controlled at generation time, not via UI truncation.
   const body = [resonance, divergence].filter(Boolean).join(' ').trim();
-  return { title, body };
+  return {
+    title,
+    ...(tradition ? { subtitle: tradition } : {}),
+    body,
+  };
 }
 
 /** Compact line for essay context / legacy string consumers. */

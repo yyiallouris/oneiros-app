@@ -70,7 +70,7 @@ Uses a two-step transform (Postgres forbids subqueries in `ALTER ... USING`): `t
 ### `20260725140000_add_extraction_prompt_versioning.sql`
 Adds `extraction_prompt_version` and `extraction_schema_version` to `interpretations`.
 
-Successful metadata extraction stores the current prompt architecture id (`dream-field-map-interpretive-v3.6`, prompt_version `3.6.3`) and schema generation (`4`) so version bumps can selectively reopen ready rows for re-extraction without auto-busting legacy null versions.
+Successful metadata extraction stores the current prompt architecture id (`dream-field-map-interpretive-v3.6`, prompt_version `3.6.7`) and schema generation (`4`) so version bumps can selectively reopen ready rows for re-extraction without auto-busting legacy null versions.
 
 ### `20260725150000_fix_billing_commit_quota_interpretation_id_text.sql`
 Rewrites `billing_commit_quota` so follow-up `interpretation_id` stays **text** (matching `interpretations.id`).

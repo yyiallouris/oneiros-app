@@ -98,7 +98,7 @@ export interface Interpretation {
   messages: ChatMessage[];
   symbols: string[];
   /**
-   * Archetypal Echoes: classical canonical labels with dream-specific expression.
+   * Archetypal Echoes: catalog canonical labels with dream-specific expression.
    * Prefer 0–2 objects. Readers should normalize via `normalizeArchetypalEchoes`.
    * Legacy rows may still arrive as whitelist strings / display_label objects.
    */

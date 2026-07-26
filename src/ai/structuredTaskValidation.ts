@@ -164,6 +164,15 @@ const amplificationSchema = z.union([
     .passthrough(),
 ]);
 
+/** Dev/debug only — never persisted to interpretation rows. Kept loose so candidate fields survive. */
+const interpretiveDiagnosticsSchema = z
+  .object({
+    archetype_candidates: z.array(z.record(z.string(), z.unknown())).optional(),
+    mythic_candidates: z.array(z.record(z.string(), z.unknown())).optional(),
+  })
+  .passthrough()
+  .optional();
+
 export const dreamExtractionSchema = z
   .object({
     display_distillation: displayDistillationSchema.optional(),
@@ -179,6 +188,8 @@ export const dreamExtractionSchema = z
     // Direct 0–1 Mythic Echo from the same extraction call (open-world).
     amplifications: z.array(extractionMythicEchoSchema).default([]),
     symbol_stances: z.array(symbolStanceSchema).default([]),
+    // Optional debug bag — first-class so openai-proxy normalization cannot drop it.
+    interpretive_diagnostics: interpretiveDiagnosticsSchema,
   })
   .passthrough()
   .superRefine((value, ctx) => {
@@ -514,10 +525,16 @@ export function validateStructuredTaskContent(
     };
   }
 
+  // Preserve debug diagnostics from the raw model JSON even if Zod/coerce thinned them.
+  const data =
+    task === 'dream_extraction'
+      ? mergeDreamExtractionDiagnostics(result.data, parsed.value)
+      : result.data;
+
   return {
     ok: true,
-    data: result.data,
-    normalizedContent: JSON.stringify(result.data),
+    data,
+    normalizedContent: JSON.stringify(data),
     log: {
       task,
       provider,
@@ -529,6 +546,16 @@ export function validateStructuredTaskContent(
   };
 }
 
+function mergeDreamExtractionDiagnostics(validated: unknown, raw: unknown): unknown {
+  if (!validated || typeof validated !== 'object') return validated;
+  if (!raw || typeof raw !== 'object') return validated;
+  const v = validated as Record<string, unknown>;
+  const r = raw as Record<string, unknown>;
+  if (r.interpretive_diagnostics == null) return validated;
+  if (v.interpretive_diagnostics != null) return validated;
+  return { ...v, interpretive_diagnostics: r.interpretive_diagnostics };
+}
+
 export function buildStructuredRepairMessages(
   task: StructuredAiTask,
   originalMessages: Array<{ role: string; content: string }>,
@@ -537,7 +564,7 @@ export function buildStructuredRepairMessages(
 ): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
   const schemaHint =
     task === 'dream_extraction'
-      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {canonical_label, expression, resonance, evidence[], confidence:"high"|"medium"} — never bare strings, never an evaluation bag. Include confidence on every selected echo. canonical_label must be a classical whitelist name; expression is the dream-specific form (not equal to canonical_label); resonance one short sentence (~20–35 words) without "Appears as…"; evidence 1–2 concrete dream elements. amplifications is 0–1 named Mythic Echo {title, tradition, resonance, divergence, evidence[2–3], confidence} or []. Title must be a recognized narrative/cycle/episode (not a bare figure). Prefer amplifications:[] when unsure — a false Mythic Echo is more harmful than no Mythic Echo — but do not omit an unusually direct high-confidence structural match.'
+      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {canonical_label, expression, resonance, evidence[], confidence:"high"|"medium"} — never bare strings, never an evaluation bag. Include confidence on every selected echo. canonical_label must be a catalog whitelist name; expression is the dream-specific carrier (not equal to canonical_label); resonance one short sentence (~18–32 words) without "Appears as…"; evidence 1–2 concrete dream elements. amplifications is 0–1 named Mythic Echo {title, tradition, resonance, divergence, evidence[2–3], confidence} or []. Title must be a recognized narrative/cycle/episode (not a bare figure). Prefer amplifications:[] when narrative identity/tradition/fit is uncertain — silence over false cultural authority — but return an unusually direct structural match. If the invalid JSON included interpretive_diagnostics, preserve that object unchanged.'
       : task === 'conversation_element_update'
         ? 'Return either {"status":"no_change"} or {"status":"updated", "archetypes":[], "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. When updating archetypes, prefer rich objects {canonical_label, expression, resonance, evidence[], confidence}.'
         : 'Return {"symbol_groups":[{"canonical":"...","members":["...","..."]}],"landscape_groups":[...]} with members length >= 2 when present. Empty arrays are allowed.';

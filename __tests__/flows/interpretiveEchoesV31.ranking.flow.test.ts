@@ -2,7 +2,7 @@
  * Flow coverage: documentation/flows-06-jungian-ai-reflection.md
  * + docs/SYMBOLS_FLOW.md / architecture-interpretation.md
  *
- * Interpretive Echoes v3.6 — single-call Fabric + Archetypal + open-world Mythic Echo.
+ * Interpretive Echoes v3.6.7 — decisive turning-point coverage + narrative specificity + winner consistency.
  */
 import {
   buildDreamExtractionSystemPrompt,
@@ -23,53 +23,71 @@ import { ARCHETYPE_CATALOG } from '../../src/ai/archetypeCatalog';
 import { validateMythicEcho, validateMythicEchoes } from '../../src/ai/validators/mythicEchoValidator';
 import { validateArchetypalEchoes } from '../../src/ai/validators/archetypalEchoValidator';
 
-describe('Interpretive Echoes v3.6 single-call contract', () => {
+describe('Interpretive Echoes v3.6.7 selection-theory contract', () => {
   const system = buildDreamExtractionSystemPrompt();
 
-  it('versions prompt_id v3.6 / prompt_version 3.6.3 / schema 4', () => {
+  it('versions prompt_id v3.6 / prompt_version 3.6.7 / schema 4', () => {
     expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v3.6');
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.3');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.7');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(4);
   });
 
-  it('keeps rich Dream Fabric pedagogy unchanged (echo-only copy budgets)', () => {
+  it('keeps rich Dream Fabric pedagogy unchanged', () => {
     expect(system).toMatch(/poetic mirror, not a metadata report/);
     expect(system).toMatch(/AFFECTS \/ EMOTIONAL WEATHER/);
     expect(system).toMatch(/RELATIONSHIP FIELD \/ RELATIONAL DYNAMICS/);
     expect(system).toMatch(/THRESHOLDS/);
     expect(system).toMatch(/MOTIFS \/ DREAM MOTIFS/);
     expect(system).toMatch(/CENTRAL CONFLICTS \/ INNER TENSIONS/);
-    expect(system).toMatch(/20–35 words/);
-    expect(system).toMatch(/35–55 words/);
   });
 
-  it('keeps closed archetype whitelist + concise hard gates', () => {
-    expect(system).toMatch(/ARCHETYPAL ECHOES/);
-    expect(system).toMatch(/Hard gates/);
-    expect(system).toMatch(/Double: identity competition/);
-    expect(system).toMatch(/Guide \/ Psychopomp: active guidance/);
-    expect(system).toMatch(/Divine Child: the child actively transforms/);
-    expect(system).toMatch(/Terrible Mother: engulfing/);
-    expect(system).toMatch(/Ruler: embodied sovereign/);
+  it('identifies decisive turning-point before archetype candidate ranking', () => {
+    expect(system).toMatch(/ARCHETYPAL ECHOES \(0–2\)/);
+    expect(system).toMatch(/ONEIROS ARCHETYPE CATALOG/);
+    expect(system).toMatch(/CANDIDATE COVERAGE \(before ranking/);
+    expect(system).toMatch(/the decisive turning point of the dream/);
+    expect(system).toMatch(/the action that reverses the power balance/);
+    expect(system).toMatch(/the action that changes what becomes possible afterward/);
+    expect(system).toMatch(/decisive turning-point action MUST be included among candidate carriers/);
+    expect(system).toMatch(/dream-ego actions \/ modes of action/);
+    expect(system).toMatch(/Archetypal weight requires support from at least two of/);
+    expect(system).toMatch(/never infer from sex, gender, attraction/);
+    expect(system).toMatch(/\[psychic_structure\]/);
+    expect(system).toMatch(/\[archetypal_figure\]/);
+    expect(system).toMatch(/\[relational_role\]/);
+    expect(system).toMatch(/\[transformational_pattern\]/);
+    expect(system).toMatch(/select when:/);
+    expect(system).toMatch(/competes with:/);
+    expect(system).toMatch(/ideally 18–32 words/);
+    expect(system).not.toMatch(/classical archetypal patterns/);
+    expect(system).not.toMatch(/Hard gates \(do not select if unmet\)/);
     expect(ARCHETYPE_CATALOG.map((d) => d.canonicalLabel)).toEqual(
       expect.arrayContaining(['Divine Child', 'Guide / Psychopomp', 'Terrible Mother', 'Ruler', 'Double'])
     );
   });
 
-  it('selects Mythic Echo open-world in the same call (0–1)', () => {
+  it('preserves mythic narrative specificity and winner consistency', () => {
     expect(system).toMatch(/MYTHIC ECHO \(0–1\)/);
-    expect(system).toMatch(/A false Mythic Echo is more harmful than no Mythic Echo/);
-    expect(system).toMatch(/must not omit an unusually direct, high-confidence structural match/);
-    expect(system).toMatch(/at least four concrete correspondences/);
-    expect(system).toMatch(/related narrative sequence/);
-    expect(system).toMatch(/defining action or prohibition/);
-    expect(system).toMatch(/return the echo rather than defaulting to \[\]/);
-    expect(system).toMatch(/Do not allow a mythic figure name alone/);
-    expect(system).toMatch(/generic motifs or patterns/);
-    expect(system).toMatch(/invented titles/);
+    expect(system).toMatch(/INTERNAL SELECTION PROCESS/);
+    expect(system).toMatch(/Before recalling any narrative, derive the dream's configuration/);
+    expect(system).toMatch(/CANONICALIZE before ranking/);
+    expect(system).toMatch(/Preserve narrative specificity/);
+    expect(system).toMatch(/specific episode\/tale > recognized cycle > generic narrative complex > motif/);
+    expect(system).toMatch(/WINNER CONSISTENCY/);
+    expect(system).toMatch(/specific multi-stage sequence \+ defining reversal/);
+    expect(system).toMatch(/broad restoration \/ ending \/ wasteland frame/);
+    expect(system).toMatch(/Object or figure association alone must never receive high structural strength/);
+    expect(system).toMatch(/Score each remaining candidate separately on these dimensions/);
+    expect(system).toMatch(/SELECTION GATE/);
+    expect(system).toMatch(/Silence is preferable to false cultural authority/);
+    expect(system).toMatch(/An unusually direct structural match should nevertheless be returned/);
+    expect(system).toMatch(/Do not begin from a famous name/);
+    expect(system).toMatch(/never altered pseudo-quotes/);
     expect(system).not.toMatch(/mythic_signature/);
     expect(system).not.toMatch(/Named descent \/ underworld \/ labyrinth narratives remain valid/);
     expect(system).not.toMatch(/do not withhold them out of excessive caution/i);
+    expect(system).not.toMatch(/Recall \(do not over-suppress\)/);
+    expect(system).not.toMatch(/at least four concrete correspondences/);
     expect(system).not.toMatch(/mythicEchoResolver/);
   });
 
@@ -83,14 +101,8 @@ describe('Interpretive Echoes v3.6 single-call contract', () => {
     expect(system).not.toMatch(/seven gates \+ progressive loss/);
     expect(system).not.toMatch(/Ariadne and the Cretan Labyrinth/);
     expect(system).not.toMatch(/Descent of Inanna|Inanna.?s Descent|Inanna’s Descent/i);
-    // Bare-figure reject examples may name figures; positive narrative answer-keys must not.
     expect(system).not.toMatch(/"title":\s*"Ariadne/);
     expect(system).not.toMatch(/"title":\s*"Inanna/);
-  });
-
-  it('keeps echo-only short copy budgets at generation time', () => {
-    expect(system).toMatch(/20–35 words/);
-    expect(system).toMatch(/35–55 words/);
   });
 
   it('debug user prompt is an additive suffix that does not rewrite selection criteria', () => {
@@ -105,10 +117,76 @@ describe('Interpretive Echoes v3.6 single-call contract', () => {
 
     expect(on.startsWith(off)).toBe(true);
     expect(on.slice(off.length)).toBe(DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX);
-    expect(off).toMatch(/a false Mythic Echo is more harmful than no Mythic Echo/i);
-    expect(off).toMatch(/highly distinctive multi-stage structural match/i);
+    expect(on).toMatch(/MUST include a top-level key "interpretive_diagnostics"/);
+    expect(on).toMatch(/decisive_turning_point/);
+    expect(on).toMatch(/carrier_kind/);
+    expect(on).toMatch(/aliases_merged/);
+    expect(on).toMatch(/narrative_specificity/);
+    expect(on).toMatch(/gate_failure/);
+    expect(on).toMatch(/prefix with "summary:"/);
+    expect(on).toMatch(/sequence_match/);
+    expect(on).toMatch(/object_association/);
+    expect(off).toMatch(/identify decisive turning-point/i);
+    expect(off).toMatch(/keep specific tale over generic complex/i);
     expect(off).not.toMatch(/mythic_signature/i);
     expect(off).not.toMatch(/do not withhold/i);
+  });
+
+  it('parses decisive_turning_point, narrative_specificity, and gate_failure', () => {
+    const diag = parseInterpretiveEchoDiagnostics({
+      decisive_turning_point: 'feigned disbelief that reseals the vessel',
+      archetype_candidates: [
+        {
+          label: 'Trickster',
+          carrier: 'feigned disbelief that reseals the vessel',
+          carrier_kind: 'dream_ego_action',
+          support: ['exact dream span'],
+          counterevidence: [],
+          centrality: 5,
+          selected: false,
+          rejection_reason: 'Guide more central to final phase',
+        },
+      ],
+      mythic_candidates: [
+        {
+          title: 'The Fisherman and the Jinni',
+          tradition: 'Arabic folktale',
+          canonical_id: 'fisherman-and-jinni',
+          narrative_specificity: 'specific_tale',
+          aliases_merged: ['The Jinni in the Bottle'],
+          sequence_match: 5,
+          role_match: 5,
+          defining_action_match: 5,
+          turning_point_match: 5,
+          linked_image_match: 4,
+          object_association: 2,
+          support: ['sealed vessel', 'threat after release', 'reseal'],
+          structural_strength: 'high',
+          selected: true,
+        },
+        {
+          title: 'The Fisher King',
+          tradition: 'Arthurian romance',
+          narrative_specificity: 'cycle',
+          sequence_match: 2,
+          role_match: 2,
+          defining_action_match: 2,
+          turning_point_match: 3,
+          linked_image_match: 2,
+          object_association: 1,
+          support: ['summary: barren land restored'],
+          structural_strength: 'medium',
+          selected: false,
+          rejection_reason: 'weaker multi-stage sequence than specific_tale candidate',
+          gate_failure: 'specific_tale_outranks_restoration_frame',
+        },
+      ],
+    });
+
+    expect(diag?.decisive_turning_point).toMatch(/feigned disbelief/);
+    expect(diag?.archetype_candidates[0]?.carrier_kind).toBe('dream_ego_action');
+    expect(diag?.mythic_candidates[0]?.narrative_specificity).toBe('specific_tale');
+    expect(diag?.mythic_candidates[1]?.gate_failure).toBe('specific_tale_outranks_restoration_frame');
   });
 
   it('parity: same final echoes with debug off vs on (+ diagnostics only when on)', () => {
@@ -127,109 +205,94 @@ describe('Interpretive Echoes v3.6 single-call contract', () => {
         {
           title: 'Ariadne and the Labyrinth',
           tradition: 'Greek mythology',
-          resonance: 'The thread and branching corridors recall the Cretan labyrinth.',
-          divergence: 'Here the waiting figure is fed rather than defeated.',
-          evidence: ['thread', 'labyrinth', 'waiting figure'],
+          resonance: 'A thread leads through a winding centre toward a bound creature.',
+          divergence: 'Here the creature is fed rather than slain.',
+          evidence: ['thread', 'labyrinth', 'bound being'],
           confidence: 'high' as const,
         },
       ],
-      landscapes: ['underground labyrinth'],
-      affects: ['tenderness'],
-      motifs: ['descending to a bound creature'],
-      relational_dynamics: ['care toward a neglected other'],
-      thresholds: ['descent into the centre'],
-      central_conflicts: ['neglect vs recognition'],
-      core_mode: 'Core Shift',
-      symbol_stances: [{ symbol: 'thread', stance: 'guiding through fear' }],
+      landscapes: [],
+      affects: [],
+      motifs: [],
+      relational_dynamics: [],
+      thresholds: [],
+      central_conflicts: [],
+      core_mode: null,
+      symbol_stances: [],
+      display_distillation: {
+        essence_title: 'Thread',
+        essence_line: 'A thread leads inward.',
+        dominant_lens: 'image',
+        visible_anchors: [],
+        main_tension: null,
+        dream_movement: 'unclear',
+        movement_line: null,
+      },
     };
 
-    const withoutDebug = JSON.stringify(finalEchoes);
-    const withDebug = JSON.stringify({
+    const offParsed = validateStructuredTaskContent('dream_extraction', JSON.stringify(finalEchoes));
+    expect(offParsed.ok).toBe(true);
+    const offData = offParsed.ok ? offParsed.data : {};
+
+    const withDiagnostics = {
       ...finalEchoes,
       interpretive_diagnostics: {
-        archetype_candidates: [
-          {
-            label: 'The Double',
-            carrier: 'bull-like creature',
-            support: ["shares the dreamer's eyes"],
-            counterevidence: ['does not rival or replace the dreamer'],
-            centrality: 3,
-            selected: false,
-            rejection_reason: 'Self-resemblance without double-function',
-          },
-        ],
-        mythic_candidates: [
-          {
-            title: 'Ariadne and the Labyrinth',
-            tradition: 'Greek mythology',
-            support: ['thread', 'labyrinth'],
-            selected: true,
-          },
-        ],
+        archetype_candidates: [{ label: 'Shadow', selected: true }],
+        mythic_candidates: [{ title: 'Ariadne and the Labyrinth', selected: true }],
       },
-    });
+    };
+    const diag = parseInterpretiveEchoDiagnostics(withDiagnostics.interpretive_diagnostics);
+    expect(diag).not.toBeNull();
+    const onData = stripInterpretiveDiagnostics(withDiagnostics as Record<string, unknown>);
 
-    const validatedOff = validateStructuredTaskContent('dream_extraction', withoutDebug, { provider: 'test' });
-    const validatedOn = validateStructuredTaskContent('dream_extraction', withDebug, { provider: 'test' });
-    expect(validatedOff.ok).toBe(true);
-    expect(validatedOn.ok).toBe(true);
-    if (!validatedOff.ok || !validatedOn.ok) return;
-
-    const offData = validatedOff.data as Record<string, unknown>;
-    const onData = validatedOn.data as Record<string, unknown>;
     expect(normalizeArchetypalEchoes(onData.archetypes)).toEqual(normalizeArchetypalEchoes(offData.archetypes));
     expect(normalizeAmplifications(onData.amplifications)).toEqual(normalizeAmplifications(offData.amplifications));
-    expect(parseInterpretiveEchoDiagnostics(offData.interpretive_diagnostics)).toBeNull();
-    expect(stripInterpretiveDiagnostics(onData)).not.toHaveProperty('interpretive_diagnostics');
   });
 
-  it('lightweight mythic validator rejects generic titles and accepts named parallels', () => {
+  it('keeps lightweight mythic validator for bare figures and generic titles', () => {
     expect(
       validateMythicEcho({
-        title: 'Journey of Transformation motif',
-        tradition: 'World mythology',
-        resonance: 'A vague descent appears as change.',
-        divergence: 'Not much else matches.',
-        evidence: ['road', 'darkness'],
+        title: 'Persephone',
+        tradition: 'Greek mythology',
+        resonance: 'A descent appears somehow.',
+        divergence: 'Different ending.',
+        evidence: ['descent', 'return'],
         confidence: 'medium',
       })
     ).toEqual([]);
-
-    const ok = validateMythicEchoes(
-      [
+    expect(
+      validateMythicEchoes([
         {
-          title: 'Ariadne and the Labyrinth',
-          tradition: 'Greek mythology',
-          resonance: 'The thread and corridors recall the Cretan labyrinth cycle.',
-          divergence: 'Here the waiting figure is fed rather than defeated.',
-          evidence: ['thread', 'labyrinth', 'waiting figure'],
+          title: 'a journey of transformation',
+          tradition: 'World mythology',
+          resonance: 'Something changes somehow in the night.',
+          divergence: 'Not much else matches.',
+          evidence: ['night', 'change'],
           confidence: 'high',
         },
-      ],
-      { max: 1 }
-    );
-    expect(ok.accepted).toHaveLength(1);
+      ]).accepted
+    ).toHaveLength(0);
   });
 
   it('keeps hard-gate archetypes when evaluation is omitted; rejects explicit false signals', () => {
-    const guideWithoutEval = validateArchetypalEchoes([
+    const omitted = validateArchetypalEchoes([
       {
-        canonical_label: 'Guide / Psychopomp',
-        expression: 'the underworld guardian at the gates',
-        resonance: 'A guardian regulates the descent through successive losses and return.',
-        evidence: ['seven gates', 'guardian'],
+        canonical_label: 'Double',
+        expression: 'the figure wearing my coat',
+        resonance: 'Another self claims my place at the table and will not yield.',
+        evidence: ['wears my coat', 'sits in my chair'],
         confidence: 'high',
       },
     ]);
-    expect(guideWithoutEval.accepted).toHaveLength(1);
+    expect(omitted.accepted).toHaveLength(1);
 
     const doubleExplicitFalse = validateArchetypalEchoes(
       [
         {
           canonical_label: 'Double',
-          expression: 'the figure with my face',
+          expression: 'the figure with my eyes',
           resonance: 'A familiar face appears without taking my place.',
-          evidence: ['shares my face'],
+          evidence: ['shares my eyes'],
           confidence: 'high',
         },
       ],

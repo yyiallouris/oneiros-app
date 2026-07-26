@@ -43,7 +43,10 @@ describe('edge extraction prompt flow', () => {
     expect(billingAi).toMatch(/buildDreamExtractionSystemPrompt\(\)/);
     expect(billingAi).toMatch(/buildDreamExtractionUserPrompt\(/);
     expect(billingAi).toMatch(/temperature: DREAM_EXTRACTION_TEMPERATURE/);
-    expect(billingAi).toMatch(/tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT/);
+    expect(billingAi).toMatch(/DREAM_EXTRACTION_TOKEN_LIMIT/);
+    expect(billingAi).toMatch(/DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT/);
+    expect(billingAi).toMatch(/tokenLimit/);
+    expect(billingAi).toMatch(/echo-debug-flow/);
     expect(billingAi).toMatch(/debugInterpretiveEchoes/);
     expect(billingAi).toMatch(/parseInterpretiveEchoDiagnostics/);
     expect(billingAi).toMatch(/validateMythicEchoes/);
@@ -55,7 +58,7 @@ describe('edge extraction prompt flow', () => {
     expect(gateway).not.toMatch(/mythic_resolver_version/);
   });
 
-  it('keeps the proven Fabric pedagogy and only the cleaned echo contract', () => {
+  it('keeps the proven Fabric pedagogy and the expert echo selection contract', () => {
     const system = buildDreamExtractionSystemPrompt();
     const user = buildDreamExtractionUserPrompt({
       title: 'Guarded door',
@@ -77,19 +80,23 @@ describe('edge extraction prompt flow', () => {
     expect(system).toMatch(/locked room vs open street/);
     expect(system).toMatch(/visible_anchors/);
 
-    // Echo cleanup contract
-    expect(system).toMatch(/ARCHETYPAL ECHOES/);
-    expect(system).toMatch(/Hard gates/);
+    // Echo selection-theory contract
+    expect(system).toMatch(/ARCHETYPAL ECHOES \(0–2\)/);
+    expect(system).toMatch(/ONEIROS ARCHETYPE CATALOG/);
+    expect(system).toMatch(/CANDIDATE COVERAGE \(before ranking/);
+    expect(system).toMatch(/Archetypal weight requires support from at least two of/);
     expect(system).toMatch(/Do not include an evaluation bag in production output/);
     expect(system).toMatch(/MYTHIC ECHO \(0–1\)/);
-    expect(system).toMatch(/A false Mythic Echo is more harmful than no Mythic Echo/);
-    expect(system).toMatch(/must not omit an unusually direct, high-confidence structural match/);
-    expect(system).toMatch(/at least four concrete correspondences/);
-    expect(system).toMatch(/Do not allow a mythic figure name alone/);
-    expect(system).toMatch(/recognized localized myth title when available/);
+    expect(system).toMatch(/Before recalling any narrative, derive the dream's configuration/);
+    expect(system).toMatch(/CANONICALIZE before ranking/);
+    expect(system).toMatch(/Object or figure association alone must never receive high structural strength/);
+    expect(system).toMatch(/SELECTION GATE/);
+    expect(system).toMatch(/Silence is preferable to false cultural authority/);
     expect(system).toMatch(/"archetypes": \[\]/);
     expect(system).toMatch(/"amplifications": \[\]/);
     expect(system).not.toMatch(/mythic_signature/);
+    expect(system).not.toMatch(/Hard gates \(do not select if unmet\)/);
+    expect(system).not.toMatch(/classical archetypal patterns/);
     expect(system).not.toMatch(/Named descent \/ underworld \/ labyrinth narratives remain valid/);
     expect(system).not.toMatch(/do not withhold them out of excessive caution/i);
     expect(system).not.toMatch(/"canonical_label": "Shadow"/);
@@ -99,15 +106,14 @@ describe('edge extraction prompt flow', () => {
     expect(user).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(user).toMatch(/Final interpretation:/);
     expect(user).toMatch(/no evaluation bag/);
-    expect(user).toMatch(/not a bare figure/);
-    expect(user).toMatch(/a false Mythic Echo is more harmful than no Mythic Echo/i);
-    expect(user).toMatch(/highly distinctive multi-stage structural match/i);
+    expect(user).toMatch(/identify decisive turning-point/i);
+    expect(user).toMatch(/keep specific tale over generic complex/i);
     expect(user).not.toMatch(/do not withhold/i);
     expect(user).not.toMatch(/maximum 5 anchors, ideal 3/);
 
     expect(DREAM_EXTRACTION_TEMPERATURE).toBe(0.25);
     expect(DREAM_EXTRACTION_TOKEN_LIMIT).toBe(4200);
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.3');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.7');
     expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v3.6');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(4);
     expect(

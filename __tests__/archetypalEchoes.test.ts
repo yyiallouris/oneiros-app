@@ -68,7 +68,7 @@ describe('archetypalEchoes', () => {
     });
   });
 
-  it('formats display cards with canonical title and resonance only (no Appears as)', () => {
+  it('formats display cards with catalog displayLabel and resonance only (no Appears as)', () => {
     const echo = {
       canonical_label: 'Divine Child',
       expression: 'the child discovered beneath the snow',
@@ -79,6 +79,12 @@ describe('archetypalEchoes', () => {
       title: 'The Divine Child',
       body: 'A vulnerable new life emerges from beneath a frozen surface.',
     });
+    expect(formatArchetypalEchoForDisplay({
+      canonical_label: 'Shadow',
+      expression: 'the bound creature',
+      resonance: 'A neglected force waits until care changes its form.',
+      evidence: ['bound creature'],
+    }).title).toBe('Shadow');
     expect(formatArchetypalEchoForDisplay({
       ...echo,
       resonance: 'Appears as the infant beneath the snow gathering fragile new life.',

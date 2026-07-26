@@ -13,6 +13,8 @@ import {
   DREAM_EXTRACTION_SCHEMA_VERSION,
   DREAM_EXTRACTION_TEMPERATURE,
   DREAM_EXTRACTION_TOKEN_LIMIT,
+  DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT,
+  DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
 import {
   formatArchetypesForEssay,
@@ -915,24 +917,38 @@ function buildExtractionMessages(
   interpretation: string,
   options: { debugInterpretiveEchoes?: boolean } = {}
 ) {
+  const debugInterpretiveEchoes = Boolean(options.debugInterpretiveEchoes);
   const system = buildDreamExtractionSystemPrompt();
   const user = buildDreamExtractionUserPrompt({
     title: dream.title,
     date: dream.date,
     content: dream.content,
     finalInterpretation: interpretation,
-    debugInterpretiveEchoes: Boolean(options.debugInterpretiveEchoes),
+    debugInterpretiveEchoes,
+  });
+  const tokenLimit = debugInterpretiveEchoes
+    ? DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT
+    : DREAM_EXTRACTION_TOKEN_LIMIT;
+  const suffixAppended = user.includes('DEBUG INTERPRETIVE ECHOES');
+  console.log('[echo-debug-flow]', {
+    stage: 'prompt_prepared',
+    debugRequested: debugInterpretiveEchoes,
+    suffixAppended,
+    suffixConstantPresent: DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX.includes('interpretive_diagnostics'),
+    userPromptLength: user.length,
+    tokenLimit,
+    promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
   });
   console.log('[billing-ai] dream_extraction prompt prepared', {
     promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
     promptId: DREAM_EXTRACTION_PROMPT_ID,
     schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
-    debugInterpretiveEchoes: Boolean(options.debugInterpretiveEchoes),
+    debugInterpretiveEchoes,
     dreamLength: dream.content?.length ?? 0,
     reflectionLength: interpretation?.length ?? 0,
     systemPromptLength: system.length,
     userPromptLength: user.length,
-    tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT,
+    tokenLimit,
     temperature: DREAM_EXTRACTION_TEMPERATURE,
   });
   return {
@@ -942,7 +958,7 @@ function buildExtractionMessages(
       { role: 'user' as const, content: user },
     ],
     temperature: DREAM_EXTRACTION_TEMPERATURE,
-    tokenLimit: DREAM_EXTRACTION_TOKEN_LIMIT,
+    tokenLimit,
     responseFormat: { type: 'json_object' as const },
     timeoutMs: 60000,
   };
@@ -1256,6 +1272,7 @@ function parseExtraction(
   extraction: ExtractionResult;
   diagnostics: InterpretiveEchoDiagnostics | null;
 } {
+  const rawHasDiagnostics = content.includes('"interpretive_diagnostics"');
   const validated = validateStructuredTaskContent('dream_extraction', content, {
     provider: 'openai-or-fallback',
   });
@@ -1271,6 +1288,12 @@ function parseExtraction(
       repairAttempted: validated.log.repairAttempted,
       repairSucceeded: validated.log.repairSucceeded,
       ...shape,
+    });
+    console.log('[echo-debug-flow]', {
+      stage: 'parse_failed',
+      captureDiagnostics: Boolean(options.captureDiagnostics),
+      rawHasDiagnostics,
+      schemaErrorCount: validated.schemaErrors.length,
     });
     if (options.failOnInvalidOrEmpty) {
       throw new HttpError(502, 'AI extraction returned invalid JSON', {
@@ -1289,9 +1312,19 @@ function parseExtraction(
   }
 
   const parsed = validated.data as Record<string, unknown>;
+  const parsedHasDiagnostics = parsed.interpretive_diagnostics != null;
   const diagnostics = options.captureDiagnostics
     ? parseInterpretiveEchoDiagnostics(parsed.interpretive_diagnostics)
     : null;
+  console.log('[echo-debug-flow]', {
+    stage: 'parse_ok',
+    captureDiagnostics: Boolean(options.captureDiagnostics),
+    rawHasDiagnostics,
+    parsedHasDiagnostics,
+    validatedHasDiagnostics: Boolean(diagnostics),
+    archetypeCandidateCount: diagnostics?.archetype_candidates.length ?? 0,
+    mythicCandidateCount: diagnostics?.mythic_candidates.length ?? 0,
+  });
 
   const extraction = {
     display_distillation: normalizeDisplayDistillation(parsed.display_distillation),
@@ -1425,6 +1458,11 @@ export async function generateDreamExtractionWithCost(params: {
   cost: AiCallCost | null;
   diagnostics: InterpretiveEchoDiagnostics | null;
   model: string | null;
+  /** Pre-validator model selection counts (debug only). */
+  preValidation?: {
+    archetypesCount: number;
+    amplificationsCount: number;
+  };
 }> {
   const debugInterpretiveEchoes = Boolean(params.debugInterpretiveEchoes);
   const prepared = buildExtractionMessages(params.dream, params.interpretation, { debugInterpretiveEchoes });
@@ -1436,6 +1474,11 @@ export async function generateDreamExtractionWithCost(params: {
     failOnInvalidOrEmpty: true,
     captureDiagnostics: debugInterpretiveEchoes,
   });
+
+  const preValidation = {
+    archetypesCount: parsed.extraction.archetypes.length,
+    amplificationsCount: parsed.extraction.amplifications.length,
+  };
 
   const archetypeValidation = validateArchetypalEchoes(
     parsed.extraction.archetypes as Array<ArchetypalEcho & { evaluation?: unknown }>,
@@ -1469,8 +1512,12 @@ export async function generateDreamExtractionWithCost(params: {
       schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
       model,
       ...safeInterpretiveDiagnosticsLog(parsed.diagnostics),
+      preValidation,
       // Full candidate bags only in debug mode (dev/test). Never dream/reflection text.
       interpretive_diagnostics: parsed.diagnostics,
+      // Post-validator persisted shapes for failure-class isolation.
+      post_validation_archetypes: parsed.extraction.archetypes,
+      post_validation_amplifications: parsed.extraction.amplifications,
     });
   }
   return {
@@ -1478,6 +1525,7 @@ export async function generateDreamExtractionWithCost(params: {
     cost: aiCallCostFromPayload(extractionPayload),
     diagnostics: parsed.diagnostics,
     model,
+    preValidation,
   };
 }
 
