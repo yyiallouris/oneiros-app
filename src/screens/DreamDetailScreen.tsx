@@ -52,7 +52,6 @@ import {
 import { getPendingReflectionJob } from '../services/pendingReflectionJobService';
 import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
 import { remoteGetInterpretationById } from '../services/remoteStorage';
-import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
@@ -1278,7 +1277,7 @@ type IconProps = {
                               : 'Fresh extraction started. Check Metro/device logs for [APP][DEBUG] interpretive_echoes_packet_json (cached:false).'
                             : 'Extraction already in flight — wait a moment and check the browser console.'
                         );
-                        void ensureDreamMetadataExtraction(interpretation.id).then(async (result) => {
+                        void ensureDreamMetadataExtraction(interpretation.id).then((result) => {
                           if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
                             void refreshInterpretationMetadata(interpretation.id);
                           }

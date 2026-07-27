@@ -44,6 +44,7 @@ jest.mock('../../src/services/patternInsightsService', () => ({
 }));
 
 import {
+  applyDebugMetadataRecovery,
   EntitlementError,
   generateEntitledDreamReflection,
   generateEntitledFollowupReply,
@@ -51,6 +52,7 @@ import {
   generateEntitledRecentDreamField,
   ReflectionStillGeneratingError,
   resumeOrAttachDreamReflection,
+  summarizeDebugEchoPacket,
 } from '../../src/services/entitledAiService';
 import {
   clearPendingReflectionJob,
@@ -431,5 +433,133 @@ describe('entitled AI service flow', () => {
       readOnlyAfterLapse: true,
     });
     await expect(generateEntitledFollowupReply(interpretation.id, 'Can we continue?')).rejects.toBeInstanceOf(EntitlementError);
+  });
+
+  it('can recover local interpretive echoes from a debug metadata packet when the persisted row is stale', () => {
+    const recovered = applyDebugMetadataRecovery(interpretation, {
+      status: 'committed',
+      interpretation_id: interpretation.id,
+      metadata_status: 'ready',
+      debug_interpretive_echoes: {
+        prompt_id: DREAM_EXTRACTION_PROMPT_ID,
+        prompt_version: '4.1.9-M1',
+        schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
+        post_validation_archetypes: [
+          {
+            archetype_id: 'guide_psychopomp',
+            expression: 'the woman who brings me to the door and stops there',
+            resonance: 'A guiding presence escorts the crossing without taking it for the dreamer.',
+            evidence_ids: ['D2', 'D6'],
+            confidence: 'high',
+          },
+        ],
+        post_validation_amplifications: [
+          {
+            catalog_id: 'greek.cretan_labyrinth',
+            resonance: 'A thread leads through a winding centre toward a bound creature.',
+            divergence: 'Here the creature is fed rather than defeated.',
+            evidence: ['thread', 'labyrinth', 'bound being'],
+            confidence: 'high',
+          },
+        ],
+      },
+    });
+
+    expect(recovered).not.toBeNull();
+    expect(recovered?.metadata_status).toBe('ready');
+    expect(recovered?.archetypes).toEqual([
+      expect.objectContaining({
+        canonical_label: 'Guide / Psychopomp',
+        archetype_id: 'guide_psychopomp',
+      }),
+    ]);
+    expect(recovered?.amplifications).toEqual([
+      expect.objectContaining({
+        catalog_id: 'greek.cretan_labyrinth',
+        title: 'Ariadne and the Cretan Labyrinth',
+      }),
+    ]);
+  });
+
+  it('can recover archetypes from raw debug model rows when post-validation archetypes are empty', () => {
+    const recovered = applyDebugMetadataRecovery(interpretation, {
+      status: 'committed',
+      interpretation_id: interpretation.id,
+      metadata_status: 'ready',
+      debug_interpretive_echoes: {
+        prompt_id: DREAM_EXTRACTION_PROMPT_ID,
+        prompt_version: '4.1.9-M1',
+        schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
+        post_validation_archetypes: [],
+        post_validation_amplifications: [],
+        mythic_echo_pipeline: {
+          raw_model_archetypes: [
+            {
+              archetype_id: 'wise_old_woman',
+              expression: 'the old fisherwoman who warns against opening the vessel',
+              resonance: 'A seasoned elder names the cost of release before the action is taken.',
+              evidence_ids: ['D9', 'D10'],
+              confidence: 'medium',
+            },
+            {
+              archetype_id: 'guide_psychopomp',
+              expression: 'the black bird that leads toward the hidden chamber',
+              resonance: 'A small guide carries the dreamer from dry ground into an inner crossing.',
+              evidence_ids: ['D43', 'D46'],
+              confidence: 'medium',
+            },
+          ],
+        },
+      },
+    });
+
+    expect(recovered?.archetypes).toEqual([
+      expect.objectContaining({
+        canonical_label: 'Wise Old Woman',
+        archetype_id: 'wise_old_woman',
+      }),
+      expect.objectContaining({
+        canonical_label: 'Guide / Psychopomp',
+        archetype_id: 'guide_psychopomp',
+      }),
+    ]);
+  });
+
+  it('summarizes raw vs post-validation archetype counts from a debug packet', () => {
+    const summary = summarizeDebugEchoPacket({
+      status: 'committed',
+      interpretation_id: interpretation.id,
+      metadata_status: 'ready',
+      cached: false,
+      debug_interpretive_echoes: {
+        prompt_id: DREAM_EXTRACTION_PROMPT_ID,
+        prompt_version: '4.1.9-M1',
+        schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
+        post_validation_archetypes: [
+          {
+            archetype_id: 'guide_psychopomp',
+            expression: 'the woman who brings me to the door and stops there',
+            resonance: 'A guiding presence escorts the crossing without taking it for the dreamer.',
+            evidence_ids: ['D2', 'D6'],
+            confidence: 'high',
+          },
+        ],
+        post_validation_amplifications: [],
+        mythic_echo_pipeline: {
+          raw_model_archetypes: [
+            { archetype_id: 'guide_psychopomp' },
+            { archetype_id: 'divine_child' },
+          ],
+        },
+      },
+    });
+
+    expect(summary).toEqual({
+      promptVersion: '4.1.9-M1',
+      rawArchetypeCount: 2,
+      postValidationArchetypeCount: 1,
+      postValidationMythicCount: 0,
+      cached: false,
+    });
   });
 });

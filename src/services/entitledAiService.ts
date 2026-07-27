@@ -3,6 +3,8 @@ import {
   DREAM_EXTRACTION_SCHEMA_VERSION,
   needsDreamExtractionVersionRefresh,
 } from '../ai/dreamExtractionPrompt';
+import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
+import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { LocalStorage } from './localStorage';
 import { StorageService } from './storageService';
 import {
@@ -90,6 +92,14 @@ type GatewayMetadataResponse = {
     mythic_echo_pipeline?: unknown;
     selection_summary?: string;
   } | null;
+};
+
+export type DebugEchoSummary = {
+  promptVersion: string | null;
+  rawArchetypeCount: number;
+  postValidationArchetypeCount: number;
+  postValidationMythicCount: number;
+  cached: boolean;
 };
 
 type GatewayFollowupResponse = {
@@ -578,6 +588,84 @@ export function forceDreamMetadataExtractionForDebug(interpretationId: string): 
   }
   logInfo('dream_metadata_extract_force_debug', { interpretationId });
   return triggerDreamMetadataExtraction(interpretationId);
+}
+
+export function applyDebugMetadataRecovery(
+  interpretation: Interpretation,
+  response: GatewayMetadataResponse | null | undefined
+): Interpretation | null {
+  const debug = response?.debug_interpretive_echoes;
+  if (!debug) return null;
+
+  const pipeline = debug.mythic_echo_pipeline as
+    | {
+        raw_model_archetypes?: unknown;
+        raw_model_amplifications?: unknown;
+      }
+    | null
+    | undefined;
+
+  const recoveredArchetypes =
+    normalizeArchetypalEchoes(debug.post_validation_archetypes ?? []).length > 0
+      ? normalizeArchetypalEchoes(debug.post_validation_archetypes ?? [])
+      : normalizeArchetypalEchoes(pipeline?.raw_model_archetypes ?? []);
+  const recoveredAmplifications =
+    normalizeAmplifications(debug.post_validation_amplifications ?? []).length > 0
+      ? normalizeAmplifications(debug.post_validation_amplifications ?? [])
+      : normalizeAmplifications(pipeline?.raw_model_amplifications ?? []);
+
+  const hasRecoveredArchetypes = recoveredArchetypes.length > 0;
+  const hasRecoveredAmplifications = recoveredAmplifications.length > 0;
+  if (!hasRecoveredArchetypes && !hasRecoveredAmplifications) {
+    return null;
+  }
+
+  const next: Interpretation = {
+    ...interpretation,
+    ...(hasRecoveredArchetypes ? { archetypes: recoveredArchetypes } : {}),
+    ...(hasRecoveredAmplifications ? { amplifications: recoveredAmplifications } : {}),
+    metadata_status: response?.metadata_status ?? interpretation.metadata_status,
+  };
+
+  const archetypesChanged =
+    JSON.stringify(next.archetypes ?? []) !== JSON.stringify(interpretation.archetypes ?? []);
+  const amplificationsChanged =
+    JSON.stringify(next.amplifications ?? []) !==
+    JSON.stringify(interpretation.amplifications ?? []);
+
+  return archetypesChanged || amplificationsChanged ? next : null;
+}
+
+export function summarizeDebugEchoPacket(
+  response: GatewayMetadataResponse | null | undefined
+): DebugEchoSummary | null {
+  const debug = response?.debug_interpretive_echoes;
+  if (!debug) return null;
+
+  const pipeline = debug.mythic_echo_pipeline as
+    | {
+        raw_model_archetypes?: unknown;
+      }
+    | null
+    | undefined;
+
+  const rawArchetypeCount = Array.isArray(pipeline?.raw_model_archetypes)
+    ? pipeline!.raw_model_archetypes.length
+    : 0;
+  const postValidationArchetypeCount = normalizeArchetypalEchoes(
+    debug.post_validation_archetypes ?? []
+  ).length;
+  const postValidationMythicCount = normalizeAmplifications(
+    debug.post_validation_amplifications ?? []
+  ).length;
+
+  return {
+    promptVersion: debug.prompt_version ?? null,
+    rawArchetypeCount,
+    postValidationArchetypeCount,
+    postValidationMythicCount,
+    cached: Boolean(response?.cached ?? debug.cached),
+  };
 }
 
 export async function generateEntitledDreamReflection(

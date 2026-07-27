@@ -34,6 +34,8 @@ describe('structured AI validation flow', () => {
     expect(proxyReadme).toMatch(/DREAM_EXTRACTION_SOFT_DEFAULTS/);
 
     expect(billingAi).toMatch(/validateStructuredTaskContent\('dream_extraction'/);
+    expect(billingAi).toMatch(/parsed\.extraction\.archetypes\.length > 0/);
+    expect(billingAi).toMatch(/archetypesWithEvaluation\(rawForLanguage\?\.archetypes\)/);
     expect(clientAi).toMatch(/validateStructuredTaskContent\('conversation_element_update'/);
     expect(clientAi).toMatch(/validateStructuredTaskContent\('semantic_grouping'/);
     expect(clientAi).toMatch(/"status":"no_change"/);

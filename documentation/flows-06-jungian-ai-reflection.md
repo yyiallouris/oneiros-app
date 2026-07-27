@@ -155,6 +155,7 @@ After reflection exists, DreamDetail presents the dream as a quiet reflection sp
 - Fabric fields must map compactly: affects = felt tones only (never images); relational dynamics = pattern labels (not plot summary); thresholds/motifs = short canonical phrases.
 - Metadata extraction uses the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` with an explicit SOURCE BOUNDARY between Dream Fabric and Interpretive Echoes. User-facing extraction strings follow the dream's primary language; schema enums and whitelisted archetype `canonical_label` values stay English.
 - Server-side archetype normalization must accept raw extraction rows that carry only `archetype_id` plus `mechanism_tags` / `evidence_ids`; `canonical_label` is resolved from the closed catalog before validation/persistence so valid Guide / Divine Child echoes do not disappear between debug packet and DreamDetail render.
+- The production extraction path must also recover archetype candidates directly from the raw model object before validation when the first parsed archetype list is unexpectedly empty; otherwise valid `archetype_id` rows can vanish before persistence and DreamDetail will never receive them on the initial save.
 
 Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips on DreamDetail.
 

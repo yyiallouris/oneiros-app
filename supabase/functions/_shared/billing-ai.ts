@@ -1669,13 +1669,28 @@ async function finalizeExtractionAfterParse(args: {
     outputLanguageCommit,
   } = args;
 
+  const rawForLanguage =
+    args.rawModelObject ??
+    (() => {
+      try {
+        return JSON.parse(content) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })();
+
+  const recoveredRawArchetypeCandidates =
+    parsed.extraction.archetypes.length > 0
+      ? [...parsed.extraction.archetypes]
+      : archetypesWithEvaluation(rawForLanguage?.archetypes);
+
   const preValidation = {
-    archetypesCount: parsed.extraction.archetypes.length,
+    archetypesCount: recoveredRawArchetypeCandidates.length,
     amplificationsCount: parsed.extraction.amplifications.length,
   };
   const normalizedAmplificationsBeforeValidation = [...parsed.extraction.amplifications];
 
-  const rawArchetypeCandidates = [...parsed.extraction.archetypes];
+  const rawArchetypeCandidates = recoveredRawArchetypeCandidates;
 
   const archetypeValidation = validateArchetypalEchoes(
     rawArchetypeCandidates as Array<ArchetypalEcho & { evaluation?: unknown }>,
@@ -1698,15 +1713,6 @@ async function finalizeExtractionAfterParse(args: {
   );
   parsed.extraction.amplifications = postValidationAmplifications;
 
-  const rawForLanguage =
-    args.rawModelObject ??
-    (() => {
-      try {
-        return JSON.parse(content) as Record<string, unknown>;
-      } catch {
-        return null;
-      }
-    })();
   const outputLanguageTelemetry =
     outputLanguageCommit ??
     (rawForLanguage && typeof rawForLanguage === 'object'
