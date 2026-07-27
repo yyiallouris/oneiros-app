@@ -3,6 +3,10 @@
  * (entitled AI gateway responses, local cache/persistence, and denial reasons).
  */
 import type { Dream, Interpretation } from '../../src/types/dream';
+import {
+  DREAM_EXTRACTION_PROMPT_ID,
+  DREAM_EXTRACTION_SCHEMA_VERSION,
+} from '../../src/ai/dreamExtractionPrompt';
 
 jest.mock('../../src/services/subscriptionService', () => ({
   createIdempotencyKey: jest.fn((action: string, scope: string) => `idem:${action}:${scope}`),
@@ -193,8 +197,9 @@ describe('entitled AI service flow', () => {
     });
     expect(mockGateway).toHaveBeenNthCalledWith(2, {
       action: 'dream_metadata_extract',
-      idempotencyKey: 'idem:dream_metadata_extract:interpretation-1',
+      idempotencyKey: `idem:dream_metadata_extract:interpretation-1:${DREAM_EXTRACTION_PROMPT_ID}:s${DREAM_EXTRACTION_SCHEMA_VERSION}`,
       interpretationId: interpretation.id,
+      debug_interpretive_echoes: true,
     });
   });
 
@@ -227,8 +232,9 @@ describe('entitled AI service flow', () => {
     expect(StorageService.saveInterpretation).toHaveBeenCalledWith(pendingInterpretation);
     expect(mockGateway).toHaveBeenNthCalledWith(2, {
       action: 'dream_metadata_extract',
-      idempotencyKey: 'idem:dream_metadata_extract:interpretation-remote-pending',
+      idempotencyKey: `idem:dream_metadata_extract:interpretation-remote-pending:${DREAM_EXTRACTION_PROMPT_ID}:s${DREAM_EXTRACTION_SCHEMA_VERSION}`,
       interpretationId: pendingInterpretation.id,
+      debug_interpretive_echoes: true,
     });
   });
 

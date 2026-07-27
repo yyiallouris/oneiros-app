@@ -41,3 +41,28 @@ yarn-error.*
 /ios
 /android
 #npx expo start --clear
+
+# generic temp-file extension
+*.tmp
+
+# keep tmp/ itself visible, but ignore generated benchmark/output folders
+tmp/*-20*/
+tmp/*benchmark*/
+tmp/*acceptance*/
+tmp/*diagnostics*/
+tmp/*rerun*/
+tmp/*baseline/
+tmp/*reviewer-logs/
+
+# ignore generated packets/logs at tmp root
+tmp/*.json
+tmp/*.md
+tmp/*.txt
+tmp/*.zip
+tmp/*.log
+
+# keep runnable scripts in tmp tracked
+!tmp/*.sh
+!tmp/*.ts
+!tmp/*.mjs
+!tmp/*.py

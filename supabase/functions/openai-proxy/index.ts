@@ -166,11 +166,12 @@ async function maybeValidateAndRepairStructured(params: {
   tokenLimit: unknown;
   responseFormat: unknown;
   requestId: string;
+  skipStructuredValidation?: boolean;
 }): Promise<
   | { responseText: string; rejected: false }
   | { responseText: string; rejected: true; diagnostics: StructuredRejectionDiagnostics }
 > {
-  if (!isStructuredAiTask(params.task)) {
+  if (params.skipStructuredValidation || !isStructuredAiTask(params.task)) {
     return { responseText: params.responseText, rejected: false };
   }
 
@@ -647,8 +648,11 @@ serve(async (req: Request) => {
       response_format,
       stream,
       stream_options,
+      disable_anthropic_fallback,
+      skip_structured_validation,
     } =
       body;
+    const skipStructuredValidation = skip_structured_validation === true;
     const task = normalizeTask(body.task);
     if (!task) {
       return proxyJsonError(missingOrUnknownTaskMessage(body.task), 400);
@@ -743,11 +747,17 @@ serve(async (req: Request) => {
           openAIErrorMessage,
           stream: stream === true,
           upstreamMs: openAIUpstreamMs,
-          willTryAnthropicFallback: shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText),
+          willTryAnthropicFallback:
+            disable_anthropic_fallback === true
+              ? false
+              : shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText),
         });
       }
 
-      if (shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText)) {
+      if (
+        disable_anthropic_fallback !== true &&
+        shouldTryAnthropicAfterOpenAI(taskCfg, oaResponse, responseText)
+      ) {
         const fallbackModels = getAnthropicFallbackModels(taskCfg);
         let fallbackUpstreamTotalMs = 0;
         console.log(`[openai-proxy] anthropic fallback chain start`, {
@@ -796,6 +806,7 @@ serve(async (req: Request) => {
                 tokenLimit,
                 responseFormat: response_format,
                 requestId,
+                skipStructuredValidation,
               });
               if (finalized.rejected) {
                 console.error(`[openai-proxy] anthropic fallback schema rejected`, {
@@ -957,6 +968,7 @@ serve(async (req: Request) => {
         tokenLimit,
         responseFormat: response_format,
         requestId,
+        skipStructuredValidation,
       });
       if (finalized.rejected) {
         return proxyJsonError(
@@ -1084,6 +1096,7 @@ serve(async (req: Request) => {
       tokenLimit,
       responseFormat: response_format,
       requestId,
+      skipStructuredValidation,
     });
     if (finalized.rejected) {
       return proxyJsonError(

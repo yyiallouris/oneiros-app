@@ -23,7 +23,9 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `gatewayReflectionResume.flow.test.ts` | flows-06 (gateway async_background_started prevents second Edge worker on idempotency replay) |
 | `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
 | `edgeExtractionPrompt.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (Edge dream metadata extraction prompt parity via shared canonical module) |
-| `interpretiveEchoesV31.ranking.flow.test.ts` | flows-06 / SYMBOLS_FLOW (Interpretive Echoes v3.6 single-call + lightweight validators) |
+| `interpretiveEchoesV31.ranking.flow.test.ts` | flows-06 / SYMBOLS_FLOW (Interpretive Echoes v4.1.6-D.1 Hero gate + frozen C.1.1 myth) |
+| `catalogNamespaceEnforcement.test.ts` | C.1.1 provider enum + id= prompt formatting |
+| `../mythicEchoPipelineDebug.test.ts` | flows-06 / SYMBOLS_FLOW (mythic raw→normalize→validate debug packet + selected-audit vs production title invariant) |
 | `../ai/interpretiveCatalogs.v1.test.ts` | catalogs / retrieval / validators for archetypes + myths (v1 knowledge architecture) |
 | `edgePatternEssayPrompt.flow.test.ts` | flows-07 (Edge Recent Dream Field and period reflection prompt parity) |
 | `aiCostLogging.flow.test.ts` | architecture-interpretation / flows-07 / flows-10 (safe AI token-cost logging for reflection, metadata, Recent Dream Field, and Period Reflection via shared pricing table, plus metadata extraction duplicate-spend guard) |
@@ -43,6 +45,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `dreamDetail.skeleton.flow.test.ts` | flows-04 (DreamDetail initial load uses layout-faithful `DreamDetailSkeleton`, not dual journal `LinoSkeletonCard`) |
 | `dreamMetadataExtraction.resilience.contract.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW **locked resilience** (metadata extract soft-defaults missing echo confidence; dual deploy; forbids recurring `structured_schema_invalid` after schema edits) |
 | `billingCommitQuota.interpretationIdText.contract.flow.test.ts` | flows-10 / flows-06 (billing_commit_quota keeps interpretation_id as text — never uuid; prevents dream_followup_reply Failed to commit quota) |
+| `billingDreamReflectionLimitOverride.contract.flow.test.ts` | flows-10 (paid dream-reflection cycle limit override via entitlement raw.dream_reflection_limit + grant-test-user-200-dreams.sql) |
 | `dreamSaveLoading.flow.test.ts` | flows-04 (Save dream disables immediately but delays visible loading to avoid fast-save flashes) |
 | `interpretationChat.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (alternate chat route offline guard) |
 | `voiceTranscription.flow.test.tsx` | flows-04 / flows-05 / flows-06 / flows-09 (record → transcribe → append, successful local-audio cleanup, retryable clip contract) |

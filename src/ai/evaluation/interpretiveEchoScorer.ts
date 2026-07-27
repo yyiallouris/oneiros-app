@@ -24,7 +24,10 @@ export function scoreInterpretiveEchoes(input: {
   axes: Record<EchoScoreAxis, EchoAxisScore>;
   notes?: string;
 }): InterpretiveEchoScorecard {
-  const total = (Object.values(input.axes) as EchoAxisScore[]).reduce((sum, n) => sum + n, 0);
+  const total = (Object.values(input.axes) as EchoAxisScore[]).reduce<number>(
+    (sum, n) => sum + n,
+    0
+  );
   return {
     testId: input.testId,
     axes: input.axes,

@@ -1,0 +1,76 @@
+{
+  "total_hits": 10,
+  "fixtures_with_hits": 5,
+  "by_fixture": {
+    "P_mother_devouring_a": [
+      {
+        "fixture_id": "P_mother_devouring_a",
+        "kind": "catalog_id",
+        "match": "mother",
+        "context": "mother"
+      },
+      {
+        "fixture_id": "P_mother_devouring_a",
+        "kind": "canonical_label",
+        "match": "Mother",
+        "context": "mother"
+      }
+    ],
+    "P_father_a": [
+      {
+        "fixture_id": "P_father_a",
+        "kind": "catalog_id",
+        "match": "father",
+        "context": "father"
+      },
+      {
+        "fixture_id": "P_father_a",
+        "kind": "canonical_label",
+        "match": "Father",
+        "context": "father"
+      }
+    ],
+    "P_father_b": [
+      {
+        "fixture_id": "P_father_b",
+        "kind": "catalog_id",
+        "match": "father",
+        "context": "father"
+      },
+      {
+        "fixture_id": "P_father_b",
+        "kind": "canonical_label",
+        "match": "Father",
+        "context": "father"
+      }
+    ],
+    "M_mother_ruler": [
+      {
+        "fixture_id": "M_mother_ruler",
+        "kind": "catalog_id",
+        "match": "mother",
+        "context": "mother"
+      },
+      {
+        "fixture_id": "M_mother_ruler",
+        "kind": "canonical_label",
+        "match": "Mother",
+        "context": "mother"
+      }
+    ],
+    "N_child_no_divine": [
+      {
+        "fixture_id": "N_child_no_divine",
+        "kind": "catalog_id",
+        "match": "mother",
+        "context": "mother"
+      },
+      {
+        "fixture_id": "N_child_no_divine",
+        "kind": "canonical_label",
+        "match": "Mother",
+        "context": "mother"
+      }
+    ]
+  }
+}

@@ -2,11 +2,35 @@
  * Operational archetype catalog v1 — machine-readable definitions for selection.
  * Canonical labels must stay aligned with src/constants/archetypes.ts.
  * `kind` / operational fields guide the model; `displayLabel` is user-facing.
+ * v4.1.4: single `trickster` id (B.2 carrier-scoped variants frozen as non-production experiment).
+ * v1.7.0: polarity-neutral `mother` + `father` (replaces selectable great_mother / terrible_mother).
+ * Polarity (nurturing/devouring, protective/tyrannical, etc.) lives in instance-level `expression`.
  */
+
+import {
+  ARCHETYPE_MECHANISM_HARD_GATES,
+  formatHardGateForPrompt,
+  type ArchetypeCarrierKind,
+} from '../archetypeMechanisms.ts';
+
+export const ARCHETYPE_CATALOG_VERSION = '1.7.0' as const;
+
+/** Legacy selectable ids → current catalog id (read/validate canonicalize). */
+export const ARCHETYPE_ID_ALIASES: Readonly<Record<string, string>> = {
+  great_mother: 'mother',
+  terrible_mother: 'mother',
+};
+
+export function canonicalizeArchetypeId(archetypeId: string): string {
+  const key = archetypeId.trim();
+  if (!key) return key;
+  return ARCHETYPE_ID_ALIASES[key] ?? key;
+}
 
 export type ArchetypeKind =
   | 'psychic_structure'
   | 'archetypal_figure'
+  | 'archetypal_function'
   | 'relational_role'
   | 'transformational_pattern';
 
@@ -16,6 +40,11 @@ export type ArchetypeDefinition = {
   /** Exact UI title — do not auto-prefix "The". */
   displayLabel: string;
   kind: ArchetypeKind;
+  /**
+   * When false, omit from dream_extraction catalog injection / selectable Echoes.
+   * Ego remains in the wider catalog for structural reading but is never a user-facing echo.
+   */
+  selectableAsEcho?: boolean;
   /** What the pattern primarily does in a dream (compact). */
   coreFunction: string;
   /** Positive selection cues (compact phrases). */
@@ -24,6 +53,18 @@ export type ArchetypeDefinition = {
   insufficientWhen: string[];
   /** Nearby labels that often compete for the same carrier. */
   competingLabels: string[];
+  /** Fixed carrier for carrier-scoped catalog variants (model selects by archetype_id). */
+  carrierKind?: ArchetypeCarrierKind;
+  /** Compact function line for carrier-scoped prompt index entries. */
+  functionSignature?: string;
+  /** Prompt-facing anti-features for carrier-scoped variants. */
+  promptAntiFeatures?: string[];
+  /** Lower wins when collapsing duplicate canonicalLabel candidates (tie-break after confidence). */
+  canonicalVariantPriority?: number;
+  /** @deprecated B.2 — use carrierKind on carrier-scoped records instead. */
+  allowedCarrierKinds?: ArchetypeCarrierKind[];
+  /** @deprecated B.2 — use carrierKind on carrier-scoped records instead. */
+  preferredCarrierKinds?: ArchetypeCarrierKind[];
 };
 
 export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
@@ -46,6 +87,7 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
     canonicalLabel: 'Ego',
     displayLabel: 'Ego',
     kind: 'psychic_structure',
+    selectableAsEcho: false,
     coreFunction: 'Conscious centre of agency — the dream-I that chooses, refuses, observes, or maintains identity.',
     selectWhen: [
       'deliberate choice or refusal organizes the scene',
@@ -66,7 +108,13 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'moral rejection or hidden instinct presses for recognition',
       'the excluded other organizes more than one phase of the dream',
     ],
-    insufficientWhen: ['darkness alone', 'danger alone', 'animal form alone', 'frightening atmosphere'],
+    insufficientWhen: [
+      'darkness alone',
+      'danger alone',
+      'animal form alone',
+      'frightening atmosphere',
+      'danger or hostility alone without rejected or disowned psychic content belonging to the dreamer',
+    ],
     competingLabels: ['Double', 'Trickster', 'Death–Rebirth'],
   },
   {
@@ -80,7 +128,15 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'public vs private split organizes action',
       'adapted role pressure changes belonging or agency',
     ],
-    insufficientWhen: ['any clothing', 'any job title', 'being in public'],
+    insufficientWhen: [
+      'any clothing',
+      'any job title',
+      'being in public',
+      'ordinary occupation, uniform, badge, or assigned task without tension between public presentation and private identity',
+      'being visible in public without a socially adapted mask governing belonging, recognition, or permissible expression',
+      "another figure stealing or occupying the dreamer's identity or role; prefer Double when substitution or rivalry is central",
+      'a ceremony, audience, or social setting that merely surrounds a stronger relational or archetypal function',
+    ],
     competingLabels: ['Ego', 'Ruler', 'Lover'],
   },
   {
@@ -102,7 +158,7 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'mother role alone',
       'assumed from dreamer sex/gender',
     ],
-    competingLabels: ['Great Mother', 'Terrible Mother', 'Lover', 'Animus', 'Guide / Psychopomp'],
+    competingLabels: ['Mother', 'Father', 'Lover', 'Animus', 'Guide / Psychopomp'],
   },
   {
     id: 'animus',
@@ -139,32 +195,47 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
     competingLabels: ['Orphan'],
   },
   {
-    id: 'great_mother',
-    canonicalLabel: 'Great Mother',
-    displayLabel: 'The Great Mother',
+    id: 'mother',
+    canonicalLabel: 'Mother',
+    displayLabel: 'The Mother',
     kind: 'archetypal_figure',
-    coreFunction: 'Nurturing, containing, fertile maternal matrix that supports growth or belonging.',
+    coreFunction:
+      'Maternal matrix of holding, nourishment, belonging, or binding — polarity (nurturing or devouring) belongs in expression.',
     selectWhen: [
-      'maternal containing or nourishing organizes the field',
-      'shelter, feeding, or fertile ground is the structural gift',
-      'protective embrace enables growth rather than binding',
+      'maternal containing, nourishing, or binding organizes the field',
+      'shelter, feeding, fertile ground, or anti-separation holding is structural',
+      'the maternal function changes growth, belonging, or the capacity to leave',
     ],
-    insufficientWhen: ['any mother', 'any woman', 'house alone', 'food alone'],
-    competingLabels: ['Terrible Mother', 'Anima'],
+    insufficientWhen: [
+      'any mother',
+      'any woman',
+      'house alone',
+      'food alone',
+      'powerful woman alone',
+      'underworld queen alone',
+    ],
+    competingLabels: ['Anima', 'Father', 'Ruler', 'Wise Old Woman'],
   },
   {
-    id: 'terrible_mother',
-    canonicalLabel: 'Terrible Mother',
-    displayLabel: 'The Terrible Mother',
+    id: 'father',
+    canonicalLabel: 'Father',
+    displayLabel: 'The Father',
     kind: 'archetypal_figure',
-    coreFunction: 'Maternal configuration that engulfs, possesses, or regressively binds.',
+    coreFunction:
+      'Paternal principle of authority, law, orientation, or claim on attention — polarity (protective, initiating, absent, or tyrannical) belongs in expression.',
     selectWhen: [
-      'maternal function binds, engulfs, or refuses separation',
-      'devouring care or possessive holding organizes the conflict',
-      'regressive pull prevents crossing or growth',
+      'paternal authority, law, or orientation organizes the field',
+      'a father-figure claims time, attention, psychic space, or consequence',
+      'structure, boundary, or paternal demand is the structural function — not mere male presence',
     ],
-    insufficientWhen: ['powerful woman', 'underworld queen', 'older woman', 'punishment alone'],
-    competingLabels: ['Great Mother', 'Ruler'],
+    insufficientWhen: [
+      'any father',
+      'any older man',
+      'any authority figure',
+      'anger alone',
+      'rules without paternal claim',
+    ],
+    competingLabels: ['Ruler', 'Wise Old Man', 'Animus', 'Persona'],
   },
   {
     id: 'wise_old_man',
@@ -178,7 +249,7 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'numinous counsel exceeds ordinary advice',
     ],
     insufficientWhen: ['any old man', 'any teacher', 'advice without wisdom charge'],
-    competingLabels: ['Guide / Psychopomp', 'Animus', 'Ruler'],
+    competingLabels: ['Guide / Psychopomp', 'Animus', 'Father', 'Ruler'],
   },
   {
     id: 'wise_old_woman',
@@ -192,7 +263,7 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'numinous counsel exceeds ordinary domestic advice',
     ],
     insufficientWhen: ['any old woman', 'grandmother role alone', 'advice without wisdom charge'],
-    competingLabels: ['Guide / Psychopomp', 'Great Mother', 'Anima'],
+    competingLabels: ['Guide / Psychopomp', 'Mother', 'Anima'],
   },
   {
     id: 'hero',
@@ -205,22 +276,38 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'trial, combat, or rescue earns a crossing or boon',
       'courageous agency is the structural function, not mere action',
     ],
-    insufficientWhen: ['any courage', 'any journey', 'dreamer takes any action'],
+    insufficientWhen: [
+      'any courage',
+      'any journey',
+      'dreamer takes any action',
+      'ordeal without an achieved crossing, rescue, boon, or changed outcome',
+      'effort or persistence alone',
+      'ascent without completion or transformation',
+      'repeated struggle that restores the starting condition',
+      'courage without a structurally changed outcome',
+    ],
     competingLabels: ['Ego', 'Orphan', 'Death–Rebirth'],
   },
   {
     id: 'trickster',
     canonicalLabel: 'Trickster',
     displayLabel: 'The Trickster',
-    kind: 'archetypal_figure',
+    kind: 'archetypal_function',
     coreFunction:
-      'Boundary-crossing disruption that inverts order, exposes false structure, or opens possibility through cunning — as figure or mode of action.',
+      'Cunning, inversion, deception, or rule-bending that actually changes leverage, exposes false order, or opens a new possibility.',
     selectWhen: [
-      'rules are inverted or boundaries crossed with cunning',
-      'comic or chaotic reversal exposes false order',
-      'disruption creates a new possibility rather than mere villainy',
+      'cunning or inversion changes leverage or exposes false structure',
+      'deception or feigned belief reverses who holds power',
+      'strategic reversal opens a new possibility rather than mere spectacle',
     ],
-    insufficientWhen: ['any liar', 'any joke', 'anything strange or confusing'],
+    insufficientWhen: [
+      'lying',
+      'shape-shifting',
+      'changing promises',
+      'humor',
+      'chaos or strangeness',
+      'rule-breaking without changed leverage',
+    ],
     competingLabels: ['Shadow', 'Guide / Psychopomp'],
   },
   {
@@ -248,7 +335,12 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'a counterpart occupies or claims the dreamer’s recognition',
       'split agency is the organizing conflict',
     ],
-    insufficientWhen: ['shared face or eyes only', 'mirror resemblance only', 'vague familiarity'],
+    insufficientWhen: [
+      'shared face or eyes only',
+      'mirror resemblance only',
+      'vague familiarity',
+      'physical resemblance alone without substitution, rivalry, identity displacement, or split agency',
+    ],
     competingLabels: ['Shadow', 'Death–Rebirth'],
   },
   {
@@ -262,7 +354,12 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'search for home or kin-protection drives movement',
       'aloneness without belonging is structural, not incidental',
     ],
-    insufficientWhen: ['brief loneliness', 'any child', 'missing one parent incidentally'],
+    insufficientWhen: [
+      'brief loneliness',
+      'any child',
+      'missing one parent incidentally',
+      'loss or separation alone unless abandonment, exile, or lack of belonging organizes the field',
+    ],
     competingLabels: ['Divine Child', 'Hero'],
   },
   {
@@ -275,8 +372,16 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'erotic or devoted relatedness organizes the dream',
       'union, longing, or heart-risk is the structural stake',
       'choosing the beloved changes the field',
+      'mutual intimacy or chosen closeness is the emotional centre of the dream',
+      'two figures share a sustained orientation toward the same psychic depth, future, or field',
+      'the bond itself changes how the dream-space can be inhabited, even without conflict or dramatic outcome',
     ],
-    insufficientWhen: ['any romance cue', 'attractiveness alone', 'wedding scenery alone'],
+    insufficientWhen: [
+      'any romance cue',
+      'attractiveness alone',
+      'wedding scenery alone',
+      'requiring longing, separation, vow, sacrifice, or transformed social order when gentle closeness already organizes the field',
+    ],
     competingLabels: ['Anima', 'Animus', 'Sacred Marriage', 'Persona'],
   },
   {
@@ -291,7 +396,7 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'authority is personal and structural, not mere backdrop',
     ],
     insufficientWhen: ['institution alone', 'guards or audience alone', 'ceremony alone', 'title without agency'],
-    competingLabels: ['Persona', 'Terrible Mother', 'Wise Old Man'],
+    competingLabels: ['Persona', 'Mother', 'Father', 'Wise Old Man'],
   },
   {
     id: 'death_rebirth',
@@ -323,33 +428,68 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
   },
 ];
 
+export function getArchetypeDefinitionById(archetypeId: string): ArchetypeDefinition | undefined {
+  const key = canonicalizeArchetypeId(archetypeId);
+  if (!key) return undefined;
+  return ARCHETYPE_CATALOG_V1.find((d) => d.id === key);
+}
+
 export function getArchetypeDefinitionV1(canonicalLabel: string): ArchetypeDefinition | undefined {
   const key = canonicalLabel.replace(/^\s*The\s+/i, '').trim().toLowerCase();
-  return ARCHETYPE_CATALOG_V1.find((d) => d.canonicalLabel.toLowerCase() === key);
+  const matches = ARCHETYPE_CATALOG_V1.filter((d) => d.canonicalLabel.toLowerCase() === key);
+  if (matches.length === 1) return matches[0];
+  return undefined;
 }
 
 /** Exact Dream Detail / essay title from catalog; never auto-prefix "The". */
 export function getArchetypeDisplayLabel(canonicalLabel: string): string {
-  const def = getArchetypeDefinitionV1(canonicalLabel);
-  if (def) return def.displayLabel;
-  const trimmed = canonicalLabel.trim();
-  return trimmed;
+  const key = canonicalLabel.replace(/^\s*The\s+/i, '').trim().toLowerCase();
+  const matches = ARCHETYPE_CATALOG_V1.filter((d) => d.canonicalLabel.toLowerCase() === key);
+  if (matches.length > 0) return matches[0].displayLabel;
+  return canonicalLabel.trim();
+}
+
+/** Selectable archetype ids injected into dream_extraction (includes carrier-scoped variants). */
+export function selectableArchetypeIds(): string[] {
+  return ARCHETYPE_CATALOG_V1.filter((d) => d.selectableAsEcho !== false).map((d) => d.id);
+}
+
+function formatCarrierScopedArchetypeLine(def: ArchetypeDefinition): string {
+  const gate = ARCHETYPE_MECHANISM_HARD_GATES[def.id];
+  const anti = def.promptAntiFeatures?.join('; ') ?? def.insufficientWhen.join('; ');
+  return [
+    `id=${def.id}`,
+    `carrier:${def.carrierKind}`,
+    `function:${def.functionSignature ?? def.coreFunction}`,
+    gate ? `require:${formatHardGateForPrompt(gate)}` : null,
+    anti ? `anti:${anti}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+function formatStandardArchetypeLine(def: ArchetypeDefinition): string {
+  const lines = [
+    `id=${def.id} label:${def.canonicalLabel}`,
+    `  function: ${def.coreFunction}`,
+    `  select when: ${def.selectWhen.join('; ')}`,
+    `  not enough: ${def.insufficientWhen.join('; ')}`,
+  ];
+  const gate = ARCHETYPE_MECHANISM_HARD_GATES[def.id];
+  if (gate) {
+    lines.push(`  require mechanisms: ${formatHardGateForPrompt(gate)}`);
+  }
+  return lines.join('\n');
 }
 
 /**
- * Compact operational block injected into dream_extraction.
- * Keeps positive definitions in the catalog, not scattered hard gates.
+ * Compact operational block injected into dream_extraction (v4.1.3-B.2).
+ * Carrier-scoped records use id= / carrier / function / require / anti lines.
  */
 export function formatArchetypeCatalogForPromptV1(): string {
-  return ARCHETYPE_CATALOG_V1.map((d) => {
-    return [
-      `- ${d.canonicalLabel} [${d.kind}] UI:"${d.displayLabel}"`,
-      `  function: ${d.coreFunction}`,
-      `  select when: ${d.selectWhen.join('; ')}`,
-      `  insufficient: ${d.insufficientWhen.join('; ')}`,
-      `  competes with: ${d.competingLabels.join(', ')}`,
-    ].join('\n');
-  }).join('\n');
+  return ARCHETYPE_CATALOG_V1.filter((d) => d.selectableAsEcho !== false)
+    .map((d) => (d.carrierKind ? formatCarrierScopedArchetypeLine(d) : formatStandardArchetypeLine(d)))
+    .join('\n');
 }
 
 /** @deprecated Prefer formatArchetypeCatalogForPromptV1 — kept for import compatibility. */

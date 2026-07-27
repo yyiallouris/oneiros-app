@@ -86,6 +86,8 @@ type GatewayMetadataResponse = {
     interpretive_diagnostics?: unknown;
     post_validation_archetypes?: unknown;
     post_validation_amplifications?: unknown;
+    /** Staged raw → normalize → validate → invariant packet (debug only). */
+    mythic_echo_pipeline?: unknown;
     selection_summary?: string;
   } | null;
 };
@@ -429,6 +431,7 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
               response.debug_interpretive_echoes.post_validation_archetypes ?? null,
             post_validation_amplifications:
               response.debug_interpretive_echoes.post_validation_amplifications ?? null,
+            mythic_echo_pipeline: response.debug_interpretive_echoes.mythic_echo_pipeline ?? null,
           };
           const g = globalThis as typeof globalThis & {
             __ONEIROS_ECHO_DEBUG__?: unknown;
@@ -438,8 +441,40 @@ async function runMetadataExtractionWithRetry(interpretationId: string): Promise
           g.__ONEIROS_ECHO_DEBUG_JSON__ = JSON.stringify(packet, null, 2);
           console.log('[APP][DEBUG] interpretive_echoes_packet', packet);
           console.log('[APP][DEBUG] interpretive_echoes_packet_json\n' + g.__ONEIROS_ECHO_DEBUG_JSON__);
+          const pipeline = response.debug_interpretive_echoes.mythic_echo_pipeline as
+            | {
+                summary?: unknown;
+                selected_mythic_audit?: unknown;
+                raw_model_amplifications?: unknown;
+                parsed_amplifications?: unknown;
+                normalized_amplifications?: unknown;
+                validator_decisions?: unknown;
+                post_validation_amplifications?: unknown;
+                audit_production_consistency?: { ok?: boolean; violations?: string[] };
+              }
+            | null;
+          if (pipeline) {
+            console.log('[APP][DEBUG] mythic_echo_pipeline.summary', pipeline.summary ?? null);
+            console.log(
+              '[APP][DEBUG] mythic_echo_pipeline.stages',
+              {
+                '1_raw_model_amplifications': pipeline.raw_model_amplifications ?? null,
+                '2_parsed_amplifications': pipeline.parsed_amplifications ?? null,
+                '3_normalized_amplifications': pipeline.normalized_amplifications ?? null,
+                '4_validator_decisions': pipeline.validator_decisions ?? null,
+                '5_post_validation_amplifications': pipeline.post_validation_amplifications ?? null,
+                selected_mythic_audit: pipeline.selected_mythic_audit ?? null,
+              }
+            );
+          }
+          if (pipeline?.audit_production_consistency && pipeline.audit_production_consistency.ok === false) {
+            console.error(
+              '[APP][DEBUG] mythic_audit_production_invariant_failed',
+              pipeline.audit_production_consistency
+            );
+          }
           console.log(
-            '[APP][DEBUG] Tip (web): inspect window.__ONEIROS_ECHO_DEBUG__ or copy(window.__ONEIROS_ECHO_DEBUG_JSON__)'
+            '[APP][DEBUG] Tip (web): copy(window.__ONEIROS_ECHO_DEBUG_JSON__). Inspect mythic_echo_pipeline.summary + stages 1–5. Audit titles are never auto-promoted into production.'
           );
         } else if (response.cached) {
           console.warn(

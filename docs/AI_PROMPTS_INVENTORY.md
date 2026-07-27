@@ -1,6 +1,6 @@
 # Oneiros AI prompts inventory
 
-> **Note (2026-07-26):** Archetypal/Mythic Echo extraction is at `prompt_version` `3.6.7` (decisive turning-point coverage + mythic narrative specificity / winner consistency). Prefer the live dump at [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md) for those sections — the extraction excerpt below may be stale until regenerated.
+> **Note (2026-07-27):** Archetypal/Mythic Echo extraction is at `prompt_version` `4.1.1` / schema `6` / `temperature` `0` (slim mechanism-tag archetypes + closed Mythic catalog v1.1.0). Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). No-prompt-bloat brief: [`ONEIROS_V4_1_1_NO_PROMPT_BLOAT_DEV_BRIEF.md`](./ONEIROS_V4_1_1_NO_PROMPT_BLOAT_DEV_BRIEF.md). Mythic brief: [`ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md`](./ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts` (inventory excerpts below may lag; trust the TS module).
 
 Canonical sources:
 - Reflection / chat / essays / grouping / conversation update: `src/services/ai.ts` (client) and mirrored copies in `supabase/functions/_shared/billing-ai.ts` (gateway production path)

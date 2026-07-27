@@ -8,8 +8,8 @@ import {
 describe('archetypalEchoes', () => {
   it('normalizes legacy bare labels into canonical objects', () => {
     expect(normalizeArchetypalEchoes(['Child', 'Guide', 'Unknown'])).toEqual([
-      { canonical_label: 'Divine Child', expression: '', resonance: '', evidence: [] },
-      { canonical_label: 'Guide / Psychopomp', expression: '', resonance: '', evidence: [] },
+      { canonical_label: 'Divine Child', archetype_id: 'divine_child', expression: '', resonance: '', evidence: [] },
+      { canonical_label: 'Guide / Psychopomp', archetype_id: 'guide_psychopomp', expression: '', resonance: '', evidence: [] },
     ]);
   });
 
@@ -65,6 +65,69 @@ describe('archetypalEchoes', () => {
     expect(items[0]).toMatchObject({
       canonical_label: 'Divine Child',
       expression: 'The Guiding Child',
+    });
+  });
+
+  it('resolves canonical labels from raw archetype_id-only extraction rows', () => {
+    const items = normalizeArchetypalEchoes([
+      {
+        archetype_id: 'guide_psychopomp',
+        expression: 'the woman who brings me to the door and stops there',
+        resonance: 'A guiding presence escorts the crossing without taking it for the dreamer.',
+        evidence_ids: ['D2', 'D6'],
+        confidence: 'high',
+      },
+      {
+        archetype_id: 'divine_child',
+        expression: 'the child who walks ahead toward the lit tunnel',
+        resonance: 'The child carries vulnerable renewal that changes the whole field.',
+        evidence_ids: ['D7', 'D12'],
+        confidence: 'medium',
+      },
+    ]);
+
+    expect(items).toEqual([
+      {
+        canonical_label: 'Guide / Psychopomp',
+        archetype_id: 'guide_psychopomp',
+        expression: 'the woman who brings me to the door and stops there',
+        resonance: 'A guiding presence escorts the crossing without taking it for the dreamer.',
+        evidence: [],
+        evidence_ids: ['D2', 'D6'],
+        confidence: 'high',
+      },
+      {
+        canonical_label: 'Divine Child',
+        archetype_id: 'divine_child',
+        expression: 'the child who walks ahead toward the lit tunnel',
+        resonance: 'The child carries vulnerable renewal that changes the whole field.',
+        evidence: [],
+        evidence_ids: ['D7', 'D12'],
+        confidence: 'medium',
+      },
+    ]);
+  });
+
+  it('preserves legacy mother provenance while canonicalizing to Mother', () => {
+    const terrible = normalizeArchetypalEchoes([
+      {
+        canonical_label: 'Terrible Mother',
+        archetype_id: 'terrible_mother',
+        resonance: 'Binding care turns the house into a soft prison.',
+        evidence: ['locked doorway'],
+      },
+    ]);
+    const great = normalizeArchetypalEchoes(['Great Mother']);
+
+    expect(terrible[0]).toMatchObject({
+      canonical_label: 'Mother',
+      archetype_id: 'mother',
+      legacy_source_id: 'terrible_mother',
+    });
+    expect(great[0]).toMatchObject({
+      canonical_label: 'Mother',
+      archetype_id: 'mother',
+      legacy_source_id: 'great_mother',
     });
   });
 

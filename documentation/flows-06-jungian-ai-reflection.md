@@ -37,6 +37,39 @@ This exists because Interpretive Echo field additions repeatedly caused producti
 - `__tests__/structuredTaskValidation.test.ts`
 - `docs/SYMBOLS_FLOW.md`, `documentation/architecture-interpretation.md`, `AGENTS.md`, `.codex/skills/oneiros-repo/SKILL.md`
 
+## Locked contract: output-language commit gate (E.1.1)
+
+**Status: locked — Patch E + E.1.1 frozen `accepted_with_known_residuals` and deployed.** Prompt language lock alone is not sufficient; the commit gate is mandatory.
+
+Wrong-language user-facing strings must never reach the database or UI. The model may fail language probabilistically; the application must not commit that failure.
+
+### Required gate
+
+1. Resolve `target_output_language` before the AI call (`src/ai/dreamOutputLanguage.ts`).
+2. After schema-valid extraction, validate every user-facing free-text field (script + aggregate heuristics for shared Latin scripts).
+3. On mismatch: one **field-scoped** repair (same model) that rewrites only mismatched paths; machine IDs / tags / confidence stay frozen. **Never drop** fields, archetypes, myths, or Dream Fabric items.
+4. Merge + `semanticFingerprint` assert structure unchanged (excluding repaired text paths).
+5. Re-validate language. If still failing or structure changed: `failureCode: language_validation_failed`, `metadata_status: failed` — no commit, no UI exposure, no silent deletion.
+6. Telemetry (no full text): `initial_language_match`, `repair_attempted`, `repaired_field_paths`, `repair_language_match`, `semantic_structure_preserved`, `dropped_due_to_language_count` (=0), `full_regeneration_due_to_language_count` (=0), `final_commit_allowed`.
+
+### Acceptance metric
+
+```text
+committed output language match: 100%
+wrong-language UI exposure: 0
+dropped information: 0
+semantic structure preserved on repair: 100%
+```
+
+### Contract tests / docs
+
+- `__tests__/dreamOutputLanguage.test.ts`
+- `__tests__/dreamOutputLanguage.forcedInvalid.e11.test.ts`
+- `__tests__/dreamOutputLanguage.faithfulRepair.e11.test.ts`
+- `docs/ONEIROS_V4_1_7_E_PATCH.md` (E.1.1 section)
+- Gateway validates repair payload locally even when proxy uses `skip_structured_validation` (`validateLanguageRepairFieldMap` → `Record<ExactRequestedFieldPath, NonEmptyString>`).
+- Repair faithfully: preserve claims/images/relationships/negations/modality/names/numbers; change only natural language.
+
 ## Locked UX contract: reflection streaming typing
 
 **Status: locked. Do not change without the product owner’s explicit approval in the current conversation.**
@@ -113,13 +146,15 @@ After reflection exists, DreamDetail presents the dream as a quiet reflection sp
 - **Explore symbolic layers:** collapsed secondary metadata grouped as:
   - **Dream Fabric** (grounded in dream text): Emotional Weather (`affects`), Dream Places (`landscapes`), Relationship Field (`relational_dynamics`), Thresholds, Dream Motifs (`motifs`). On a single dream, motifs are candidates — not yet confirmed recurrence.
   - **Interpretive Echoes** (provisional): Inner Tensions (`central_conflicts`), Archetypal Echoes (`archetypes`), Mythic Echoes (`amplifications`).
-- Mythic Echoes are rare optional interpretive enrichment (0–1 named parallel `{ title, tradition, resonance, divergence, evidence, confidence }`), not Dream Fabric. Selected **open-world in the same `dream_extraction` call**. **Precision over coverage** — false positives are more harmful than empty output; most dreams should return `amplifications: []`. Allowed sources: specific named myth/tale/cycle/epic episode/religious narrative/alchemical sequence only — **not** generic folkloric patterns or invented folk titles. Candidate generation from **raw dream only** (reflection may help wording after selection). Lightweight post-validator rejects generic/invented titles. Production prompt must not contain test-dream answer-key clusters. No mythology corpus/resolver/retrieval. DreamDetail shows `high` and `medium` (legacy missing confidence still display) as `title — tradition` plus one compact resonance+divergence paragraph (generation budget ~35–55 words). Field: `amplifications`. Not in Forming Patterns. Legacy `difference` → `divergence` on read.
+- Mythic Echoes are rare optional interpretive enrichment (0–1 closed-catalog parallel `{ catalog_id, title, tradition, source_type, resonance, divergence, evidence, confidence, catalog_myth_version }`), not Dream Fabric. Selected **from the closed Mythic narrative catalog in the same `dream_extraction` call** (compact prompt index of 128 ids; no second AI/embedding call). Model returns only `catalog_id` (or `[]`); server resolves title/tradition/source_type and rejects unknown ids with **no open-world fallback**. Flag `MYTHIC_CLOSED_CATALOG_V1` (default ON; off → `[]`). Candidate generation from **raw dream only** (reflection may help wording after `catalog_id` is locked). DreamDetail still shows `title — tradition` plus one compact resonance+divergence paragraph. Field: `amplifications`. Not in Forming Patterns. Legacy `difference` → `divergence` on read.
 - Archetypal Echoes return 0–2 objects `{ canonical_label, expression, resonance, evidence, confidence }` with closed whitelist + concise hard gates for Double, Guide/Psychopomp, Divine Child, Terrible Mother, and Ruler (`evaluation` optional; explicit failed signals reject; missing evaluation must not empty the section; stripped before UI). Zero or one echo is normal; two is exceptional. Candidate generation from raw dream only. Resonance is shortened at generation (~20–35 words, hard max 45). DreamDetail keeps the prior accordion structure and shows all returned echoes. Insights aggregates `canonical_label`.
-- Successful extractions store `extraction_prompt_version` (`dream-field-map-interpretive-v3.6`) and `extraction_schema_version` (`4`) (`prompt_version` `3.6.7`). Single-call architecture: Fabric + Archetypal Echoes + Mythic Echo or `[]` → lightweight validators → persist. Archetypal selection: decisive turning-point coverage then operational catalog (`kind`/select cues); mythic: configuration-first, preserve specific tale over generic complex, winner consistency on multi-stage sequence. Empty echo arrays hide Dream Detail subsections. Schema stays at `4`. Versioned ready rows that no longer match reopen for re-extraction; legacy null versions stay cached.
+- Successful extractions store `extraction_prompt_version` (`dream-field-map-interpretive-v4.1.3-b`) and `extraction_schema_version` (`7`) (`prompt_version` `4.1.3-B`, `temperature` `0`). Single-call architecture: Fabric + Archetypal Echoes (slim rules + mechanism-tag hard gates + Trickster carrier/mechanism_actor alignment) + closed-catalog Mythic Echo with `evidence_ids` or `[]` → validators resolve exact dream spans (display spread: first/middle/last) → persist (`catalog_id` + `catalog_myth_version` on amplifications). No dream-specific prompt examples. Empty echo arrays hide Dream Detail subsections. Versioned ready rows that no longer match reopen for re-extraction; legacy null versions stay cached.
 - Dream Fabric / Inner Tensions Dream Detail rendering, counts, and formatting are unchanged from the pre-copy-reduction behaviour. Echo length is a prompt-copy adjustment only — no Show more, line clamps, or Fabric redesign.
-- **Dev/test diagnostics:** `debug_interpretive_echoes: true` (auto in `__DEV__`) appends an additive suffix only — must not change selection. Gateway **bypasses ready-cache** when debug is set so a fresh packet is returned. Dream Detail `__DEV__` exposes “Re-extract echoes (debug packet)”; console logs `[APP][DEBUG] interpretive_echoes_packet_json` with `interpretive_diagnostics`, `post_validation_archetypes`, `post_validation_amplifications`, and `cached:false`. Diagnostics never persist / never UI.
+- **Dev/test diagnostics:** `debug_interpretive_echoes: true` (auto in `__DEV__`) appends an additive suffix only — must not change selection. Gateway **bypasses ready-cache** when debug is set so a fresh packet is returned. Dream Detail `__DEV__` exposes “Re-extract echoes (debug packet)”; console logs `[APP][DEBUG] interpretive_echoes_packet_json` with `interpretive_diagnostics`, `post_validation_archetypes`, `post_validation_amplifications`, `mythic_echo_pipeline` (`summary` + stages: raw → parsed → normalized → `validator_decisions` → post-validation → audit/production invariant; never auto-promotes selected audit into production), and `cached:false`. Diagnostics never persist / never UI.
+- **Debug path (v4.1.3-B):** production benchmarks keep `debug_interpretive_echoes` OFF. Optional debug may return compact `selection_notes` only — never persist/UI, never auto-promote diagnostics into production echoes. Legacy `mythic_echo_pipeline` staging remains available in code for investigating normalize/validate drift when debug is explicitly enabled.
 - Fabric fields must map compactly: affects = felt tones only (never images); relational dynamics = pattern labels (not plot summary); thresholds/motifs = short canonical phrases.
 - Metadata extraction uses the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` with an explicit SOURCE BOUNDARY between Dream Fabric and Interpretive Echoes. User-facing extraction strings follow the dream's primary language; schema enums and whitelisted archetype `canonical_label` values stay English.
+- Server-side archetype normalization must accept raw extraction rows that carry only `archetype_id` plus `mechanism_tags` / `evidence_ids`; `canonical_label` is resolved from the closed catalog before validation/persistence so valid Guide / Divine Child echoes do not disappear between debug packet and DreamDetail render.
 
 Dream-level `dream.symbols` / `dream.archetypes` are not shown as primary chips on DreamDetail.
 

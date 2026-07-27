@@ -39,6 +39,7 @@ export type InfoModalKey =
   | 'archetype-persona'
   | 'archetype-anima'
   | 'archetype-animus'
+  | 'archetype-mother'
   | 'archetype-great-mother'
   | 'archetype-terrible-mother'
   | 'archetype-father'
@@ -330,6 +331,32 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
 
   // Archetypal energies — individual archetype chips
+  'archetype-mother': {
+    title: '✶ The Mother',
+    subtitle: 'Archetypal energies — dynamic',
+    sections: [
+      {
+        heading: 'What it is',
+        content:
+          'The Mother is the maternal matrix of holding, nourishment, belonging — and, in another face, binding or engulfment. Both poles belong to one archetype; the dream shows which expression is active.',
+      },
+      {
+        heading: 'How it appears in dreams',
+        content:
+          'Often as shelters, kitchens, caves, oceans, fertile landscapes, maternal figures who gather and protect — or as smothering care, locked doors of “for your own good,” and landscapes that refuse exit.',
+      },
+      {
+        heading: 'Distortion',
+        content:
+          'Nurture can tighten into captivity; fear of dependency can freeze into cold rejection of all care. The work is to tell nourishment from overcontainment.',
+      },
+      {
+        heading: 'Orienting question',
+        content:
+          'Where do you need real nourishment — and where might care be turning into a hold that blocks your separate life?',
+      },
+    ],
+  },
   'archetype-great-mother': {
     title: '✶ Great Mother',
     subtitle: 'Archetypal energies — dynamic',
@@ -337,7 +364,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       {
         heading: 'What it is',
         content:
-          'The Great Mother is the field of holding, nourishment, and belonging. It is the psychic sense that life can contain you, feed you, and let you grow.',
+          'Legacy label for the nurturing face of The Mother — holding, nourishment, and belonging. Prefer The Mother; polarity lives in the dream’s expression.',
       },
       {
         heading: 'How it appears in dreams',
@@ -357,28 +384,28 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     ],
   },
   'archetype-father': {
-    title: '✶ Father',
+    title: '✶ The Father',
     subtitle: 'Archetypal energies — dynamic',
     sections: [
       {
         heading: 'What it is',
         content:
-          'The Father names the principle of structure: boundary, law, orientation, and consequence. It gives form so energy can become direction.',
+          'The Father names the paternal principle of structure: boundary, law, orientation, consequence — and, in shadow, claim or tyranny over time and attention. Polarity belongs in the dream’s expression.',
       },
       {
         heading: 'How it appears in dreams',
         content:
-          'Often as authority figures, institutions, clear rules, thresholds, or voices setting limits. This energy asks for posture and accountability.',
+          'Often as authority figures, institutions, clear rules, thresholds, voices setting limits — or as intrusive demand, judgment, and sudden sweetness that disarms confrontation.',
       },
       {
         heading: 'Distortion',
         content:
-          'It can harden into rigidity, judgment, or fear of failure. In its absence, life may feel uncontained and diffuse.',
+          'It can harden into rigidity, judgment, or fear of failure. In its absence, life may feel uncontained and diffuse. Tyrannical claim can invade psychic space without physical presence.',
       },
       {
         heading: 'Orienting question',
         content:
-          'What boundary here protects your growth — and what rule has become too narrow for who you are now?',
+          'What boundary here protects your growth — and what paternal claim has become too narrow, or too invasive, for who you are now?',
       },
     ],
   },
@@ -909,7 +936,7 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
       {
         heading: 'What it is',
         content:
-          'The Terrible Mother is the devouring, engulfing, or annihilating face of maternal power — not ordinary cruelty, but archetypal overwhelm that swallows differentiation.',
+          'Legacy label for the devouring or engulfing face of The Mother — not a separate archetype. Prefer The Mother; polarity lives in the dream’s expression.',
       },
       {
         heading: 'How it appears in dreams',
@@ -1068,8 +1095,8 @@ const ARCHETYPE_INFO_KEY_MAP: Record<ArchetypeName, InfoModalKey> = {
   Anima: 'archetype-anima',
   Animus: 'archetype-animus',
   'Divine Child': 'archetype-child',
-  'Great Mother': 'archetype-great-mother',
-  'Terrible Mother': 'archetype-terrible-mother',
+  Mother: 'archetype-mother',
+  Father: 'archetype-father',
   Hero: 'archetype-hero',
   Trickster: 'archetype-trickster',
   'Guide / Psychopomp': 'archetype-guide',

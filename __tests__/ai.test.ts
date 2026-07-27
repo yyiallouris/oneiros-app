@@ -4,6 +4,7 @@ import {
   generateInitialInterpretation,
   mergeConversationElementUpdates,
 } from '../src/services/ai';
+import { buildDreamExtractionResponseFormat } from '../src/ai/dreamExtractionResponseFormat';
 import type { Dream, Interpretation } from '../src/types/dream';
 
 jest.mock('../src/services/userSettingsService', () => ({
@@ -181,16 +182,16 @@ describe('ai service', () => {
     expect(systemText).toMatch(/display_distillation/);
     expect(systemText).toMatch(/visible_anchors/);
     expect(systemText).toMatch(/symbol_stances: 1–5 items, only for genuinely charged symbols/);
+    expect(systemText).toMatch(/maximum 5/);
     expect(systemText).toMatch(/SOURCE BOUNDARY/);
     expect(systemText).toMatch(/ARCHETYPAL ECHOES/);
-    expect(systemText).toMatch(/Identify 0–2 established archetypal patterns/);
+    expect(systemText).toMatch(/Return 0–2 optional archetypal functions from the supplied closed catalog/);
     expect(systemText).toMatch(/MOTIFS \/ DREAM MOTIFS/);
-    expect(systemText).toMatch(/Identify 0–1 named parallel from world mythology/);
+    expect(systemText).toMatch(/Select 0–1 mythic narrative/);
     expect(systemText).toMatch(/core_mode.*null/);
     expect(userMsg).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(userMsg).toMatch(/Final interpretation:/);
     expect(userMsg).toMatch(/red door carries the strongest pressure/);
-    expect(userMsg).toMatch(/maximum 5/);
     expect(userMsg).not.toMatch(/3–5 items/);
     expect(extraction.display_distillation?.dominant_lens).toBe('threshold');
     expect(extraction.display_distillation?.visible_anchors).toHaveLength(5);
@@ -239,6 +240,48 @@ describe('ai service', () => {
       amplifications: [],
       symbol_stances: [],
     });
+  });
+
+  it('keeps symbol stances when raw extraction uses the symbolStances alias', async () => {
+    mockFetch.mockImplementation(async () =>
+      apiResponse({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                display_distillation: {
+                  essence_title: 'Guarded entry',
+                  essence_line: 'The dream gathers around a guarded threshold.',
+                  dominant_lens: 'threshold',
+                  visible_anchors: [],
+                  main_tension: 'entry vs hesitation',
+                  dream_movement: 'approaching',
+                  movement_line: 'Something approaches without crossing.',
+                },
+                symbols: ['red door'],
+                symbolStances: [{ symbol: 'red door', stance: 'blocked, charged' }],
+                archetypes: [],
+                landscapes: [],
+                affects: ['tension'],
+                motifs: [],
+                relational_dynamics: [],
+                thresholds: ['closed door'],
+                central_conflicts: ['entry vs hesitation'],
+                core_mode: 'Core Tension',
+                amplifications: [],
+              }),
+            },
+            finish_reason: 'stop',
+          },
+        ],
+      })
+    );
+
+    const extraction = await extractDreamSymbolsAndArchetypes(dreamFixture(), 'A reading.');
+
+    expect(extraction.symbol_stances).toEqual([
+      { symbol: 'red door', stance: 'blocked, charged' },
+    ]);
   });
 
   it('includes the same universal output-language instruction for non-Greek dreams', async () => {
@@ -672,7 +715,7 @@ describe('ai service', () => {
       'pattern_insights',
       'semantic_grouping',
     ]);
-    expect(bodies[0].response_format).toEqual({ type: 'json_object' });
+    expect(bodies[0].response_format).toEqual(buildDreamExtractionResponseFormat());
     expect(bodies[2].response_format).toEqual({ type: 'json_object' });
     expect(bodies[5].response_format).toEqual({ type: 'json_object' });
   });

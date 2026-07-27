@@ -134,9 +134,10 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 ### Dream reflections
 
 - Free users get 1 rolling-7-day bucket.
-- Paid users get a 60-use billing-cycle bucket.
+- Paid users get a 60-use billing-cycle bucket by default.
+- Manual/test overrides may raise that cycle limit via `subscription_entitlements.raw.dream_reflection_limit` (see `billing_paid_dream_reflection_limit` and `scripts/sql/grant-test-user-200-dreams.sql`).
 - A new initial reflection or a full regenerate/update consumes 1 dream-reflection slot.
-- Follow-up assistant replies do **not** consume the 60-use paid bucket.
+- Follow-up assistant replies do **not** consume the paid dream-reflection bucket.
 - Reflection quota is committed once the user-facing reflection is generated and persisted. Post-reflection metadata extraction failure does not release quota because the reflection was delivered.
 - Reflection timeout/error before persistence releases the quota reservation.
 - Cost logs are observability-only and do not affect quota: the gateway logs reflection cost when the reflection call completes, metadata cost when extraction completes, and a combined reflection+metadata estimated USD when both are available.

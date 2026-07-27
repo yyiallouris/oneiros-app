@@ -65,17 +65,22 @@ Mythic Echoes are rare interpretive enrichment objects. Current shape: `{ title,
 ### `20260725130000_archetypes_to_jsonb.sql`
 Converts `interpretations.archetypes` from `text[]` to `jsonb`.
 
-Uses a two-step transform (Postgres forbids subqueries in `ALTER ... USING`): `to_jsonb(text[])` first, then an `UPDATE` that wraps bare JSON strings into `{ canonical_label, expression, resonance, evidence[] }`. App readers also normalize legacy strings / `display_label`. Insights aggregates `canonical_label`. Prefer 0–2.
+Uses a two-step transform (Postgres forbids subqueries in `ALTER ... USING`): `to_jsonb(text[])` first, then an `UPDATE` that wraps bare JSON strings into `{ canonical_label, expression, resonance, evidence[] }`. App readers also normalize legacy strings / `display_label`. Current readers may additionally preserve optional audit fields such as `archetype_id`, `archetype_catalog_version`, `evidence_ids`, and `legacy_source_id` when older ontology rows are canonicalized (for example `terrible_mother` → `mother`). No extra database migration is needed for those fields because the column is already `jsonb`. Insights aggregates `canonical_label`. Prefer 0–2.
 
 ### `20260725140000_add_extraction_prompt_versioning.sql`
 Adds `extraction_prompt_version` and `extraction_schema_version` to `interpretations`.
 
-Successful metadata extraction stores the current prompt architecture id (`dream-field-map-interpretive-v3.6`, prompt_version `3.6.7`) and schema generation (`4`) so version bumps can selectively reopen ready rows for re-extraction without auto-busting legacy null versions.
+Successful metadata extraction stores the current prompt architecture id (`dream-field-map-interpretive-v3.9`, prompt_version `3.9.0`) and schema generation (`4`) so version bumps can selectively reopen ready rows for re-extraction without auto-busting legacy null versions.
 
 ### `20260725150000_fix_billing_commit_quota_interpretation_id_text.sql`
 Rewrites `billing_commit_quota` so follow-up `interpretation_id` stays **text** (matching `interpretations.id`).
 
 The original billing-domain RPC cast `interpretation_id` to `uuid`, which made `dream_followup_reply` fail at commit with gateway `Failed to commit quota` after the model reply had already been generated. Do not reintroduce `::uuid` casts on interpretation ids.
+
+### `20260727010000_billing_dream_reflection_limit_override.sql`
+Adds `billing_paid_dream_reflection_limit(raw)` so paid dream-reflection cycle limits can be overridden via `subscription_entitlements.raw.dream_reflection_limit` (default remains **60**).
+
+`billing_reserve_quota` and `billing_subscription_status` both honor that override and sync the active paid bucket `limit_count`. Use `scripts/sql/grant-test-user-200-dreams.sql` for manual/test grants (currently `yyiallouris@gmail.com` → 200 / month).
 
 ## Running Migrations
 

@@ -11,6 +11,8 @@ import path from 'path';
 import {
   buildDreamExtractionSystemPrompt,
   buildDreamExtractionUserPrompt,
+  DREAM_EXTRACTION_PROMPT_VERSION,
+  DREAM_EXTRACTION_SCHEMA_VERSION,
   DREAM_EXTRACTION_TEMPERATURE,
   DREAM_EXTRACTION_TOKEN_LIMIT,
 } from '../../src/ai/dreamExtractionPrompt';
@@ -40,10 +42,12 @@ type DreamExtraction = {
     | string
     | {
         canonical_label?: string;
+        archetype_id?: string;
         expression?: string;
         display_label?: string;
         resonance?: string;
         evidence?: string[];
+        confidence?: string;
       }
   >;
   landscapes?: string[];
@@ -80,6 +84,13 @@ const TEST_DREAM = {
   date: '2026-07-20',
   content:
     'I am back in my childhood apartment carrying a shallow bowl filled with black water. A small white dog keeps looking back at me and leads me toward an elevator with no buttons. Behind frosted glass my mother calls my name, but her voice sounds as if it is underwater. I try to open a brown suitcase on the floor; it is full of damp soil and old keys, and one brass key melts into wax in my hand. The elevator doors open by themselves and take me to the roof. I am barefoot. The moon is reflected in the bowl, and I suddenly remember that I forgot my shoes downstairs.',
+};
+
+const FATHER_COMPLEX_DREAM = {
+  title: 'The Orchard Call',
+  date: '2026-07-27',
+  content:
+    'I am in a cherry orchard at harvest, reaching up through warm branches with sticky hands. My father calls and demands I answer immediately and tell him exactly where I am and how long I will stay. When I pause, his voice swells until it seems to own the whole field and the hour I had set aside for myself. Then cousins appear beside the trees and he suddenly turns sweet, calling me darling and asking me to say hello properly. My anger stays in my chest because if I answer him now I will look cruel in front of them.',
 };
 
 function loadDotenvValue(key: string): string | undefined {
@@ -209,6 +220,24 @@ function scoreReflectionAsPostJungian(reflection: string): string[] {
   return failures;
 }
 
+function readArchetypeObjects(extraction: DreamExtraction): Array<{
+  canonical_label?: string;
+  archetype_id?: string;
+  expression?: string;
+  resonance?: string;
+  confidence?: string;
+}> {
+  return (extraction.archetypes ?? []).filter(
+    (entry): entry is {
+      canonical_label?: string;
+      archetype_id?: string;
+      expression?: string;
+      resonance?: string;
+      confidence?: string;
+    } => Boolean(entry && typeof entry === 'object' && !Array.isArray(entry))
+  );
+}
+
 describeQuality('live crafted dream analysis quality', () => {
   const config = getLiveConfig();
   const hasAuthMaterial = Boolean(config.accessToken || (config.email && config.password));
@@ -216,6 +245,8 @@ describeQuality('live crafted dream analysis quality', () => {
 
   itWithAuth('generates an image-near post-Jungian reflection and extracts expected Insights metadata', async () => {
     expect(config.openaiProxyEndpoint).toContain('/functions/v1/openai-proxy');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     const accessToken = await getLiveAccessToken(config);
 
     const reflection = await callProxy(config, accessToken, {
@@ -278,5 +309,73 @@ describeQuality('live crafted dream analysis quality', () => {
     expect(['Core Tension', 'Core Shift', 'Core State', 'Core Restoration', null]).toContain(extraction.core_mode ?? null);
     expect(extraction.central_conflicts?.length ?? 0).toBeLessThanOrEqual(2);
     expect(extraction.symbol_stances?.length ?? 0).toBeGreaterThanOrEqual(1);
+  }, 90000);
+
+  itWithAuth('extracts Father for the orchard demand / sweetness split scenario', async () => {
+    expect(config.openaiProxyEndpoint).toContain('/functions/v1/openai-proxy');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
+    const accessToken = await getLiveAccessToken(config);
+
+    const reflection = await callProxy(config, accessToken, {
+      task: 'interpretation_standard',
+      model: 'gpt-5.4',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Act as Dream Weaver, a restrained post-Jungian dream analyst. Interpret symbolically, never literally. Stay image-near, hypothetical, non-clinical, and non-advisory.',
+        },
+        {
+          role: 'user',
+          content: `Dream title: ${FATHER_COMPLEX_DREAM.title}\nDate: ${FATHER_COMPLEX_DREAM.date}\nDream:\n${FATHER_COMPLEX_DREAM.content}\n\nWrite a compact symbolic reflection in 3-5 short paragraphs. Ground every major claim in concrete dream images. No diagnosis, no advice.`,
+        },
+      ],
+      temperature: 0.45,
+      max_completion_tokens: 900,
+      max_tokens: 900,
+    });
+
+    expect(textIncludesAny(reflection, ['father', 'orchard', 'call', 'sweet', 'cousins', 'anger'])).toBe(true);
+    expect(textIncludesAny(reflection, ['diagnosis', 'pathology', 'you should', 'you need to'])).toBe(false);
+
+    const extractionText = await callProxy(config, accessToken, {
+      task: 'dream_extraction',
+      model: 'gpt-5.4-mini',
+      messages: [
+        {
+          role: 'system',
+          content: buildDreamExtractionSystemPrompt(),
+        },
+        {
+          role: 'user',
+          content: buildDreamExtractionUserPrompt({
+            title: FATHER_COMPLEX_DREAM.title,
+            date: FATHER_COMPLEX_DREAM.date,
+            content: FATHER_COMPLEX_DREAM.content,
+            finalInterpretation: reflection,
+          }),
+        },
+      ],
+      temperature: DREAM_EXTRACTION_TEMPERATURE,
+      max_completion_tokens: DREAM_EXTRACTION_TOKEN_LIMIT,
+      max_tokens: DREAM_EXTRACTION_TOKEN_LIMIT,
+      response_format: { type: 'json_object' },
+    });
+    const extraction = parseJsonObject<DreamExtraction>(extractionText);
+    const archetypes = readArchetypeObjects(extraction);
+    const fatherEcho = archetypes.find(
+      (item) =>
+        item.archetype_id === 'father' ||
+        (item.canonical_label ?? '').toLowerCase() === 'father'
+    );
+
+    expect(termsIncludeAny(extraction.symbols, ['cherry', 'orchard', 'phone', 'call'])).toBe(true);
+    expect(termsIncludeAny(extraction.relational_dynamics, ['demand', 'claim', 'pressure', 'control', 'sweetness'])).toBe(true);
+    expect(termsIncludeAny(extraction.central_conflicts, ['time', 'anger', 'boundary', 'truth', 'sweetness'])).toBe(true);
+    expect(fatherEcho).toBeDefined();
+    expect((fatherEcho?.confidence?.length ?? 0) > 0).toBe(true);
+    expect(textIncludesAny(fatherEcho?.expression ?? '', ['paternal', 'father', 'authority', 'claim', 'sweetness'])).toBe(true);
+    expect(textIncludesAny(fatherEcho?.resonance ?? '', ['time', 'attention', 'boundary', 'anger', 'sweet'])).toBe(true);
   }, 90000);
 });

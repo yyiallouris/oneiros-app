@@ -16,8 +16,8 @@ describe('openai-proxy security boundary', () => {
 
     const requireUserIndex = proxySource.indexOf('await requireUser(req)');
     const parseBodyIndex = proxySource.indexOf('await req.json()');
-    const callOpenAIIndex = proxySource.indexOf('await callOpenAI(');
-    const callAnthropicIndex = proxySource.indexOf('await callAnthropic(');
+    const callOpenAIIndex = proxySource.lastIndexOf('const oaResponse = await callOpenAI(');
+    const callAnthropicIndex = proxySource.lastIndexOf('const ar = await callAnthropic(');
 
     expect(requireUserIndex).toBeGreaterThan(-1);
     expect(parseBodyIndex).toBeGreaterThan(requireUserIndex);

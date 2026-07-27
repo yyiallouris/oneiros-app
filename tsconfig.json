@@ -4,5 +4,14 @@
     "strict": true,
     "allowImportingTsExtensions": true
   },
-  "exclude": ["supabase/functions"]
+  "exclude": [
+    "supabase/functions",
+    "tmp",
+    "scripts/build-d1-reviewer-packet.ts",
+    "scripts/run-patch-d1-benchmark.ts",
+    "scripts/lib/globalArchetypeBenchmarkFixtures.v1.0.0.ts",
+    "scripts/run-patch-c-benchmark.ts",
+    "scripts/run-patch-c1-benchmark.ts",
+    "scripts/run-patch-c11-benchmark.ts"
+  ]
 }

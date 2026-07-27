@@ -4,6 +4,10 @@
  */
 
 import type { EchoDisplayCard } from './archetypalEchoes.ts';
+import {
+  MYTHIC_CATALOG_VERSION,
+  resolveMythDisplay,
+} from './catalogs/mythicNarrativeCatalog.ts';
 
 export type MythicEchoConfidence = 'high' | 'medium';
 
@@ -22,8 +26,12 @@ export type MythicEcho = {
    * Absent on legacy rows (still displayable until re-extract).
    */
   confidence?: MythicEchoConfidence;
-  /** Optional curated catalog id (v4). Resolved to title/tradition when present. */
+  /** Closed-catalog id (authoritative for new extractions). */
   catalog_id?: string;
+  /** Catalog source_type resolved server-side (not model-authored). */
+  source_type?: string;
+  /** Closed catalog version string, e.g. "1.0.0". */
+  catalog_myth_version?: string;
 };
 
 /** New extractions should stay at 0–1; legacy rows may still have 2 brief items. */
@@ -87,12 +95,23 @@ export function normalizeAmplifications(
       const confidenceRaw =
         typeof o.confidence === 'string' ? o.confidence.trim().toLowerCase() : '';
       if (confidenceRaw === 'low') continue;
-      const title = readTitle(o);
-      const tradition = typeof o.tradition === 'string' ? o.tradition.trim() : '';
+      const catalog_id = typeof o.catalog_id === 'string' ? o.catalog_id.trim() : '';
+      const resolvedDisplay = catalog_id ? resolveMythDisplay(catalog_id) : null;
+      const title = readTitle(o) || resolvedDisplay?.title || '';
+      const tradition =
+        (typeof o.tradition === 'string' ? o.tradition.trim() : '') ||
+        resolvedDisplay?.tradition ||
+        '';
       const resonance = typeof o.resonance === 'string' ? o.resonance.trim() : '';
       const divergence = readDivergence(o);
       const confidence = readConfidence(o);
-      const catalog_id = typeof o.catalog_id === 'string' ? o.catalog_id.trim() : '';
+      const source_type =
+        (typeof o.source_type === 'string' ? o.source_type.trim() : '') ||
+        resolvedDisplay?.sourceType ||
+        '';
+      const catalog_myth_version =
+        (typeof o.catalog_myth_version === 'string' ? o.catalog_myth_version.trim() : '') ||
+        (catalog_id ? MYTHIC_CATALOG_VERSION : '');
       const dreamImage = typeof o.dream_image === 'string' ? o.dream_image.trim() : '';
       const evidence = asEvidence(o.evidence);
       if (dreamImage && !evidence.includes(dreamImage) && evidence.length < 3) {
@@ -108,6 +127,8 @@ export function normalizeAmplifications(
       };
       if (confidence) echo.confidence = confidence;
       if (catalog_id) echo.catalog_id = catalog_id;
+      if (source_type) echo.source_type = source_type;
+      if (catalog_myth_version) echo.catalog_myth_version = catalog_myth_version;
       out.push(echo);
     }
     if (out.length >= max) break;

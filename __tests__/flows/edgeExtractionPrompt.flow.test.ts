@@ -33,7 +33,9 @@ describe('edge extraction prompt flow', () => {
     expect(clientAi).toMatch(/buildDreamExtractionUserPrompt\(/);
     expect(clientAi).toMatch(/DREAM_EXTRACTION_TEMPERATURE/);
     expect(clientAi).toMatch(/DREAM_EXTRACTION_TOKEN_LIMIT/);
-    expect(clientAi).toMatch(/validateMythicEchoes/);
+    expect(clientAi).toMatch(/validateClosedCatalogMythicEchoes/);
+    expect(clientAi).toMatch(/mythicEchoPipelineDebug/);
+    expect(clientAi).toMatch(/mythic_audit_production_invariant_failed/);
     expect(clientAi).not.toMatch(/mythicEchoResolver/);
 
     expect(billingAi).toMatch(
@@ -49,16 +51,19 @@ describe('edge extraction prompt flow', () => {
     expect(billingAi).toMatch(/echo-debug-flow/);
     expect(billingAi).toMatch(/debugInterpretiveEchoes/);
     expect(billingAi).toMatch(/parseInterpretiveEchoDiagnostics/);
-    expect(billingAi).toMatch(/validateMythicEchoes/);
+    expect(billingAi).toMatch(/validateClosedCatalogMythicEchoes/);
+    expect(billingAi).toMatch(/mythic_echo_pipeline_debug/);
+    expect(billingAi).toMatch(/mythic_audit_production_invariant_failed/);
     expect(billingAi).not.toMatch(/mythicEchoResolver/);
     expect(billingAi).not.toMatch(/Return a single JSON object with keys:\s*\ndisplay_distillation, symbols, symbol_stances/);
 
     expect(gateway).toMatch(/debug_interpretive_echoes/);
+    expect(gateway).toMatch(/mythic_echo_pipeline/);
     expect(gateway).toMatch(/Never persist interpretive_diagnostics/);
     expect(gateway).not.toMatch(/mythic_resolver_version/);
   });
 
-  it('keeps the proven Fabric pedagogy and the expert echo selection contract', () => {
+  it('keeps Fabric pedagogy and closed Mythic catalog selection', () => {
     const system = buildDreamExtractionSystemPrompt();
     const user = buildDreamExtractionUserPrompt({
       title: 'Guarded door',
@@ -80,42 +85,44 @@ describe('edge extraction prompt flow', () => {
     expect(system).toMatch(/locked room vs open street/);
     expect(system).toMatch(/visible_anchors/);
 
-    // Echo selection-theory contract
-    expect(system).toMatch(/ARCHETYPAL ECHOES \(0–2\)/);
+    // Echo v4.1 — archetypes contrastive + closed myth catalog
+    expect(system).toMatch(/GLOBAL ARCHETYPE ACTIVATION/);
+    expect(system).toMatch(/medium confidence rather than omitting it/);
+    expect(system).toMatch(/CLOSED MECHANISM TAGS/);
+    expect(system).toMatch(/CLOSED_MYTH_CATALOG/);
+    expect(system).toMatch(/sumerian\.inanna_descent/);
     expect(system).toMatch(/ONEIROS ARCHETYPE CATALOG/);
-    expect(system).toMatch(/CANDIDATE COVERAGE \(before ranking/);
-    expect(system).toMatch(/Archetypal weight requires support from at least two of/);
-    expect(system).toMatch(/Do not include an evaluation bag in production output/);
-    expect(system).toMatch(/MYTHIC ECHO \(0–1\)/);
-    expect(system).toMatch(/Before recalling any narrative, derive the dream's configuration/);
-    expect(system).toMatch(/CANONICALIZE before ranking/);
-    expect(system).toMatch(/Object or figure association alone must never receive high structural strength/);
-    expect(system).toMatch(/SELECTION GATE/);
-    expect(system).toMatch(/Silence is preferable to false cultural authority/);
+    expect(system).toMatch(/Never return Ego/);
+    expect(system).toMatch(/MYTHIC ECHO — CLOSED CATALOG/);
+    expect(system).toMatch(/"catalog_id"/);
     expect(system).toMatch(/"archetypes": \[\]/);
     expect(system).toMatch(/"amplifications": \[\]/);
+    expect(system).not.toMatch(/Return one myth only when a SPECIFIC/);
+    expect(system).not.toMatch(/STEP 1 — ORDERED EVENT MAP/);
+    expect(system).not.toMatch(/ROLE–VERB MECHANISM/);
+    expect(system).not.toMatch(/DECISIVE SPAN/);
+    expect(system).not.toMatch(/PLOT-CONTAMINATION TEST/);
     expect(system).not.toMatch(/mythic_signature/);
     expect(system).not.toMatch(/Hard gates \(do not select if unmet\)/);
-    expect(system).not.toMatch(/classical archetypal patterns/);
-    expect(system).not.toMatch(/Named descent \/ underworld \/ labyrinth narratives remain valid/);
-    expect(system).not.toMatch(/do not withhold them out of excessive caution/i);
-    expect(system).not.toMatch(/"canonical_label": "Shadow"/);
-    expect(system).not.toMatch(/Ariadne and the Labyrinth/);
-    expect(system).not.toMatch(/"evaluation"\?: object/);
+    expect(system).not.toMatch(/WINNER CONSISTENCY/);
+    expect(system).not.toMatch(/FIRST: FORM A DREAM MAP SILENTLY/);
+    expect(system).not.toMatch(/leverage_transfer/);
+    expect(system).not.toMatch(/pivot_beat/);
+    expect(system).not.toMatch(/Example A — decisive cunning/);
 
+    expect(user).toMatch(/TARGET OUTPUT LANGUAGE:/);
     expect(user).toMatch(/Catalog this dream into pattern metadata and immediate UI display distillation after the final interpretation/);
     expect(user).toMatch(/Final interpretation:/);
-    expect(user).toMatch(/no evaluation bag/);
-    expect(user).toMatch(/identify decisive turning-point/i);
-    expect(user).toMatch(/keep specific tale over generic complex/i);
+    expect(user).toMatch(/Keep archetype and myth selections independent/);
+    expect(user).toMatch(/Treat the reflection as absent until archetype_id and myth catalog_id are fixed/);
     expect(user).not.toMatch(/do not withhold/i);
     expect(user).not.toMatch(/maximum 5 anchors, ideal 3/);
 
-    expect(DREAM_EXTRACTION_TEMPERATURE).toBe(0.25);
+    expect(DREAM_EXTRACTION_TEMPERATURE).toBe(0);
     expect(DREAM_EXTRACTION_TOKEN_LIMIT).toBe(4200);
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('3.6.7');
-    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v3.6');
-    expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(4);
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.9-M1');
+    expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     expect(
       buildDreamExtractionUserPrompt({
         title: 'Long',

@@ -103,6 +103,26 @@ describe('mythicEchoes', () => {
     expect(items[0].title).toBe('Katabasis through the labyrinth');
   });
 
+  it('resolves display fields from catalog_id when a raw row is missing title/tradition', () => {
+    const items = normalizeAmplifications([
+      {
+        catalog_id: 'greek.cretan_labyrinth',
+        resonance: 'A thread leads through a winding centre toward a bound creature.',
+        divergence: 'Here the creature is fed rather than defeated.',
+        evidence: ['thread', 'labyrinth', 'bound being'],
+        confidence: 'high',
+      },
+    ]);
+
+    expect(items[0]).toMatchObject({
+      catalog_id: 'greek.cretan_labyrinth',
+      title: 'Ariadne and the Cretan Labyrinth',
+      tradition: 'Greek mythology',
+      source_type: 'mythic_cycle',
+      catalog_myth_version: expect.any(String),
+    });
+  });
+
   it('formats display cards as paragraphs and essay lines', () => {
     const echo = {
       title: 'Ariadne and the Labyrinth',

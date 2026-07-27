@@ -44,7 +44,7 @@ export const DreamDetailSkeleton: React.FC<DreamDetailSkeletonProps> = ({
     outputRange: [0.28, 0.5],
   });
 
-  const line = (key: string, lineStyle: StyleProp<ViewStyle>, fill = colors.wave2) => (
+  const line = (key: string, lineStyle: StyleProp<ViewStyle>, fill: string = colors.wave2) => (
     <Animated.View
       key={key}
       style={[styles.line, lineStyle, { backgroundColor: fill, opacity }]}

@@ -27,6 +27,10 @@ For structured tasks (`dream_extraction`, `conversation_element_update`,
 
 `parse → coerce → Zod validate → one repair on the same provider → validate again`.
 
+Optional body flag `skip_structured_validation: true` bypasses that gate for
+bounded field-scoped language repair calls (same `dream_extraction` model
+routing). Used only by the E.1.1 language commit gate — not for normal extract.
+
 **Resilience (do not regress):** `dream_extraction` soft-defaults common model
 omissions on otherwise rich Interpretive Echoes (e.g. missing `confidence` →
 `medium` in coerce + Zod preprocess via `DREAM_EXTRACTION_SOFT_DEFAULTS`).
@@ -77,6 +81,8 @@ can collect partial chunks and expose them through status polling.
   - **`provider`:** `"openai"` by default
   - **`model`:** συγκεκριμένο id (π.χ. `"gpt-5.4-mini"`, `"gpt-5.4"`) **ή** **`null`** για να πέφτεις πίσω σε secrets / το model της εφαρμογής
   - **`fallbackAnthropicModels` (optional):** μόνο με `provider: "openai"`. Ordered list. Αν το OpenAI αποτύχει (**400** / 429 / 5xx, ή κενό completion), δοκιμάζονται με τη σειρά μέχρι να πετύχει ένα, αρκεί να υπάρχει **`ANTHROPIC_API_KEY`**.
+
+- Optional request flag **`disable_anthropic_fallback: true`** — skips Anthropic rescue for benchmark/diagnostic calls (used by global archetype primary-only rerun). Production traffic unchanged when omitted.
 
 Προεπιλογή στο repo (A/B-backed product mapping):
 - **`gpt-5.4-mini`** + fallback **`[claude-haiku-4-5]`** — `dream_extraction` (Fabric + Interpretive Echoes need mid-tier judgment), `chat_followup`

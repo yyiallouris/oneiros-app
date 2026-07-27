@@ -1,5 +1,5 @@
 /**
- * Dev/test-only Interpretive Echoes candidate diagnostics.
+ * Dev/test-only Interpretive Echoes diagnostics (v3.9 dream-map audit).
  * Never persist into interpretation rows or surface in Dream Detail UI.
  */
 
@@ -11,54 +11,71 @@ export type ArchetypeCarrierKind =
   | 'transformation'
   | string;
 
-export type ArchetypeCandidateDiagnostic = {
+export type YesNo = 'yes' | 'no' | string;
+export type GatePassFail = 'pass' | 'fail' | string;
+
+export type MythicTitleType =
+  | 'specific_tale'
+  | 'episode'
+  | 'frame_story'
+  | 'plot_bearing_cycle'
+  | 'collection_or_corpus'
+  | 'generic_family'
+  | string;
+
+export type DreamMapDiagnostic = {
+  beats?: string[];
+  role_verb_mechanism?: string;
+  /** v3.9 — 1–3 consecutive beat ids. */
+  decisive_span?: string[];
+  causal_omission_check?: 'pass' | 'repaired' | string;
+  dominant_relation?: string;
+  ending?: string;
+};
+
+export type ArchetypeAuditEntry = {
   label: string;
   carrier: string;
   carrier_kind?: ArchetypeCarrierKind;
-  support: string[];
-  counterevidence: string[];
-  centrality: number;
+  function_match?: YesNo;
+  structural_importance?: YesNo;
+  evidence?: string[];
+  evidence_beats?: string[];
+  adds_precision?: YesNo;
   selected: boolean;
-  rejection_reason?: string;
-  evaluation_notes?: string;
+  reason?: string;
+  /** Legacy v3.7 gate bag — still accepted when parsing. */
+  gate_results?: Record<string, string | undefined>;
 };
 
-export type MythicNarrativeSpecificity =
-  | 'specific_tale'
-  | 'cycle'
-  | 'generic_complex'
-  | 'motif'
-  | string;
+export type MythicMatchedBeat = {
+  canonical_beat?: string;
+  candidate_beat?: string;
+  dream_beat?: string;
+  dream_evidence: string;
+};
 
-export type MythicCandidateDiagnostic = {
+export type MythicAuditEntry = {
   title: string;
   tradition: string;
-  /** Stable slug-like id after alias merge (debug only). */
-  canonical_id?: string;
-  aliases_merged?: string[];
-  /** How specific the candidate is after canonicalization (debug only). */
-  narrative_specificity?: MythicNarrativeSpecificity;
-  /** Prefer distinctive_cluster; `support` from the model is accepted as an alias. */
-  distinctive_cluster: string[];
-  support?: string[];
-  sequence_match?: number;
-  role_match?: number;
-  defining_action_match?: number;
-  turning_point_match?: number;
-  linked_image_match?: number;
-  object_association?: number;
-  structural_strength: 'high' | 'medium' | 'low' | string;
+  title_type?: MythicTitleType;
+  independent_plot_anchors?: string[];
+  story_mechanism?: string;
+  canonical_beats?: string[];
+  candidate_signature?: string[];
+  plot_contamination_test?: GatePassFail;
+  matched_beats?: MythicMatchedBeat[];
+  surface_stripping_result?: GatePassFail;
   selected: boolean;
-  rejection_reason?: string;
-  /** Concrete gate failure when a stronger structural candidate loses (debug only). */
-  gate_failure?: string;
+  reason?: string;
 };
 
 export type InterpretiveEchoDiagnostics = {
-  /** Action that reverses power / changes what becomes possible (debug only). */
-  decisive_turning_point?: string;
-  archetype_candidates: ArchetypeCandidateDiagnostic[];
-  mythic_candidates: MythicCandidateDiagnostic[];
+  dream_map?: DreamMapDiagnostic;
+  /** Legacy v3.7 spine — accepted if present. */
+  structural_spine?: Record<string, unknown>;
+  archetype_audit: ArchetypeAuditEntry[];
+  mythic_audit: MythicAuditEntry[];
 };
 
 export type InterpretiveEchoDebugPayload = {
@@ -79,94 +96,221 @@ function asStringArray(value: unknown, max = 12): string[] {
     .slice(0, max);
 }
 
-function asScore0to5(value: unknown): number | undefined {
-  const n = typeof value === 'number' ? value : Number(value);
-  if (!Number.isFinite(n)) return undefined;
-  return Math.max(0, Math.min(5, Math.round(n)));
+function asYesNo(value: unknown): YesNo | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  if (trimmed === 'yes' || trimmed === 'no' || trimmed === 'pass' || trimmed === 'fail') {
+    if (trimmed === 'pass') return 'yes';
+    if (trimmed === 'fail') return 'no';
+    return trimmed;
+  }
+  return trimmed;
 }
 
-function asArchetypeCandidate(raw: unknown): ArchetypeCandidateDiagnostic | null {
+function asPassFail(value: unknown): GatePassFail | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return undefined;
+  return trimmed;
+}
+
+function asDecisiveSpan(raw: Record<string, unknown>): string[] {
+  const span = asStringArray(raw.decisive_span ?? raw.decisiveSpan, 3);
+  if (span.length > 0) return span;
+  // Legacy v3.8.x fields → coerce to span (never expose pivot_beat).
+  const legacySpan = asStringArray(raw.leverage_transfer_span ?? raw.leverageTransferSpan, 3);
+  if (legacySpan.length > 0) return legacySpan;
+  const legacyBeat =
+    typeof raw.leverage_transfer_beat === 'string'
+      ? raw.leverage_transfer_beat.trim()
+      : typeof raw.leverageTransferBeat === 'string'
+        ? raw.leverageTransferBeat.trim()
+        : '';
+  return legacyBeat ? [legacyBeat] : [];
+}
+
+function asDreamMap(raw: unknown): DreamMapDiagnostic | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const o = raw as Record<string, unknown>;
+  const beats = asStringArray(o.beats, 16);
+  const decisive_span = asDecisiveSpan(o);
+  const causalCheck =
+    typeof o.causal_omission_check === 'string'
+      ? o.causal_omission_check.trim()
+      : typeof o.causalOmissionCheck === 'string'
+        ? o.causalOmissionCheck.trim()
+        : undefined;
+  const role_verb_mechanism =
+    typeof o.role_verb_mechanism === 'string'
+      ? o.role_verb_mechanism.trim()
+      : typeof o.roleVerbMechanism === 'string'
+        ? o.roleVerbMechanism.trim()
+        : undefined;
+  const map: DreamMapDiagnostic = {
+    ...(beats.length > 0 ? { beats } : {}),
+    ...(role_verb_mechanism ? { role_verb_mechanism } : {}),
+    ...(decisive_span.length > 0 ? { decisive_span } : {}),
+    ...(causalCheck ? { causal_omission_check: causalCheck } : {}),
+    dominant_relation:
+      typeof o.dominant_relation === 'string'
+        ? o.dominant_relation.trim()
+        : typeof o.dominantRelation === 'string'
+          ? o.dominantRelation.trim()
+          : undefined,
+    ending: typeof o.ending === 'string' ? o.ending.trim() : undefined,
+  };
+  if (
+    !map.beats &&
+    !map.role_verb_mechanism &&
+    !map.decisive_span &&
+    !map.dominant_relation &&
+    !map.ending
+  ) {
+    return undefined;
+  }
+  return map;
+}
+
+function asArchetypeAudit(raw: unknown): ArchetypeAuditEntry | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
   const label = typeof o.label === 'string' ? o.label.trim() : '';
   if (!label) return null;
-  const centralityRaw = typeof o.centrality === 'number' ? o.centrality : Number(o.centrality);
-  const evaluationNotes =
-    typeof o.evaluation_notes === 'string'
-      ? o.evaluation_notes.trim()
-      : typeof o.evaluationNotes === 'string'
-        ? o.evaluationNotes.trim()
-        : undefined;
   const carrierKind =
     typeof o.carrier_kind === 'string'
       ? o.carrier_kind.trim()
       : typeof o.carrierKind === 'string'
         ? o.carrierKind.trim()
         : undefined;
+  const reason =
+    typeof o.reason === 'string'
+      ? o.reason.trim()
+      : typeof o.rejection_reason === 'string'
+        ? o.rejection_reason.trim()
+        : undefined;
+  const evidence = asStringArray(o.evidence ?? o.support, 4);
+  const evidence_beats = asStringArray(o.evidence_beats ?? o.evidenceBeats, 8);
+  const gateRaw = o.gate_results ?? o.gateResults;
+  const gate_results =
+    gateRaw && typeof gateRaw === 'object'
+      ? Object.fromEntries(
+          Object.entries(gateRaw as Record<string, unknown>).map(([k, v]) => [
+            k,
+            typeof v === 'string' ? v.trim() : undefined,
+          ])
+        )
+      : undefined;
+  const function_match =
+    asYesNo(o.function_match ?? o.functionMatch) ??
+    (gate_results?.function ? asYesNo(gate_results.function) : undefined);
+  const structural_importance =
+    asYesNo(o.structural_importance ?? o.structuralImportance) ??
+    (gate_results?.structural_weight ? asYesNo(gate_results.structural_weight) : undefined);
+  const adds_precision =
+    asYesNo(o.adds_precision ?? o.addsPrecision) ??
+    (gate_results?.added_precision ? asYesNo(gate_results.added_precision) : undefined);
   return {
     label,
     carrier: typeof o.carrier === 'string' ? o.carrier.trim() : '',
     ...(carrierKind ? { carrier_kind: carrierKind } : {}),
-    support: asStringArray(o.support),
-    counterevidence: asStringArray(o.counterevidence),
-    centrality: Number.isFinite(centralityRaw) ? Math.max(0, Math.min(5, Math.round(centralityRaw))) : 0,
+    ...(function_match ? { function_match } : {}),
+    ...(structural_importance ? { structural_importance } : {}),
+    ...(evidence.length > 0 ? { evidence } : {}),
+    ...(evidence_beats.length > 0 ? { evidence_beats } : {}),
+    ...(adds_precision ? { adds_precision } : {}),
     selected: Boolean(o.selected),
-    rejection_reason: typeof o.rejection_reason === 'string' ? o.rejection_reason.trim() : undefined,
-    ...(evaluationNotes ? { evaluation_notes: evaluationNotes } : {}),
+    ...(reason ? { reason } : {}),
+    ...(gate_results ? { gate_results } : {}),
   };
 }
 
-function asMythicCandidate(raw: unknown): MythicCandidateDiagnostic | null {
+function asMatchedBeat(raw: unknown): MythicMatchedBeat | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const canonical_beat =
+    typeof o.canonical_beat === 'string'
+      ? o.canonical_beat.trim()
+      : typeof o.candidate_beat === 'string'
+        ? o.candidate_beat.trim()
+        : typeof o.candidateBeat === 'string'
+          ? o.candidateBeat.trim()
+          : undefined;
+  const dream_beat =
+    typeof o.dream_beat === 'string'
+      ? o.dream_beat.trim()
+      : typeof o.dreamBeat === 'string'
+        ? o.dreamBeat.trim()
+        : undefined;
+  const dream_evidence =
+    typeof o.dream_evidence === 'string'
+      ? o.dream_evidence.trim()
+      : typeof o.dreamEvidence === 'string'
+        ? o.dreamEvidence.trim()
+        : '';
+  if (!canonical_beat && !dream_beat && !dream_evidence) return null;
+  return {
+    ...(canonical_beat ? { canonical_beat, candidate_beat: canonical_beat } : {}),
+    ...(dream_beat ? { dream_beat } : {}),
+    dream_evidence,
+  };
+}
+
+function asMythicAudit(raw: unknown): MythicAuditEntry | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
   const title = typeof o.title === 'string' ? o.title.trim() : '';
-  if (!title) return null;
-  const support = asStringArray(o.support);
-  const distinctive = asStringArray(o.distinctive_cluster);
-  const cluster = distinctive.length > 0 ? distinctive : support;
-  const aliases = asStringArray(o.aliases_merged ?? o.aliasesMerged, 8);
-  const canonicalId =
-    typeof o.canonical_id === 'string'
-      ? o.canonical_id.trim()
-      : typeof o.canonicalId === 'string'
-        ? o.canonicalId.trim()
+  if (!title || title === '[]') return null;
+  const canonical = asStringArray(o.canonical_beats ?? o.canonicalBeats ?? o.candidate_signature, 8);
+  const matchedRaw = Array.isArray(o.matched_beats)
+    ? o.matched_beats
+    : Array.isArray(o.matchedBeats)
+      ? o.matchedBeats
+      : [];
+  const matched_beats = matchedRaw
+    .map(asMatchedBeat)
+    .filter((item): item is MythicMatchedBeat => item != null)
+    .slice(0, 8);
+  const reason =
+    typeof o.reason === 'string'
+      ? o.reason.trim()
+      : typeof o.rejection_reason === 'string'
+        ? o.rejection_reason.trim()
         : undefined;
-  const narrativeSpecificity =
-    typeof o.narrative_specificity === 'string'
-      ? o.narrative_specificity.trim()
-      : typeof o.narrativeSpecificity === 'string'
-        ? o.narrativeSpecificity.trim()
+  const story_mechanism =
+    typeof o.story_mechanism === 'string'
+      ? o.story_mechanism.trim()
+      : typeof o.storyMechanism === 'string'
+        ? o.storyMechanism.trim()
         : undefined;
-  const gateFailure =
-    typeof o.gate_failure === 'string'
-      ? o.gate_failure.trim()
-      : typeof o.gateFailure === 'string'
-        ? o.gateFailure.trim()
+  const title_type =
+    typeof o.title_type === 'string'
+      ? o.title_type.trim()
+      : typeof o.titleType === 'string'
+        ? o.titleType.trim()
         : undefined;
-  const sequence_match = asScore0to5(o.sequence_match ?? o.sequenceMatch);
-  const role_match = asScore0to5(o.role_match ?? o.roleMatch);
-  const defining_action_match = asScore0to5(o.defining_action_match ?? o.definingActionMatch);
-  const turning_point_match = asScore0to5(o.turning_point_match ?? o.turningPointMatch);
-  const linked_image_match = asScore0to5(o.linked_image_match ?? o.linkedImageMatch);
-  const object_association = asScore0to5(o.object_association ?? o.objectAssociation);
+  const independent_plot_anchors = asStringArray(
+    o.independent_plot_anchors ?? o.independentPlotAnchors,
+    4
+  );
+  const plot_contamination_test = asPassFail(
+    o.plot_contamination_test ?? o.plotContaminationTest
+  );
+  const surface_stripping_result = asPassFail(
+    o.surface_stripping_result ?? o.surfaceStrippingResult
+  );
   return {
     title,
     tradition: typeof o.tradition === 'string' ? o.tradition.trim() : '',
-    ...(canonicalId ? { canonical_id: canonicalId } : {}),
-    ...(aliases.length > 0 ? { aliases_merged: aliases } : {}),
-    ...(narrativeSpecificity ? { narrative_specificity: narrativeSpecificity } : {}),
-    distinctive_cluster: cluster,
-    ...(support.length > 0 ? { support } : {}),
-    ...(sequence_match !== undefined ? { sequence_match } : {}),
-    ...(role_match !== undefined ? { role_match } : {}),
-    ...(defining_action_match !== undefined ? { defining_action_match } : {}),
-    ...(turning_point_match !== undefined ? { turning_point_match } : {}),
-    ...(linked_image_match !== undefined ? { linked_image_match } : {}),
-    ...(object_association !== undefined ? { object_association } : {}),
-    structural_strength: typeof o.structural_strength === 'string' ? o.structural_strength.trim() : 'medium',
+    ...(title_type ? { title_type } : {}),
+    ...(independent_plot_anchors.length > 0 ? { independent_plot_anchors } : {}),
+    ...(story_mechanism ? { story_mechanism } : {}),
+    ...(canonical.length > 0 ? { canonical_beats: canonical, candidate_signature: canonical } : {}),
+    ...(plot_contamination_test ? { plot_contamination_test } : {}),
+    ...(matched_beats.length > 0 ? { matched_beats } : {}),
+    ...(surface_stripping_result ? { surface_stripping_result } : {}),
     selected: Boolean(o.selected),
-    rejection_reason: typeof o.rejection_reason === 'string' ? o.rejection_reason.trim() : undefined,
-    ...(gateFailure ? { gate_failure: gateFailure } : {}),
+    ...(reason ? { reason } : {}),
   };
 }
 
@@ -174,27 +318,56 @@ function asMythicCandidate(raw: unknown): MythicCandidateDiagnostic | null {
 export function parseInterpretiveEchoDiagnostics(raw: unknown): InterpretiveEchoDiagnostics | null {
   if (!raw || typeof raw !== 'object') return null;
   const o = raw as Record<string, unknown>;
-  const hasArchetypeKey = Array.isArray(o.archetype_candidates);
-  const hasMythicKey = Array.isArray(o.mythic_candidates);
-  // Present keys mean the model emitted the debug block — return even if lists are empty
-  // so callers can distinguish "omitted" from "empty candidates".
-  if (!hasArchetypeKey && !hasMythicKey) return null;
-  const archetype_candidates = hasArchetypeKey
-    ? o.archetype_candidates!.map(asArchetypeCandidate).filter((item): item is ArchetypeCandidateDiagnostic => item != null)
+  const hasArchetypeAudit = Array.isArray(o.archetype_audit);
+  const hasMythicAudit = Array.isArray(o.mythic_audit);
+  const hasLegacyArchetype = Array.isArray(o.archetype_candidates);
+  const hasLegacyMythic = Array.isArray(o.mythic_candidates);
+  const hasDreamMap = o.dream_map != null || o.dreamMap != null;
+  const hasSpine = o.structural_spine != null || o.structuralSpine != null;
+  if (
+    !hasArchetypeAudit &&
+    !hasMythicAudit &&
+    !hasLegacyArchetype &&
+    !hasLegacyMythic &&
+    !hasDreamMap &&
+    !hasSpine
+  ) {
+    return null;
+  }
+
+  const archetypeAuditSource = hasArchetypeAudit
+    ? o.archetype_audit
+    : hasLegacyArchetype
+      ? o.archetype_candidates
+      : [];
+  const mythicAuditSource = hasMythicAudit
+    ? o.mythic_audit
+    : hasLegacyMythic
+      ? o.mythic_candidates
+      : [];
+  const archetype_audit = Array.isArray(archetypeAuditSource)
+    ? archetypeAuditSource
+        .map(asArchetypeAudit)
+        .filter((item): item is ArchetypeAuditEntry => item != null)
     : [];
-  const mythic_candidates = hasMythicKey
-    ? o.mythic_candidates!.map(asMythicCandidate).filter((item): item is MythicCandidateDiagnostic => item != null)
+  const mythic_audit = Array.isArray(mythicAuditSource)
+    ? mythicAuditSource
+        .map(asMythicAudit)
+        .filter((item): item is MythicAuditEntry => item != null)
     : [];
-  const decisiveTurningPoint =
-    typeof o.decisive_turning_point === 'string'
-      ? o.decisive_turning_point.trim()
-      : typeof o.decisiveTurningPoint === 'string'
-        ? o.decisiveTurningPoint.trim()
+  const dream_map = asDreamMap(o.dream_map ?? o.dreamMap);
+  const structural_spine =
+    o.structural_spine && typeof o.structural_spine === 'object'
+      ? (o.structural_spine as Record<string, unknown>)
+      : o.structuralSpine && typeof o.structuralSpine === 'object'
+        ? (o.structuralSpine as Record<string, unknown>)
         : undefined;
+
   return {
-    ...(decisiveTurningPoint ? { decisive_turning_point: decisiveTurningPoint } : {}),
-    archetype_candidates,
-    mythic_candidates,
+    ...(dream_map ? { dream_map } : {}),
+    ...(structural_spine ? { structural_spine } : {}),
+    archetype_audit,
+    mythic_audit,
   };
 }
 
@@ -210,21 +383,20 @@ export function safeInterpretiveDiagnosticsLog(diagnostics: InterpretiveEchoDiag
   if (!diagnostics) return { hasDiagnostics: false };
   return {
     hasDiagnostics: true,
-    hasDecisiveTurningPoint: Boolean(diagnostics.decisive_turning_point),
-    archetypeCandidateCount: diagnostics.archetype_candidates.length,
-    mythicCandidateCount: diagnostics.mythic_candidates.length,
-    selectedArchetypeLabels: diagnostics.archetype_candidates.filter((c) => c.selected).map((c) => c.label).slice(0, 4),
-    rejectedArchetypeLabels: diagnostics.archetype_candidates.filter((c) => !c.selected).map((c) => c.label).slice(0, 6),
-    archetypeCarrierKinds: diagnostics.archetype_candidates
+    hasDreamMap: Boolean(diagnostics.dream_map),
+    dreamMapBeatCount: diagnostics.dream_map?.beats?.length ?? 0,
+    decisiveSpanLen: diagnostics.dream_map?.decisive_span?.length ?? 0,
+    hasRoleVerbMechanism: Boolean(diagnostics.dream_map?.role_verb_mechanism),
+    archetypeAuditCount: diagnostics.archetype_audit.length,
+    mythicAuditCount: diagnostics.mythic_audit.length,
+    selectedArchetypeLabels: diagnostics.archetype_audit.filter((c) => c.selected).map((c) => c.label).slice(0, 4),
+    rejectedArchetypeLabels: diagnostics.archetype_audit.filter((c) => !c.selected).map((c) => c.label).slice(0, 6),
+    archetypeCarrierKinds: diagnostics.archetype_audit
       .map((c) => c.carrier_kind)
       .filter(Boolean)
       .slice(0, 6),
-    selectedMythicTitles: diagnostics.mythic_candidates.filter((c) => c.selected).map((c) => c.title).slice(0, 2),
-    rejectedMythicTitles: diagnostics.mythic_candidates.filter((c) => !c.selected).map((c) => c.title).slice(0, 4),
-    mythicCanonicalIds: diagnostics.mythic_candidates.map((c) => c.canonical_id).filter(Boolean).slice(0, 4),
-    mythicNarrativeSpecificity: diagnostics.mythic_candidates
-      .map((c) => c.narrative_specificity)
-      .filter(Boolean)
-      .slice(0, 4),
+    selectedMythicTitles: diagnostics.mythic_audit.filter((c) => c.selected).map((c) => c.title).slice(0, 2),
+    rejectedMythicTitles: diagnostics.mythic_audit.filter((c) => !c.selected).map((c) => c.title).slice(0, 4),
+    mythicTitleTypes: diagnostics.mythic_audit.map((c) => c.title_type).filter(Boolean).slice(0, 4),
   };
 }

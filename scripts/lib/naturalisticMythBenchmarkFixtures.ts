@@ -1,0 +1,605 @@
+export const MYTH_NATURALISTIC_CALIBRATION_VERSION =
+  'myth-naturalistic-calibration.v1.0.0' as const;
+
+export type NaturalisticMythArm =
+  | 'strong_positive'
+  | 'incomplete_positive'
+  | 'thematic_negative'
+  | 'competitor';
+
+export type NaturalisticMythFixture = {
+  fixture_id: string;
+  dataset_version: typeof MYTH_NATURALISTIC_CALIBRATION_VERSION;
+  arm: NaturalisticMythArm;
+  dream_language: 'en' | 'el';
+  dream_text: string;
+  expected_myth_presence: 'required' | 'forbidden';
+  required_catalog_id: string | null;
+  acceptable_catalog_ids: string[];
+  forbidden_catalog_ids: string[];
+  expected_confidence: Array<'medium' | 'high'>;
+  gold_rationale: string;
+  distinctive_feature_groups: string[];
+  missing_or_divergent_features: string[];
+  competitor_rationale: string | null;
+};
+
+export const NATURALISTIC_MYTH_BENCHMARK_FIXTURES: NaturalisticMythFixture[] = [
+  {
+    fixture_id: 'SP_fisherman_vessel_threat_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'I was cleaning a weed-choked drainage canal behind an apartment block when my rake struck a metal cylinder sealed with green wax. I pried it open and a column of smoke unfolded into a towering man who immediately thanked me for freeing him, then said he had spent so long trapped that he now wanted to kill the first person he saw. I backed away and said there was no way he had fit inside something so small. He laughed, folded himself back into smoke, and streamed down through the mouth to prove it. I slammed the lid shut with both hands and wrapped my belt around it. Only then did he begin bargaining from inside, promising gifts if I would open it again.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'arabian.fisherman_and_jinni',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['akan.anansi_pot_wisdom', 'french.bluebeard'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Contains the sealed vessel, released captive threat, disbelief/proof challenge, induced re-entry, and leverage reversal.',
+    distinctive_feature_groups: [
+      'sealed container discovered and opened',
+      'released power threatens liberator',
+      'proof challenge induces re-entry',
+      'resealing reverses leverage and begins bargaining',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Should resist generic container-magic associations because the key structure is the threat plus proof-challenge resealing sequence.',
+  },
+  {
+    fixture_id: 'SP_orpheus_retrieval_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'el',
+    dream_text:
+      'Βρέθηκα σε έναν τεράστιο υπόγειο σταθμό όπου αντί για τρένα κυλούσε ένα σκοτεινό ποτάμι. Η γυναίκα που αγαπώ στεκόταν πίσω από μια καγκελόπορτα στην απέναντι όχθη και δεν μπορούσε να περάσει. Ένας αμίλητος βαρκάρης με αγνοούσε ώσπου έβγαλα ένα παλιό βιολί και έπαιξα λίγες νότες. Τότε μου έκανε χώρο στη βάρκα. Την έφτασα, την πήρα μαζί μου και μια φωνή από το σκοτάδι είπε πως μπορούσαμε να φύγουμε μόνο αν δεν γύριζα να την κοιτάξω πριν φτάσουμε ξανά στο φως. Ανέβαινα μια μακριά ράμπα ακούγοντας τα βήματά της πίσω μου. Λίγο πριν από την έξοδο σταμάτησα να τα ακούω, πανικοβλήθηκα και γύρισα. Την είδα να απομακρύνεται ξανά προς τα κάγκελα ενώ εγώ στεκόμουν ήδη στο φως.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.orpheus_eurydice',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: [
+      'sumerian.inanna_descent',
+      'greek.demeter_persephone',
+      'japanese.izanagi_izanami',
+    ],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Lost beloved retrieval, conditional no-look return, ascent, backward turn, and second irreversible loss are all present.',
+    distinctive_feature_groups: [
+      'beloved beyond a deathlike threshold',
+      'retrieval attempt under explicit no-look condition',
+      'ascent toward light with beloved behind',
+      'backward look causes second loss',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Tempting descent imagery should not override the distinctive conditional retrieval and backward-turn sequence.',
+  },
+  {
+    fixture_id: 'SP_sisyphus_restart_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'I was alone on a steep gravel hill pushing a huge round concrete mixer drum toward the ridge. Every time I got it almost level with the top, the ground shuddered, the drum slipped from my palms, and it rolled all the way back to the painted line where I had started. I would trudge down, brace my shoulder against it again, and begin the same climb with the same near-finish and the same collapse.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.sisyphus',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.prometheus', 'greek.perseus_medusa'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'The core sequence is solitary uphill labor, near-completion rollback, return to base, and exact restart without closure.',
+    distinctive_feature_groups: [
+      'solitary uphill burden',
+      'near-summit rollback',
+      'return to starting point',
+      'exact restart with no completion',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Should not be reframed as generic perseverance because the dream loops the same failed task rather than progress toward victory.',
+  },
+  {
+    fixture_id: 'SP_inanna_gates_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'el',
+    dream_text:
+      'Κατέβαινα σε ένα υπόγειο διοικητήριο περνώντας από επτά ελέγχους ασφαλείας. Σε κάθε σταθμό με υποχρέωναν να αφήσω κάτι: το ρολόι μου, το σακάκι, τα παπούτσια, την κάρτα ταυτότητας, το κολιέ, τη ζώνη και τέλος ένα μικρό μεταλλικό στεφάνι που είχα στο κεφάλι χωρίς να το έχω προσέξει. Στην τελευταία αίθουσα καθόταν μια ακίνητη γυναίκα πίσω από ένα γραφείο και με κοίταξε χωρίς να μιλήσει. Έπεσα κάτω σαν να άδειασε όλο μου το σώμα. Αργότερα δύο μικρές φιγούρες με σήκωσαν ρίχνοντας νερό στο πρόσωπό μου και με έσυραν προς τα πίσω. Ανέβαινα ξανά από τις ίδιες επτά πόρτες, αλλά δεν μου επέστρεφαν όλα όσα είχα αφήσει. Βγήκα στην επιφάνεια χωρίς το μεγαλύτερο μέρος της παλιάς μου εμφάνισης.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'sumerian.inanna_descent',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: [
+      'greek.psyche_eros',
+      'greek.demeter_persephone',
+      'japanese.izanagi_izanami',
+    ],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Seven successive removals, underworld queen encounter, deathlike suspension, helper revival, and altered return are all preserved.',
+    distinctive_feature_groups: [
+      'seven successive threshold losses',
+      'silent queen encounter below',
+      'deathlike collapse',
+      'two helpers revive and altered return follows',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'The progressive stripping at multiple gates should dominate over generic descent or return motifs.',
+  },
+  {
+    fixture_id: 'SP_psyche_hidden_lover_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'I lived in a bright house with a man who only visited at night. He was tender, but I was never allowed to switch on a lamp or look at his face while he was beside me. For a while I obeyed, then one night I hid a flashlight under the blankets and turned it on while he slept. He woke instantly, furious and wounded by my distrust, and left. After that an older woman who hated me kept assigning impossible errands: sorting a mountain of seeds by dawn, carrying home a tuft of wool from violent animals, and bringing back a sealed box from a lower subway platform everyone said not to enter. I struggled through each task because strangers and small creatures kept helping me, and by the end of the dream I was still trying to get him back.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.psyche_eros',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['sumerian.inanna_descent', 'french.bluebeard'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Hidden lover, forbidden sight, lover lost, imposed tasks, lower-world errand, and reunion-seeking structure strongly match.',
+    distinctive_feature_groups: [
+      'secret union with unseen lover',
+      'forbidden sight broken',
+      'lover lost after taboo breach',
+      'hostile elder imposes tasks',
+      'descent-style errand for reunion',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'The hidden-lover plus tasks structure should win over more generic taboo-room or descent-only readings.',
+  },
+  {
+    fixture_id: 'SP_labyrinth_thread_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'A woman I trusted pressed a spool of red survey string into my hand before I entered a concrete maze under a stadium. She said to keep feeding it out if I wanted to find my way back. In the middle chamber there was a massive snorting animal with a man’s stare penned inside a circular barrier. I slipped past it, cut the latch that held it in place, and ran, following the red line back through every turn until I burst out into daylight with the spool burning in my palm.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.cretan_labyrinth',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.heracles_cerberus', 'greek.orpheus_eurydice'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Maze entry, central monster encounter, and thread-guided return preserve the distinctive core configuration.',
+    distinctive_feature_groups: [
+      'trusted helper provides thread-like guide',
+      'entry into enclosed maze',
+      'central beast encounter',
+      'escape by following the guide back out',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Bull or maze imagery alone would be insufficient, but the helper-thread escape structure makes the fit exact.',
+  },
+  {
+    fixture_id: 'SP_hero_twins_trials_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'My brother and I were summoned into a buried entertainment complex run by smiling men who kept setting traps for us. They sent us into rooms where the lights burned too hot to stand, then into another room full of blades hidden under mattresses. Each time we survived by switching places, tricking the timing, or pretending to fail before striking back. At one point we were both declared dead and hauled away, but later we were back on our feet in different clothes, laughing at the men who had staged the whole contest. By morning the complex was in chaos, its managers humiliated, and the two of us were rising in separate shafts of light above it.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'kiche_maya.hero_twins_xibalba',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.orpheus_eurydice', 'sumerian.inanna_descent'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Paired protagonists descend to adversarial trials, survive staged death, and defeat or humiliate underworld powers.',
+    distinctive_feature_groups: [
+      'paired sibling protagonists',
+      'deceptive underworld-style trials',
+      'strategic endurance through deathlike defeat',
+      'return and humiliation of lower-world rulers',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'The pair structure and trial-sequence should prevent collapse into generic descent narratives.',
+  },
+  {
+    fixture_id: 'SP_bluebeard_forbidden_room_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'strong_positive',
+    dream_language: 'en',
+    dream_text:
+      'I had just married a wealthy man with a cold voice who left me alone in his country house and handed me a ring of keys. He said every room was mine except one door at the end of the upstairs corridor. The more calmly he said it, the more afraid I became. I unlocked the room anyway and found evidence that other women had been hurt there before me. I tried to wipe a dark stain from the smallest key, but it kept coming back no matter how hard I scrubbed. Then I heard his car in the drive and knew he would see exactly what I had done.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'french.bluebeard',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.psyche_eros'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'The key ring, prohibition, taboo-room discovery, indelible proof, and imminent dangerous return preserve the core structure.',
+    distinctive_feature_groups: [
+      'marriage to unsettling partner',
+      'keys with one forbidden room',
+      'taboo broken and hidden violence discovered',
+      'incriminating proof cannot be cleaned away',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Should not collapse into hidden-lover taboo because the core is forbidden room plus violent evidence, not lost union and tasks.',
+  },
+  {
+    fixture_id: 'IP_fisherman_without_reseal_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'en',
+    dream_text:
+      'I pulled a rusted canister from the mud at the edge of the sea and cracked it open. A huge figure poured out and immediately began boasting that he could repay kindness with terror now that he was free. I said there was no chance something that tall had come from a container no longer than my forearm. He bent himself back into smoke to show me. The dream ended right as I reached for the lid again, knowing I had one second to decide whether to trap him or not.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'arabian.fisherman_and_jinni',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['akan.anansi_pot_wisdom'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'The structure remains distinctive even though the dream cuts off before the resealed bargaining aftermath.',
+    distinctive_feature_groups: [
+      'sealed container opened',
+      'released being threatens liberator',
+      'proof challenge induces re-entry',
+    ],
+    missing_or_divergent_features: ['resealing outcome is implied but not shown'],
+    competitor_rationale:
+      'This is the strictness test for whether the system needs the full completed leverage reversal to recognize the narrative.',
+  },
+  {
+    fixture_id: 'IP_orpheus_before_turn_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'en',
+    dream_text:
+      'I went below the city to bring back someone I had lost. After pleading with the guard at a river crossing, I was allowed to leave with her walking somewhere behind me under one condition: I could not look back until we reached the surface. The whole way up I could hear her shoes and feel myself wanting to turn around to check that she was still there. I woke before I reached daylight.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.orpheus_eurydice',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['sumerian.inanna_descent', 'greek.demeter_persephone'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'The conditional retrieval structure is intact despite the dream ending before the backward-turn consequence.',
+    distinctive_feature_groups: [
+      'retrieval of lost beloved from below',
+      'explicit no-look condition',
+      'ascent with beloved behind the protagonist',
+    ],
+    missing_or_divergent_features: ['the backward turn and second loss are not shown yet'],
+    competitor_rationale:
+      'Should still be recognized as more than generic descent because the exact relational prohibition is already staged.',
+  },
+  {
+    fixture_id: 'IP_sisyphus_restart_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'el',
+    dream_text:
+      'Έσπρωχνα μόνος μου ένα βαρύ μεταλλικό καρούλι προς την κορυφή ενός λόφου. Κάθε φορά που έφτανα σχεδόν πάνω, γλιστρούσε και κατέβαινε πάλι μέχρι το ίδιο σημάδι στη βάση. Δεν υπήρχε βραβείο ούτε τέλος, μόνο το ίδιο ανέβασμα που άρχιζε ξανά πριν προλάβω να ξεκουραστώ.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.sisyphus',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.prometheus'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'The essential repetitive burden sequence remains even without explicit eternity or personified punishment.',
+    distinctive_feature_groups: [
+      'solitary uphill burden',
+      'near-completion rollback',
+      'restart from the same base point',
+    ],
+    missing_or_divergent_features: ['no external judge or explicit endless sentence'],
+    competitor_rationale:
+      'Tests whether the system requires an overly literal punishment frame rather than the repeating task pattern itself.',
+  },
+  {
+    fixture_id: 'IP_inanna_partial_return_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'en',
+    dream_text:
+      'I descended through a government bunker where each checkpoint took something from me before letting me pass: my coat, my shoes, my ID badge, my jewelry. In the final chamber a stern woman looked up once and my whole body went numb. Later two small attendants were dragging me back toward the elevators, and I understood I was going upward again, but I woke before I reached the street or got any of my things back.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'sumerian.inanna_descent',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.psyche_eros', 'greek.demeter_persephone'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Successive stripping, underworld queen encounter, deathlike suspension, and helper-led return are already distinctive enough.',
+    distinctive_feature_groups: [
+      'progressive stripping across multiple gates',
+      'queen-like figure below',
+      'deathlike collapse',
+      'small helpers begin the return',
+    ],
+    missing_or_divergent_features: ['full ascent and altered return are not completed on screen'],
+    competitor_rationale:
+      'Should separate from generic descent because the sequential stripping pattern is already highly specific.',
+  },
+  {
+    fixture_id: 'IP_psyche_tasks_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'el',
+    dream_text:
+      'Ζούσα με έναν άντρα που ερχόταν μόνο μέσα στο σκοτάδι και δεν μου επέτρεπε ποτέ να δω καθαρά το πρόσωπό του. Μια νύχτα άναψα κρυφά ένα μικρό φως και εκείνος έφυγε αμέσως. Από τότε μια μεγαλύτερη γυναίκα με έβαζε να κάνω αλλεπάλληλες εξευτελιστικές δουλειές, σαν να έπρεπε να αποδείξω ότι άξιζα να τον ξαναδώ. Στο τέλος με έστελνε να κατέβω μόνη μου σε έναν χαμηλό σταθμό για να φέρω πίσω ένα κλειστό κουτί και ξύπνησα πριν μάθω αν θα τα κατάφερνα.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.psyche_eros',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['french.bluebeard', 'sumerian.inanna_descent'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Hidden lover, forbidden sight, loss, hostile female task-giver, and lower-world errand remain distinctive even without reunion.',
+    distinctive_feature_groups: [
+      'secret union with unseen lover',
+      'forbidden sight broken',
+      'lover departs after mistrust',
+      'hostile elder imposes tasks',
+      'descent-style errand for possible restoration',
+    ],
+    missing_or_divergent_features: ['final reunion or transformation is absent'],
+    competitor_rationale:
+      'The system should recognize the hidden-lover plus task sequence without demanding the full canonical closure.',
+  },
+  {
+    fixture_id: 'IP_labyrinth_escape_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'incomplete_positive',
+    dream_language: 'en',
+    dream_text:
+      'Before I went into a service tunnel maze under an arena, a woman looped a thin cord around my wrist and told me not to lose the other end. Deep inside I heard an animal breathing behind reinforced bars and knew that reaching the center was the reason I had come. I panicked and ran before I really saw it, following the cord back out through the turns until I collapsed at the exit shaking.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.cretan_labyrinth',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.heracles_cerberus'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Maze entry, center-seeking motive, central beast presence, and thread-aided escape remain meaningfully distinctive despite the interrupted confrontation.',
+    distinctive_feature_groups: [
+      'maze entry with helper-provided thread',
+      'movement toward a central beast',
+      'escape by retracing the cord back out',
+    ],
+    missing_or_divergent_features: ['the central confrontation is only partial, not fully shown'],
+    competitor_rationale:
+      'Tests whether the model can accept interrupted but still distinctive labyrinth structure.',
+  },
+  {
+    fixture_id: 'TN_descent_without_structure_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'en',
+    dream_text:
+      'I rode an elevator into a dim basement garage, realized I had forgotten my wallet upstairs, and came back up. The whole dream was just the stale air, the flickering lights, and the feeling that I wanted to leave quickly.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['sumerian.inanna_descent', 'greek.orpheus_eurydice'],
+    expected_confidence: [],
+    gold_rationale:
+      'Descent imagery is present, but there is no retrieval mission, prohibition, progressive stripping, deathlike suspension, or transformation.',
+    distinctive_feature_groups: ['descent image only'],
+    missing_or_divergent_features: [
+      'no relational mission',
+      'no condition or prohibition',
+      'no stripping or deathlike suspension',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'TN_repetition_without_reset_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'en',
+    dream_text:
+      'I kept reformatting the same slide deck because my boss changed the font and margins three times in one afternoon. It was annoying and repetitive, but each version was a little different and by the end I actually sent the file.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.sisyphus'],
+    expected_confidence: [],
+    gold_rationale:
+      'Repetition alone is not enough; the dream lacks the exact same uphill labor, near-completion rollback, and restart-without-progress structure.',
+    distinctive_feature_groups: ['ordinary repetition'],
+    missing_or_divergent_features: [
+      'no physical burden',
+      'no near-summit reversal',
+      'no exact reset to the same starting point',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'TN_loss_without_retrieval_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'el',
+    dream_text:
+      'Ο πατέρας μου έφευγε από έναν σταθμό λεωφορείων και δεν πρόλαβα να τον χαιρετήσω. Έτρεχα ανάμεσα στις αποβάθρες προσπαθώντας μόνο να δω από ποιο παράθυρο καθόταν. Το λεωφορείο έφυγε, αλλά δεν κατέβηκα πουθενά κάτω, δεν υπήρχε καμία συμφωνία, και το μόνο που έμεινε ήταν το αίσθημα της καθυστερημένης αποχαιρετιστήριας στιγμής.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.orpheus_eurydice', 'greek.demeter_persephone'],
+    expected_confidence: [],
+    gold_rationale:
+      'Loss of a loved one is present, but there is no death-threshold retrieval, no condition, and no second-loss structure.',
+    distinctive_feature_groups: ['loss and separation theme only'],
+    missing_or_divergent_features: [
+      'no descent or crossing',
+      'no retrieval attempt from a beyond-space',
+      'no condition that governs return',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'TN_container_without_captive_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'en',
+    dream_text:
+      'I found a heavy sealed jar in my grandmother’s pantry and spent the whole dream trying to guess what had been preserved inside it. When I finally opened it, there was only a thick smell of old spices and a folded shopping list stuck to the glass.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['arabian.fisherman_and_jinni', 'akan.anansi_pot_wisdom'],
+    expected_confidence: [],
+    gold_rationale:
+      'A sealed container alone is tempting but insufficient without a released captive, threat, proof challenge, or resealing reversal.',
+    distinctive_feature_groups: ['sealed container image only'],
+    missing_or_divergent_features: [
+      'no released being',
+      'no threat or bargain',
+      'no induced re-entry or leverage reversal',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'TN_maze_thread_bull_el',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'el',
+    dream_text:
+      'Κρατούσα ένα κόκκινο κουβάρι ενώ περιπλανιόμουν σε ένα παιδικό λαβυρινθάκι από υφασμάτινους διαδρόμους. Από μακριά ακουγόταν ένα μουγκρητό σαν ταύρου, αλλά κανείς δεν μου είχε ζητήσει να βρω κάτι στο κέντρο ούτε να ξαναβγώ οδηγώντας άλλον έξω. Τελικά βγήκα απλώς σηκώνοντας ένα χαμηλό πανί και βρέθηκα σε μια αυλή σχολείου.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.cretan_labyrinth'],
+    expected_confidence: [],
+    gold_rationale:
+      'Thread, maze, and bull-adjacent imagery are present, but the linked helper-entry-center-escape structure is absent.',
+    distinctive_feature_groups: ['maze and thread imagery only'],
+    missing_or_divergent_features: [
+      'no mission into the center',
+      'no relational helper contract',
+      'no central confrontation and guided return sequence',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'TN_couple_misunderstanding_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'thematic_negative',
+    dream_language: 'en',
+    dream_text:
+      'My partner and I kept missing each other in a hotel because we were texting the wrong room numbers. Once we finally met in the lobby, we were both irritated and embarrassed, but nothing more dramatic happened than deciding to go home early.',
+    expected_myth_presence: 'forbidden',
+    required_catalog_id: null,
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.psyche_eros', 'greek.orpheus_eurydice'],
+    expected_confidence: [],
+    gold_rationale:
+      'Separation between lovers is not enough; there are no taboo conditions, hidden identity, tasks, descent, or retrieval sequence.',
+    distinctive_feature_groups: ['relationship separation theme only'],
+    missing_or_divergent_features: [
+      'no hidden lover or prohibition',
+      'no tasks or imposed trials',
+      'no threshold retrieval structure',
+    ],
+    competitor_rationale: null,
+  },
+  {
+    fixture_id: 'CP_fisherman_magic_object_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'competitor',
+    dream_language: 'en',
+    dream_text:
+      'I found a tarnished brass container in a market storeroom that looked like it should grant wishes, and for a second I felt absurdly lucky. When I opened it, though, a furious smoky figure burst out and said he had sworn to punish whoever let him loose. I kept insisting he could not possibly have been packed into something that small. To prove me wrong he streamed back inside in one long ribbon, and I snapped the lid shut on him before he could finish laughing.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'arabian.fisherman_and_jinni',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['akan.anansi_pot_wisdom', 'french.bluebeard'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Surface wish-magic cues are a lure, but the decisive structure is still threat plus proof-challenge resealing.',
+    distinctive_feature_groups: [
+      'released captive threatens opener',
+      'skepticism induces re-entry',
+      'resealing reverses leverage',
+    ],
+    missing_or_divergent_features: ['post-resealing bargain is not developed further'],
+    competitor_rationale:
+      'Built to tempt generic magic-object association while preserving the exact fisherman structure.',
+  },
+  {
+    fixture_id: 'CP_orpheus_descent_competitors_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'competitor',
+    dream_language: 'en',
+    dream_text:
+      'I went underground through a sequence of fenced service corridors to collect the woman I had lost after an accident. The place felt official, almost ceremonial, and one guard kept making me stop at gates as if I had to earn each step. At the far end she was waiting in silence. I was told we could leave together, but only if I did not turn around until we were back in daylight. On the way up I kept hearing her behind me and thinking of all the things I still needed to ask her. Right before the final door I looked back, and she was already being pulled away as if the whole journey had been canceled in that one motion.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.orpheus_eurydice',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: [
+      'sumerian.inanna_descent',
+      'greek.demeter_persephone',
+      'japanese.izanagi_izanami',
+    ],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Despite gate imagery that tempts other descent myths, the exact retrieval-under-condition and fatal backward turn remain central.',
+    distinctive_feature_groups: [
+      'lost beloved retrieval',
+      'explicit no-look condition',
+      'ascent back to daylight',
+      'backward turn causes loss',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Designed to tempt descent-family confusion while still structurally landing on Orpheus.',
+  },
+  {
+    fixture_id: 'CP_sisyphus_perseverance_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'competitor',
+    dream_language: 'en',
+    dream_text:
+      'I was training alone before dawn, pushing a giant medicine ball up the final ramp of an empty stadium while imagining that finishing the drill would prove something important. Each time I got it almost to the top, it slipped away, thundered back to the chalk mark below, and left me jogging after it to start from exactly the same place. The dream kept giving me the emotional tone of grit and determination, but never the relief of progress.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'greek.sisyphus',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: ['greek.prometheus', 'greek.perseus_medusa'],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Heroic effort tone is a decoy; the decisive structure is still exact restart after near-completion rollback.',
+    distinctive_feature_groups: [
+      'uphill burden',
+      'near-top reversal',
+      'return to exact starting mark',
+      'no cumulative progress',
+    ],
+    missing_or_divergent_features: [],
+    competitor_rationale:
+      'Should resist generic perseverance or hero framing because the sequence never yields a boon or changed outcome.',
+  },
+  {
+    fixture_id: 'CP_inanna_vs_psyche_en',
+    dataset_version: MYTH_NATURALISTIC_CALIBRATION_VERSION,
+    arm: 'competitor',
+    dream_language: 'en',
+    dream_text:
+      'I was sent below street level carrying a box I was not supposed to open, but the trip down unfolded through a series of checkpoints where each attendant removed another piece of my clothing or status before letting me continue. By the time I reached the last room, a severe woman at a desk only glanced at me and I collapsed as if all the charge had gone out of my body. Two small orderlies later lifted me and started guiding me upward again while I clutched the unopened box. The dream mixed errand energy with descent energy, but what stayed strongest was being stripped at each threshold before meeting the woman below.',
+    expected_myth_presence: 'required',
+    required_catalog_id: 'sumerian.inanna_descent',
+    acceptable_catalog_ids: [],
+    forbidden_catalog_ids: [
+      'greek.psyche_eros',
+      'greek.demeter_persephone',
+      'japanese.izanagi_izanami',
+    ],
+    expected_confidence: ['medium', 'high'],
+    gold_rationale:
+      'Psyche-like errand cues are present, but the sequential stripping at gates plus queen encounter and collapse anchor the fit to Inanna.',
+    distinctive_feature_groups: [
+      'multiple thresholds with progressive stripping',
+      'queen-like figure below',
+      'deathlike collapse',
+      'helpers initiate upward return',
+    ],
+    missing_or_divergent_features: ['altered return is only beginning'],
+    competitor_rationale:
+      'Built to tempt Psyche-by-box association while preserving Inanna’s gate-loss architecture as the stronger exact fit.',
+  },
+];

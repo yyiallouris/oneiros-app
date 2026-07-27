@@ -5,6 +5,7 @@ import {
   type AiCallCost,
 } from '../../../src/billing/aiPricing.ts';
 import { buildCurrentMonthScope, getRecentSequenceScopeKey } from '../../../src/billing/policy.ts';
+import { buildDreamExtractionResponseFormat } from '../../../src/ai/dreamExtractionResponseFormat.ts';
 import {
   buildDreamExtractionSystemPrompt,
   buildDreamExtractionUserPrompt,
@@ -16,6 +17,13 @@ import {
   DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT,
   DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
+import {
+  auditDreamExtractionOutputLanguage,
+  resolveDreamOutputLanguage,
+  runOutputLanguageCommitGate,
+  validateLanguageRepairFieldMap,
+  type OutputLanguageCommitTelemetry,
+} from '../../../src/ai/dreamOutputLanguage.ts';
 import {
   formatArchetypesForEssay,
   MAX_ARCHETYPAL_ECHOES,
@@ -38,14 +46,31 @@ import {
   toPersistedArchetypalEcho,
   validateArchetypalEchoes,
 } from '../../../src/ai/validators/archetypalEchoValidator.ts';
+import { summarizeHeroArchetypeTelemetry } from '../../../src/ai/archetypeEchoTelemetry.ts';
 import {
-  toPersistedMythicEcho,
-  validateMythicEchoes,
-} from '../../../src/ai/validators/mythicEchoValidator.ts';
+  closedMythicValidationForDebug,
+  toPersistedClosedMythicEcho,
+  validateClosedCatalogMythicEchoes,
+} from '../../../src/ai/validators/mythicCatalogValidator.ts';
+import {
+  applyMythicAuditProductionInvariant,
+  buildMythicEchoPipelineDebugPacket,
+  type MythicEchoPipelineDebugPacket,
+} from '../../../src/ai/mythicEchoPipelineDebug.ts';
 import type { PatternEntry } from './billing-db.ts';
 import { HttpError } from './http.ts';
 import { getFunctionsBaseUrl, getSupabaseAnonKey } from './supabase.ts';
 import { safeAssistantJsonDiagnostics, validateStructuredTaskContent } from './structuredTaskValidation.ts';
+
+function tryParseRawModelObject(content: string): Record<string, unknown> | null {
+  try {
+    const value = JSON.parse(content) as unknown;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    return value as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
 
 type ChatMessage = {
   id: string;
@@ -493,8 +518,9 @@ async function invokeOpenAiProxy(params: {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   temperature: number;
   tokenLimit: number;
-  responseFormat?: { type: 'json_object' };
+  responseFormat?: ReturnType<typeof buildDreamExtractionResponseFormat> | { type: 'json_object' };
   timeoutMs?: number;
+  skipStructuredValidation?: boolean;
 }): Promise<Record<string, unknown>> {
   // openai-proxy requires a real user JWT (requireUser). Forward the caller's
   // Authorization; do not use the service-role key as Bearer.
@@ -506,7 +532,8 @@ async function invokeOpenAiProxy(params: {
     task: params.task,
     tokenLimit: params.tokenLimit,
     timeoutMs: params.timeoutMs ?? DEFAULT_AI_PROXY_TIMEOUT_MS,
-    responseFormat: params.responseFormat?.type ?? 'text',
+    responseFormat: params.responseFormat?.type === 'json_schema' ? 'json_schema' : params.responseFormat?.type ?? 'text',
+    skipStructuredValidation: Boolean(params.skipStructuredValidation),
   });
 
   try {
@@ -526,6 +553,7 @@ async function invokeOpenAiProxy(params: {
         max_completion_tokens: params.tokenLimit,
         max_tokens: params.tokenLimit,
         response_format: params.responseFormat,
+        ...(params.skipStructuredValidation ? { skip_structured_validation: true } : {}),
       }),
       signal: controller.signal,
     });
@@ -919,12 +947,16 @@ function buildExtractionMessages(
 ) {
   const debugInterpretiveEchoes = Boolean(options.debugInterpretiveEchoes);
   const system = buildDreamExtractionSystemPrompt();
+  const targetOutputLanguage = resolveDreamOutputLanguage(
+    typeof dream.content === 'string' ? dream.content : ''
+  );
   const user = buildDreamExtractionUserPrompt({
     title: dream.title,
     date: dream.date,
     content: dream.content,
     finalInterpretation: interpretation,
     debugInterpretiveEchoes,
+    targetOutputLanguage,
   });
   const tokenLimit = debugInterpretiveEchoes
     ? DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT
@@ -959,7 +991,7 @@ function buildExtractionMessages(
     ],
     temperature: DREAM_EXTRACTION_TEMPERATURE,
     tokenLimit,
-    responseFormat: { type: 'json_object' as const },
+    responseFormat: buildDreamExtractionResponseFormat(),
     timeoutMs: 60000,
   };
 }
@@ -1255,11 +1287,18 @@ function archetypesWithEvaluation(raw: unknown): Array<ArchetypalEcho & { evalua
   for (const row of raw) {
     const normalized = normalizeArchetypalEchoes([row], 1)[0];
     if (!normalized) continue;
-    const evaluation =
-      row && typeof row === 'object'
-        ? asArchetypeEvaluation((row as { evaluation?: unknown }).evaluation)
-        : null;
-    out.push(evaluation ? { ...normalized, evaluation } : normalized);
+    if (!row || typeof row !== 'object') {
+      out.push(normalized);
+    } else {
+      const o = row as Record<string, unknown>;
+      const evaluation = asArchetypeEvaluation(o.evaluation);
+      out.push({
+        ...normalized,
+        ...(evaluation ? { evaluation } : {}),
+        ...(o.mechanism_tags !== undefined ? { mechanism_tags: o.mechanism_tags } : {}),
+        ...(o.carrier_kind !== undefined ? { carrier_kind: o.carrier_kind } : {}),
+      } as ArchetypalEcho & { evaluation?: unknown });
+    }
     if (out.length >= MAX_ARCHETYPAL_ECHOES) break;
   }
   return out;
@@ -1271,6 +1310,8 @@ function parseExtraction(
 ): {
   extraction: ExtractionResult;
   diagnostics: InterpretiveEchoDiagnostics | null;
+  /** Zod-validated amplifications before normalizeAmplifications (debug pipeline stage 2). */
+  parsedAmplificationsBeforeNormalize: unknown;
 } {
   const rawHasDiagnostics = content.includes('"interpretive_diagnostics"');
   const validated = validateStructuredTaskContent('dream_extraction', content, {
@@ -1308,10 +1349,12 @@ function parseExtraction(
     return {
       extraction: emptyExtraction(),
       diagnostics: null,
+      parsedAmplificationsBeforeNormalize: null,
     };
   }
 
   const parsed = validated.data as Record<string, unknown>;
+  const parsedAmplificationsBeforeNormalize = parsed.amplifications ?? null;
   const parsedHasDiagnostics = parsed.interpretive_diagnostics != null;
   const diagnostics = options.captureDiagnostics
     ? parseInterpretiveEchoDiagnostics(parsed.interpretive_diagnostics)
@@ -1322,8 +1365,8 @@ function parseExtraction(
     rawHasDiagnostics,
     parsedHasDiagnostics,
     validatedHasDiagnostics: Boolean(diagnostics),
-    archetypeCandidateCount: diagnostics?.archetype_candidates.length ?? 0,
-    mythicCandidateCount: diagnostics?.mythic_candidates.length ?? 0,
+    archetypeAuditCount: diagnostics?.archetype_audit.length ?? 0,
+    mythicAuditCount: diagnostics?.mythic_audit.length ?? 0,
   });
 
   const extraction = {
@@ -1338,7 +1381,7 @@ function parseExtraction(
     thresholds: asStringArray(parsed.thresholds),
     central_conflicts: asStringArray(parsed.central_conflicts),
     core_mode: (typeof parsed.core_mode === 'string' ? parsed.core_mode : null) as ExtractionResult['core_mode'],
-    amplifications: normalizeAmplifications(parsed.amplifications, MAX_MYTHIC_ECHOES),
+    amplifications: normalizeAmplifications(parsedAmplificationsBeforeNormalize, MAX_MYTHIC_ECHOES),
     symbol_stances: Array.isArray(parsed.symbol_stances)
       ? parsed.symbol_stances
           .map((item) => {
@@ -1399,6 +1442,7 @@ function parseExtraction(
   return {
     extraction,
     diagnostics,
+    parsedAmplificationsBeforeNormalize,
   };
 }
 
@@ -1463,43 +1507,256 @@ export async function generateDreamExtractionWithCost(params: {
     archetypesCount: number;
     amplificationsCount: number;
   };
+  /** Dev/debug mythic pipeline stages — never persist. */
+  mythicPipelineDebug?: MythicEchoPipelineDebugPacket | null;
+  outputLanguageCommit?: OutputLanguageCommitTelemetry | null;
 }> {
   const debugInterpretiveEchoes = Boolean(params.debugInterpretiveEchoes);
   const prepared = buildExtractionMessages(params.dream, params.interpretation, { debugInterpretiveEchoes });
+  const targetOutputLanguage = resolveDreamOutputLanguage(
+    typeof params.dream.content === 'string' ? params.dream.content : ''
+  );
+
   const extractionPayload = await invokeOpenAiProxy({
     authHeader: params.authHeader,
     ...prepared,
   });
-  const parsed = parseExtraction(extractContent(extractionPayload), {
+  let content = extractContent(extractionPayload);
+  let costs: Array<AiCallCost | null> = [aiCallCostFromPayload(extractionPayload)];
+
+  const firstValidated = validateStructuredTaskContent('dream_extraction', content, {
+    provider: 'openai-or-fallback',
+  });
+  if (!firstValidated.ok) {
+    throw new HttpError(502, 'AI extraction returned invalid JSON', {
+      failureCode: 'structured_schema_invalid',
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+      schemaErrors: firstValidated.schemaErrors.slice(0, 12),
+      ...safeAssistantJsonDiagnostics(content),
+    });
+  }
+
+  const languageGate = await runOutputLanguageCommitGate({
+    parsed: firstValidated.data as Record<string, unknown>,
+    target: targetOutputLanguage,
+    repairOnce: async ({ messages, expectedPaths }) => {
+      // Field-scoped repair only — not a second full extraction.
+      // Proxy skips schema validation; gateway validates locally as
+      // Record<ExactRequestedFieldPath, NonEmptyString>.
+      const repairPayload = await invokeOpenAiProxy({
+        authHeader: params.authHeader,
+        task: 'dream_extraction',
+        messages,
+        temperature: DREAM_EXTRACTION_TEMPERATURE,
+        tokenLimit: Math.min(prepared.tokenLimit, 1200),
+        responseFormat: { type: 'json_object' },
+        timeoutMs: prepared.timeoutMs,
+        skipStructuredValidation: true,
+      });
+      costs.push(aiCallCostFromPayload(repairPayload));
+      const repairContent = extractContent(repairPayload);
+      let parsedRepair: unknown;
+      try {
+        parsedRepair = JSON.parse(repairContent);
+      } catch {
+        console.log('[billing-ai] language_repair_payload_invalid_json', {
+          expectedPathCount: expectedPaths.length,
+        });
+        return null;
+      }
+      const validated = validateLanguageRepairFieldMap(parsedRepair, expectedPaths);
+      if (!validated) {
+        console.log('[billing-ai] language_repair_payload_rejected', {
+          expectedPathCount: expectedPaths.length,
+          expectedPaths: expectedPaths.slice(0, 12),
+        });
+        return null;
+      }
+      return validated;
+    },
+  });
+
+  console.log('[billing-ai] output_language_commit_gate', languageGate.telemetry);
+
+  if (!languageGate.ok) {
+    throw new HttpError(502, 'AI extraction failed output-language validation', {
+      failureCode: 'language_validation_failed',
+      promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+      promptId: DREAM_EXTRACTION_PROMPT_ID,
+      schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
+      ...languageGate.telemetry,
+    });
+  }
+
+  // Re-serialize the gated packet so parseExtraction + validators see only commit-allowed JSON.
+  content = JSON.stringify(languageGate.parsed);
+  const rawModelObject = debugInterpretiveEchoes ? languageGate.parsed : null;
+  const parsed = parseExtraction(content, {
     failOnInvalidOrEmpty: true,
     captureDiagnostics: debugInterpretiveEchoes,
   });
+
+  return finalizeExtractionAfterParse({
+    params,
+    content,
+    parsed,
+    extractionPayload,
+    costs,
+    debugInterpretiveEchoes,
+    targetOutputLanguage,
+    outputLanguageCommit: languageGate.telemetry,
+    rawModelObject,
+  });
+}
+
+function sumAiCallCosts(costs: Array<AiCallCost | null>): AiCallCost | null {
+  const present = costs.filter((c): c is AiCallCost => Boolean(c));
+  if (present.length === 0) return null;
+  if (present.length === 1) return present[0];
+  const first = present[0];
+  const sumNullable = (pick: (c: AiCallCost) => number | null) => {
+    const values = present.map(pick).filter((v): v is number => typeof v === 'number');
+    return values.length ? values.reduce((a, b) => a + b, 0) : null;
+  };
+  return {
+    ...first,
+    inputTokens: present.reduce((sum, c) => sum + (c.inputTokens ?? 0), 0),
+    cachedInputTokens: present.reduce((sum, c) => sum + (c.cachedInputTokens ?? 0), 0),
+    billableInputTokens: present.reduce((sum, c) => sum + (c.billableInputTokens ?? 0), 0),
+    outputTokens: present.reduce((sum, c) => sum + (c.outputTokens ?? 0), 0),
+    totalTokens: present.reduce((sum, c) => sum + (c.totalTokens ?? 0), 0),
+    inputUsd: sumNullable((c) => c.inputUsd),
+    cachedInputUsd: sumNullable((c) => c.cachedInputUsd),
+    outputUsd: sumNullable((c) => c.outputUsd),
+    estimatedUsd: sumNullable((c) => c.estimatedUsd),
+  };
+}
+
+async function finalizeExtractionAfterParse(args: {
+  params: {
+    authHeader: string;
+    dream: DreamRecord;
+    interpretation: string;
+    debugInterpretiveEchoes?: boolean;
+  };
+  content: string;
+  parsed: ReturnType<typeof parseExtraction>;
+  extractionPayload: Record<string, unknown>;
+  costs: Array<AiCallCost | null>;
+  debugInterpretiveEchoes: boolean;
+  targetOutputLanguage: ReturnType<typeof resolveDreamOutputLanguage>;
+  outputLanguageCommit: OutputLanguageCommitTelemetry | null;
+  rawModelObject?: Record<string, unknown> | null;
+}): Promise<{
+  extraction: ExtractionResult;
+  cost: AiCallCost | null;
+  diagnostics: InterpretiveEchoDiagnostics | null;
+  model: string | null;
+  preValidation?: { archetypesCount: number; amplificationsCount: number };
+  mythicPipelineDebug?: MythicEchoPipelineDebugPacket | null;
+  outputLanguageCommit?: OutputLanguageCommitTelemetry | null;
+}> {
+  const {
+    params,
+    content,
+    parsed,
+    extractionPayload,
+    costs,
+    debugInterpretiveEchoes,
+    targetOutputLanguage,
+    outputLanguageCommit,
+  } = args;
 
   const preValidation = {
     archetypesCount: parsed.extraction.archetypes.length,
     amplificationsCount: parsed.extraction.amplifications.length,
   };
+  const normalizedAmplificationsBeforeValidation = [...parsed.extraction.amplifications];
+
+  const rawArchetypeCandidates = [...parsed.extraction.archetypes];
 
   const archetypeValidation = validateArchetypalEchoes(
-    parsed.extraction.archetypes as Array<ArchetypalEcho & { evaluation?: unknown }>,
+    rawArchetypeCandidates as Array<ArchetypalEcho & { evaluation?: unknown }>,
     { max: MAX_ARCHETYPAL_ECHOES }
   );
   parsed.extraction.archetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
 
-  const mythicValidation = validateMythicEchoes(parsed.extraction.amplifications, {
-    max: MAX_MYTHIC_ECHOES,
-  });
-  parsed.extraction.amplifications = mythicValidation.accepted.map(toPersistedMythicEcho);
+  const closedMythicValidation = validateClosedCatalogMythicEchoes(
+    Array.isArray(parsed.parsedAmplificationsBeforeNormalize)
+      ? parsed.parsedAmplificationsBeforeNormalize
+      : parsed.extraction.amplifications,
+    {
+      dreamText: typeof params.dream.content === 'string' ? params.dream.content : '',
+      max: MAX_MYTHIC_ECHOES,
+    }
+  );
+  const mythicValidation = closedMythicValidationForDebug(closedMythicValidation);
+  const postValidationAmplifications = closedMythicValidation.accepted.map(
+    toPersistedClosedMythicEcho
+  );
+  parsed.extraction.amplifications = postValidationAmplifications;
+
+  const rawForLanguage =
+    args.rawModelObject ??
+    (() => {
+      try {
+        return JSON.parse(content) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })();
+  const outputLanguageTelemetry =
+    outputLanguageCommit ??
+    (rawForLanguage && typeof rawForLanguage === 'object'
+      ? auditDreamExtractionOutputLanguage(rawForLanguage, targetOutputLanguage)
+      : null);
 
   console.log('[billing-ai] interpretive_echo_validators', {
     promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+    schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
     archetypesAccepted: archetypeValidation.accepted.length,
     archetypesRejected: archetypeValidation.rejected.length,
     archetypeRejectReasons: archetypeValidation.rejected.map((r) => r.reason).slice(0, 6),
+    outputLanguageTelemetry,
+    outputLanguageCommit,
+    heroTelemetry: summarizeHeroArchetypeTelemetry({
+      rawCandidates: rawArchetypeCandidates,
+      validation: archetypeValidation,
+    }),
     mythicAccepted: mythicValidation.accepted.length,
     mythicRejected: mythicValidation.rejected.length,
     mythicRejectReasons: mythicValidation.rejected.map((r) => r.reason).slice(0, 6),
+    mythicCatalogLogs: closedMythicValidation.logs.slice(0, 4),
   });
+
+  let mythicPipelineDebug: MythicEchoPipelineDebugPacket | null = null;
+  if (debugInterpretiveEchoes) {
+    const enforced = applyMythicAuditProductionInvariant({
+      diagnostics: parsed.diagnostics,
+      amplifications: parsed.extraction.amplifications,
+      enforce: true,
+    });
+    parsed.extraction.amplifications = enforced.amplifications;
+    mythicPipelineDebug = buildMythicEchoPipelineDebugPacket({
+      rawModelObject: args.rawModelObject ?? rawForLanguage,
+      parsedAmplifications: parsed.parsedAmplificationsBeforeNormalize,
+      normalizedBeforeValidation: normalizedAmplificationsBeforeValidation,
+      mythicValidation,
+      postValidationAmplifications,
+      diagnostics: parsed.diagnostics,
+      invariantClearedAmplifications: enforced.cleared,
+    });
+    console.log('[billing-ai] mythic_echo_pipeline_debug', mythicPipelineDebug);
+    if (!enforced.consistency.ok) {
+      console.error('[billing-ai] mythic_audit_production_invariant_failed', {
+        promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
+        ...enforced.consistency,
+        note: 'Cleared mismatched production amplifications in debug; did not rewrite title/tradition.',
+      });
+    }
+  }
 
   const model =
     typeof (extractionPayload as { model?: unknown })?.model === 'string'
@@ -1513,19 +1770,21 @@ export async function generateDreamExtractionWithCost(params: {
       model,
       ...safeInterpretiveDiagnosticsLog(parsed.diagnostics),
       preValidation,
-      // Full candidate bags only in debug mode (dev/test). Never dream/reflection text.
       interpretive_diagnostics: parsed.diagnostics,
-      // Post-validator persisted shapes for failure-class isolation.
       post_validation_archetypes: parsed.extraction.archetypes,
-      post_validation_amplifications: parsed.extraction.amplifications,
+      post_validation_amplifications: postValidationAmplifications,
+      mythic_echo_pipeline: mythicPipelineDebug,
+      persisted_amplifications_after_invariant: parsed.extraction.amplifications,
     });
   }
   return {
     extraction: parsed.extraction,
-    cost: aiCallCostFromPayload(extractionPayload),
+    cost: sumAiCallCosts(costs),
     diagnostics: parsed.diagnostics,
     model,
     preValidation,
+    mythicPipelineDebug,
+    outputLanguageCommit,
   };
 }
 

@@ -172,13 +172,14 @@ describe('dream detail display model', () => {
 
     expect(model.symbolicLayers.archetypalEchoes).toEqual([
       {
-        title: 'The Shadow',
+        title: 'Shadow',
         body: 'An unseen presence holds the edge between approach and entry.',
       },
     ]);
     expect(model.symbolicLayers.mythicEchoes).toEqual([
       {
-        title: 'Ariadne and the Labyrinth — Greek',
+        title: 'Ariadne and the Labyrinth',
+        subtitle: 'Greek',
         body: 'The thread and corridors recall the Cretan labyrinth cycle. Here the waiting figure is fed rather than defeated.',
       },
     ]);
@@ -200,7 +201,8 @@ describe('dream detail display model', () => {
     });
     expect(mediumShown.symbolicLayers.mythicEchoes).toEqual([
       {
-        title: 'Persephone — Greek mythology',
+        title: 'Persephone',
+        subtitle: 'Greek mythology',
         body: 'May faintly recall the seasonal cycle under snow. No completed return is staged.',
       },
     ]);

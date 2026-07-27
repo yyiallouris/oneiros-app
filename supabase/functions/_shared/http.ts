@@ -52,6 +52,32 @@ function safeErrorDetails(details: unknown): unknown {
       provider: typeof raw.provider === 'string' ? raw.provider : null,
       model: typeof raw.model === 'string' ? raw.model : null,
       repairAttempted: typeof raw.repairAttempted === 'boolean' ? raw.repairAttempted : null,
+      target_output_language:
+        typeof raw.target_output_language === 'string' ? raw.target_output_language : null,
+      initial_language_match:
+        typeof raw.initial_language_match === 'boolean' ? raw.initial_language_match : null,
+      repair_language_match:
+        typeof raw.repair_language_match === 'boolean' ? raw.repair_language_match : null,
+      final_commit_allowed:
+        typeof raw.final_commit_allowed === 'boolean' ? raw.final_commit_allowed : null,
+      mismatched_field_paths: Array.isArray(raw.mismatched_field_paths)
+        ? raw.mismatched_field_paths.slice(0, 24)
+        : null,
+      repaired_field_paths: Array.isArray(raw.repaired_field_paths)
+        ? raw.repaired_field_paths.slice(0, 24)
+        : null,
+      semantic_structure_preserved:
+        typeof raw.semantic_structure_preserved === 'boolean'
+          ? raw.semantic_structure_preserved
+          : null,
+      dropped_due_to_language_count:
+        typeof raw.dropped_due_to_language_count === 'number'
+          ? raw.dropped_due_to_language_count
+          : null,
+      full_regeneration_due_to_language_count:
+        typeof raw.full_regeneration_due_to_language_count === 'number'
+          ? raw.full_regeneration_due_to_language_count
+          : null,
       promptVersion: typeof raw.promptVersion === 'string' ? raw.promptVersion : null,
       dreamLength: typeof raw.dreamLength === 'number' ? raw.dreamLength : null,
       reflectionLength: typeof raw.reflectionLength === 'number' ? raw.reflectionLength : null,

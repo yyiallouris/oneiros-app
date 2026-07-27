@@ -372,6 +372,7 @@ async function persistReflectionMetadata(params: {
   interpretiveDiagnostics: unknown | null;
   postValidationArchetypes: unknown;
   postValidationAmplifications: unknown;
+  mythicPipelineDebug: unknown | null;
   promptId: string;
   promptVersion: string;
   schemaVersion: number;
@@ -428,7 +429,12 @@ async function persistReflectionMetadata(params: {
       totalCostUsd,
       interpretiveDiagnostics: params.debugInterpretiveEchoes ? extractionResult.diagnostics : null,
       postValidationArchetypes: extraction.archetypes,
-      postValidationAmplifications: extraction.amplifications,
+      // Prefer pre-invariant validator output so debug can still see mismatched titles.
+      postValidationAmplifications:
+        extractionResult.mythicPipelineDebug?.post_validation_amplifications ?? extraction.amplifications,
+      mythicPipelineDebug: params.debugInterpretiveEchoes
+        ? extractionResult.mythicPipelineDebug ?? null
+        : null,
       promptId: DREAM_EXTRACTION_PROMPT_ID,
       promptVersion: DREAM_EXTRACTION_PROMPT_VERSION,
       schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
@@ -437,15 +443,24 @@ async function persistReflectionMetadata(params: {
     };
   } catch (error) {
     const failedAt = new Date().toISOString();
+    const httpError = error instanceof HttpError ? error : null;
+    const details =
+      httpError?.details && typeof httpError.details === 'object'
+        ? (httpError.details as Record<string, unknown>)
+        : null;
+    const failureCode =
+      details && typeof details.failureCode === 'string' ? details.failureCode : null;
     await saveInterpretation(params.admin, {
       id: params.interpretationId,
       user_id: params.userId,
       dream_id: params.dream.id,
       metadata_status: 'failed',
-      metadata_error_code: 'metadata_generation_failed',
+      metadata_error_code:
+        failureCode === 'language_validation_failed'
+          ? 'language_validation_failed'
+          : 'metadata_generation_failed',
       updated_at: failedAt,
     });
-    const httpError = error instanceof HttpError ? error : null;
     console.error('[ai-entitlements-gateway] metadata extraction failed', {
       action: 'dream_metadata_extract',
       dreamId: params.dream.id,
@@ -453,6 +468,7 @@ async function persistReflectionMetadata(params: {
       message: error instanceof Error ? error.message : 'Unknown metadata extraction error',
       status: httpError?.status ?? null,
       details: httpError?.details ?? null,
+      failureCode,
       dreamLength: params.dream.content?.length ?? 0,
       reflectionLength: params.reflection?.length ?? 0,
       totalMs: measureSince(startedAt),
@@ -947,7 +963,9 @@ serve(async (req: Request) => {
               interpretive_diagnostics: metadataResult.interpretiveDiagnostics,
               post_validation_archetypes: metadataResult.postValidationArchetypes,
               post_validation_amplifications: metadataResult.postValidationAmplifications,
-              selection_summary: 'See interpretive_diagnostics candidate selected/rejected fields.',
+              mythic_echo_pipeline: metadataResult.mythicPipelineDebug,
+              selection_summary:
+                'See interpretive_diagnostics + mythic_echo_pipeline (raw → normalize → validate → invariant).',
             }
           : null;
       return jsonResponse(

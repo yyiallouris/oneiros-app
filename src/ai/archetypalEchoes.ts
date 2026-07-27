@@ -7,9 +7,15 @@ import {
   normalizeArchetype,
   normalizeArchetypeList,
 } from '../constants/archetypes.ts';
-import { getArchetypeDisplayLabel } from './catalogs/archetypeCatalog.v1.ts';
+import {
+  canonicalizeArchetypeId,
+  getArchetypeDefinitionById,
+  getArchetypeDisplayLabel,
+  getArchetypeDefinitionV1,
+} from './catalogs/archetypeCatalog.v1.ts';
 
 export type ArchetypalEchoConfidence = 'high' | 'medium';
+export type LegacyArchetypeSourceId = 'great_mother' | 'terrible_mother';
 
 export type ArchetypalEcho = {
   canonical_label: string;
@@ -22,6 +28,12 @@ export type ArchetypalEcho = {
    * Absent on legacy rows (still displayable until re-extract).
    */
   confidence?: ArchetypalEchoConfidence;
+  /** Closed catalog id — persisted for audit/re-extract (v4.1.3-B.2). */
+  archetype_id?: string;
+  archetype_catalog_version?: string;
+  evidence_ids?: string[];
+  /** Optional audit provenance when a legacy pre-1.7.0 source id mapped into a canonical id. */
+  legacy_source_id?: LegacyArchetypeSourceId;
 };
 
 export type EchoDisplayCard = {
@@ -54,17 +66,27 @@ function readConfidence(o: Record<string, unknown>): ArchetypalEchoConfidence | 
 }
 
 function fromLegacyLabel(raw: string): ArchetypalEcho[] {
-  return normalizeArchetypeList(raw).map((canonical_label) => ({
-    canonical_label,
-    expression: '',
-    resonance: '',
-    evidence: [],
-  }));
+  const legacySourceId = inferLegacyArchetypeSourceId({ rawLabel: raw });
+  return normalizeArchetypeList(raw).map((canonical_label) => {
+    const def = getArchetypeDefinitionV1(canonical_label);
+    return {
+      canonical_label,
+      expression: '',
+      resonance: '',
+      evidence: [],
+      ...(def ? { archetype_id: def.id } : {}),
+      ...(legacySourceId ? { legacy_source_id: legacySourceId } : {}),
+    };
+  });
 }
 
 function readExpression(o: Record<string, unknown>): string {
   if (typeof o.expression === 'string' && o.expression.trim()) {
     return o.expression.trim();
+  }
+  // v4.1.1 model field alias
+  if (typeof o.carrier === 'string' && o.carrier.trim()) {
+    return o.carrier.trim();
   }
   // Legacy poetic primary field → secondary expression
   if (typeof o.display_label === 'string' && o.display_label.trim()) {
@@ -84,6 +106,50 @@ function stripFormulaicResonanceLead(resonance: string): string {
       ''
     )
     .trim();
+}
+
+function asEvidenceIds(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out = raw
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return out.length > 0 ? out : undefined;
+}
+
+function asLegacySourceId(raw: unknown): LegacyArchetypeSourceId | undefined {
+  if (raw === 'great_mother' || raw === 'terrible_mother') return raw;
+  return undefined;
+}
+
+function readCanonicalFromArchetypeId(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  const definition = getArchetypeDefinitionById(canonicalizeArchetypeId(raw.trim()));
+  return definition?.canonicalLabel ?? '';
+}
+
+function legacySourceIdFromLabel(raw: string): LegacyArchetypeSourceId | undefined {
+  const normalized = raw.trim().replace(/^\s*The\s+/i, '').toLowerCase();
+  if (normalized === 'great mother') return 'great_mother';
+  if (normalized === 'terrible mother') return 'terrible_mother';
+  return undefined;
+}
+
+function inferLegacyArchetypeSourceId(params: {
+  rawArchetypeId?: unknown;
+  rawCanonicalLabel?: unknown;
+  rawLabel?: unknown;
+}): LegacyArchetypeSourceId | undefined {
+  const fromId = asLegacySourceId(params.rawArchetypeId);
+  if (fromId) return fromId;
+  if (typeof params.rawCanonicalLabel === 'string') {
+    const fromCanonical = legacySourceIdFromLabel(params.rawCanonicalLabel);
+    if (fromCanonical) return fromCanonical;
+  }
+  if (typeof params.rawLabel === 'string') {
+    return legacySourceIdFromLabel(params.rawLabel);
+  }
+  return undefined;
 }
 
 /**
@@ -122,10 +188,17 @@ export function normalizeArchetypalEchoes(
         ? o.canonical_label
         : typeof o.canonicalLabel === 'string'
           ? o.canonicalLabel
-          : '';
+          : readCanonicalFromArchetypeId(o.archetype_id);
     const expression = readExpression(o);
     const resonance = typeof o.resonance === 'string' ? o.resonance.trim() : '';
     const evidence = asEvidence(o.evidence);
+    const evidence_ids = asEvidenceIds(o.evidence_ids);
+    const legacy_source_id =
+      asLegacySourceId(o.legacy_source_id) ??
+      inferLegacyArchetypeSourceId({
+        rawArchetypeId: o.archetype_id,
+        rawCanonicalLabel: canonicalRaw,
+      });
 
     let canonical = normalizeArchetype(canonicalRaw);
     if (!canonical && expression) {
@@ -151,6 +224,12 @@ export function normalizeArchetypalEchoes(
         ? expression
         : '';
 
+    const definition = getArchetypeDefinitionV1(canonical);
+    const rawArchetypeId =
+      typeof o.archetype_id === 'string' && o.archetype_id.trim()
+        ? canonicalizeArchetypeId(o.archetype_id.trim())
+        : definition?.id;
+
     const echo: ArchetypalEcho = {
       canonical_label: canonical,
       expression: expressionDistinct,
@@ -158,6 +237,12 @@ export function normalizeArchetypalEchoes(
       evidence,
     };
     if (confidence) echo.confidence = confidence;
+    if (rawArchetypeId) echo.archetype_id = rawArchetypeId;
+    if (typeof o.archetype_catalog_version === 'string' && o.archetype_catalog_version.trim()) {
+      echo.archetype_catalog_version = o.archetype_catalog_version.trim();
+    }
+    if (evidence_ids) echo.evidence_ids = evidence_ids;
+    if (legacy_source_id) echo.legacy_source_id = legacy_source_id;
     out.push(echo);
     if (out.length >= max) break;
   }

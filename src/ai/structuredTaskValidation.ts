@@ -3,6 +3,15 @@ import {
   MAX_LEGACY_ARCHETYPAL_ECHOES,
   normalizeArchetypalEchoes,
 } from './archetypalEchoes.ts';
+import {
+  getArchetypeDefinitionById,
+  getArchetypeDefinitionV1,
+} from './catalogs/archetypeCatalog.v1.ts';
+import {
+  MYTH_CATALOG_IDS,
+  SELECTABLE_ARCHETYPE_IDS,
+} from './catalogs/generated/catalogIdEnums.v1.ts';
+import { normalizeDreamEvidenceIdList } from './dreamEvidenceSpans.ts';
 import { MAX_LEGACY_MYTHIC_ECHOES, normalizeAmplifications } from './mythicEchoes.ts';
 
 export const STRUCTURED_AI_TASKS = [
@@ -69,6 +78,18 @@ function withSoftEchoConfidence(raw: unknown): unknown {
   return { ...o, confidence: DREAM_EXTRACTION_SOFT_DEFAULTS.missingEchoConfidence };
 }
 
+function normalizeNamespaceCatalogId(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  let s = value.trim();
+  if (s.startsWith('[') && s.endsWith(']')) s = s.slice(1, -1).trim();
+  return s;
+}
+
+const selectableArchetypeIdSchema = z.enum(
+  SELECTABLE_ARCHETYPE_IDS as unknown as [string, ...string[]]
+);
+const mythCatalogIdSchema = z.enum(MYTH_CATALOG_IDS as unknown as [string, ...string[]]);
+
 const archetypeEvaluationSchema = z
   .object({
     centrality: z.number().min(0).max(5),
@@ -86,20 +107,74 @@ const archetypeEvaluationSchema = z
   })
   .passthrough();
 
+const archetypeMechanismTagSchema = z.enum([
+  'active_threshold_guidance',
+  'crossing_between_domains',
+  'deception_or_feigned_belief',
+  'inversion_or_rule_bending',
+  'power_asymmetry_reversed',
+  'public_role_or_social_mask',
+  'private_self_conflict',
+  'devotion_or_longing',
+  'union_separation_or_loss',
+  'bond_organizes_dream',
+  'dissolution_or_symbolic_death',
+  'revival_or_return',
+  'identity_or_status_transformed',
+  'engulfing_or_devouring',
+  'possessive_anti_separation',
+  'consequential_wisdom_or_warning',
+  'guidance_changes_action_or_outcome',
+  'ordeal_or_confrontation',
+  'purposeful_quest_movement',
+  'boon_or_changed_outcome',
+]);
+
 /** Extraction must return rich Archetypal Echo objects — bare tags are invalid. */
-const extractionArchetypalEchoSchema = z.preprocess(
-  withSoftEchoConfidence,
-  z
-    .object({
-      canonical_label: z.string().min(1),
-      expression: z.string().min(1),
-      resonance: z.string().min(12),
-      evidence: z.array(z.string().min(1)).min(1).max(2),
-      confidence: z.enum(['high', 'medium']),
-      /** Required at runtime for Double / Guide / Divine Child / Terrible Mother / Ruler. */
-      evaluation: archetypeEvaluationSchema.optional(),
-    })
-    .passthrough()
+const extractionArchetypalEchoSchema = z.preprocess((raw) => {
+  if (!raw || typeof raw !== 'object') return raw;
+  const o = raw as Record<string, unknown>;
+  let next: Record<string, unknown> = { ...o };
+  if (
+    (typeof next.expression !== 'string' || !String(next.expression).trim()) &&
+    typeof next.carrier === 'string' &&
+    next.carrier.trim()
+  ) {
+    next = { ...next, expression: next.carrier };
+  }
+  if (
+    (typeof next.expression !== 'string' || !String(next.expression).trim()) &&
+    typeof next.display_label === 'string' &&
+    next.display_label.trim()
+  ) {
+    next = { ...next, expression: next.display_label };
+  }
+  if (typeof next.archetype_id !== 'string' || !String(next.archetype_id).trim()) {
+    if (typeof next.canonical_label === 'string' && next.canonical_label.trim()) {
+      const def = getArchetypeDefinitionV1(next.canonical_label);
+      if (def) next = { ...next, archetype_id: def.id };
+    }
+  } else {
+    next = { ...next, archetype_id: normalizeNamespaceCatalogId(next.archetype_id) };
+  }
+  if (Array.isArray(next.evidence_ids)) {
+    next = { ...next, evidence_ids: normalizeDreamEvidenceIdList(next.evidence_ids, 6) };
+  }
+  const { evaluation: _evaluation, ...withoutEvaluation } = next;
+  next = withoutEvaluation;
+  return withSoftEchoConfidence(next);
+}, z
+  .object({
+    archetype_id: selectableArchetypeIdSchema,
+    expression: z.string().min(1),
+    resonance: z.string().min(12),
+    confidence: z.enum(['high', 'medium']),
+    mechanism_tags: z.array(archetypeMechanismTagSchema).min(1).max(6),
+    evidence_ids: z.array(z.string().min(1)).min(1).max(10),
+    /** Legacy optional bag — mechanism_tags are authoritative for hard gates. */
+    evaluation: archetypeEvaluationSchema.optional(),
+  })
+  .passthrough()
 );
 
 /** Conversation updates / legacy may still carry bare strings; readers normalize. */
@@ -117,31 +192,74 @@ const legacyArchetypalEchoSchema = z.union([
     .passthrough(),
 ]);
 
-/** Extraction Mythic Echo: named parallel from a real tradition. */
+const mythicMatchDimensionSchema = z.enum([
+  'distinctive_cluster',
+  'narrative_sequence',
+  'relational_roles',
+  'central_conflict',
+  'transformation_or_ending',
+  'general_theme',
+]);
+
+const mythicDivergenceTypeSchema = z.enum([
+  'outcome_changed',
+  'emphasis_changed',
+  'pattern_interrupted',
+  'pattern_unfinished',
+  'core_structure_absent',
+]);
+
+/**
+ * Closed-catalog Mythic Echo (model-facing).
+ * Model may not author title/tradition/source_type — server resolves those.
+ */
 const extractionMythicEchoSchema = z.preprocess((raw) => {
   if (!raw || typeof raw !== 'object') return raw;
   const o = raw as Record<string, unknown>;
-  let next: Record<string, unknown> = o;
-  // Canonical key is divergence; accept legacy difference only during coerce/repair.
+  const {
+    title: _title,
+    tradition: _tradition,
+    source_type: _sourceType,
+    source_refs: _sourceRefs,
+    matched_feature_ids: _matchedFeatureIds,
+    divergence_type: _divergenceType,
+    evaluation: _evaluation,
+    difference,
+    ...rest
+  } = o;
+  let next: Record<string, unknown> = { ...rest };
   if (
     (typeof next.divergence !== 'string' || !String(next.divergence).trim()) &&
-    typeof next.difference === 'string' &&
-    next.difference.trim()
+    typeof difference === 'string' &&
+    difference.trim()
   ) {
-    const { difference: _legacyDifference, ...rest } = next;
-    next = { ...rest, divergence: next.difference };
+    next = { ...next, divergence: difference };
+  }
+  if (!Array.isArray(next.evidence_ids)) {
+    next = { ...next, evidence_ids: [] };
+  } else {
+    next = { ...next, evidence_ids: normalizeDreamEvidenceIdList(next.evidence_ids, 6) };
+  }
+  if (!Array.isArray(next.evidence)) {
+    next = { ...next, evidence: [] };
+  }
+  if (typeof next.catalog_id === 'string' && next.catalog_id.trim()) {
+    next = { ...next, catalog_id: normalizeNamespaceCatalogId(next.catalog_id) };
   }
   return withSoftEchoConfidence(next);
-}, z
-  .object({
-    title: z.string().min(1),
-    tradition: z.string().min(1),
-    resonance: z.string().min(12),
-    divergence: z.string().min(8),
-    evidence: z.array(z.string().min(1)).min(2).max(3),
-    confidence: z.enum(['high', 'medium']),
-  })
-  .passthrough());
+}, z.object({
+  catalog_id: mythCatalogIdSchema,
+  resonance: z.string().min(12),
+  divergence: z.string().min(8),
+  /** Model-facing: cite [Dn] spans. Transport accepts up to 10; server clamps to 6. */
+  evidence_ids: z.array(z.string().min(1)).max(10).default([]),
+  /**
+   * App-facing resolved spans. Soft-default [] at Zod stage;
+   * mythic validator fills from evidence_ids (or accepts legacy text temporarily).
+   */
+  evidence: z.array(z.string().min(1)).max(3).default([]),
+  confidence: z.enum(['high', 'medium']),
+}));
 
 /** Conversation updates / legacy Mythic Echo shapes during transition. */
 const amplificationSchema = z.union([
@@ -164,9 +282,14 @@ const amplificationSchema = z.union([
     .passthrough(),
 ]);
 
-/** Dev/debug only — never persisted to interpretation rows. Kept loose so candidate fields survive. */
+/** Dev/debug only — never persisted to interpretation rows. Kept loose so audit fields survive. */
 const interpretiveDiagnosticsSchema = z
   .object({
+    dream_map: z.record(z.string(), z.unknown()).optional(),
+    structural_spine: z.record(z.string(), z.unknown()).optional(),
+    archetype_audit: z.array(z.record(z.string(), z.unknown())).optional(),
+    mythic_audit: z.array(z.record(z.string(), z.unknown())).optional(),
+    // Legacy keys (still accepted during transition).
     archetype_candidates: z.array(z.record(z.string(), z.unknown())).optional(),
     mythic_candidates: z.array(z.record(z.string(), z.unknown())).optional(),
   })
@@ -185,8 +308,8 @@ export const dreamExtractionSchema = z
     thresholds: stringArray.default([]),
     central_conflicts: stringArray.default([]),
     core_mode: coreModeSchema,
-    // Direct 0–1 Mythic Echo from the same extraction call (open-world).
-    amplifications: z.array(extractionMythicEchoSchema).default([]),
+    // Direct 0–1 closed-catalog Mythic Echo from the same extraction call.
+    amplifications: z.array(extractionMythicEchoSchema).max(1).default([]),
     symbol_stances: z.array(symbolStanceSchema).default([]),
     // Optional debug bag — first-class so openai-proxy normalization cannot drop it.
     interpretive_diagnostics: interpretiveDiagnosticsSchema,
@@ -222,9 +345,10 @@ export const dreamExtractionSchema = z
     }
 
     value.archetypes.forEach((echo, index) => {
-      const canonical = echo.canonical_label.trim().replace(/^\s*The\s+/i, '');
+      const def = getArchetypeDefinitionById(echo.archetype_id);
+      const canonical = def?.canonicalLabel.trim().replace(/^\s*The\s+/i, '') ?? '';
       const expression = echo.expression.trim().replace(/^\s*The\s+/i, '');
-      if (expression.toLowerCase() === canonical.toLowerCase()) {
+      if (canonical && expression.toLowerCase() === canonical.toLowerCase()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['archetypes', index, 'expression'],
@@ -368,26 +492,80 @@ function coerceExtractionArchetypes(value: unknown): unknown[] {
   if (!Array.isArray(value)) return [];
   return value.map((item) => {
     if (typeof item === 'string') return item.trim();
-    const normalized = normalizeArchetypalEchoes([item], 1);
-    if (!normalized[0]) return item;
-    // normalizeArchetypalEchoes already drops evaluation; keep production shape only.
-    return withDefaultMediumConfidence(normalized[0]);
+    if (!item || typeof item !== 'object') return item;
+    const o = item as Record<string, unknown>;
+    let archetypeId = typeof o.archetype_id === 'string' ? o.archetype_id.trim() : '';
+    if (!archetypeId && typeof o.canonical_label === 'string' && o.canonical_label.trim()) {
+      const def = getArchetypeDefinitionV1(o.canonical_label);
+      if (def) archetypeId = def.id;
+    }
+    const expression =
+      typeof o.expression === 'string' && o.expression.trim()
+        ? o.expression.trim()
+        : typeof o.carrier === 'string' && o.carrier.trim()
+          ? o.carrier.trim()
+          : typeof o.display_label === 'string' && o.display_label.trim()
+            ? o.display_label.trim()
+            : '';
+    const resonance = typeof o.resonance === 'string' ? o.resonance.trim() : '';
+    return withDefaultMediumConfidence({
+      archetype_id: archetypeId,
+      expression,
+      resonance,
+      ...(Array.isArray(o.mechanism_tags) ? { mechanism_tags: o.mechanism_tags } : {}),
+      ...(Array.isArray(o.evidence_ids)
+        ? { evidence_ids: normalizeDreamEvidenceIdList(o.evidence_ids, 6) }
+        : {}),
+      ...(typeof o.confidence === 'string' ? { confidence: o.confidence } : {}),
+    });
   });
 }
 
 function coerceExtractionAmplifications(value: unknown): unknown[] {
-  return coerceAmplifications(value).map((echo) => {
-    // Only default confidence on named parallels that already have structure.
-    if (!echo.title.trim() && !echo.tradition.trim()) return echo;
-    return withDefaultMediumConfidence(echo);
-  });
+  if (!Array.isArray(value)) return [];
+  const out: unknown[] = [];
+  for (const item of value.slice(0, 1)) {
+    if (!item || typeof item !== 'object') continue;
+    const o = item as Record<string, unknown>;
+    const {
+      title: _title,
+      tradition: _tradition,
+      source_type: _sourceType,
+      source_refs: _sourceRefs,
+      difference,
+      ...rest
+    } = o;
+    let next: Record<string, unknown> = { ...rest };
+    if (
+      (typeof next.divergence !== 'string' || !String(next.divergence).trim()) &&
+      typeof difference === 'string' &&
+      difference.trim()
+    ) {
+      next = { ...next, divergence: difference };
+    }
+    if (typeof next.catalog_id !== 'string' || !next.catalog_id.trim()) {
+      // Open-world / title-only objects are dropped → amplifications:[] (no schema 502).
+      continue;
+    }
+    out.push(withDefaultMediumConfidence(next as { confidence?: string }));
+  }
+  return out;
 }
 
 function coerceDreamExtraction(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const o = raw as Record<string, unknown>;
+  const displayDistillation =
+    o.display_distillation !== undefined ? o.display_distillation : o.displayDistillation;
+  const symbolStances =
+    o.symbol_stances !== undefined ? o.symbol_stances : o.symbolStances;
+  const centralConflicts =
+    o.central_conflicts !== undefined ? o.central_conflicts : o.centralConflicts;
   return {
     ...o,
+    ...(displayDistillation !== undefined
+      ? { display_distillation: displayDistillation }
+      : {}),
     symbols: asStringArray(o.symbols),
     archetypes: coerceExtractionArchetypes(o.archetypes),
     landscapes: asStringArray(o.landscapes),
@@ -395,9 +573,9 @@ function coerceDreamExtraction(raw: unknown): unknown {
     motifs: asStringArray(o.motifs),
     relational_dynamics: asStringArray(o.relational_dynamics),
     thresholds: asStringArray(o.thresholds),
-    central_conflicts: asStringArray(o.central_conflicts),
+    central_conflicts: asStringArray(centralConflicts),
     amplifications: coerceExtractionAmplifications(o.amplifications),
-    symbol_stances: Array.isArray(o.symbol_stances) ? o.symbol_stances : [],
+    symbol_stances: Array.isArray(symbolStances) ? symbolStances : [],
     core_mode: o.core_mode === undefined ? null : o.core_mode,
   };
 }
@@ -564,7 +742,7 @@ export function buildStructuredRepairMessages(
 ): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
   const schemaHint =
     task === 'dream_extraction'
-      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {canonical_label, expression, resonance, evidence[], confidence:"high"|"medium"} — never bare strings, never an evaluation bag. Include confidence on every selected echo. canonical_label must be a catalog whitelist name; expression is the dream-specific carrier (not equal to canonical_label); resonance one short sentence (~18–32 words) without "Appears as…"; evidence 1–2 concrete dream elements. amplifications is 0–1 named Mythic Echo {title, tradition, resonance, divergence, evidence[2–3], confidence} or []. Title must be a recognized narrative/cycle/episode (not a bare figure). Prefer amplifications:[] when narrative identity/tradition/fit is uncertain — silence over false cultural authority — but return an unusually direct structural match. If the invalid JSON included interpretive_diagnostics, preserve that object unchanged.'
+      ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {archetype_id (exact enum from ONEIROS ARCHETYPE CATALOG), expression, mechanism_tags[>=1], evidence_ids[>=1], resonance, confidence:"high"|"medium"} — never bare strings; never use myth catalog_id values in archetype_id. Do not output canonical_label, carrier_kind, mechanism_actor, carrier_evidence_ids, mechanism_evidence_ids, or free-text evidence. Include confidence on every selected echo. amplifications is 0–1 closed-catalog Mythic Echo {catalog_id (exact enum from CLOSED_MYTH_CATALOG), resonance, divergence, evidence_ids, confidence} or []. Never include title/tradition/source_type or free-text myth evidence. Prefer amplifications:[] when no catalog id is earned. If interpretive_diagnostics was present, preserve it unchanged.'
       : task === 'conversation_element_update'
         ? 'Return either {"status":"no_change"} or {"status":"updated", "archetypes":[], "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. When updating archetypes, prefer rich objects {canonical_label, expression, resonance, evidence[], confidence}.'
         : 'Return {"symbol_groups":[{"canonical":"...","members":["...","..."]}],"landscape_groups":[...]} with members length >= 2 when present. Empty arrays are allowed.';

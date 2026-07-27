@@ -20,7 +20,13 @@ import {
   normalizeAmplifications,
   type MythicEcho,
 } from '../ai/mythicEchoes';
+import { buildDreamExtractionResponseFormat } from '../ai/dreamExtractionResponseFormat';
 import { validateStructuredTaskContent } from '../ai/structuredTaskValidation';
+import {
+  resolveDreamOutputLanguage,
+  runOutputLanguageCommitGate,
+  validateLanguageRepairFieldMap,
+} from '../ai/dreamOutputLanguage';
 import {
   parseInterpretiveEchoDiagnostics,
   safeInterpretiveDiagnosticsLog,
@@ -31,9 +37,14 @@ import {
   validateArchetypalEchoes,
 } from '../ai/validators/archetypalEchoValidator';
 import {
-  toPersistedMythicEcho,
-  validateMythicEchoes,
-} from '../ai/validators/mythicEchoValidator';
+  closedMythicValidationForDebug,
+  toPersistedClosedMythicEcho,
+  validateClosedCatalogMythicEchoes,
+} from '../ai/validators/mythicCatalogValidator';
+import {
+  applyMythicAuditProductionInvariant,
+  buildMythicEchoPipelineDebugPacket,
+} from '../ai/mythicEchoPipelineDebug';
 import type { ArchetypeName } from '../constants/archetypes';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
@@ -1960,7 +1971,9 @@ export const extractDreamSymbolsAndArchetypes = async (
       setTokenLimit(payload, apiUrl, tokenLimit, model);
     }
 
-    if (capabilities.supportsResponseFormat) payload.response_format = { type: 'json_object' };
+    if (capabilities.supportsResponseFormat) {
+      payload.response_format = buildDreamExtractionResponseFormat();
+    }
 
     logAiRequestStart({ requestId, task: 'dream_extraction', model, messages, tokenLimit, apiUrl, dreamId: dream.id });
 
@@ -2005,37 +2018,147 @@ export const extractDreamSymbolsAndArchetypes = async (
         return emptyDreamExtraction();
       }
 
-      const rawParsed = validated.data as Record<string, unknown>;
+      const targetOutputLanguage = resolveDreamOutputLanguage(
+        typeof dream.content === 'string' ? dream.content : ''
+      );
+      const languageGate = await runOutputLanguageCommitGate({
+        parsed: validated.data as Record<string, unknown>,
+        target: targetOutputLanguage,
+        repairOnce: async ({ messages, expectedPaths }) => {
+          const repairPayload: any = {
+            model,
+            messages,
+            temperature: DREAM_EXTRACTION_TEMPERATURE,
+            response_format: { type: 'json_object' },
+            skip_structured_validation: true,
+          };
+          attachProxyTask(repairPayload, apiUrl, 'dream_extraction');
+          if (capabilities.supportsMaxCompletionTokens) {
+            setTokenLimit(repairPayload, apiUrl, Math.min(DREAM_EXTRACTION_TOKEN_LIMIT, 1200), model);
+          }
+          const repairResponse = await fetchWithTimeout(
+            apiUrl,
+            {
+              method: 'POST',
+              headers: await buildHeaders(apiUrl, apiKey, requestId, dream.id),
+              body: JSON.stringify(repairPayload),
+            },
+            extractionTimeout,
+            1,
+            2
+          );
+          const repairData = await parseApiResponse(repairResponse, requestId, apiUrl);
+          if (!repairResponse.ok) return null;
+          recordDreamAiUsage(dream.id, 'dream_extraction', repairData, aiResponseMeta(repairResponse, requestId));
+          const repairContent = extractApiResponseContent(repairData);
+          let parsedRepair: unknown;
+          try {
+            parsedRepair = JSON.parse(repairContent);
+          } catch {
+            return null;
+          }
+          return validateLanguageRepairFieldMap(parsedRepair, expectedPaths);
+        },
+      });
+
+      if (!languageGate.ok) {
+        logError('ai_extract_language_validation_failed', new Error('language_validation_failed'), {
+          requestId,
+          target_output_language: languageGate.telemetry.target_output_language,
+          mismatched_field_paths: languageGate.telemetry.mismatched_field_paths,
+          repair_attempted: languageGate.telemetry.repair_attempted,
+        });
+        return emptyDreamExtraction();
+      }
+
+      logInfo('ai_extract_language_commit_gate', {
+        requestId,
+        ...languageGate.telemetry,
+      });
+
+      const rawParsed = languageGate.parsed;
+      let rawModelObject: Record<string, unknown> | null = null;
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        try {
+          const direct = JSON.parse(content) as unknown;
+          if (direct && typeof direct === 'object' && !Array.isArray(direct)) {
+            rawModelObject = direct as Record<string, unknown>;
+          }
+        } catch {
+          rawModelObject = null;
+        }
+      }
       const extraction = parseDreamExtractionRecord(rawParsed);
-      // Re-attach evaluation per item so hard-gate checks stay index-aligned.
+      // Re-attach mechanism tags / legacy evaluation so hard-gate checks stay index-aligned.
       const archetypesForValidation = (
         Array.isArray(rawParsed.archetypes) ? rawParsed.archetypes : []
       )
         .map((row) => {
-          const normalized = normalizeArchetypalEchoes([row], 1)[0];
-          if (!normalized) return null;
-          const evaluation =
-            row && typeof row === 'object'
-              ? asArchetypeEvaluation((row as { evaluation?: unknown }).evaluation)
-              : null;
-          return evaluation ? { ...normalized, evaluation } : normalized;
+          if (!row || typeof row !== 'object') return null;
+          const o = row as Record<string, unknown>;
+          const expression =
+            typeof o.expression === 'string' && o.expression.trim()
+              ? o.expression.trim()
+              : typeof o.carrier === 'string' && o.carrier.trim()
+                ? o.carrier.trim()
+                : '';
+          const resonance = typeof o.resonance === 'string' ? o.resonance.trim() : '';
+          const archetype_id =
+            typeof o.archetype_id === 'string' && o.archetype_id.trim() ? o.archetype_id.trim() : '';
+          const evaluation = asArchetypeEvaluation(o.evaluation);
+          return {
+            archetype_id,
+            expression,
+            resonance,
+            ...(evaluation ? { evaluation } : {}),
+            ...(o.mechanism_tags !== undefined ? { mechanism_tags: o.mechanism_tags } : {}),
+            ...(o.evidence_ids !== undefined ? { evidence_ids: o.evidence_ids } : {}),
+            ...(typeof o.confidence === 'string' ? { confidence: o.confidence } : {}),
+          };
         })
-        .filter((echo): echo is ArchetypalEcho & { evaluation?: unknown } => Boolean(echo))
+        .filter((echo): echo is NonNullable<typeof echo> => Boolean(echo))
         .slice(0, MAX_ARCHETYPAL_ECHOES);
       const archetypeValidation = validateArchetypalEchoes(archetypesForValidation, {
         max: MAX_ARCHETYPAL_ECHOES,
+        dreamText: typeof dream.content === 'string' ? dream.content : '',
       });
       extraction.archetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
 
-      const mythicValidation = validateMythicEchoes(extraction.amplifications, {
-        max: MAX_MYTHIC_ECHOES,
-      });
-      extraction.amplifications = mythicValidation.accepted.map(toPersistedMythicEcho);
+      const normalizedAmplificationsBeforeValidation = [...extraction.amplifications];
+      const closedMythicValidation = validateClosedCatalogMythicEchoes(
+        Array.isArray(rawParsed.amplifications) ? rawParsed.amplifications : [],
+        {
+          dreamText: typeof dream.content === 'string' ? dream.content : '',
+          max: MAX_MYTHIC_ECHOES,
+        }
+      );
+      const mythicValidation = closedMythicValidationForDebug(closedMythicValidation);
+      const postValidationAmplifications = closedMythicValidation.accepted.map(
+        toPersistedClosedMythicEcho
+      );
+      extraction.amplifications = postValidationAmplifications;
 
       // Diagnostics are never part of DreamExtraction / Dream Detail UI.
-      const diagnostics = parseInterpretiveEchoDiagnostics(rawParsed.interpretive_diagnostics);
+      const diagnostics = parseInterpretiveEchoDiagnostics(
+        rawModelObject?.interpretive_diagnostics ?? rawParsed.interpretive_diagnostics
+      );
 
       if (__DEV__) {
+        const enforced = applyMythicAuditProductionInvariant({
+          diagnostics,
+          amplifications: extraction.amplifications,
+          enforce: true,
+        });
+        extraction.amplifications = enforced.amplifications;
+        const mythicPipelineDebug = buildMythicEchoPipelineDebugPacket({
+          rawModelObject,
+          parsedAmplifications: rawParsed.amplifications ?? null,
+          normalizedBeforeValidation: normalizedAmplificationsBeforeValidation,
+          mythicValidation,
+          postValidationAmplifications,
+          diagnostics,
+          invariantClearedAmplifications: enforced.cleared,
+        });
         console.log('[AI] Extracted:', {
           symbolsCount: extraction.symbols.length,
           archetypesCount: extraction.archetypes.length,
@@ -2052,8 +2175,15 @@ export const extractDreamSymbolsAndArchetypes = async (
           mythicRejected: mythicValidation.rejected.length,
           ...safeInterpretiveDiagnosticsLog(diagnostics),
         });
+        console.log('[AI][DEBUG] mythic_echo_pipeline', mythicPipelineDebug);
         if (diagnostics) {
           console.log('[AI][DEBUG] interpretive_echoes_diagnostics', diagnostics);
+        }
+        if (!enforced.consistency.ok) {
+          console.error('[AI][DEBUG] mythic_audit_production_invariant_failed', {
+            ...enforced.consistency,
+            note: 'Cleared mismatched production amplifications in debug; did not rewrite title/tradition.',
+          });
         }
       }
 
