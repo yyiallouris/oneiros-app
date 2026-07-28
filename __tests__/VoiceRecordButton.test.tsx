@@ -14,6 +14,7 @@ const mockDiscardPendingClip = jest.fn();
 const mockRetryNow = jest.fn();
 const mockDiscard = jest.fn();
 const mockGetForTarget = jest.fn();
+const mockSubscribe = jest.fn();
 
 jest.mock('../src/utils/voiceRecording', () => ({
   startRecording: (...args: unknown[]) => mockStartRecording(...args),
@@ -31,7 +32,7 @@ jest.mock('../src/utils/network', () => ({ isOnline: jest.fn().mockResolvedValue
 jest.mock('../src/services/voiceTranscriptionQueueService', () => ({
   voiceTranscriptionQueueService: {
     enqueue: jest.fn(),
-    subscribe: jest.fn(() => () => undefined),
+    subscribe: (...args: unknown[]) => mockSubscribe(...args),
     getForTarget: (...args: unknown[]) => mockGetForTarget(...args),
     claimCompleted: jest.fn().mockResolvedValue([]),
     acknowledge: jest.fn(),
@@ -52,6 +53,7 @@ describe('VoiceRecordButton', () => {
     mockTranscribeAudio.mockResolvedValue({ ok: true, value: 'transcribed' });
     mockDiscardPendingClip.mockResolvedValue(undefined);
     mockGetForTarget.mockResolvedValue([]);
+    mockSubscribe.mockImplementation(() => () => undefined);
   });
 
   it('shows play by default and swaps to stop while recording', async () => {
@@ -101,5 +103,58 @@ describe('VoiceRecordButton', () => {
     const buttons = (Alert.alert as jest.Mock).mock.calls.at(-1)?.[2];
     await act(async () => buttons[1].onPress());
     expect(mockDiscard).toHaveBeenCalledWith('voice-pending');
+  });
+
+  it('uses neutral transcribing copy on mount instead of reconnect copy', async () => {
+    mockGetForTarget.mockResolvedValue([{
+      id: 'voice-transcribing',
+      userId: 'user-1',
+      audioUri: 'file://pending.m4a',
+      sizeBytes: 120,
+      durationMs: 2_000,
+      target: { surface: 'write', key: 'active' },
+      status: 'transcribing',
+      createdAt: new Date().toISOString(),
+      nextAttemptAt: new Date().toISOString(),
+      attemptCount: 1,
+    }]);
+
+    const screen = render(
+      <VoiceRecordButton
+        target={{ surface: 'write', key: 'active' }}
+        onTranscriptionComplete={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByText('Turning your saved voice note into text…')).toBeTruthy());
+    expect(screen.queryByText('You’re back online — transcribing your saved voice note…')).toBeNull();
+  });
+
+  it('keeps compact presentation icon-only even when queue status exists', async () => {
+    mockGetForTarget.mockResolvedValue([{
+      id: 'voice-queued',
+      userId: 'user-1',
+      audioUri: 'file://pending.m4a',
+      sizeBytes: 120,
+      durationMs: 2_000,
+      target: { surface: 'dream-chat', key: 'dream-1' },
+      status: 'queued',
+      createdAt: new Date().toISOString(),
+      nextAttemptAt: new Date(Date.now() + 10_000).toISOString(),
+      attemptCount: 1,
+    }]);
+
+    const screen = render(
+      <VoiceRecordButton
+        presentation="compact"
+        target={{ surface: 'dream-chat', key: 'dream-1' }}
+        onTranscriptionComplete={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByTestId('voice-record-button')).toBeTruthy());
+    expect(screen.queryByText(/Saved safely/i)).toBeNull();
+    expect(screen.queryByTestId('voice-retry-now')).toBeNull();
+    expect(screen.queryByTestId('voice-discard')).toBeNull();
   });
 });

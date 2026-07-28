@@ -442,7 +442,7 @@ describe('entitled AI service flow', () => {
       metadata_status: 'ready',
       debug_interpretive_echoes: {
         prompt_id: DREAM_EXTRACTION_PROMPT_ID,
-        prompt_version: '4.1.9-M1',
+        prompt_version: '4.1.10-M2.2',
         schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
         post_validation_archetypes: [
           {
@@ -488,7 +488,7 @@ describe('entitled AI service flow', () => {
       metadata_status: 'ready',
       debug_interpretive_echoes: {
         prompt_id: DREAM_EXTRACTION_PROMPT_ID,
-        prompt_version: '4.1.9-M1',
+        prompt_version: '4.1.10-M2.2',
         schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
         post_validation_archetypes: [],
         post_validation_amplifications: [],
@@ -533,7 +533,7 @@ describe('entitled AI service flow', () => {
       cached: false,
       debug_interpretive_echoes: {
         prompt_id: DREAM_EXTRACTION_PROMPT_ID,
-        prompt_version: '4.1.9-M1',
+        prompt_version: '4.1.10-M2.2',
         schema_version: DREAM_EXTRACTION_SCHEMA_VERSION,
         post_validation_archetypes: [
           {
@@ -555,7 +555,7 @@ describe('entitled AI service flow', () => {
     });
 
     expect(summary).toEqual({
-      promptVersion: '4.1.9-M1',
+        promptVersion: '4.1.10-M2.2',
       rawArchetypeCount: 2,
       postValidationArchetypeCount: 1,
       postValidationMythicCount: 0,

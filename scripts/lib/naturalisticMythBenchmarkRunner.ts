@@ -134,16 +134,16 @@ function sha256(value: string): string {
 }
 
 export function assertFrozenNaturalisticMythBaseline(): void {
-  if (DREAM_EXTRACTION_PROMPT_VERSION !== '4.1.9-M1') {
-    throw new Error(`Expected frozen baseline 4.1.9-M1, got ${DREAM_EXTRACTION_PROMPT_VERSION}`);
+  if (String(DREAM_EXTRACTION_PROMPT_VERSION) !== '4.1.10-M2') {
+    throw new Error(`Expected frozen baseline 4.1.10-M2, got ${DREAM_EXTRACTION_PROMPT_VERSION}`);
   }
   if (DREAM_EXTRACTION_SCHEMA_VERSION !== 13) {
     throw new Error(`Expected schema 13, got ${DREAM_EXTRACTION_SCHEMA_VERSION}`);
   }
-  if (ARCHETYPE_CATALOG_VERSION !== '1.7.0') {
+  if (String(ARCHETYPE_CATALOG_VERSION) !== '1.7.0') {
     throw new Error(`Expected archetype catalog 1.7.0, got ${ARCHETYPE_CATALOG_VERSION}`);
   }
-  if (MYTHIC_CATALOG_VERSION !== '1.2.0') {
+  if (String(MYTHIC_CATALOG_VERSION) !== '1.2.0') {
     throw new Error(`Expected myth catalog 1.2.0, got ${MYTHIC_CATALOG_VERSION}`);
   }
 }

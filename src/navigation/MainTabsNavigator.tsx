@@ -11,7 +11,7 @@ import { IS_DESIGN_EXPORT_BACKGROUND_ONLY } from '../designExport';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 const TAB_ICON_SIZE = 33;
-const WRITE_TAB_ICON_SIZE = 40;
+const WRITE_TAB_ICON_SIZE = 46;
 
 const TAB_ICONS = {
   Write: {
@@ -33,17 +33,22 @@ const TabPngIcon = ({
   source,
   testID,
   size = TAB_ICON_SIZE,
+  frameStyle,
+  imageStyle,
 }: {
   focused: boolean;
   source: ImageSourcePropType;
   testID: string;
   size?: number;
+  frameStyle?: object;
+  imageStyle?: object;
 }) => (
-  <View style={styles.iconFrame}>
+  <View style={[styles.iconFrame, frameStyle]}>
     <Image
       source={source}
       style={[
         { width: size, height: size },
+        imageStyle,
         focused && styles.iconImageFocused,
       ]}
       resizeMode="contain"
@@ -105,6 +110,8 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
               size={WRITE_TAB_ICON_SIZE}
               source={focused ? TAB_ICONS.Write.active : TAB_ICONS.Write.inactive}
               testID={focused ? 'tab-icon-write-active' : 'tab-icon-write-inactive'}
+              frameStyle={styles.writeIconFrame}
+              imageStyle={styles.writeIconImage}
             />
           ),
         }}
@@ -156,6 +163,12 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  writeIconFrame: {
+    marginBottom: 6,
+  },
+  writeIconImage: {
+    transform: [{ translateX: 2 }],
   },
   iconImageFocused: {
     transform: [{ translateY: -1 }],

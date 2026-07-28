@@ -23,15 +23,17 @@ const DREAM = [
 ].join(' ');
 
 describe('closed mythic catalog + validator (C.1 integrity-only)', () => {
-  it('loads 128 unique catalog ids and stays under the 10k token ceiling', () => {
+  it('loads 130 unique catalog ids and stays under the 10k token ceiling', () => {
     const ids = listMythicCatalogIds();
-    expect(MYTHIC_CATALOG_ENTRY_COUNT).toBe(128);
-    expect(ids).toHaveLength(128);
-    expect(MYTHIC_CATALOG_VERSION).toBe('1.2.0');
-    expect(MYTHIC_PROMPT_INDEX_VERSION).toBe(2);
+    expect(MYTHIC_CATALOG_ENTRY_COUNT).toBe(130);
+    expect(ids).toHaveLength(130);
+    expect(MYTHIC_CATALOG_VERSION).toBe('1.3.0');
+    expect(MYTHIC_PROMPT_INDEX_VERSION).toBe(3);
     expect(MYTHIC_PROMPT_INDEX_TOKEN_COUNT).toBeLessThanOrEqual(10000);
     expect(MYTHIC_PROMPT_INDEX).toContain('sig:');
     expect(MYTHIC_PROMPT_INDEX).toContain('req:');
+    expect(ids).toContain('hebrew_bible.tower_babel');
+    expect(ids).toContain('greek.cronus_devouring_children');
   });
 
   it('rejects unknown catalog_id and model-authored titles', () => {
@@ -80,7 +82,7 @@ describe('closed mythic catalog + validator (C.1 integrity-only)', () => {
       catalog_id: 'arabian.fisherman_and_jinni',
       title: 'The Fisherman and the Jinni',
       tradition: 'One Thousand and One Nights',
-      catalog_myth_version: '1.2.0',
+      catalog_myth_version: '1.3.0',
       confidence: 'high',
     });
     expect(result.logs[0].validation_warnings).toContain('evidence_span_count_below_preferred');
@@ -115,5 +117,18 @@ describe('closed mythic catalog + validator (C.1 integrity-only)', () => {
     expect(getMythicCatalogEntry('sumerian.inanna_descent')?.signature_features.length).toBeGreaterThan(
       3
     );
+  });
+
+  it('resolves the new Babel and Cronus records from catalog_id', () => {
+    expect(resolveMythDisplay('hebrew_bible.tower_babel')).toEqual({
+      title: 'The Tower of Babel',
+      tradition: 'Hebrew Bible / Tanakh',
+      sourceType: 'religious_narrative',
+    });
+    expect(resolveMythDisplay('greek.cronus_devouring_children')).toEqual({
+      title: 'Cronus and the Devouring of His Children',
+      tradition: 'Greek mythology',
+      sourceType: 'myth',
+    });
   });
 });

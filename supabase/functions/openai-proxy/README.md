@@ -22,10 +22,10 @@ extraction uses this to request JSON object responses from OpenAI; Anthropic
 fallbacks still rely on prompt instructions and are converted back into the
 OpenAI-compatible response shape.
 
-For structured tasks (`dream_extraction`, `conversation_element_update`,
-`semantic_grouping`), the proxy runs:
+For structured tasks (`dream_extraction`, `dream_archetype_recognition`, `dream_archetype_adjudication`,
+`conversation_element_update`, `semantic_grouping`), the proxy runs:
 
-`parse → coerce → Zod validate → one repair on the same provider → validate again`.
+`parse → coerce → full Zod validate → item-level optional-echo salvage for dream_extraction when possible → one repair on the same provider only if required/core structure is still invalid → validate again`.
 
 Optional body flag `skip_structured_validation: true` bypasses that gate for
 bounded field-scoped language repair calls (same `dream_extraction` model
@@ -34,6 +34,10 @@ routing). Used only by the E.1.1 language commit gate — not for normal extract
 **Resilience (do not regress):** `dream_extraction` soft-defaults common model
 omissions on otherwise rich Interpretive Echoes (e.g. missing `confidence` →
 `medium` in coerce + Zod preprocess via `DREAM_EXTRACTION_SOFT_DEFAULTS`).
+If an optional Archetypal Echo or Mythic Echo row is malformed, has a namespace
+crossover id, has invalid evidence ids, or otherwise fails the closed echo
+schema, shared validation must drop only that row and preserve valid Dream
+Fabric / `display_distillation` without invoking full structured repair.
 When adding a new required echo field, add a soft default or make it optional,
 extend contract tests, bump schema version, and redeploy this function **and**
 `ai-entitlements-gateway`. See `documentation/flows-06-jungian-ai-reflection.md`
@@ -86,6 +90,8 @@ can collect partial chunks and expose them through status polling.
 
 Προεπιλογή στο repo (A/B-backed product mapping):
 - **`gpt-5.4-mini`** + fallback **`[claude-haiku-4-5]`** — `dream_extraction` (Fabric + Interpretive Echoes need mid-tier judgment), `chat_followup`
+- **requested model** + fallback **`[claude-haiku-4-5]`** — `dream_archetype_recognition` dedicated production discovery pass for persisted archetypes (default runner model `gpt-5.4-mini-2026-03-17`; final output still depends on adjudication)
+- **requested model** + fallback **`[claude-haiku-4-5]`** — `dream_archetype_adjudication` dedicated production contrastive pass for persisted archetypes (default runner model `gpt-5.4-mini-2026-03-17`; final saved `interpretation.archetypes` use only this adjudicated two-pass result)
 - **`gpt-5.4-nano`** + fallback **`[claude-haiku-4-5]`** — `conversation_element_update`, `semantic_grouping`
 - **`gpt-5.4`** + fallback **`[claude-sonnet-5, claude-haiku-4-5]`** — `interpretation_*`, `pattern_insights*` (Sonnet first, Haiku safety net while OpenAI primary is flaky)
 
@@ -133,4 +139,4 @@ supabase functions deploy openai-proxy
 
 `EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT` / `customGptEndpoint` → URL αυτού του function.
 
-Το app στέλνει **`task`** στο body (`dream_extraction`, `interpretation_advanced`, κ.λπ.) ώστε να ταιριάζει με το `TASK_AI_BY_TASK`.
+Το app / live runners στέλνουν **`task`** στο body (`dream_extraction`, `dream_archetype_recognition`, `dream_archetype_adjudication`, `interpretation_advanced`, κ.λπ.) ώστε να ταιριάζει με το `TASK_AI_BY_TASK`.

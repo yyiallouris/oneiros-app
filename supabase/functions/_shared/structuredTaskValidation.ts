@@ -4,6 +4,7 @@
 export {
   STRUCTURED_AI_TASKS,
   DREAM_EXTRACTION_SOFT_DEFAULTS,
+  normalizeMainTensionAgainstCentralConflicts,
   isStructuredAiTask,
   parseStructuredJsonObject,
   validateStructuredTaskContent,
@@ -11,6 +12,7 @@ export {
   safeStructuredValidationLog,
   safeAssistantJsonDiagnostics,
   dreamExtractionSchema,
+  archetypeAdjudicationSchema,
   conversationElementUpdateSchema,
   semanticGroupingSchema,
   type StructuredAiTask,

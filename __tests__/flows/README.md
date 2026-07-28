@@ -23,6 +23,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `gatewayReflectionResume.flow.test.ts` | flows-06 (gateway async_background_started prevents second Edge worker on idempotency replay) |
 | `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
 | `edgeExtractionPrompt.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (Edge dream metadata extraction prompt parity via shared canonical module) |
+| `archetypeTwoPassIntegration.contract.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (dedicated recognition→adjudication production archetype persistence; no monolithic fallback; retry-once failure contract) |
 | `interpretiveEchoesV31.ranking.flow.test.ts` | flows-06 / SYMBOLS_FLOW (Interpretive Echoes v4.1.6-D.1 Hero gate + frozen C.1.1 myth) |
 | `catalogNamespaceEnforcement.test.ts` | C.1.1 provider enum + id= prompt formatting |
 | `../mythicEchoPipelineDebug.test.ts` | flows-06 / SYMBOLS_FLOW (mythic raw→normalize→validate debug packet + selected-audit vs production title invariant) |

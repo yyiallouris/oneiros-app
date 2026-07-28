@@ -1,6 +1,6 @@
 # Oneiros AI prompts inventory
 
-> **Versioned note (2026-07-28):** Current dream metadata extraction is `prompt_id` `dream-field-map-interpretive-v4.1.9-M1` / `prompt_version` `4.1.9-M1` / schema `13` / `temperature` `0`, with closed Mythic catalog `1.7.0`. Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts`.
+> **Versioned note (2026-07-28):** Current repo dream metadata extraction is `prompt_id` `dream-field-map-interpretive-v4.1.10-M2.2` / `prompt_version` `4.1.10-M2.2` / schema `13` / `temperature` `0`, with closed Mythic catalog `1.2.0` (128 ids) and archetype catalog `1.7.1`. Patch `M2.2` keeps the general calm-field activation from `M2.1`, adds an explicit-negation rule so directly denied archetypal functions do not overfire from neighboring imagery alone, applies a minimal `Lover` wording revision for calm beloved intimacy vs warm companionship, and tightens Inner Tensions so ordinary resolved obstacles are not misread as psychic conflict. Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts`.
 
 ## Prompt Maintenance Rule
 
@@ -20,12 +20,12 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 
 | Area | Current version |
 |------|-----------------|
-| Dream metadata extraction prompt id | `dream-field-map-interpretive-v4.1.9-M1` |
-| Dream metadata extraction prompt version | `4.1.9-M1` |
+| Dream metadata extraction prompt id | `dream-field-map-interpretive-v4.1.10-M2.2` |
+| Dream metadata extraction prompt version | `4.1.10-M2.2` |
 | Dream metadata extraction schema version | `13` |
 | Dream metadata extraction temperature | `0` |
-| Mythic closed catalog version | `1.7.0` |
-| Archetype line highlights | polarity-neutral Mother/Father ids, raw-dream evidence firewall, mechanism-tag hard gates |
+| Mythic closed catalog version | `1.2.0` |
+| Archetype line highlights | polarity-neutral Mother/Father ids, Lover 1.7.1 calm-beloved wording, raw-dream evidence firewall, mechanism-tag hard gates |
 | Repair prompts | structured JSON repair in `src/ai/structuredTaskValidation.ts`; output-language field repair in `src/ai/dreamOutputLanguage.ts` |
 
 Canonical sources:
@@ -36,6 +36,42 @@ Canonical sources:
 - Model routing only (no prompt text): `supabase/functions/openai-proxy/task-config.ts`
 
 Gateway mirrors constitution/role/format/essay prompts from client; production AI usually goes through entitlements gateway → openai-proxy.
+
+## Standalone Archetype Recognition Spike
+
+This repo now also carries an isolated, non-production 2-pass archetype spike:
+
+| Area | Spike version |
+|------|----------------|
+| Standalone task | `dream_archetype_recognition` |
+| Prompt id | `dream-archetype-recognition-v1.0.0` |
+| Prompt version | `1.0.0` |
+| Response schema version | `1` |
+| Recognition catalog version | `2.0.0` |
+| Default spike model | `gpt-5.4-mini-2026-03-17` |
+| Temperature | `0` |
+| Adjudication task | `dream_archetype_adjudication` |
+| Adjudication prompt id | `dream-archetype-adjudication-v1.0.0` |
+| Adjudication prompt version | `1.0.0` |
+| Adjudication schema version | `1` |
+| Boundary catalog version | `1.0.0` |
+
+Canonical sources:
+- Prompt: `src/ai/archetypeRecognitionPrompt.ts`
+- Compact recognition catalog: `src/ai/catalogs/archetypeRecognitionCatalog.v2.ts`
+- Standalone schema: `src/ai/schemas/archetypeRecognitionSchema.ts`
+- Mapping back to existing echo shape: `src/ai/archetypeRecognitionMapper.ts`
+- Adjudication prompt: `src/ai/archetypeAdjudicationPrompt.ts`
+- Boundary catalog: `src/ai/catalogs/archetypeBoundaryCatalog.v1.ts`
+- Adjudication schema: `src/ai/schemas/archetypeAdjudicationSchema.ts`
+- Two-pass pipeline: `src/ai/archetypeRecognitionPipeline.ts`
+- Live runners: `tmp/run-archetype-recognition-v2-regression.ts`, `tmp/run-archetype-recognition-adjudication-regression.ts`
+
+Important boundary:
+- Discovery proposes 0–2 plausible candidates with high recall from raw dream evidence only.
+- Adjudication may only accept or reject those candidates; it cannot add new archetypes or rewrite accepted discovery wording.
+- This spike is **not** wired into the production metadata flow yet.
+- It must not be described as replacing the frozen `4.1.10-M2` extraction line until a later reviewed integration task.
 
 
 ## Dream metadata extraction — SYSTEM
@@ -159,6 +195,7 @@ Prefer image-near phrasing over abstract psychology, written in the dream's lang
 English shape examples (translate): "locked room vs open street", "wanting to enter vs being watched", "warm table vs silent exclusion", "sleeping body vs demand to perform".
 Avoid generic pairs like "fear vs desire", "control vs surrender", or "autonomy vs belonging" unless the dream concretely stages both sides.
 Use [] if none is clearly staged.
+Do not elevate a small practical obstacle, mild inconvenience, or ordinary task friction into an inner conflict when the dream simply notices it, resolves it, or moves past it.
 
 ARCHETYPAL ECHOES
 Return 0–2 classical archetypal patterns from the allowed catalog as OBJECTS only. Never return a string array.
@@ -205,6 +242,7 @@ Do not infer:
 - Guide / Psychopomp merely because an older person speaks
 Archetypal echoes are provisional, not diagnoses, identities, or definitive explanations.
 When evidence is truly weak, return an empty array.
+When the raw dream explicitly denies an archetypal function, do not select that archetype merely from neighboring imagery. Explicitly non-romantic companionship must not become Lover unless the enacted sequence clearly overrides that denial with stronger concrete evidence.
 
 - core_mode: exactly one of "Core Tension", "Core State", "Core Shift", "Core Restoration", or null.
 

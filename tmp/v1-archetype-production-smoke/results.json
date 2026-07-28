@@ -1,0 +1,19 @@
+{
+  "runAt": "2026-07-28T16:15:35.957Z",
+  "results": [
+    {
+      "fixture": "divine_child_positive_en",
+      "attempt": 1,
+      "interpretationId": "33af8abe-7783-4cec-8cdc-ac7eeccff8e6",
+      "metadataStatus": "ready",
+      "expected": [
+        "divine_child"
+      ],
+      "actual": [
+        "divine_child"
+      ],
+      "gatewayMetadataStatus": "ready",
+      "pass": true
+    }
+  ]
+}

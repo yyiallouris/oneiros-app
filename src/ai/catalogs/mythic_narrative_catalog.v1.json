@@ -1,7 +1,7 @@
 {
   "catalog_id": "oneiros.mythic_narratives.v1",
-  "version": "1.2.0",
-  "entry_count": 128,
+  "version": "1.3.0",
+  "entry_count": 130,
   "scope": "Closed launch catalog for high-precision retrieval and selection. Entries are named narratives, cycles, episodes, tales, or alchemical sequences; generic motifs are excluded.",
   "selection_policy": {
     "precision_over_coverage": true,
@@ -1885,13 +1885,23 @@
           "text": "backward look before threshold cleared"
         },
         {
+          "id": "trust_breach",
+          "text": "trust breach or premature turn toward the beloved"
+        },
+        {
           "id": "second_loss",
           "text": "second irreversible loss"
+        },
+        {
+          "id": "failed_recovery",
+          "text": "failed recovery after near-restoration"
         }
       ],
       "required_feature_groups": [
         [
-          "lost_beloved",
+          "lost_beloved"
+        ],
+        [
           "retrieval_crossing"
         ],
         [
@@ -1900,10 +1910,31 @@
         ],
         [
           "backward_look",
-          "second_loss"
+          "trust_breach"
+        ],
+        [
+          "second_loss",
+          "failed_recovery"
         ]
       ],
-      "anti_features": []
+      "anti_features": [
+        {
+          "id": "retrieval_without_beloved_bond",
+          "text": "retrieval without a beloved bond"
+        },
+        {
+          "id": "attribute_or_voice_recovery_instead_of_beloved",
+          "text": "recovery of an attribute, identity, or voice rather than a lost beloved"
+        },
+        {
+          "id": "non_beloved_captive_without_lover_return",
+          "text": "liberation of a non-beloved captive without a lover-return sequence"
+        },
+        {
+          "id": "descent_ascent_without_conditional_relational_recovery",
+          "text": "descent and ascent without conditional relational recovery"
+        }
+      ]
     },
     {
       "id": "greek.sisyphus",
@@ -2014,125 +2045,267 @@
       ],
       "usage_tier": "public_reference",
       "match_tier": 1,
-      "core_synopsis": "separation; maternal grief and withholding; famine; divine negotiation; cyclical reunion",
+      "core_synopsis": "dependent life descends below; food or underworld claim binds it there; return is negotiated; return remains partial or cyclical; seasonal or fertility consequence follows",
       "defining_cluster": [
-        "daughter taken to underworld",
-        "mother searches and withdraws fertility",
-        "world becomes barren",
-        "negotiated partial return",
-        "seasonal cycle"
+        "youthful or dependent life separated into a lower realm",
+        "food seed fruit or underworld claim binds the figure below",
+        "return is negotiated or conditionally permitted",
+        "return remains partial or cyclical",
+        "fertility or seasonal consequence follows"
       ],
       "narrative_sequence": [
-        "separation",
-        "maternal grief and withholding",
-        "famine",
-        "divine negotiation",
-        "cyclical reunion"
+        "dependent life descends below",
+        "binding claim fixes a bond to the lower realm",
+        "return is negotiated",
+        "return remains partial or cyclical",
+        "fertility or seasonal world changes"
       ],
       "relational_roles": [
-        "mother of fertility",
-        "daughter-queen below",
-        "underworld husband",
-        "mediating gods"
+        "maternal or fertility keeper",
+        "youthful or dependent life below",
+        "underworld claimant or custodian",
+        "mediator or retriever"
       ],
       "central_conflicts": [
-        "possession versus return",
-        "maternal bond versus marital-underworld bond"
+        "lower-realm claim versus return to living growth",
+        "care and fertility versus continuing bond below"
       ],
       "transformations": [
-        "loss becomes recurring seasonal rhythm"
+        "separation becomes a recurring pattern of partial return and altered fertility"
       ],
       "disqualifiers": [
-        "no mother-daughter relation",
-        "no underworld separation",
-        "no cyclical return"
+        "no lower-realm custody or separation",
+        "no partial or cyclical return",
+        "no fertility or seasonal consequence",
+        "lover-reunion structure only",
+        "complete rescue with no continuing bond below"
       ],
       "cultural_notes": [],
       "source_subtype": "mythic_cycle",
-      "prompt_signature": "separation → maternal grief and withholding → famine → divine negotiation → cyclical reunion",
+      "prompt_signature": "youthful or dependent life is separated into a lower realm → food, seed, fruit, or an underworld claim binds the figure below → return is negotiated or conditionally permitted → the return remains partial or cyclical → fertility or the seasonal world changes in consequence",
       "signature_features": [
         {
-          "id": "daughter_taken_to_underworld",
-          "text": "daughter taken to underworld"
+          "id": "maternal_or_fertility_field",
+          "text": "maternal or fertility field"
         },
         {
-          "id": "mother_searches_and_withdraws_fertility",
-          "text": "mother searches and withdraws fertility"
+          "id": "dependent_life_below",
+          "text": "dependent life below"
         },
         {
-          "id": "world_becomes_barren",
-          "text": "world becomes barren"
+          "id": "youthful_life_separated",
+          "text": "youthful life separated into a lower realm"
         },
         {
-          "id": "negotiated_partial_return",
-          "text": "negotiated partial return"
+          "id": "binding_food_or_underworld_claim",
+          "text": "binding food, seed, fruit, or underworld claim"
         },
         {
-          "id": "seasonal_cycle",
-          "text": "seasonal cycle"
+          "id": "partial_return",
+          "text": "partial return"
         },
         {
-          "id": "separation",
-          "text": "separation"
+          "id": "cyclical_return",
+          "text": "cyclical return"
         },
         {
-          "id": "maternal_grief_and_withholding",
-          "text": "maternal grief and withholding"
+          "id": "fertility_or_seasonal_consequence",
+          "text": "fertility or seasonal consequence"
         },
         {
-          "id": "famine",
-          "text": "famine"
+          "id": "role_maternal_or_fertility_keeper",
+          "text": "maternal or fertility keeper"
         },
         {
-          "id": "divine_negotiation",
-          "text": "divine negotiation"
+          "id": "role_youthful_or_dependent_life_below",
+          "text": "youthful or dependent life below"
         },
         {
-          "id": "cyclical_reunion",
-          "text": "cyclical reunion"
+          "id": "role_underworld_claimant_or_custodian",
+          "text": "underworld claimant or custodian"
         },
         {
-          "id": "role_mother_of_fertility",
-          "text": "mother of fertility"
-        },
-        {
-          "id": "role_daughter_queen_below",
-          "text": "daughter-queen below"
-        },
-        {
-          "id": "role_underworld_husband",
-          "text": "underworld husband"
-        },
-        {
-          "id": "role_mediating_gods",
-          "text": "mediating gods"
+          "id": "role_mediator_or_retriever",
+          "text": "mediator or retriever"
         }
       ],
       "required_feature_groups": [
         [
-          "separation",
-          "maternal_grief_and_withholding"
+          "maternal_or_fertility_field"
         ],
         [
-          "famine",
-          "divine_negotiation"
+          "dependent_life_below",
+          "youthful_life_separated"
         ],
         [
-          "cyclical_reunion"
+          "binding_food_or_underworld_claim"
+        ],
+        [
+          "partial_return",
+          "cyclical_return"
+        ],
+        [
+          "fertility_or_seasonal_consequence"
         ]
       ],
       "anti_features": [
         {
-          "id": "no_mother_daughter_relation",
-          "text": "no mother-daughter relation"
-        },
-        {
           "id": "no_underworld_separation",
-          "text": "no underworld separation"
+          "text": "no lower-realm custody or separation"
         },
         {
           "id": "no_cyclical_return",
-          "text": "no cyclical return"
+          "text": "no partial or cyclical return"
+        },
+        {
+          "id": "no_fertility_or_seasonal_consequence",
+          "text": "no fertility or seasonal consequence"
+        },
+        {
+          "id": "lover_reunion_structure_only",
+          "text": "lover-reunion structure only"
+        },
+        {
+          "id": "complete_rescue_without_continuing_bond_below",
+          "text": "complete rescue with no continuing bond below"
+        }
+      ]
+    },
+    {
+      "id": "greek.cronus_devouring_children",
+      "canonical_title": "Cronus and the Devouring of His Children",
+      "aliases": [],
+      "tradition_id": "greek",
+      "tradition_display": "Greek mythology",
+      "region": "Mediterranean",
+      "source_type": "myth",
+      "source_refs": [
+        "perseus"
+      ],
+      "usage_tier": "public_reference",
+      "match_tier": 1,
+      "core_synopsis": "ruling father fears succession; younger life is consumed or contained; one child is hidden; the surviving child returns; the contained younger lives are released; the old paternal order falls",
+      "defining_cluster": [
+        "ruling father fears replacement",
+        "younger generation consumed or contained",
+        "one younger force hidden or spared",
+        "returning successor",
+        "contained younger lives released",
+        "old paternal order overthrown"
+      ],
+      "narrative_sequence": [
+        "ruling father fears displacement",
+        "younger life is consumed, contained, or sacrificed",
+        "one younger force is hidden or spared",
+        "the surviving child returns",
+        "the contained younger lives are released",
+        "the old order is overthrown"
+      ],
+      "relational_roles": [
+        "devouring ruler-father",
+        "threatened younger generation",
+        "protective concealer",
+        "hidden or spared child",
+        "returning successor"
+      ],
+      "central_conflicts": [
+        "paternal domination versus succession",
+        "contained younger life versus released future"
+      ],
+      "transformations": [
+        "contained younger life returns and overturns the ruling father"
+      ],
+      "disqualifiers": [
+        "father conflict without consumption or containment",
+        "authority conflict without succession stakes",
+        "palace or crown alone",
+        "release of animal or instinctive vitality without paternal-order stakes"
+      ],
+      "cultural_notes": [],
+      "source_subtype": "myth",
+      "prompt_signature": "a ruling father fears displacement by the younger generation → he consumes or contains his children to prevent succession → one younger force is hidden or spared → the surviving child returns → the contained younger lives are released → the old paternal order is overthrown",
+      "signature_features": [
+        {
+          "id": "ruling_father",
+          "text": "ruling father or paternal authority"
+        },
+        {
+          "id": "paternal_authority",
+          "text": "paternal authority"
+        },
+        {
+          "id": "threatened_succession",
+          "text": "threatened succession"
+        },
+        {
+          "id": "fear_of_displacement",
+          "text": "fear of displacement by the younger generation"
+        },
+        {
+          "id": "younger_life_consumed",
+          "text": "younger life consumed"
+        },
+        {
+          "id": "contained",
+          "text": "younger life contained"
+        },
+        {
+          "id": "sacrificed",
+          "text": "younger life sacrificed to preserve the old order"
+        },
+        {
+          "id": "hidden_or_spared_younger_force",
+          "text": "hidden or spared younger force"
+        },
+        {
+          "id": "return_or_release",
+          "text": "return or release of the surviving younger force"
+        },
+        {
+          "id": "old_order_overthrown",
+          "text": "old paternal order overthrown"
+        }
+      ],
+      "required_feature_groups": [
+        [
+          "ruling_father",
+          "paternal_authority"
+        ],
+        [
+          "threatened_succession",
+          "fear_of_displacement"
+        ],
+        [
+          "younger_life_consumed",
+          "contained",
+          "sacrificed"
+        ],
+        [
+          "hidden_or_spared_younger_force"
+        ],
+        [
+          "return_or_release"
+        ],
+        [
+          "old_order_overthrown"
+        ]
+      ],
+      "anti_features": [
+        {
+          "id": "father_conflict_without_consumption_or_containment",
+          "text": "father conflict without consumption or containment"
+        },
+        {
+          "id": "authority_conflict_without_succession_stakes",
+          "text": "authority conflict without succession stakes"
+        },
+        {
+          "id": "palace_or_crown_alone",
+          "text": "palace or crown alone"
+        },
+        {
+          "id": "animal_vitality_release_without_paternal_order_stakes",
+          "text": "release of animal or instinctive vitality without paternal-order stakes"
         }
       ]
     },
@@ -2194,8 +2367,16 @@
           "text": "secret union with hidden lover"
         },
         {
+          "id": "concealed_beloved",
+          "text": "concealed beloved relation"
+        },
+        {
           "id": "forbidden_sight",
           "text": "forbidden sight or trust condition"
+        },
+        {
+          "id": "trust_condition",
+          "text": "trust condition that must not be broken"
         },
         {
           "id": "taboo_breach",
@@ -2215,38 +2396,63 @@
         },
         {
           "id": "reunion",
-          "text": "reunion and transformation"
+          "text": "reunion"
+        },
+        {
+          "id": "transformation",
+          "text": "transformation through reunion"
         }
       ],
       "required_feature_groups": [
         [
           "hidden_lover",
-          "forbidden_sight"
+          "concealed_beloved"
         ],
         [
-          "taboo_breach",
+          "forbidden_sight",
+          "trust_condition"
+        ],
+        [
+          "taboo_breach"
+        ],
+        [
           "lover_lost"
         ],
         [
           "imposed_tasks"
         ],
         [
-          "descent_for_reunion",
-          "reunion"
+          "descent_for_reunion"
+        ],
+        [
+          "reunion",
+          "transformation"
         ]
       ],
       "anti_features": [
         {
-          "id": "descent_without_separation",
-          "text": "descent without lover separation"
+          "id": "no_lover_or_beloved_relation",
+          "text": "no lover or beloved relation"
         },
         {
-          "id": "stripping_without_tasks",
-          "text": "stripping without imposed tasks"
+          "id": "child_or_dependent_figure_retrieval",
+          "text": "child or dependent-figure retrieval"
         },
         {
-          "id": "revival_without_hidden_lover",
-          "text": "revival without hidden-lover structure"
+          "id": "maternal_or_fertility_field",
+          "text": "maternal or fertility field"
+        },
+        {
+          "id": "seasonal_or_partial_return_structure",
+          "text": "seasonal or partial-return structure"
+        },
+        {
+          "id": "descent_without_imposed_tasks",
+          "text": "descent without imposed tasks"
+        },
+        {
+          "id": "rescue_without_hidden_lover_and_taboo_breach",
+          "text": "rescue without hidden-lover and taboo-breach structure"
         }
       ]
     },
@@ -15543,6 +15749,141 @@
         {
           "id": "no_dawn_crossing",
           "text": "no dawn crossing"
+        }
+      ]
+    },
+    {
+      "id": "hebrew_bible.tower_babel",
+      "canonical_title": "The Tower of Babel",
+      "aliases": [],
+      "tradition_id": "hebrew_bible",
+      "tradition_display": "Hebrew Bible / Tanakh",
+      "region": "Ancient Israel / Jewish tradition",
+      "source_type": "religious_narrative",
+      "source_refs": [
+        "sefaria_tanakh"
+      ],
+      "usage_tier": "living_tradition_caution",
+      "match_tier": 1,
+      "core_synopsis": "a one-language collective builds upward; the shared project concentrates ambition; language becomes mutually unintelligible; coordination breaks; the people scatter and the tower remains unfinished",
+      "defining_cluster": [
+        "collective builders sharing one language",
+        "tower project toward heaven",
+        "speech or language disrupted",
+        "collective coordination breaks",
+        "people scattered and project unfinished"
+      ],
+      "narrative_sequence": [
+        "collective builders share one language",
+        "tower project rises toward heaven",
+        "language is disrupted or made mutually unintelligible",
+        "collective coordination breaks",
+        "people scatter and the tower remains unfinished"
+      ],
+      "relational_roles": [
+        "collective builders",
+        "shared-language community",
+        "divine or transpersonal interrupter",
+        "tower as collective project"
+      ],
+      "central_conflicts": [
+        "shared human ambition versus imposed limit",
+        "collective speech versus broken coordination"
+      ],
+      "transformations": [
+        "one coordinated voice fragments into scattered and unfinished collective life"
+      ],
+      "disqualifiers": [
+        "solitary ascent",
+        "no collective language or voice field",
+        "no tower or collective building structure",
+        "private identity recovery without collective speech consequence"
+      ],
+      "cultural_notes": [
+        "Use the exact tradition label; do not universalize or psychologize the living tradition."
+      ],
+      "source_subtype": "scriptural_narrative",
+      "prompt_signature": "a collective sharing one language undertakes a tower toward heaven → the shared project concentrates human ambition → language is disrupted or made mutually unintelligible → collective coordination breaks → the people are scattered and the tower remains unfinished",
+      "signature_features": [
+        {
+          "id": "collective_city",
+          "text": "collective city or shared civic build"
+        },
+        {
+          "id": "collective_builders",
+          "text": "collective builders"
+        },
+        {
+          "id": "tower_project",
+          "text": "tower project"
+        },
+        {
+          "id": "tower_ascent",
+          "text": "tower ascent"
+        },
+        {
+          "id": "shared_language_or_voice",
+          "text": "shared language or voice field"
+        },
+        {
+          "id": "language_disruption",
+          "text": "language disruption"
+        },
+        {
+          "id": "mutual_incomprehension",
+          "text": "mutual incomprehension"
+        },
+        {
+          "id": "collective_voice_transformation",
+          "text": "collective voice transformation"
+        },
+        {
+          "id": "collective_consequence",
+          "text": "collective consequence"
+        },
+        {
+          "id": "scattering",
+          "text": "scattering"
+        }
+      ],
+      "required_feature_groups": [
+        [
+          "collective_city",
+          "collective_builders"
+        ],
+        [
+          "tower_project",
+          "tower_ascent"
+        ],
+        [
+          "shared_language_or_voice"
+        ],
+        [
+          "language_disruption",
+          "mutual_incomprehension",
+          "collective_voice_transformation"
+        ],
+        [
+          "collective_consequence",
+          "scattering"
+        ]
+      ],
+      "anti_features": [
+        {
+          "id": "solitary_ascent",
+          "text": "solitary ascent"
+        },
+        {
+          "id": "no_collective_language_or_voice_field",
+          "text": "no collective language or voice field"
+        },
+        {
+          "id": "no_tower_or_collective_building_structure",
+          "text": "no tower or collective building structure"
+        },
+        {
+          "id": "private_identity_recovery_without_collective_speech_consequence",
+          "text": "private identity recovery without collective speech consequence"
         }
       ]
     },

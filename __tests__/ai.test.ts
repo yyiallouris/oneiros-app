@@ -844,7 +844,7 @@ describe('ai service', () => {
       }
     );
 
-    expect(merged.archetypes.map((a) => a.canonical_label)).toEqual(['Shadow', 'Trickster']);
+    expect(merged.archetypes.map((a) => a.canonical_label)).toEqual(['Shadow']);
     expect(merged.motifs).toEqual(['blocked passage', 'playful evasion']);
     expect(merged.thresholds).toEqual(['entering work', 'needing shelter']);
     expect(merged.central_conflicts).toEqual(['autonomy vs paternal inclusion']);

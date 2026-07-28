@@ -245,7 +245,7 @@ describeQuality('live crafted dream analysis quality', () => {
 
   itWithAuth('generates an image-near post-Jungian reflection and extracts expected Insights metadata', async () => {
     expect(config.openaiProxyEndpoint).toContain('/functions/v1/openai-proxy');
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     const accessToken = await getLiveAccessToken(config);
 
@@ -313,7 +313,7 @@ describeQuality('live crafted dream analysis quality', () => {
 
   itWithAuth('extracts Father for the orchard demand / sweetness split scenario', async () => {
     expect(config.openaiProxyEndpoint).toContain('/functions/v1/openai-proxy');
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     const accessToken = await getLiveAccessToken(config);
 

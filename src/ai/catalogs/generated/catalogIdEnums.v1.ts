@@ -68,6 +68,7 @@ export const MYTH_CATALOG_IDS = [
   "greek.argonauts_golden_fleece",
   "greek.circe",
   "greek.cretan_labyrinth",
+  "greek.cronus_devouring_children",
   "greek.demeter_persephone",
   "greek.dionysus_pentheus",
   "greek.heracles_cerberus",
@@ -88,6 +89,7 @@ export const MYTH_CATALOG_IDS = [
   "hebrew_bible.jonah",
   "hebrew_bible.joseph",
   "hebrew_bible.noah_flood",
+  "hebrew_bible.tower_babel",
   "hindu.arjuna_gita",
   "hindu.churning_ocean",
   "hindu.descent_ganga",
@@ -155,9 +157,9 @@ export type SelectableArchetypeId = (typeof SELECTABLE_ARCHETYPE_IDS)[number];
 export type MythCatalogId = (typeof MYTH_CATALOG_IDS)[number];
 
 export const SELECTABLE_ARCHETYPE_ID_COUNT = 19 as const;
-export const MYTH_CATALOG_ID_COUNT = 128 as const;
+export const MYTH_CATALOG_ID_COUNT = 130 as const;
 
 /** Provider JSON schema serialized size (dream_extraction response_format). */
-export const DREAM_EXTRACTION_JSON_SCHEMA_CHAR_COUNT = 6130 as const;
-export const DREAM_EXTRACTION_JSON_SCHEMA_TOKEN_COUNT = 1804 as const;
+export const DREAM_EXTRACTION_JSON_SCHEMA_CHAR_COUNT = 6191 as const;
+export const DREAM_EXTRACTION_JSON_SCHEMA_TOKEN_COUNT = 1823 as const;
 export const DREAM_EXTRACTION_JSON_SCHEMA_TOKEN_METHOD = "gpt-tokenizer:/tmp/tok/node_modules/gpt-tokenizer" as const;

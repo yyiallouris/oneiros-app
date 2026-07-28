@@ -51,6 +51,8 @@ Named bundles in `loadingPresets` (`src/theme/loading.ts`):
 
 Prefer presets over one-off copy. Override `message` / `submessage` only when the preset text is wrong for the flow.
 
+In DreamDetail follow-up chat, the same reflection send visual should render as an inline assistant pending row inside the conversation while the reply is in flight, rather than replacing the send button itself.
+
 ## Long-form AI output
 
 When generating essays/reports:

@@ -12,16 +12,22 @@ import { ARCHETYPE_CATALOG_VERSION } from '../src/ai/catalogs/archetypeCatalog.v
 describe('Patch F diagnostic fixtures', () => {
   it('validates phase1 + phase2 fixture set sizes', () => {
     validatePatchFFixtures([PATCH_F_PHASE1_FIXTURE, ...PATCH_F_PHASE2_FIXTURES]);
-    expect(PATCH_F_PHASE2_POSITIVES).toHaveLength(13);
-    expect(PATCH_F_PHASE2_NEGATIVES).toHaveLength(8);
+    expect(PATCH_F_PHASE2_POSITIVES).toHaveLength(14);
+    expect(PATCH_F_PHASE2_NEGATIVES).toHaveLength(13);
   });
 
-  it('proves Lover catalog 1.7.0 compact injection contains mutual-intimacy calibration', () => {
-    expect(ARCHETYPE_CATALOG_VERSION).toBe('1.7.0');
+  it('proves Lover catalog 1.7.1 compact injection contains calm-beloved calibration and companionship negatives', () => {
+    expect(ARCHETYPE_CATALOG_VERSION).toBe('1.7.1');
     const proof = extractCompactLoverCatalogRecord();
     expect(proof.present_in_injected_catalog).toBe(true);
     expect(proof.compact_prompt_record).toContain('id=lover');
-    expect(proof.compact_prompt_record).toMatch(/mutual intimacy|shared orientation|bond itself/i);
+    expect(proof.compact_prompt_record).toMatch(/mutual intimacy|shared orientation|bond itself|chosen beloved intimacy/i);
+    expect(proof.compact_prompt_record).toMatch(/warm friendship|companionship|practical cooperation/i);
+  });
+
+  it('records sea-mattress as a no-conflict gentle Lover regression fixture', () => {
+    expect(PATCH_F_PHASE1_FIXTURE.expected_central_conflicts).toEqual([]);
+    expect(PATCH_F_PHASE1_FIXTURE.expected_main_tension).toBeNull();
   });
 
   it('scores required hits / empty / flip metrics', () => {
@@ -49,8 +55,8 @@ describe('Patch F diagnostic fixtures', () => {
       user_prompt_hash: 'x',
       catalog_hash: 'x',
       schema_hash: 'x',
-      prompt_version: '4.1.9-M1',
-      catalog_version: '1.7.0',
+      prompt_version: '4.1.10-M2.2',
+      catalog_version: '1.7.1',
       schema_version: 13,
       temperature: 0,
     });
@@ -94,8 +100,8 @@ describe('Patch F diagnostic fixtures', () => {
       user_prompt_hash: 'x',
       catalog_hash: 'x',
       schema_hash: 'x',
-      prompt_version: '4.1.7-E.1',
-      catalog_version: '1.6.0',
+      prompt_version: '4.1.10-M2.2',
+      catalog_version: '1.7.1',
       schema_version: 12,
       temperature: 0,
     });

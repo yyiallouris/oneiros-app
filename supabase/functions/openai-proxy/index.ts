@@ -49,6 +49,12 @@ function resolveOpenAIModel(requestedModel: string, task: OneirosTask | null): s
   switch (task) {
     case "dream_extraction":
       return envModel("OPENAI_MODEL_EXTRACTION") ?? CHEAP_MODEL;
+    case "dream_archetype_recognition":
+      return envModel("OPENAI_MODEL_ARCHETYPE_RECOGNITION") ?? requestedModel;
+    case "dream_archetype_adjudication":
+      return envModel("OPENAI_MODEL_ARCHETYPE_ADJUDICATION") ??
+        envModel("OPENAI_MODEL_ARCHETYPE_RECOGNITION") ??
+        requestedModel;
     case "semantic_grouping":
       return envModel("OPENAI_MODEL_GROUPING") ?? CHEAP_MODEL;
     case "pattern_insights":
@@ -75,6 +81,13 @@ function resolveAnthropicModelFromEnv(task: OneirosTask | null): string | null {
       return envModel("ANTHROPIC_MODEL_PATTERN");
     case "dream_extraction":
       return envModel("ANTHROPIC_MODEL_EXTRACTION");
+    case "dream_archetype_recognition":
+      return envModel("ANTHROPIC_MODEL_ARCHETYPE_RECOGNITION") ??
+        envModel("ANTHROPIC_MODEL_EXTRACTION");
+    case "dream_archetype_adjudication":
+      return envModel("ANTHROPIC_MODEL_ARCHETYPE_ADJUDICATION") ??
+        envModel("ANTHROPIC_MODEL_ARCHETYPE_RECOGNITION") ??
+        envModel("ANTHROPIC_MODEL_EXTRACTION");
     case "interpretation_quick":
     case "interpretation_standard":
     case "interpretation_advanced":

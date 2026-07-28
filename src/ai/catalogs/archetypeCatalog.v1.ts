@@ -4,6 +4,7 @@
  * `kind` / operational fields guide the model; `displayLabel` is user-facing.
  * v4.1.4: single `trickster` id (B.2 carrier-scoped variants frozen as non-production experiment).
  * v1.7.0: polarity-neutral `mother` + `father` (replaces selectable great_mother / terrible_mother).
+ * v1.7.1: Lover semantics tightened for calm beloved intimacy vs warm non-romantic companionship.
  * Polarity (nurturing/devouring, protective/tyrannical, etc.) lives in instance-level `expression`.
  */
 
@@ -13,7 +14,7 @@ import {
   type ArchetypeCarrierKind,
 } from '../archetypeMechanisms.ts';
 
-export const ARCHETYPE_CATALOG_VERSION = '1.7.0' as const;
+export const ARCHETYPE_CATALOG_VERSION = '1.7.1' as const;
 
 /** Legacy selectable ids → current catalog id (read/validate canonicalize). */
 export const ARCHETYPE_ID_ALIASES: Readonly<Record<string, string>> = {
@@ -367,10 +368,12 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
     canonicalLabel: 'Lover',
     displayLabel: 'The Lover',
     kind: 'relational_role',
-    coreFunction: 'Erotic or devoted relatedness that organizes desire, union, or heart-risk at the centre.',
+    coreFunction:
+      'Erotic, intimate, or beloved relatedness that organizes the dream’s emotional field, including quiet shared attunement without conflict or dramatic outcome.',
     selectWhen: [
-      'erotic or devoted relatedness organizes the dream',
-      'union, longing, or heart-risk is the structural stake',
+      'mutual erotic, intimate, or beloved relatedness organizes the dream',
+      'quiet shared attunement, bodily closeness, or chosen beloved intimacy is the field-organizing centre',
+      'union, longing, separation, or heart-risk is the structural stake',
       'choosing the beloved changes the field',
       'mutual intimacy or chosen closeness is the emotional centre of the dream',
       'two figures share a sustained orientation toward the same psychic depth, future, or field',
@@ -380,7 +383,8 @@ export const ARCHETYPE_CATALOG_V1: ArchetypeDefinition[] = [
       'any romance cue',
       'attractiveness alone',
       'wedding scenery alone',
-      'requiring longing, separation, vow, sacrifice, or transformed social order when gentle closeness already organizes the field',
+      'warm friendship, companionship, teamwork, or practical cooperation without erotic, intimate, or beloved charge',
+      'explicitly non-romantic companionship or explicit denial of devotion, romance, or beloved stakes',
     ],
     competingLabels: ['Anima', 'Animus', 'Sacred Marriage', 'Persona'],
   },

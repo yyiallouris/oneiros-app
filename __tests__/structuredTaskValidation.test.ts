@@ -1,4 +1,5 @@
 import {
+  normalizeMainTensionAgainstCentralConflicts,
   validateStructuredTaskContent,
   parseStructuredJsonObject,
   safeAssistantJsonDiagnostics,
@@ -36,6 +37,45 @@ describe('structuredTaskValidation', () => {
     if (!result.ok) {
       expect(result.schemaErrors.join(' ')).toMatch(/usable metadata/i);
     }
+  });
+
+  it('normalizes main_tension to null when there is no central conflict', () => {
+    const result = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        display_distillation: {
+          essence_title: 'Quiet depth',
+          essence_line: 'A calm scene.',
+          main_tension: 'surface vs depth',
+        },
+        symbols: ['sea'],
+        archetypes: [],
+        landscapes: [],
+        affects: [],
+        motifs: [],
+        relational_dynamics: [],
+        thresholds: [],
+        central_conflicts: [],
+        core_mode: 'Core State',
+        amplifications: [],
+        symbol_stances: [],
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const data = result.data as {
+      display_distillation?: { main_tension: string | null };
+    };
+    expect(data.display_distillation?.main_tension).toBeNull();
+  });
+
+  it('normalizes main_tension to the first central conflict when conflicts exist', () => {
+    expect(
+      normalizeMainTensionAgainstCentralConflicts('surface vs depth', [
+        'balcony vs basement',
+        'warm room vs cold stairwell',
+      ])
+    ).toBe('balcony vs basement');
   });
 
   it('requires explicit no_change for conversation_element_update empty updates', () => {
@@ -227,9 +267,13 @@ describe('structuredTaskValidation', () => {
         amplifications: [],
       })
     );
-    expect(bareTags.ok).toBe(false);
-    if (!bareTags.ok) {
-      expect(bareTags.schemaErrors.join(' ')).toMatch(/Expected object|expression|archetype_id|resonance/i);
+    expect(bareTags.ok).toBe(true);
+    if (bareTags.ok) {
+      const data = bareTags.data as { archetypes: unknown[]; symbols: string[] };
+      expect(data.symbols).toEqual(['door']);
+      expect(data.archetypes).toEqual([]);
+      expect(bareTags.log.salvageSucceeded).toBe(true);
+      expect(bareTags.log.salvagedWithoutRepair).toBe(true);
     }
 
     const tagOnlyExpression = validateStructuredTaskContent(
@@ -478,5 +522,222 @@ describe('structuredTaskValidation', () => {
       ],
       mythic_audit: [expect.objectContaining({ title_type: 'specific_tale', plot_contamination_test: 'pass' })],
     });
+  });
+
+  it('salvages invalid optional echoes without mutating valid Dream Fabric or display fields', () => {
+    const payload = {
+      display_distillation: {
+        essence_title: 'Threshold at the bus stop',
+        essence_line: 'The dream gathers around a public crossing that never settles.',
+        dominant_lens: 'threshold',
+        visible_anchors: [
+          {
+            label: 'bus stop',
+            type: 'threshold',
+            salience: 5,
+            ui_meaning: 'A public crossing point that keeps delaying departure.',
+          },
+        ],
+        main_tension: 'departure vs suspension',
+        dream_movement: 'approaching',
+        movement_line: 'Something nears movement without fully leaving.',
+      },
+      symbols: ['bus stop', 'ticket'],
+      symbol_stances: [{ symbol: 'ticket', stance: 'withheld, contingent' }],
+      landscapes: ['street edge'],
+      affects: ['urgency'],
+      motifs: ['waiting for departure'],
+      relational_dynamics: ['conditional guidance'],
+      thresholds: ['the bus stop'],
+      central_conflicts: ['departure vs suspension'],
+      core_mode: 'Core Tension',
+      archetypes: [
+        {
+          archetype_id: 'guide_psychopomp',
+          expression: 'the conductor who redirects the route',
+          mechanism_tags: [
+            'active_threshold_guidance',
+            'guidance_changes_action_or_outcome',
+          ],
+          evidence_ids: ['D1', 'D2'],
+          resonance: 'A directing figure alters how the crossing can happen.',
+          confidence: 'high',
+        },
+        {
+          archetype_id: 'hebrew_bible.exodus',
+          expression: 'the bus official with the departure list',
+          mechanism_tags: ['public_role_or_social_mask'],
+          evidence_ids: ['D3'],
+          resonance: 'A public official seems to organize collective release.',
+          confidence: 'medium',
+        },
+      ],
+      amplifications: [
+        {
+          catalog_id: 'shadow',
+          resonance: 'A doubled presence shadows the queue.',
+          divergence: 'No underworld descent actually unfolds.',
+          evidence_ids: ['D4'],
+          confidence: 'medium',
+        },
+      ],
+    };
+
+    const result = validateStructuredTaskContent('dream_extraction', JSON.stringify(payload));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const data = result.data as typeof payload;
+    expect(data.display_distillation).toEqual(payload.display_distillation);
+    expect(data.symbols).toEqual(payload.symbols);
+    expect(data.symbol_stances).toEqual(payload.symbol_stances);
+    expect(data.landscapes).toEqual(payload.landscapes);
+    expect(data.affects).toEqual(payload.affects);
+    expect(data.motifs).toEqual(payload.motifs);
+    expect(data.relational_dynamics).toEqual(payload.relational_dynamics);
+    expect(data.thresholds).toEqual(payload.thresholds);
+    expect(data.central_conflicts).toEqual(payload.central_conflicts);
+    expect(data.core_mode).toBe(payload.core_mode);
+    expect(data.archetypes).toHaveLength(1);
+    expect(data.archetypes[0]?.archetype_id).toBe('guide_psychopomp');
+    expect(data.amplifications).toEqual([]);
+    expect(result.log.repairAttempted).toBe(false);
+    expect(result.log.salvageSucceeded).toBe(true);
+    expect(result.log.salvagedWithoutRepair).toBe(true);
+    expect(result.log.salvagedArchetypesDropped).toBe(1);
+    expect(result.log.salvagedAmplificationsDropped).toBe(1);
+    expect(result.log.salvageDropCategories).toEqual(
+      expect.arrayContaining(['dream_extraction_echo_namespace_crossover'])
+    );
+  });
+
+  it('drops exact invalid optional echo ids observed in the regression runs', () => {
+    const cases = [
+      'public_role_or_social_mask',
+      'power_asymmetry_reversed',
+      'norse.odin_runes',
+      'hebrew_bible.exodus',
+      'sovereign',
+    ];
+
+    for (const invalidArchetypeId of cases) {
+      const result = validateStructuredTaskContent(
+        'dream_extraction',
+        JSON.stringify({
+          symbols: ['door'],
+          affects: ['urgency'],
+          archetypes: [
+            {
+              archetype_id: invalidArchetypeId,
+              expression: 'the figure blocking the threshold',
+              mechanism_tags: ['active_threshold_guidance'],
+              evidence_ids: ['D1'],
+              resonance: 'A figure at the crossing appears to regulate movement.',
+              confidence: 'medium',
+            },
+          ],
+          amplifications: [],
+        })
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      const data = result.data as { archetypes: unknown[] };
+      expect(data.archetypes).toEqual([]);
+      expect(result.log.salvageSucceeded).toBe(true);
+      const expectedCategory =
+        invalidArchetypeId.includes('.')
+          ? 'dream_extraction_echo_namespace_crossover'
+          : 'dream_extraction_invalid_archetype_dropped';
+      expect(result.log.salvageDropCategories).toEqual(
+        expect.arrayContaining([expectedCategory])
+      );
+    }
+  });
+
+  it('drops invalid evidence ids and invalid myth ids while preserving valid siblings', () => {
+    const result = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        symbols: ['river'],
+        archetypes: [
+          {
+            archetype_id: 'guide_psychopomp',
+            expression: 'the ferryman who points across',
+            mechanism_tags: [
+              'active_threshold_guidance',
+              'crossing_between_domains',
+            ],
+            evidence_ids: ['D1'],
+            resonance: 'A guide organizes the crossing between shores.',
+            confidence: 'high',
+          },
+          {
+            archetype_id: 'shadow',
+            expression: 'the watcher on the bank',
+            mechanism_tags: ['private_self_conflict'],
+            evidence_ids: ['riverbank'],
+            resonance: 'An unseen watcher loads the scene with self-division.',
+            confidence: 'medium',
+          },
+        ],
+        amplifications: [
+          {
+            catalog_id: 'quranic.night_journey',
+            resonance: 'Night travel crosses a charged threshold into another order.',
+            divergence: 'No ascent through ordered heavens is completed.',
+            evidence_ids: ['D2'],
+            confidence: 'medium',
+          },
+          {
+            catalog_id: 'not.a.catalog.id',
+            resonance: 'A false myth match is forced onto the river crossing.',
+            divergence: 'Its defining structure is absent.',
+            evidence_ids: ['scene-2'],
+            confidence: 'medium',
+          },
+        ],
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const data = result.data as {
+      archetypes: Array<{ archetype_id: string }>;
+      amplifications: Array<{ catalog_id: string }>;
+    };
+    expect(data.archetypes).toHaveLength(1);
+    expect(data.archetypes[0]?.archetype_id).toBe('guide_psychopomp');
+    expect(data.amplifications).toHaveLength(1);
+    expect(data.amplifications[0]?.catalog_id).toBe('quranic.night_journey');
+    expect(result.log.salvageSucceeded).toBe(true);
+    expect(result.log.salvagedArchetypesDropped).toBe(1);
+    expect(result.log.salvagedAmplificationsDropped).toBe(1);
+  });
+
+  it('fails when non-optional metadata remains empty after all invalid echoes are dropped', () => {
+    const result = validateStructuredTaskContent(
+      'dream_extraction',
+      JSON.stringify({
+        display_distillation: {
+          essence_title: '',
+        },
+        symbols: [],
+        archetypes: [
+          {
+            archetype_id: 'norse.odin_runes',
+            expression: 'the old man with the carved stick',
+            mechanism_tags: ['consequential_wisdom_or_warning'],
+            evidence_ids: ['D1'],
+            resonance: 'A warning figure appears without a valid catalog id.',
+            confidence: 'medium',
+          },
+        ],
+        amplifications: [],
+      })
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.log.salvageAttempted).toBe(true);
+      expect(result.log.salvageSucceeded).toBe(false);
+    }
   });
 });

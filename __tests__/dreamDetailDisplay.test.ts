@@ -180,7 +180,8 @@ describe('dream detail display model', () => {
       {
         title: 'Ariadne and the Labyrinth',
         subtitle: 'Greek',
-        body: 'The thread and corridors recall the Cretan labyrinth cycle. Here the waiting figure is fed rather than defeated.',
+        body:
+          'In your dream, the thread and corridors recall the Cretan labyrinth cycle. Here the waiting figure is fed rather than defeated.',
       },
     ]);
   });
@@ -203,7 +204,8 @@ describe('dream detail display model', () => {
       {
         title: 'Persephone',
         subtitle: 'Greek mythology',
-        body: 'May faintly recall the seasonal cycle under snow. No completed return is staged.',
+        body:
+          'In your dream, may faintly recall the seasonal cycle under snow. Here, however, no completed return is staged.',
       },
     ]);
 

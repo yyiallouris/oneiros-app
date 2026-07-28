@@ -3,7 +3,7 @@
  * (leave/kill mid-loading — DreamDetail resumes pending reflection without Reflect again).
  */
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 
 const mockGetDreamById = jest.fn();
 const mockGetInterpretationByDreamId = jest.fn();
@@ -11,6 +11,9 @@ const mockResumeOrAttachDreamReflection = jest.fn();
 const mockHasPendingReflectionJob = jest.fn();
 const mockHasReflectionInFlight = jest.fn();
 const mockGetPendingReflectionJob = jest.fn();
+const mockEnsureDreamMetadataExtraction = jest.fn();
+const mockRemoteGetInterpretationById = jest.fn();
+const mockLocalSaveInterpretation = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -122,7 +125,7 @@ jest.mock('../../src/services/entitledAiService', () => ({
   REFLECTION_PARTIAL_REVEAL_AFTER_MS: 15000,
   generateEntitledDreamReflection: jest.fn(),
   generateEntitledFollowupReply: jest.fn(),
-  ensureDreamMetadataExtraction: jest.fn(() => Promise.resolve(null)),
+  ensureDreamMetadataExtraction: (...args: unknown[]) => mockEnsureDreamMetadataExtraction(...args),
   triggerPendingDreamMetadataExtraction: jest.fn(),
   resumeOrAttachDreamReflection: (...args: unknown[]) => mockResumeOrAttachDreamReflection(...args),
   hasPendingReflectionJob: (...args: unknown[]) => mockHasPendingReflectionJob(...args),
@@ -136,12 +139,12 @@ jest.mock('../../src/services/pendingReflectionJobService', () => ({
 }));
 
 jest.mock('../../src/services/remoteStorage', () => ({
-  remoteGetInterpretationById: jest.fn(),
+  remoteGetInterpretationById: (...args: unknown[]) => mockRemoteGetInterpretationById(...args),
 }));
 
 jest.mock('../../src/services/localStorage', () => ({
   LocalStorage: {
-    saveInterpretation: jest.fn(),
+    saveInterpretation: (...args: unknown[]) => mockLocalSaveInterpretation(...args),
   },
 }));
 
@@ -177,6 +180,7 @@ const interpretation = {
 
 describe('dreamDetail reflection resume flow', () => {
   beforeEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
     mockGetDreamById.mockResolvedValue(dream);
     mockGetInterpretationByDreamId.mockResolvedValue(null);
@@ -184,6 +188,9 @@ describe('dreamDetail reflection resume flow', () => {
     mockHasPendingReflectionJob.mockResolvedValue(false);
     mockGetPendingReflectionJob.mockResolvedValue(null);
     mockResumeOrAttachDreamReflection.mockResolvedValue(null);
+    mockEnsureDreamMetadataExtraction.mockResolvedValue(null);
+    mockRemoteGetInterpretationById.mockResolvedValue(null);
+    mockLocalSaveInterpretation.mockResolvedValue(undefined);
   });
 
   it('resumes a pending reflection on focus without requiring Reflect again', async () => {
@@ -243,7 +250,9 @@ describe('dreamDetail reflection resume flow', () => {
     expect(screen.queryByText('Reflect on this dream')).toBeNull();
 
     await waitFor(() => expect(onPartial).toBeDefined());
-    onPartial?.({ text: 'Partial text already streaming…', elapsedMs: 20000 });
+    await act(async () => {
+      onPartial?.({ text: 'Partial text already streaming…', elapsedMs: 20000 });
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Partial text already streaming…')).toBeTruthy();
@@ -262,5 +271,112 @@ describe('dreamDetail reflection resume flow', () => {
     });
     expect(mockResumeOrAttachDreamReflection).toHaveBeenCalledWith('dream-1');
     expect(screen.queryByText('Reflect on this dream')).toBeNull();
+  });
+
+  it('refreshes pending metadata into the visible interpretation when extraction completes', async () => {
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+    mockEnsureDreamMetadataExtraction.mockResolvedValue({
+      status: 'committed',
+      interpretation_id: interpretation.id,
+      metadata_status: 'ready',
+    });
+    mockRemoteGetInterpretationById.mockResolvedValue({
+      ...interpretation,
+      metadata_status: 'ready' as const,
+      display_distillation: {
+        essence_title: 'Guarded threshold',
+        essence_line: 'A transition holds.',
+        dominant_lens: 'threshold' as const,
+        visible_anchors: [],
+        main_tension: null,
+        dream_movement: 'approaching' as const,
+        movement_line: null,
+      },
+    });
+
+    const screen = render(<DreamDetailScreen />);
+
+    await waitFor(() => {
+      expect(mockEnsureDreamMetadataExtraction).toHaveBeenCalledWith('interpretation-1');
+    });
+    await waitFor(() => {
+      expect(mockRemoteGetInterpretationById).toHaveBeenCalledWith('interpretation-1');
+    });
+    await waitFor(() => {
+      expect(mockLocalSaveInterpretation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'interpretation-1',
+          metadata_status: 'ready',
+        })
+      );
+    });
+    await waitFor(() => {
+      expect(screen.queryByText('Dream details are still forming…')).toBeNull();
+    });
+  });
+
+  it('keeps polling pending metadata past the first refresh window until remote status settles', async () => {
+    jest.useFakeTimers();
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+    mockEnsureDreamMetadataExtraction.mockImplementation(() => new Promise(() => {}));
+    mockRemoteGetInterpretationById
+      .mockResolvedValueOnce({ ...interpretation, metadata_status: 'pending' as const })
+      .mockResolvedValueOnce({ ...interpretation, metadata_status: 'pending' as const })
+      .mockResolvedValueOnce({ ...interpretation, metadata_status: 'pending' as const })
+      .mockResolvedValueOnce({ ...interpretation, metadata_status: 'pending' as const })
+      .mockResolvedValueOnce({ ...interpretation, metadata_status: 'pending' as const })
+      .mockResolvedValueOnce({
+        ...interpretation,
+        metadata_status: 'ready' as const,
+        display_distillation: {
+          essence_title: 'Settled later',
+          essence_line: 'The delayed metadata finally lands.',
+          dominant_lens: 'threshold' as const,
+          visible_anchors: [],
+          main_tension: null,
+          dream_movement: 'approaching' as const,
+          movement_line: null,
+        },
+      });
+
+    render(<DreamDetailScreen />);
+
+    await waitFor(() => {
+      expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(1);
+    });
+
+    const advanceAndFlush = async (ms: number) => {
+      await act(async () => {
+        jest.advanceTimersByTime(ms);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    };
+
+    await advanceAndFlush(4000);
+    await waitFor(() => expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(2));
+
+    await advanceAndFlush(12000);
+    await waitFor(() => expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(3));
+
+    await advanceAndFlush(25000);
+    await waitFor(() => expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(4));
+
+    await advanceAndFlush(45000);
+    await waitFor(() => expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(5));
+
+    await advanceAndFlush(60000);
+
+    await waitFor(() => {
+      expect(mockRemoteGetInterpretationById).toHaveBeenCalledTimes(6);
+    });
+    await waitFor(() => {
+      expect(mockLocalSaveInterpretation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'interpretation-1',
+          metadata_status: 'ready',
+        })
+      );
+    });
   });
 });

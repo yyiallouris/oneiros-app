@@ -157,7 +157,7 @@ describe('dream metadata extraction resilience contract', () => {
     expect(data.amplifications[0].divergence).toBe('No completed ascent is staged.');
   });
 
-  it('keeps v4.1.9-M1 closed-catalog namespace enums + integrity-only myth contract', () => {
+  it('keeps v4.1.10-M2.2 closed-catalog namespace enums + integrity-only myth contract', () => {
     const system = buildDreamExtractionSystemPrompt();
     expect(system).toMatch(/"confidence": "high" \| "medium"/);
     expect(system).toMatch(/"amplifications"/);
@@ -169,7 +169,7 @@ describe('dream metadata extraction resilience contract', () => {
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     expect(system).toMatch(/id=shadow label:Shadow/);
     expect(system).not.toMatch(/\[shadow\]/);
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
     expect(system).toMatch(/evidence_ids/);
     expect(system).toMatch(/archetype_id/);
     expect(system).toMatch(/enacted archetypal function or movement/);
@@ -205,7 +205,7 @@ describe('dream metadata extraction resilience contract', () => {
     expect(data.archetypes[0].evidence_ids).toHaveLength(6);
   });
 
-  it('rejects archetype objects missing required archetype_id', () => {
+  it('drops archetype objects missing required archetype_id when valid Dream Fabric remains', () => {
     const result = validateStructuredTaskContent(
       'dream_extraction',
       JSON.stringify({
@@ -221,7 +221,13 @@ describe('dream metadata extraction resilience contract', () => {
         amplifications: [],
       })
     );
-    expect(result.ok).toBe(false);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const data = result.data as { archetypes: unknown[]; symbols: string[] };
+    expect(data.symbols).toEqual(['jar']);
+    expect(data.archetypes).toEqual([]);
+    expect(result.log.salvageSucceeded).toBe(true);
+    expect(result.log.salvagedWithoutRepair).toBe(true);
   });
 
   it('clamps mythic evidence_ids above six without rejecting extraction', () => {

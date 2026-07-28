@@ -545,10 +545,10 @@ export async function resolveBenchmarkAuth(): Promise<{
 }
 
 export function assertFrozenGlobalArchetypeBaseline(): void {
-  if (DREAM_EXTRACTION_PROMPT_VERSION !== '4.1.9-M1') {
-    throw new Error(`Expected frozen baseline 4.1.9-M1, got ${DREAM_EXTRACTION_PROMPT_VERSION}`);
+  if (String(DREAM_EXTRACTION_PROMPT_VERSION) !== '4.1.10-M2') {
+    throw new Error(`Expected frozen baseline 4.1.10-M2, got ${DREAM_EXTRACTION_PROMPT_VERSION}`);
   }
-  if (ARCHETYPE_CATALOG_VERSION !== '1.7.0') {
+  if (String(ARCHETYPE_CATALOG_VERSION) !== '1.7.0') {
     throw new Error(`Expected archetype catalog 1.7.0, got ${ARCHETYPE_CATALOG_VERSION}`);
   }
 }

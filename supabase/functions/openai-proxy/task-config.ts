@@ -24,6 +24,7 @@
  * keeps a Haiku safety net after Sonnet:
  * - Nano + Haiku          → mechanical classify/update
  * - Mini + Haiku          → dream metadata extraction + chat follow-up
+ * - Mini/requested + Haiku → standalone archetype recognition spike
  * - GPT-5.4 + Sonnet→Haiku → user-facing analysis (reflection / pattern essay)
  * - Missing/unknown task  → reject (no silent unrouted default)
  *
@@ -69,6 +70,18 @@ export const TASK_AI_BY_TASK: Record<OneirosTask, TaskAiEntry> = {
   dream_extraction: {
     provider: "openai",
     model: OPENAI_MINI,
+    fallbackAnthropicModels: FALLBACK_HAIKU,
+  },
+  // standalone archetype recognition spike — runner may compare mini vs full model
+  dream_archetype_recognition: {
+    provider: "openai",
+    model: null,
+    fallbackAnthropicModels: FALLBACK_HAIKU,
+  },
+  // standalone archetype adjudication spike — discovery stays separate
+  dream_archetype_adjudication: {
+    provider: "openai",
+    model: null,
     fallbackAnthropicModels: FALLBACK_HAIKU,
   },
   conversation_element_update: {

@@ -136,6 +136,21 @@ describe('archetype mechanism hard gates (v4.1.4)', () => {
     expect(result.accepted).toHaveLength(1);
   });
 
+  it('keeps warm companionship language outside the Lover catalog record', () => {
+    const result = validateArchetypalEchoes([
+      {
+        archetype_id: 'lover',
+        expression: 'the easy canoe teamwork',
+        resonance: 'Warm companionship steadies the scene without beloved or erotic charge.',
+        confidence: 'medium',
+        mechanism_tags: ['bond_organizes_dream'],
+        evidence_ids: ['D1', 'D2'],
+      },
+    ]);
+    expect(result.accepted).toHaveLength(0);
+    expect(result.rejected[0]?.reason).toMatch(/missing_any_of_mechanisms/);
+  });
+
   it('normalizes unknown mechanism tags away', () => {
     expect(
       normalizeMechanismTags(['deception_or_feigned_belief', 'reseals_giant', 'power_asymmetry_reversed'])

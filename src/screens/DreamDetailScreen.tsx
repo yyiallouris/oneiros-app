@@ -52,6 +52,7 @@ import {
 import { getPendingReflectionJob } from '../services/pendingReflectionJobService';
 import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
 import { remoteGetInterpretationById } from '../services/remoteStorage';
+import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
@@ -59,6 +60,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
 const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
 const METADATA_REFRESH_DELAYS_MS = [4000, 12000, 25000, 45000];
+const METADATA_REFRESH_TAIL_DELAY_MS = 60000;
 type IconProps = {
   size?: number;
   color?: string;
@@ -436,10 +438,7 @@ type IconProps = {
     const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
     const [streamingReflectionMessageId, setStreamingReflectionMessageId] = useState<string | null>(null);
     const [showChat, setShowChat] = useState(false);
-    const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
     const [showLimitMessageOnTap, setShowLimitMessageOnTap] = useState(false);
-    const [chatScrollHeight, setChatScrollHeight] = useState(0);
-    const [chatScrollOffset, setChatScrollOffset] = useState(0);
     const [showOfflineMessage, setShowOfflineMessage] = useState(false);
     const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
     const [upsellVisible, setUpsellVisible] = useState(false);
@@ -448,6 +447,7 @@ type IconProps = {
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
     const metadataRefreshTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+    const metadataRefreshGenerationRef = useRef(0);
     const streamingReflectionMessageIdRef = useRef<string | null>(null);
     const hadStreamingReflectionRef = useRef(false);
     const reflectionFocusGenerationRef = useRef(0);
@@ -476,6 +476,7 @@ type IconProps = {
     }, [isGeneratingInitial]);
 
     const clearMetadataRefreshTimers = useCallback(() => {
+      metadataRefreshGenerationRef.current += 1;
       metadataRefreshTimers.current.forEach((timer) => clearTimeout(timer));
       metadataRefreshTimers.current = [];
     }, []);
@@ -523,26 +524,66 @@ type IconProps = {
       ) {
         return;
       }
+      clearMetadataRefreshTimers();
+      const refreshGeneration = metadataRefreshGenerationRef.current;
       logInfo('dream_detail_metadata_refresh_scheduled', {
         dreamId,
         interpretationId: nextInterpretation.id,
         refreshDelaysMs: METADATA_REFRESH_DELAYS_MS.join(','),
+        tailDelayMs: METADATA_REFRESH_TAIL_DELAY_MS,
       });
-      clearMetadataRefreshTimers();
+
+      const queueRefreshAttempt = (
+        delayMs: number,
+        remainingDelaysMs: number[],
+        tailPollingStarted: boolean
+      ) => {
+        const timer = setTimeout(() => {
+          void refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+            if (metadataRefreshGenerationRef.current !== refreshGeneration) return;
+            if (updated) {
+              clearMetadataRefreshTimers();
+              return;
+            }
+
+            const [nextDelayMs, ...restDelaysMs] = remainingDelaysMs;
+            if (typeof nextDelayMs === 'number') {
+              queueRefreshAttempt(nextDelayMs, restDelaysMs, tailPollingStarted);
+              return;
+            }
+
+            if (!tailPollingStarted) {
+              logInfo('dream_detail_metadata_refresh_tail_started', {
+                dreamId,
+                interpretationId: nextInterpretation.id,
+                tailDelayMs: METADATA_REFRESH_TAIL_DELAY_MS,
+              });
+            }
+            queueRefreshAttempt(METADATA_REFRESH_TAIL_DELAY_MS, [], true);
+          });
+        }, delayMs);
+        metadataRefreshTimers.current.push(timer);
+      };
+
       void ensureDreamMetadataExtraction(nextInterpretation.id).then((result) => {
         if (result?.metadata_status === 'ready' || result?.metadata_status === 'failed') {
-          refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+          void refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+            if (metadataRefreshGenerationRef.current !== refreshGeneration) return;
             if (updated) clearMetadataRefreshTimers();
           });
         }
       });
-      METADATA_REFRESH_DELAYS_MS.forEach((delay) => {
-        const timer = setTimeout(() => {
-          refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
-            if (updated) clearMetadataRefreshTimers();
-          });
-        }, delay);
-        metadataRefreshTimers.current.push(timer);
+
+      void refreshInterpretationMetadata(nextInterpretation.id).then((updated) => {
+        if (metadataRefreshGenerationRef.current !== refreshGeneration) return;
+        if (updated) {
+          clearMetadataRefreshTimers();
+          return;
+        }
+        const [firstDelayMs, ...restDelaysMs] = METADATA_REFRESH_DELAYS_MS;
+        if (typeof firstDelayMs === 'number') {
+          queueRefreshAttempt(firstDelayMs, restDelaysMs, false);
+        }
       });
     }, [clearMetadataRefreshTimers, refreshInterpretationMetadata]);
 
@@ -556,7 +597,6 @@ type IconProps = {
       setStreamingReflectionMessageId(messageId);
       setTypingMessageId(null);
       setShowChat(true);
-      setIsUserScrolledUp(false);
       setMessages((current) => {
         const nextMessage: ChatMessage = {
           id: messageId,
@@ -592,7 +632,6 @@ type IconProps = {
         hadStreamingReflectionRef.current = false;
         if (options?.openChat) {
           setShowChat(true);
-          setIsUserScrolledUp(false);
         } else {
           setShowChat(false);
         }
@@ -951,9 +990,6 @@ type IconProps = {
 
         // Show chat
         setShowChat(true);
-        setIsUserScrolledUp(false);
-        
-        // Don't auto-scroll - ChatGPT experience: content appears, user scrolls when ready
       } catch (error: any) {
         console.error('[DreamDetail] Error updating interpretation:', error);
         const partialMessageId = streamingReflectionMessageIdRef.current;
@@ -1019,9 +1055,6 @@ type IconProps = {
       setInputText('');
       setIsLoading(true);
       
-      // Reset scroll state when user sends a message (they want to see the response)
-      setIsUserScrolledUp(false);
-
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -1043,13 +1076,6 @@ type IconProps = {
         if (updatedInterpretation !== updatedInterpretationBase) {
           await saveInterpretation(updatedInterpretation);
           setInterpretation(updatedInterpretation);
-        }
-
-        // Only auto-scroll if user hasn't manually scrolled up
-        if (!isUserScrolledUp) {
-          setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }, 200);
         }
       } catch (error: any) {
         console.error('[DreamDetail] Error sending message:', error);
@@ -1363,24 +1389,8 @@ type IconProps = {
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
                 onScroll={(event) => {
-                  const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-                  const scrollPosition = contentOffset.y;
-                  const maxScroll = contentSize.height - layoutMeasurement.height;
-                  
-                  // Check if user is near the bottom (within 50px)
-                  const isNearBottom = maxScroll - scrollPosition < 50;
-                  
-                  // Update scroll state
-                  setChatScrollHeight(contentSize.height);
-                  setChatScrollOffset(scrollPosition);
-                  
-                  // If user scrolls up, mark it
-                  if (!isNearBottom) {
-                    setIsUserScrolledUp(true);
-                  } else {
-                    // User is at bottom, allow auto-scroll
-                    setIsUserScrolledUp(false);
-                  }
+                  // Chat stays where the reader leaves it. Avoid forced follow-up
+                  // auto-scroll while assistant text is arriving or settling.
                 }}
                 scrollEventThrottle={16}
                 onContentSizeChange={() => {
@@ -1418,6 +1428,18 @@ type IconProps = {
                   />
                   );
                 })}
+                {isLoading && !typingMessageId && (
+                  <View style={styles.messageContainer}>
+                    <View style={styles.pendingAssistantMessage}>
+                      <LoadingState
+                        variant="reflect"
+                        context="inline"
+                        testID="dream-detail-pending-reply-loader"
+                        style={styles.pendingAssistantLoader}
+                      />
+                    </View>
+                  </View>
+                )}
               </ScrollView>
 
               {/* Limit message — appears when user taps the disabled input to try to write */}
@@ -1482,6 +1504,7 @@ type IconProps = {
                 />
                 <View style={styles.inputActionSpacer}>
                   <VoiceRecordButton
+                    presentation="compact"
                     target={{ surface: 'dream-chat', key: dreamId }}
                     onTranscriptionComplete={(text) => {
                       setInputText((prev) => (prev ? `${prev} ${text}` : text));
@@ -1504,7 +1527,6 @@ type IconProps = {
                       : handleSendMessage
                   }
                   disabled={reflectionLimitReached || premiumReflectionReadOnly ? false : (!inputText.trim() || isGeneratingInitial || isLoading)}
-                  loading={isLoading}
                   testID="dream-detail-send-button"
                 >
                   <SendIcon
@@ -1944,6 +1966,17 @@ type IconProps = {
       paddingRight: spacing.md,
       minHeight: 40,
       position: 'relative',
+    },
+    pendingAssistantMessage: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 40,
+    },
+    pendingAssistantLoader: {
+      alignItems: 'center',
+      width: '100%',
+      paddingVertical: spacing.xs,
     },
     copyButton: {
       position: 'absolute',

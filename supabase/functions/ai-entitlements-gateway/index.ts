@@ -56,7 +56,22 @@ type GatewayBody = {
   language?: string;
   /** Dev/test only — returns interpretive candidate diagnostics; never persisted to the interpretation row. */
   debug_interpretive_echoes?: boolean;
+  /** Dev/test only — guarded fault injection for optional-echo salvage verification. */
+  debug_fault_injection_case?:
+    | 'invalid_archetype'
+    | 'invalid_myth'
+    | 'mixed_optional'
+    | 'all_optional_invalid';
 };
+
+const DEBUG_ECHO_FAULT_INJECTION_ENABLED =
+  (Deno.env.get('ENABLE_DEBUG_ECHO_FAULT_INJECTION') ?? '').trim() === '1';
+const DEBUG_ECHO_FAULT_INJECTION_ALLOWED_USER_IDS = new Set(
+  (Deno.env.get('DEBUG_ECHO_FAULT_INJECTION_ALLOWED_USER_IDS') ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 
 type DreamExtraction = ReturnType<typeof emptyExtraction>;
 type ChatMessagePayload = {
@@ -365,6 +380,7 @@ async function persistReflectionMetadata(params: {
   reflection: string;
   reflectionCost?: AiCallCost | null;
   debugInterpretiveEchoes?: boolean;
+  debugFaultInjectionCase?: GatewayBody['debug_fault_injection_case'];
 }): Promise<{
   metadataStatus: 'ready' | 'failed';
   metadataCost: AiCallCost | null;
@@ -378,6 +394,8 @@ async function persistReflectionMetadata(params: {
   schemaVersion: number;
   model: string | null;
   cached: false;
+  structuredValidation?: Record<string, unknown> | null;
+  debugFaultInjectionCase?: GatewayBody['debug_fault_injection_case'] | null;
 }> {
   const startedAt = measureStart();
   try {
@@ -387,6 +405,7 @@ async function persistReflectionMetadata(params: {
       dream: params.dream,
       interpretation: params.reflection,
       debugInterpretiveEchoes: Boolean(params.debugInterpretiveEchoes),
+      debugFaultInjectionCase: params.debugFaultInjectionCase ?? null,
     });
     const extraction = extractionResult.extraction;
     const metadataCost = extractionResult.cost;
@@ -440,6 +459,8 @@ async function persistReflectionMetadata(params: {
       schemaVersion: DREAM_EXTRACTION_SCHEMA_VERSION,
       model: extractionResult.model,
       cached: false,
+      structuredValidation: extractionResult.structuredValidation ?? null,
+      debugFaultInjectionCase: params.debugFaultInjectionCase ?? null,
     };
   } catch (error) {
     const failedAt = new Date().toISOString();
@@ -786,10 +807,20 @@ serve(async (req: Request) => {
       const totalStartedAt = measureStart();
       // Debug mode must bypass ready-cache so diagnostics are freshly generated.
       const forceFreshDebug = body.debug_interpretive_echoes === true;
+      if (body.debug_fault_injection_case) {
+        const allowed =
+          forceFreshDebug &&
+          DEBUG_ECHO_FAULT_INJECTION_ENABLED &&
+          DEBUG_ECHO_FAULT_INJECTION_ALLOWED_USER_IDS.has(userId);
+        if (!allowed) {
+          throw new HttpError(403, 'debug fault injection is not allowed for this request');
+        }
+      }
       console.log('[ai-entitlements-gateway] metadata request start', {
         action: body.action,
         interpretationId: body.interpretationId,
         forceFreshDebug,
+        debugFaultInjectionCase: body.debug_fault_injection_case ?? null,
       });
       const interpretation = await getInterpretationById(admin, userId, body.interpretationId);
       if (interpretation.metadata_status === 'ready') {
@@ -920,6 +951,7 @@ serve(async (req: Request) => {
           reflection,
           reflectionCost,
           debugInterpretiveEchoes: body.debug_interpretive_echoes === true,
+          debugFaultInjectionCase: body.debug_fault_injection_case ?? null,
         });
         await finishMetadataExtraction(admin, userId, interpretation.id, 'completed');
       } catch (error) {
@@ -964,6 +996,8 @@ serve(async (req: Request) => {
               post_validation_archetypes: metadataResult.postValidationArchetypes,
               post_validation_amplifications: metadataResult.postValidationAmplifications,
               mythic_echo_pipeline: metadataResult.mythicPipelineDebug,
+              structured_validation: metadataResult.structuredValidation ?? null,
+              debug_fault_injection_case: metadataResult.debugFaultInjectionCase ?? null,
               selection_summary:
                 'See interpretive_diagnostics + mythic_echo_pipeline (raw → normalize → validate → invariant).',
             }

@@ -192,13 +192,22 @@ Before Google Play review, complete these manual steps:
 - Complete Data Safety for account data, dream/user content, voice audio/transcription, support messages, AI processing, and processors such as Supabase, OpenAI/Anthropic, Google, Resend, and Postmark.
 - Add the hosted Privacy Policy URL, support/contact details, age rating consistent with 18+ consent, screenshots, store listing copy, and content declarations.
 - Confirm Google OAuth release SHA-1 / Play App Signing certificate is registered wherever the OAuth client requires it.
+- Create the production Google Play subscription product `oneiros_premium` with base plans `monthly` and `yearly`, matching the runtime config used by the app.
+- Confirm Google RTDN / PubSub delivery is wired to the deployed `billing-google-rtdn` webhook and that the production billing secrets/env vars are set for the billing functions.
 - Deploy changed AI functions before production builds:
   ```bash
   supabase functions deploy openai-proxy
   supabase functions deploy whisper-transcription
   ```
+- Deploy changed billing/subscription functions before production builds when billing or entitlement behavior changed:
+  ```bash
+  supabase functions deploy subscription-status
+  supabase functions deploy billing-register-purchase
+  supabase functions deploy billing-google-rtdn
+  supabase functions deploy billing-apple-notifications
+  ```
 - Upload the AAB to an internal testing track first and review the Play pre-launch report for permission, crash, startup, and device compatibility issues.
-- Smoke test on Android: email login/signup/reset, Google/Discord sign-in, voice permission (deny → Settings and allow), online/offline capture, retry/discard after a simulated connection failure, AI reflection/chat, sync, account deletion, and hosted legal links.
+- Smoke test on Android: email login/signup/reset, Google/Discord sign-in, voice permission (deny → Settings and allow), online/offline capture, retry/discard after a simulated connection failure, AI reflection/chat, metadata extraction completion on DreamDetail, sync, account deletion, hosted legal links, subscription purchase flow, restore purchases, and manage subscription deep link.
 - Voice recovery release check: record offline, confirm **Saved safely**, reconnect, observe **transcribing**, verify text appends exactly once, then repeat with **Retry now** and confirmed **Discard**. Verify automatic stop at 5:00 on a physical device.
 
 Build and submit after the checks pass:
@@ -207,8 +216,6 @@ Build and submit after the checks pass:
 eas build --profile production --platform android
 eas submit --profile production --platform android
 ```
-
-The first Play release does not include subscription UI. Keep the existing subscription backend disabled from the mobile purchase flow until Play Billing FE is implemented and reviewed separately.
 
 ## iOS TestFlight / App Store readiness checklist
 
@@ -238,12 +245,22 @@ Before TestFlight/App Review, complete these manual steps:
 - Export compliance answers consistent with `ITSAppUsesNonExemptEncryption: false`.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 - Supabase providers are configured for Apple, Google, and Discord.
+- Create the App Store Connect subscription products `oneiros_premium_monthly` and `oneiros_premium_yearly`, matching the runtime config used by the app.
+- Confirm App Store Server Notifications are pointed at the deployed `billing-apple-notifications` webhook and that the production billing secrets/env vars are set for the billing functions.
 - Changed AI functions are deployed before production builds:
   ```bash
   supabase functions deploy openai-proxy
   supabase functions deploy whisper-transcription
   ```
+- Deploy changed billing/subscription functions before production builds when billing or entitlement behavior changed:
+  ```bash
+  supabase functions deploy subscription-status
+  supabase functions deploy billing-register-purchase
+  supabase functions deploy billing-google-rtdn
+  supabase functions deploy billing-apple-notifications
+  ```
 - Physical iPhone TestFlight smoke: email login/signup/reset, Apple sign-in, Google/Discord sign-in, voice permission (deny → Settings and allow), silent-mode online/offline capture, retry/discard after a simulated connection failure, AI reflection/chat, sync, account deletion, and hosted legal links.
+- Physical iPhone TestFlight subscription smoke: paywall open, monthly/yearly purchase, restore purchases, entitlement refresh, manage subscription deep link, and post-purchase premium gating unlock.
 - Voice recovery release check: record offline, background/foreground the app, reconnect, observe queue status and append-once delivery, then validate Retry now, Discard, silent-mode capture, and the 5:00 cap on a physical iPhone.
 
 Build and submit after the checks pass:

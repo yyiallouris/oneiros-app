@@ -618,6 +618,7 @@ const InterpretationChatScreen: React.FC = () => {
         />
         <View style={styles.inputActions}>
           <VoiceRecordButton
+            presentation="compact"
             target={{ surface: 'interpretation-chat', key: dreamId }}
             onTranscriptionComplete={(text) => {
               setInputText((prev) => (prev ? `${prev} ${text}` : text));

@@ -21,7 +21,10 @@ import {
   type MythicEcho,
 } from '../ai/mythicEchoes';
 import { buildDreamExtractionResponseFormat } from '../ai/dreamExtractionResponseFormat';
-import { validateStructuredTaskContent } from '../ai/structuredTaskValidation';
+import {
+  normalizeMainTensionAgainstCentralConflicts,
+  validateStructuredTaskContent,
+} from '../ai/structuredTaskValidation';
 import {
   resolveDreamOutputLanguage,
   runOutputLanguageCommitGate,
@@ -1777,7 +1780,10 @@ const asDisplaySalience = (value: unknown): 1 | 2 | 3 | 4 | 5 => {
   return 1;
 };
 
-const parseDisplayDistillation = (value: unknown): DisplayDistillation | undefined => {
+const parseDisplayDistillation = (
+  value: unknown,
+  centralConflicts: string[] = []
+): DisplayDistillation | undefined => {
   if (!value || typeof value !== 'object') return undefined;
   const raw = value as Record<string, unknown>;
 
@@ -1823,7 +1829,10 @@ const parseDisplayDistillation = (value: unknown): DisplayDistillation | undefin
     essence_line,
     dominant_lens: dominant_lens as DisplayDistillation['dominant_lens'],
     visible_anchors,
-    main_tension: asNullableString(raw.main_tension),
+    main_tension: normalizeMainTensionAgainstCentralConflicts(
+      asNullableString(raw.main_tension),
+      centralConflicts
+    ),
     dream_movement: dream_movement as DisplayDistillation['dream_movement'],
     movement_line: asNullableString(raw.movement_line),
   };
@@ -1845,7 +1854,11 @@ export type DreamExtraction = {
 };
 
 const parseDreamExtractionRecord = (parsed: Record<string, unknown>): DreamExtraction => {
-  const display_distillation = parseDisplayDistillation(parsed.display_distillation ?? parsed.displayDistillation);
+  const central_conflicts = asStringArray(parsed.central_conflicts ?? parsed.centralConflicts, 2);
+  const display_distillation = parseDisplayDistillation(
+    parsed.display_distillation ?? parsed.displayDistillation,
+    central_conflicts
+  );
   const rawSymbols = asStringArray(parsed.symbols, MAX_SYMBOLS_TOTAL);
   const symbols = filterAffectWords(rawSymbols).slice(0, MAX_SYMBOLS_TOTAL);
 
@@ -1856,7 +1869,6 @@ const parseDreamExtractionRecord = (parsed: Record<string, unknown>): DreamExtra
   const motifs = asStringArray(parsed.motifs, 4);
   const relational_dynamics = asStringArray(parsed.relational_dynamics, 3);
   const thresholds = asStringArray(parsed.thresholds, 3);
-  const central_conflicts = asStringArray(parsed.central_conflicts ?? parsed.centralConflicts, 2);
   const core_mode = parseCoreMode(parsed.core_mode);
   const amplifications = normalizeAmplifications(parsed.amplifications, MAX_MYTHIC_ECHOES);
 
@@ -2260,10 +2272,7 @@ export const mergeConversationElementUpdates = (
   current: ConversationElementFields,
   updates: Partial<ConversationElementFields>
 ): ConversationElementFields => {
-  const archetypes = normalizeArchetypalEchoes(
-    updates.archetypes && updates.archetypes.length > 0 ? updates.archetypes : current.archetypes,
-    MAX_ARCHETYPAL_ECHOES
-  );
+  const archetypes = normalizeArchetypalEchoes(current.archetypes, MAX_ARCHETYPAL_ECHOES);
 
   const coreMode = updates.core_mode && VALID_CORE_MODES.has(updates.core_mode) ? updates.core_mode : current.core_mode;
 
@@ -2318,20 +2327,20 @@ Follow-up conversation:
 ${conversationForExtractionPrompt(conversation)}
 
 Rules:
-- Return the full revised values for these fields only: archetypes, affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications.
+- Return the full revised values for these fields only: affects, motifs, relational_dynamics, thresholds, central_conflicts, core_mode, amplifications.
 - central_conflicts: at most 2 items; use [] unless the conversation clearly grounds opposing pressures. Avoid generic "X vs Y" pairs without concrete dream support.
 - amplifications (Mythic Echo): at most 1 named parallel {title, tradition, resonance, divergence, evidence, confidence}. Not Dream Fabric; specific recognized narrative only; prefer [] when unsure.
 - Do NOT return or revise key symbols, symbol_stances, or landscapes. Key symbols must remain grounded in the original dream text only.
-- Use the user's follow-up clarifications to update or add symbolic motifs, inner structures, and archetypal energies.
+- Do NOT return or revise archetypes in follow-up chat for v1. Archetypes are extracted once from the raw dream metadata pass and stay frozen during follow-up.
+- Use the user's follow-up clarifications to update or add symbolic motifs, inner structures, affects, relational dynamics, thresholds, conflicts, and mythic parallels.
 - Do not add elements from assistant speculation unless the user confirms or clearly grounds them.
 - Keep fabric pattern strings concise and suitable for pattern tracking. Write user-facing echo text in the dream's primary language.
-- Archetypes must be 0–2 objects {canonical_label, expression, resonance, evidence}. canonical_label must use only this whitelist: ${ARCHETYPE_WHITELIST.join(', ')}. Prefer classical labels; keep expression dream-specific and secondary.
 - core_mode must be exactly one of: Core Tension, Core State, Core Shift, Core Restoration.
 - If the conversation does not clarify a field, keep the current value.
 
 Return ONLY one valid JSON object with an explicit status:
 - If nothing should change: {"status":"no_change"}
-- If revising elements: {"status":"updated","archetypes":[...],"affects":[...],"motifs":[...],"relational_dynamics":[...],"thresholds":[...],"central_conflicts":[...],"core_mode":"Core State","amplifications":[]}
+- If revising elements: {"status":"updated","affects":[...],"motifs":[...],"relational_dynamics":[...],"thresholds":[...],"central_conflicts":[...],"core_mode":"Core State","amplifications":[]}
 Bare {} is invalid.`;
 
   const { requestId, model } = startRequest();

@@ -3,7 +3,7 @@
  * Dreams must not paste production prompt / catalog selectWhen wording.
  */
 
-export const PATCH_F_SUITE_VERSION = 'patch-f-stability.v1.0.0' as const;
+export const PATCH_F_SUITE_VERSION = 'patch-f-stability.v1.1.0' as const;
 
 export type PatchFPolarity = 'positive' | 'negative';
 
@@ -16,6 +16,10 @@ export type PatchFFixture = {
   required_archetype_ids: string[];
   /** Optional secondaries that do not count as label flips when alone with required. */
   acceptable_secondary_ids: string[];
+  /** Optional deterministic expectation for the Inner Tensions layer. */
+  expected_central_conflicts?: string[];
+  /** Explicit null required when no conflict should remain. */
+  expected_main_tension?: string | null;
   dream: string;
   notes: string;
 };
@@ -31,6 +35,8 @@ export const PATCH_F_PHASE1_FIXTURE: PatchFFixture = {
   dream_language: 'el',
   required_archetype_ids: ['lover'],
   acceptable_secondary_ids: [],
+  expected_central_conflicts: [],
+  expected_main_tension: null,
   dream: SEA_MATTRESS_EL_DREAM,
   notes: 'Confirmed instability seed — mutual intimacy + shared seabed exploration.',
 };
@@ -44,6 +50,8 @@ export const PATCH_F_PHASE2_POSITIVES: PatchFFixture[] = [
     dream_language: 'el',
     required_archetype_ids: ['lover'],
     acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
     dream: SEA_MATTRESS_EL_DREAM,
     notes: 'Same seed as Phase 1, scored in the ×5 suite.',
   },
@@ -54,6 +62,8 @@ export const PATCH_F_PHASE2_POSITIVES: PatchFFixture[] = [
     dream_language: 'en',
     required_archetype_ids: ['lover'],
     acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
     dream:
       'Someone I lost finds me at a bus stop in light rain. We stand close without speaking. The bus arrives but neither of us boards.',
     notes: 'Quiet devoted proximity organizes the field.',
@@ -164,9 +174,24 @@ export const PATCH_F_PHASE2_POSITIVES: PatchFFixture[] = [
     dream_language: 'en',
     required_archetype_ids: ['lover'],
     acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
     dream:
       'I float peacefully on a sea mattress while my boyfriend lies close above me. Together we look down into the water and explore the seabed below us. The whole scene stays calm, beautiful, and safe.',
     notes: 'EN twin of the Greek seed — gentle mutual relatedness.',
+  },
+  {
+    id: 'F_pos_lover_shared_depth_en',
+    polarity: 'positive',
+    phase: 2,
+    dream_language: 'en',
+    required_archetype_ids: ['lover'],
+    acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
+    dream:
+      'My partner and I lie wrapped in the same blanket on a quiet pier, watching lantern fish move beneath the water. Neither of us speaks. The closeness makes the dark depth feel welcoming rather than risky, and we keep looking together for a long time.',
+    notes: 'Harmonious Lover positive with shared attention and no dramatic outcome.',
   },
   {
     id: 'F_pos_orphan_locked_gate_en',
@@ -183,6 +208,69 @@ export const PATCH_F_PHASE2_POSITIVES: PatchFFixture[] = [
 
 /** Phase 2 true negatives (8). */
 export const PATCH_F_PHASE2_NEGATIVES: PatchFFixture[] = [
+  {
+    id: 'F_neg_partner_logistics_en',
+    polarity: 'negative',
+    phase: 2,
+    dream_language: 'en',
+    required_archetype_ids: [],
+    acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
+    dream:
+      'My partner drops grocery bags by the kitchen island, asks whether I paid the electricity bill, and leaves again to park the car. I stack the cans by expiry date and text him the door code. The apartment stays ordinary before and after he passes through.',
+    notes: 'Incidental partner presence without a bond-organized scene.',
+  },
+  {
+    id: 'F_neg_warm_friends_en',
+    polarity: 'negative',
+    phase: 2,
+    dream_language: 'en',
+    required_archetype_ids: [],
+    acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
+    dream:
+      'A close friend and I paddle a canoe across a still lake, joking softly while we look for the right campsite. We work well together and unload the bags without friction. It feels companionable and easy, but nothing in the scene turns toward romance, devotion, or beloved risk.',
+    notes: 'Warm companionship should not become Lover.',
+  },
+  {
+    id: 'F_neg_romance_cue_only_en',
+    polarity: 'negative',
+    phase: 2,
+    dream_language: 'en',
+    required_archetype_ids: [],
+    acceptable_secondary_ids: [],
+    dream:
+      'I walk through a wedding reception in a silver dress while strangers smile and toss rose petals. A handsome person kisses my cheek for a photo and disappears into the crowd. I spend the rest of the dream searching for the table number on my card.',
+    notes: 'Romance cue and wedding scenery alone should stay empty.',
+  },
+  {
+    id: 'F_neg_surface_depth_harmony_el',
+    polarity: 'negative',
+    phase: 2,
+    dream_language: 'el',
+    required_archetype_ids: [],
+    acceptable_secondary_ids: [],
+    expected_central_conflicts: [],
+    expected_main_tension: null,
+    dream:
+      'Ήμουν σε μια ξύλινη αποβάθρα πάνω από καθαρό νερό και κοίταζα ήρεμα τα φυτά στον βυθό. Από πάνω περνούσε ένα απαλό αεράκι και από κάτω κινούνταν αργά τα ψάρια. Δεν υπήρχε φόβος ούτε δίλημμα· η επιφάνεια και το βάθος έμοιαζαν να ανήκουν στην ίδια γαλήνη.',
+    notes: 'Complementary spatial layering should not become inner conflict.',
+  },
+  {
+    id: 'F_neg_spatial_conflict_control_el',
+    polarity: 'negative',
+    phase: 2,
+    dream_language: 'el',
+    required_archetype_ids: [],
+    acceptable_secondary_ids: [],
+    expected_central_conflicts: ['μπαλκόνι vs υπόγειο'],
+    expected_main_tension: 'μπαλκόνι vs υπόγειο',
+    dream:
+      'Στεκόμουν σε ένα στενό μπαλκόνι του τρίτου ορόφου και άκουγα το υπόγειο να με τραβά σαν μαγνήτης. Κάθε φορά που πήγαινα να μπω μέσα για να κατέβω, το πάτωμα έσπαγε κάτω από τα πόδια μου και με ανάγκαζε να μείνω έξω. Ήθελα να κατέβω, αλλά το κτίριο δεν με άφηνε.',
+    notes: 'Control fixture for genuine spatial opposition.',
+  },
   {
     id: 'F_neg_sisyphus_hill_el',
     polarity: 'negative',
@@ -289,6 +377,9 @@ export function validatePatchFFixtures(fixtures: PatchFFixture[]): void {
     }
     if (f.polarity === 'negative' && f.required_archetype_ids.length > 0) {
       throw new Error(`negative with required: ${f.id}`);
+    }
+    if (f.expected_central_conflicts && f.expected_main_tension === undefined) {
+      throw new Error(`expected_central_conflicts requires explicit expected_main_tension: ${f.id}`);
     }
   }
 }

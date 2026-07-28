@@ -26,12 +26,14 @@ const micPlayIcon = require('../../assets/icons/action_icons/mic_play.png');
 const micStopIcon = require('../../assets/icons/action_icons/mic_stop.png');
 const MAX_RECORDING_MS = 5 * 60 * 1000;
 const LONG_RECORDING_NOTICE_MS = 4.5 * 60 * 1000;
+const OFFLINE_QUEUE_STATUSES = new Set<PendingVoiceTranscription['status']>(['queued', 'retrying', 'needs_attention']);
 
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
   disabled?: boolean;
   surface?: 'plain' | 'field';
   target: VoiceTranscriptionTarget;
+  presentation?: 'full' | 'compact';
 }
 
 const messageForError = (code: VoiceErrorCode): { title: string; message: string } => {
@@ -66,11 +68,34 @@ const messageForError = (code: VoiceErrorCode): { title: string; message: string
   }
 };
 
+const getQueueStatusMessage = (
+  item: PendingVoiceTranscription,
+  previousStatus: PendingVoiceTranscription['status'] | null
+): string | null => {
+  switch (item.status) {
+    case 'transcribing':
+      return previousStatus && OFFLINE_QUEUE_STATUSES.has(previousStatus)
+        ? 'You’re back online — transcribing your saved voice note…'
+        : 'Turning your saved voice note into text…';
+    case 'retrying':
+      return 'Your voice note is still saved safely. We’ll try again automatically.';
+    case 'needs_attention':
+      return 'Your voice note is saved safely. Choose Retry now whenever you’re ready.';
+    case 'queued':
+      return 'Saved safely. We’ll turn your voice note into text when your connection is ready.';
+    case 'completed':
+      return null;
+    default:
+      return null;
+  }
+};
+
 export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   onTranscriptionComplete,
   disabled = false,
   surface = 'plain',
   target,
+  presentation = 'full',
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -82,6 +107,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const [pendingItem, setPendingItem] = useState<PendingVoiceTranscription | null>(null);
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
   const completionCallbackRef = useRef(onTranscriptionComplete);
+  const previousQueueStatusRef = useRef<PendingVoiceTranscription['status'] | null>(null);
   completionCallbackRef.current = onTranscriptionComplete;
 
   const safelySetState = (callback: () => void) => {
@@ -161,22 +187,17 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         setIsTranscribing(false);
         return;
       }
+      const previousStatus = previousQueueStatusRef.current;
+      previousQueueStatusRef.current = item.status;
       setPendingItem(item);
       if (item.status === 'transcribing') {
         setIsTranscribing(true);
-        setStatusMessage('You’re back online — transcribing your saved voice note…');
-      } else if (item.status === 'retrying') {
-        setIsTranscribing(false);
-        setStatusMessage('Your voice note is still saved safely. We’ll try again automatically.');
-      } else if (item.status === 'needs_attention') {
-        setIsTranscribing(false);
-        setStatusMessage('Your voice note is saved safely. Choose Retry now whenever you’re ready.');
-      } else if (item.status === 'queued') {
-        setIsTranscribing(false);
-        setStatusMessage('Saved safely. We’ll keep trying when your connection is ready.');
       } else if (item.status === 'completed') {
         setIsTranscribing(false);
+      } else {
+        setIsTranscribing(false);
       }
+      setStatusMessage(getQueueStatusMessage(item, previousStatus));
     };
 
     // Sole append path: claimCompleted removes the row, so concurrent calls cannot double-append.
@@ -294,20 +315,20 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
 
   return (
     <View style={styles.container}>
-      {isRecording && (
+      {presentation === 'full' && isRecording && (
         <View style={styles.durationContainer}>
           <Text accessibilityLiveRegion="polite" style={styles.durationText}>
             {formatDuration(duration)}
           </Text>
         </View>
       )}
-      {statusMessage && <Text accessibilityLiveRegion="polite" style={styles.statusText}>{statusMessage}</Text>}
-      {retrySeconds != null && (
+      {presentation === 'full' && statusMessage && <Text accessibilityLiveRegion="polite" style={styles.statusText}>{statusMessage}</Text>}
+      {presentation === 'full' && retrySeconds != null && (
         <Text accessibilityLiveRegion="polite" style={styles.retryCountdown}>
           {retrySeconds > 0 ? `Automatic retry in ${retrySeconds}s` : 'Automatic retry starting…'}
         </Text>
       )}
-      {pendingItem && ['queued', 'retrying', 'needs_attention'].includes(pendingItem.status) && (
+      {presentation === 'full' && pendingItem && ['queued', 'retrying', 'needs_attention'].includes(pendingItem.status) && (
         <View style={styles.recoveryActions}>
           <TouchableOpacity accessibilityRole="button" onPress={retryNow} testID="voice-retry-now">
             <Text style={styles.recoveryActionText}>Retry now</Text>

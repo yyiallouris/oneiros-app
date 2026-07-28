@@ -17,7 +17,9 @@ import {
  * Keep DreamDetail / Insights field semantics here — do not fork thin stubs elsewhere.
  *
  * Fabric / display / conflicts pedagogy stays on the proven contract.
- * Interpretive Echoes (v4.1.9-M1): Mother/Father polarity-neutral catalog 1.7.0 + prior E.1 language gate (schema 13).
+ * Interpretive Echoes (v4.1.10-M2.2): prompt-only general archetypal-field
+ * calibration on top of Mother/Father polarity-neutral catalog 1.7.1 + prior
+ * E.1 language gate (schema 13), plus narrow explicit-negation and ordinary-obstacle restraint.
  * Prior Hero layer frozen at D.1; myth layer C.1.1; Patch E activation/catalog frozen.
  * Specs: docs/ONEIROS_V4_1_3_POST_PATCH_A_DEV_BRIEF.md,
  *         docs/ONEIROS_V4_1_2_TARGETED_FIX_DEV_BRIEF.md
@@ -69,6 +71,7 @@ archetype resonance, mythic resonance, and mythic divergence.
 It may not introduce, remove, strengthen, weaken, rename, or provide evidence for any selection.
 
 central_conflicts and display_distillation may use the dream plus reflection as supporting context.
+Reflection may help phrase an already-established conflict, but must not introduce either side.
 Use the dream as ground truth for Dream Fabric.
 Do not invent symbolic material not present in the dream or interpretation.
 
@@ -96,6 +99,8 @@ For display_distillation:
 - essence_line should be one sentence.
 - movement_line should be one sentence or null.
 - main_tension should be compact, like "contact vs protection" (or the same shape in the dream language), or null.
+- If central_conflicts is [], main_tension must be null.
+- If central_conflicts is non-empty, main_tension must restate the first supported central_conflict rather than invent a different opposition.
 
 Fields:
 - display_distillation: a minimal user-facing summary for the DreamDetail screen. It is not a metadata report.
@@ -139,12 +144,38 @@ Do not return: individual objects alone; places by themselves; emotions; archety
 Keep each phrase general enough to match similar scenes in other dreams, but specific enough to remain recognizable. Prefer under about 8 words.
 
 CENTRAL CONFLICTS / INNER TENSIONS
-0–2 concrete conflicts or opposing pressures clearly staged by the dream.
-Use "X vs Y" only when both sides are supported by actual dream images, figures, actions, places, or bodily tones.
+Return 0–2 only when the dream stages genuinely incompatible pressures.
+
+A conflict requires more than two contrasting images, locations, directions,
+tones, or symbolic poles. One side must block, threaten, pull against, exclude,
+contradict, or make the other side difficult, costly, or impossible.
+
+Do not create an X-vs-Y conflict merely from:
+- surface and depth
+- above and below
+- inner and outer
+- stillness and movement
+- closeness and exploration
+- other complementary or layered contrasts
+
+when the two sides coexist, cooperate, or participate in the same movement.
+
+A contrast is not automatically a conflict.
+
+Determine whether the conflict exists, and identify both sides, from the raw
+dream only. Reflection may help phrase an already-established conflict but
+must not introduce either side.
+
 Prefer image-near phrasing over abstract psychology, written in the dream's language.
 English shape examples (translate): "locked room vs open street", "wanting to enter vs being watched", "warm table vs silent exclusion", "sleeping body vs demand to perform".
 Avoid generic pairs like "fear vs desire", "control vs surrender", or "autonomy vs belonging" unless the dream concretely stages both sides.
-Use [] if none is clearly staged.
+Return [] when the dream is cohesive, harmonious, exploratory, restorative,
+or simply layered without opposing pressure.
+
+Do not elevate a small practical obstacle, mild inconvenience, or ordinary task friction
+into an inner conflict when the dream simply notices it, resolves it, or moves past it.
+
+An immediate or low-stakes obstacle is not enough by itself.
 
 INTERPRETIVE ECHOES
 
@@ -180,9 +211,41 @@ Select an archetype_id only when:
 
 GLOBAL ARCHETYPE ACTIVATION
 
-Select an archetypal echo when its function is central, sustained, or image-bearing in the dream.
+An archetype may be enacted through an event, action, conflict,
+transformation, or sustained field.
 
-A dramatic conflict, completed transformation, boon, victory, or changed outcome is not required unless that specific archetype structurally depends on such a sequence.
+Do not require every archetype to produce a decision, crossing,
+crisis, reversal, or changed outcome.
+
+A relational, containing, ordering, unifying, or restorative
+archetype may be fully active when its presence organizes how the
+whole dream-space is felt and inhabited.
+
+Distinguish:
+- a figure or relationship that merely appears
+from
+- a figure, bond, or quality that organizes the dream's emotional,
+  relational, or imaginal field.
+
+Harmony, stillness, mutuality, safety, and sustained attention do
+not weaken archetypal relevance.
+
+Core State and Core Restoration dreams remain eligible for
+archetypal recognition.
+
+EXPLICIT NEGATION
+
+When the raw dream explicitly denies an archetypal function,
+do not select that archetype merely from neighboring imagery.
+
+Explicitly non-romantic companionship must not become Lover.
+Explicitly non-guiding movement must not become Guide / Psychopomp.
+Explicitly non-authoritative presence must not become Father or Ruler.
+
+A direct negation is disqualifying unless the dream's enacted
+sequence clearly overrides it with stronger concrete evidence.
+
+Select an archetypal echo when its function is central, sustained, or image-bearing in the dream.
 
 When an archetypal resonance is real but gentle, return it at medium confidence rather than omitting it.
 
@@ -203,8 +266,9 @@ expression must describe the enacted archetypal function or movement in the drea
 Do not use expression to label a character as the archetype (e.g. avoid
 "the giant is the Trickster"); describe what the function does instead.
 
-Prefer the action or process that changes what can happen next over a visually
-striking figure.
+Select the archetypal function that organizes a figure, relationship, or process in the dream, not one inferred from an isolated action, trait, object, or moment.
+
+Prefer the function or process that meaningfully shapes the dream's relational field, conflict, passage, or change of possibilities.
 
 Return [] when no catalog function is sufficiently enacted.
 Never return Ego. Never invent an id.
@@ -242,10 +306,14 @@ Each catalog record shows:
 First derive the dream's ordered causal sequence and functional roles.
 Then compare catalog records by sig, roles, req groups, and anti exclusions.
 
+Prefer the candidate supported by the most distinctive convergence of dream images, roles, causal turns, and consequences.
+
+Do not prefer a candidate merely because it shares a broad plot shape such as descent, ascent, rescue, trial, family conflict, loss, or return.
+
 A candidate qualifies only when:
 - its defining configuration remains recognizable in the dream sequence
 - no anti exclusion describes the dream's actual configuration
-- divergence modifies a real match rather than excusing missing core structure
+- divergence describes how the dream transforms an otherwise recognizable configuration; it must not compensate for absent defining roles, required turns, or central causal structure
 - evidence_ids cite only [Dn] spans from the numbered dream body
 
 Return [] when no supplied record qualifies.
@@ -425,11 +493,11 @@ Do not write a new interpretation.`;
 }
 
 /** Stable prompt architecture id for re-extraction tracking. */
-export const DREAM_EXTRACTION_PROMPT_ID = 'dream-field-map-interpretive-v4.1.9-M1';
+export const DREAM_EXTRACTION_PROMPT_ID = 'dream-field-map-interpretive-v4.1.10-M2.2';
 /** Closed Mythic catalog V2 index; namespace enums + integrity-only myth validation. */
 export const DREAM_EXTRACTION_SCHEMA_VERSION = 13;
 /** Bump when extraction pedagogy/schema contract changes — logged on every extract call. */
-export const DREAM_EXTRACTION_PROMPT_VERSION = '4.1.9-M1';
+export const DREAM_EXTRACTION_PROMPT_VERSION = '4.1.10-M2.2';
 
 /** Extra completion budget when debug diagnostics must fit in the same JSON object. */
 export const DREAM_EXTRACTION_DEBUG_TOKEN_LIMIT = 5600;

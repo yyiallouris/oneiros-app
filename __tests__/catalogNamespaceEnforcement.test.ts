@@ -35,7 +35,7 @@ describe('catalog namespace enforcement (C.1.1)', () => {
     }
   });
 
-  it('rejects myth catalog_id placed in archetype_id', () => {
+  it('drops myth catalog_id placed in archetype_id while preserving valid non-echo metadata', () => {
     const result = validateStructuredTaskContent(
       'dream_extraction',
       JSON.stringify({
@@ -61,7 +61,15 @@ describe('catalog namespace enforcement (C.1.1)', () => {
         symbol_stances: [],
       })
     );
-    expect(result.ok).toBe(false);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const data = result.data as { archetypes: unknown[] };
+      expect(data.archetypes).toEqual([]);
+      expect(result.log.salvageSucceeded).toBe(true);
+      expect(result.log.salvageDropCategories).toEqual(
+        expect.arrayContaining(['dream_extraction_echo_namespace_crossover'])
+      );
+    }
   });
 
   it('strips bracket wrapper before archetype enum validation', () => {

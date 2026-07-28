@@ -6,6 +6,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 
+const mockChatScrollToEnd = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGetDreamById = jest.fn();
 const mockGetInterpretationByDreamId = jest.fn();
@@ -13,6 +14,27 @@ const mockIsOnline = jest.fn();
 const mockPurchasePlan = jest.fn();
 const mockGenerateEntitledDreamReflection = jest.fn();
 const mockGenerateEntitledFollowupReply = jest.fn();
+const mockSaveInterpretation = jest.fn();
+const mockUpdateInterpretationElementsFromConversation = jest.fn(
+  async (_dream, interpretation, _messages) => interpretation
+);
+
+jest.mock('react-native/Libraries/Components/ScrollView/ScrollView', () => {
+  const React = require('react');
+  const { View } = jest.requireActual('react-native');
+  const MockScrollView = React.forwardRef(({ children, ...props }: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({
+      scrollToEnd: mockChatScrollToEnd,
+    }));
+    return <View {...props}>{children}</View>;
+  });
+  MockScrollView.displayName = 'MockScrollView';
+
+  return {
+    __esModule: true,
+    default: MockScrollView,
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -59,14 +81,15 @@ jest.mock('../../src/components/ui', () => {
     BreathingLine: () => null,
     PrintPatchLoader: () => null,
     DreamDetailSkeleton: () => null,
-    LoadingState: ({ preset }: any) => (
+    LoadingState: ({ preset, testID }: any) => (
       <View>
-        <Text>{preset === 'dreamReflection' ? 'Reflecting on your dream...' : 'Loading...'}</Text>
+        <Text testID={testID}>{preset === 'dreamReflection' ? 'Reflecting on your dream...' : 'Loading...'}</Text>
       </View>
     ),
-    PrimaryIconButton: ({ onPress, accessibilityLabel }: any) => (
-      <TouchableOpacity onPress={onPress} accessibilityLabel={accessibilityLabel}>
+    PrimaryIconButton: ({ onPress, accessibilityLabel, testID, children }: any) => (
+      <TouchableOpacity onPress={onPress} accessibilityLabel={accessibilityLabel} testID={testID}>
         <Text>{accessibilityLabel ?? 'icon button'}</Text>
+        {children}
       </TouchableOpacity>
     ),
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
@@ -103,7 +126,7 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../src/utils/storage', () => ({
   getDreamById: (...args: unknown[]) => mockGetDreamById(...args),
   getInterpretationByDreamId: (...args: unknown[]) => mockGetInterpretationByDreamId(...args),
-  saveInterpretation: jest.fn(),
+  saveInterpretation: (...args: unknown[]) => mockSaveInterpretation(...args),
   deleteInterpretation: jest.fn(),
   saveDream: jest.fn(),
 }));
@@ -112,7 +135,8 @@ jest.mock('../../src/services/ai', () => ({
   generateInitialInterpretation: jest.fn(),
   sendChatMessage: jest.fn(),
   filterArchetypesForDisplay: (value: string[]) => value,
-  updateInterpretationElementsFromConversation: jest.fn(async (_dream, interpretation) => interpretation),
+  updateInterpretationElementsFromConversation: (dreamArg: unknown, interpretationArg: unknown, messagesArg: unknown) =>
+    mockUpdateInterpretationElementsFromConversation(dreamArg, interpretationArg, messagesArg),
 }));
 
 jest.mock('../../src/services/dreamMetadataPrefetchService', () => ({
@@ -230,6 +254,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
     mockGetDreamById.mockResolvedValue(dream);
     mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
     mockIsOnline.mockResolvedValue(true);
+    mockSaveInterpretation.mockResolvedValue(undefined);
+    mockUpdateInterpretationElementsFromConversation.mockImplementation(async (_dream, currentInterpretation) => currentInterpretation);
   });
 
   it('opens Exploring chat with the full multi-section reflection still in the tree', async () => {
@@ -263,5 +289,141 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(flatStyle.overflow).toBeUndefined();
     expect(chatScroll.props.nestedScrollEnabled).toBe(true);
     expect(chatScroll.props.scrollEnabled !== false).toBe(true);
+  });
+
+  it('shows the shared pending loader inside chat while a follow-up reply is in flight', async () => {
+    let resolveReply: ((value: any) => void) | null = null;
+    mockGenerateEntitledFollowupReply.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveReply = resolve;
+        })
+    );
+
+    const screen = render(<DreamDetailScreen />);
+
+    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue exploring'));
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),
+      'What is the water doing here?'
+    );
+    fireEvent.press(screen.getByTestId('dream-detail-send-button'));
+
+    await waitFor(() => expect(screen.getByTestId('dream-detail-pending-reply-loader')).toBeTruthy());
+
+    expect(resolveReply).not.toBeNull();
+    resolveReply!({
+      ...interpretation,
+      messages: [
+        ...interpretation.messages,
+        {
+          id: 'user-1',
+          role: 'user',
+          content: 'What is the water doing here?',
+          timestamp: '2025-04-01T00:01:00.000Z',
+        },
+        {
+          id: 'assistant-2',
+          role: 'assistant',
+          content: 'It seems to hold the distance in feeling, not just in image.',
+          timestamp: '2025-04-01T00:01:03.000Z',
+        },
+      ],
+    });
+
+    await waitFor(() => expect(screen.queryByTestId('dream-detail-pending-reply-loader')).toBeNull());
+  });
+
+  it('does not force a second scroll-to-end when the follow-up reply arrives', async () => {
+    mockGenerateEntitledFollowupReply.mockResolvedValue({
+      ...interpretation,
+      messages: [
+        ...interpretation.messages,
+        {
+          id: 'user-1',
+          role: 'user',
+          content: 'What is the water doing here?',
+          timestamp: '2025-04-01T00:01:00.000Z',
+        },
+        {
+          id: 'assistant-2',
+          role: 'assistant',
+          content: 'It seems to hold the distance in feeling, not just in image.',
+          timestamp: '2025-04-01T00:01:03.000Z',
+        },
+      ],
+    });
+
+    const screen = render(<DreamDetailScreen />);
+
+    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue exploring'));
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),
+      'What is the water doing here?'
+    );
+    fireEvent.press(screen.getByTestId('dream-detail-send-button'));
+
+    await waitFor(() => expect(mockGenerateEntitledFollowupReply).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(mockChatScrollToEnd).toHaveBeenCalledTimes(1));
+  });
+
+  it('hides the pending loader as soon as assistant typing begins', async () => {
+    let resolveReply: ((value: any) => void) | null = null;
+    let releasePostProcessing: (() => void) | null = null;
+
+    mockGenerateEntitledFollowupReply.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveReply = resolve;
+        })
+    );
+    mockUpdateInterpretationElementsFromConversation.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releasePostProcessing = () => resolve(interpretation);
+        })
+    );
+
+    const screen = render(<DreamDetailScreen />);
+
+    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue exploring'));
+
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),
+      'What is the water doing here?'
+    );
+    fireEvent.press(screen.getByTestId('dream-detail-send-button'));
+
+    await waitFor(() => expect(screen.getByTestId('dream-detail-pending-reply-loader')).toBeTruthy());
+
+    expect(resolveReply).not.toBeNull();
+    resolveReply!({
+      ...interpretation,
+      messages: [
+        ...interpretation.messages,
+        {
+          id: 'user-1',
+          role: 'user',
+          content: 'What is the water doing here?',
+          timestamp: '2025-04-01T00:01:00.000Z',
+        },
+        {
+          id: 'assistant-2',
+          role: 'assistant',
+          content: 'It seems to hold the distance in feeling, not just in image.',
+          timestamp: '2025-04-01T00:01:03.000Z',
+        },
+      ],
+    });
+
+    await waitFor(() => expect(screen.queryByTestId('dream-detail-pending-reply-loader')).toBeNull());
+
+    expect(releasePostProcessing).not.toBeNull();
+    releasePostProcessing!();
   });
 });

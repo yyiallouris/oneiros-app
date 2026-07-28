@@ -25,11 +25,33 @@ import {
   type OutputLanguageCommitTelemetry,
 } from '../../../src/ai/dreamOutputLanguage.ts';
 import {
+  ARCHETYPE_ADJUDICATION_PROMPT_ID,
+  ARCHETYPE_ADJUDICATION_PROMPT_VERSION,
+  ARCHETYPE_ADJUDICATION_TEMPERATURE,
+  ARCHETYPE_ADJUDICATION_TOKEN_LIMIT,
+  buildArchetypeAdjudicationSystemPrompt,
+  buildArchetypeAdjudicationUserPrompt,
+} from '../../../src/ai/archetypeAdjudicationPrompt.ts';
+import {
   formatArchetypesForEssay,
   MAX_ARCHETYPAL_ECHOES,
   normalizeArchetypalEchoes,
   type ArchetypalEcho,
 } from '../../../src/ai/archetypalEchoes.ts';
+import {
+  applyArchetypeAdjudicationToRecognition,
+  mapAdjudicatedRecognitionToArchetypalEchoes,
+} from '../../../src/ai/archetypeRecognitionPipeline.ts';
+import {
+  ARCHETYPE_RECOGNITION_PROMPT_ID,
+  ARCHETYPE_RECOGNITION_PROMPT_VERSION,
+  ARCHETYPE_RECOGNITION_TEMPERATURE,
+  ARCHETYPE_RECOGNITION_TOKEN_LIMIT,
+  buildArchetypeRecognitionSystemPrompt,
+  buildArchetypeRecognitionUserPrompt,
+} from '../../../src/ai/archetypeRecognitionPrompt.ts';
+import { ARCHETYPE_BOUNDARY_CATALOG_VERSION } from '../../../src/ai/catalogs/archetypeBoundaryCatalog.v1.ts';
+import { ARCHETYPE_RECOGNITION_CATALOG_VERSION } from '../../../src/ai/catalogs/archetypeRecognitionCatalog.v2.ts';
 import {
   formatAmplificationsForEssay,
   MAX_MYTHIC_ECHOES,
@@ -57,10 +79,25 @@ import {
   buildMythicEchoPipelineDebugPacket,
   type MythicEchoPipelineDebugPacket,
 } from '../../../src/ai/mythicEchoPipelineDebug.ts';
+import {
+  ARCHETYPE_ADJUDICATION_SCHEMA_VERSION,
+  buildArchetypeAdjudicationResponseFormat,
+  validateArchetypeAdjudicationResponse,
+} from '../../../src/ai/schemas/archetypeAdjudicationSchema.ts';
+import {
+  ARCHETYPE_RECOGNITION_SCHEMA_VERSION,
+  buildArchetypeRecognitionResponseFormat,
+  validateArchetypeRecognitionResponse,
+} from '../../../src/ai/schemas/archetypeRecognitionSchema.ts';
 import type { PatternEntry } from './billing-db.ts';
 import { HttpError } from './http.ts';
 import { getFunctionsBaseUrl, getSupabaseAnonKey } from './supabase.ts';
-import { safeAssistantJsonDiagnostics, validateStructuredTaskContent } from './structuredTaskValidation.ts';
+import {
+  normalizeMainTensionAgainstCentralConflicts,
+  safeAssistantJsonDiagnostics,
+  safeStructuredValidationLog,
+  validateStructuredTaskContent,
+} from './structuredTaskValidation.ts';
 
 function tryParseRawModelObject(content: string): Record<string, unknown> | null {
   try {
@@ -101,6 +138,17 @@ type ExtractionResult = {
   symbol_stances: Array<{ symbol: string; stance: string }>;
 };
 
+type DedicatedArchetypePipelineStatus = 'ready' | 'empty';
+
+type DedicatedArchetypePipelineResult = {
+  archetypes: ArchetypalEcho[];
+  cost: AiCallCost | null;
+  status: DedicatedArchetypePipelineStatus;
+  attempts: number;
+  discoveryCount: number;
+  acceptedCount: number;
+};
+
 export type { AiCallCost };
 
 type ReflectionProgressCallback = (progress: {
@@ -113,6 +161,7 @@ const DEFAULT_AI_PROXY_TIMEOUT_MS = 60000;
 const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
 const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
 const AI_COST_FIELD = '__oneiros_ai_cost';
+const DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS = 2;
 
 /* ============================
    PROMPT CONSTITUTION
@@ -1218,7 +1267,10 @@ function asStringArray(value: unknown): string[] {
     .filter(Boolean);
 }
 
-function normalizeDisplayDistillation(value: unknown): DisplayDistillation | undefined {
+function normalizeDisplayDistillation(
+  value: unknown,
+  centralConflicts: string[] = []
+): DisplayDistillation | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const raw = value as Record<string, unknown>;
   const visible_anchors = Array.isArray(raw.visible_anchors)
@@ -1260,7 +1312,7 @@ function normalizeDisplayDistillation(value: unknown): DisplayDistillation | und
     essence_line,
     dominant_lens: (typeof raw.dominant_lens === 'string' ? raw.dominant_lens : 'unclear') as DisplayDistillation['dominant_lens'],
     visible_anchors,
-    main_tension,
+    main_tension: normalizeMainTensionAgainstCentralConflicts(main_tension, centralConflicts),
     dream_movement: (typeof raw.dream_movement === 'string' ? raw.dream_movement : 'unclear') as DisplayDistillation['dream_movement'],
     movement_line,
   };
@@ -1369,8 +1421,12 @@ function parseExtraction(
     mythicAuditCount: diagnostics?.mythic_audit.length ?? 0,
   });
 
+  const central_conflicts = asStringArray(parsed.central_conflicts);
   const extraction = {
-    display_distillation: normalizeDisplayDistillation(parsed.display_distillation),
+    display_distillation: normalizeDisplayDistillation(
+      parsed.display_distillation,
+      central_conflicts
+    ),
     symbols: asStringArray(parsed.symbols),
     // Keep evaluation attached until after validators (indices stay aligned).
     archetypes: archetypesWithEvaluation(parsed.archetypes) as ArchetypalEcho[],
@@ -1379,7 +1435,7 @@ function parseExtraction(
     motifs: asStringArray(parsed.motifs),
     relational_dynamics: asStringArray(parsed.relational_dynamics),
     thresholds: asStringArray(parsed.thresholds),
-    central_conflicts: asStringArray(parsed.central_conflicts),
+    central_conflicts,
     core_mode: (typeof parsed.core_mode === 'string' ? parsed.core_mode : null) as ExtractionResult['core_mode'],
     amplifications: normalizeAmplifications(parsedAmplificationsBeforeNormalize, MAX_MYTHIC_ECHOES),
     symbol_stances: Array.isArray(parsed.symbol_stances)
@@ -1497,6 +1553,7 @@ export async function generateDreamExtractionWithCost(params: {
   dream: DreamRecord;
   interpretation: string;
   debugInterpretiveEchoes?: boolean;
+  debugFaultInjectionCase?: 'invalid_archetype' | 'invalid_myth' | 'mixed_optional' | 'all_optional_invalid' | null;
 }): Promise<{
   extraction: ExtractionResult;
   cost: AiCallCost | null;
@@ -1510,6 +1567,7 @@ export async function generateDreamExtractionWithCost(params: {
   /** Dev/debug mythic pipeline stages — never persist. */
   mythicPipelineDebug?: MythicEchoPipelineDebugPacket | null;
   outputLanguageCommit?: OutputLanguageCommitTelemetry | null;
+  structuredValidation?: Record<string, unknown> | null;
 }> {
   const debugInterpretiveEchoes = Boolean(params.debugInterpretiveEchoes);
   const prepared = buildExtractionMessages(params.dream, params.interpretation, { debugInterpretiveEchoes });
@@ -1522,6 +1580,7 @@ export async function generateDreamExtractionWithCost(params: {
     ...prepared,
   });
   let content = extractContent(extractionPayload);
+  content = applyDebugEchoFaultInjection(content, params.debugFaultInjectionCase ?? null);
   let costs: Array<AiCallCost | null> = [aiCallCostFromPayload(extractionPayload)];
 
   const firstValidated = validateStructuredTaskContent('dream_extraction', content, {
@@ -1608,7 +1667,64 @@ export async function generateDreamExtractionWithCost(params: {
     targetOutputLanguage,
     outputLanguageCommit: languageGate.telemetry,
     rawModelObject,
+    structuredValidation: safeStructuredValidationLog(firstValidated.log),
   });
+}
+
+function applyDebugEchoFaultInjection(
+  content: string,
+  faultCase: 'invalid_archetype' | 'invalid_myth' | 'mixed_optional' | 'all_optional_invalid' | null
+): string {
+  if (!faultCase) return content;
+  const parsed = tryParseRawModelObject(content);
+  if (!parsed) return content;
+
+  const invalidArchetype = {
+    archetype_id: 'public_role_or_social_mask',
+    expression: 'invalid test row',
+    mechanism_tags: ['invalid_test_tag'],
+    evidence_ids: ['D1'],
+    resonance: 'invalid test row with a non-catalog archetype id',
+    confidence: 'medium',
+  };
+  const invalidMyth = {
+    catalog_id: 'invalid.test_myth',
+    resonance: 'invalid test row',
+    divergence: 'invalid test row',
+    evidence_ids: ['D2'],
+    confidence: 'medium',
+  };
+
+  const next: Record<string, unknown> = {
+    ...parsed,
+    archetypes: Array.isArray(parsed.archetypes) ? [...parsed.archetypes] : [],
+    amplifications: Array.isArray(parsed.amplifications) ? [...parsed.amplifications] : [],
+  };
+
+  switch (faultCase) {
+    case 'invalid_archetype':
+      (next.archetypes as unknown[]).push(invalidArchetype);
+      break;
+    case 'invalid_myth':
+      (next.amplifications as unknown[]).push(invalidMyth);
+      break;
+    case 'mixed_optional':
+      (next.archetypes as unknown[]).push(invalidArchetype);
+      (next.amplifications as unknown[]).push(invalidMyth);
+      break;
+    case 'all_optional_invalid':
+      next.archetypes = [invalidArchetype];
+      next.amplifications = [invalidMyth];
+      break;
+  }
+
+  console.log('[billing-ai] debug_optional_echo_fault_injection', {
+    faultCase,
+    archetypesCount: Array.isArray(next.archetypes) ? next.archetypes.length : 0,
+    amplificationsCount: Array.isArray(next.amplifications) ? next.amplifications.length : 0,
+  });
+
+  return JSON.stringify(next);
 }
 
 function sumAiCallCosts(costs: Array<AiCallCost | null>): AiCallCost | null {
@@ -1634,12 +1750,200 @@ function sumAiCallCosts(costs: Array<AiCallCost | null>): AiCallCost | null {
   };
 }
 
+function isDedicatedArchetypeRetryableError(error: unknown): boolean {
+  if (!(error instanceof HttpError)) return false;
+  const details =
+    error.details && typeof error.details === 'object'
+      ? (error.details as Record<string, unknown>)
+      : null;
+  const failureCode = typeof details?.failureCode === 'string' ? details.failureCode : null;
+  return (
+    error.status >= 500 ||
+    failureCode === 'structured_schema_invalid' ||
+    failureCode === 'language_validation_failed' ||
+    failureCode === 'archetype_recognition_invalid' ||
+    failureCode === 'archetype_adjudication_invalid' ||
+    failureCode === 'archetype_pipeline_invalid'
+  );
+}
+
+async function runDedicatedArchetypePipelineOnce(params: {
+  authHeader: string;
+  dream: DreamRecord;
+}): Promise<Omit<DedicatedArchetypePipelineResult, 'attempts'>> {
+  const recognitionPrompt = buildArchetypeRecognitionUserPrompt({
+    dreamText: params.dream.content,
+  });
+  const recognitionPayload = await invokeOpenAiProxy({
+    authHeader: params.authHeader,
+    task: 'dream_archetype_recognition',
+    messages: [
+      {
+        role: 'system',
+        content: buildArchetypeRecognitionSystemPrompt(recognitionPrompt.targetLanguage),
+      },
+      { role: 'user', content: recognitionPrompt.prompt },
+    ],
+    temperature: ARCHETYPE_RECOGNITION_TEMPERATURE,
+    tokenLimit: ARCHETYPE_RECOGNITION_TOKEN_LIMIT,
+    responseFormat: buildArchetypeRecognitionResponseFormat(),
+  });
+  const recognitionContent = extractContent(recognitionPayload);
+  const recognitionValidated = validateArchetypeRecognitionResponse(recognitionContent, {
+    dreamText: params.dream.content,
+  });
+  if (!recognitionValidated.ok) {
+    throw new HttpError(502, 'Dedicated archetype recognition returned invalid JSON', {
+      failureCode: 'archetype_recognition_invalid',
+      promptId: ARCHETYPE_RECOGNITION_PROMPT_ID,
+      promptVersion: ARCHETYPE_RECOGNITION_PROMPT_VERSION,
+      schemaVersion: ARCHETYPE_RECOGNITION_SCHEMA_VERSION,
+      recognitionCatalogVersion: ARCHETYPE_RECOGNITION_CATALOG_VERSION,
+      issues: recognitionValidated.issues,
+      errors: recognitionValidated.errors.slice(0, 12),
+    });
+  }
+
+  const discoveryResponse = recognitionValidated.data;
+  if (discoveryResponse.archetypes.length === 0) {
+    return {
+      archetypes: [],
+      cost: sumAiCallCosts([aiCallCostFromPayload(recognitionPayload)]),
+      status: 'empty',
+      discoveryCount: 0,
+      acceptedCount: 0,
+    };
+  }
+
+  const adjudicationPrompt = buildArchetypeAdjudicationUserPrompt({
+    dreamText: params.dream.content,
+    discoveryResponse,
+  });
+  const adjudicationPayload = await invokeOpenAiProxy({
+    authHeader: params.authHeader,
+    task: 'dream_archetype_adjudication',
+    messages: [
+      {
+        role: 'system',
+        content: buildArchetypeAdjudicationSystemPrompt(adjudicationPrompt.targetLanguage),
+      },
+      { role: 'user', content: adjudicationPrompt.prompt },
+    ],
+    temperature: ARCHETYPE_ADJUDICATION_TEMPERATURE,
+    tokenLimit: ARCHETYPE_ADJUDICATION_TOKEN_LIMIT,
+    responseFormat: buildArchetypeAdjudicationResponseFormat(),
+  });
+  const adjudicationContent = extractContent(adjudicationPayload);
+  const adjudicationValidated = validateArchetypeAdjudicationResponse(adjudicationContent, {
+    dreamText: params.dream.content,
+  });
+  if (!adjudicationValidated.ok) {
+    throw new HttpError(502, 'Dedicated archetype adjudication returned invalid JSON', {
+      failureCode: 'archetype_adjudication_invalid',
+      promptId: ARCHETYPE_ADJUDICATION_PROMPT_ID,
+      promptVersion: ARCHETYPE_ADJUDICATION_PROMPT_VERSION,
+      schemaVersion: ARCHETYPE_ADJUDICATION_SCHEMA_VERSION,
+      boundaryCatalogVersion: ARCHETYPE_BOUNDARY_CATALOG_VERSION,
+      issues: adjudicationValidated.issues,
+      errors: adjudicationValidated.errors.slice(0, 12),
+    });
+  }
+
+  const applied = applyArchetypeAdjudicationToRecognition(
+    discoveryResponse,
+    adjudicationValidated.data
+  );
+  if (!applied.ok) {
+    throw new HttpError(502, 'Dedicated archetype pipeline returned inconsistent decisions', {
+      failureCode: 'archetype_pipeline_invalid',
+      issues: applied.issues,
+      errors: applied.errors.slice(0, 12),
+    });
+  }
+
+  const archetypes = mapAdjudicatedRecognitionToArchetypalEchoes(
+    discoveryResponse,
+    adjudicationValidated.data,
+    {
+      dreamText: params.dream.content,
+      archetypeCatalogVersion: ARCHETYPE_RECOGNITION_CATALOG_VERSION,
+    }
+  );
+
+  return {
+    archetypes,
+    cost: sumAiCallCosts([
+      aiCallCostFromPayload(recognitionPayload),
+      aiCallCostFromPayload(adjudicationPayload),
+    ]),
+    status: archetypes.length > 0 ? 'ready' : 'empty',
+    discoveryCount: discoveryResponse.archetypes.length,
+    acceptedCount: archetypes.length,
+  };
+}
+
+async function generateDedicatedArchetypesWithCost(params: {
+  authHeader: string;
+  dream: DreamRecord;
+}): Promise<DedicatedArchetypePipelineResult> {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const result = await runDedicatedArchetypePipelineOnce(params);
+      console.log('[billing-ai] dedicated_archetype_pipeline', {
+        status: result.status,
+        attempts: attempt,
+        discoveryCount: result.discoveryCount,
+        acceptedCount: result.acceptedCount,
+        recognitionPromptId: ARCHETYPE_RECOGNITION_PROMPT_ID,
+        recognitionPromptVersion: ARCHETYPE_RECOGNITION_PROMPT_VERSION,
+        recognitionSchemaVersion: ARCHETYPE_RECOGNITION_SCHEMA_VERSION,
+        recognitionCatalogVersion: ARCHETYPE_RECOGNITION_CATALOG_VERSION,
+        adjudicationPromptId: ARCHETYPE_ADJUDICATION_PROMPT_ID,
+        adjudicationPromptVersion: ARCHETYPE_ADJUDICATION_PROMPT_VERSION,
+        adjudicationSchemaVersion: ARCHETYPE_ADJUDICATION_SCHEMA_VERSION,
+        boundaryCatalogVersion: ARCHETYPE_BOUNDARY_CATALOG_VERSION,
+        estimatedUsd: result.cost?.estimatedUsd ?? null,
+      });
+      return { ...result, attempts: attempt };
+    } catch (error) {
+      lastError = error;
+      const retryable = isDedicatedArchetypeRetryableError(error);
+      console.error('[billing-ai] dedicated_archetype_pipeline_failed', {
+        attempt,
+        retryable,
+        message: error instanceof Error ? error.message : 'Unknown dedicated archetype pipeline error',
+      });
+      if (!retryable || attempt >= DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS) break;
+    }
+  }
+
+  if (lastError instanceof HttpError) {
+    const details =
+      lastError.details && typeof lastError.details === 'object'
+        ? (lastError.details as Record<string, unknown>)
+        : {};
+    throw new HttpError(502, 'Dedicated archetype pipeline failed after retry', {
+      failureCode: 'dedicated_archetype_pipeline_failed',
+      attempts: DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS,
+      ...details,
+    });
+  }
+
+  throw new HttpError(502, 'Dedicated archetype pipeline failed after retry', {
+    failureCode: 'dedicated_archetype_pipeline_failed',
+    attempts: DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS,
+  });
+}
+
 async function finalizeExtractionAfterParse(args: {
   params: {
     authHeader: string;
     dream: DreamRecord;
     interpretation: string;
     debugInterpretiveEchoes?: boolean;
+    debugFaultInjectionCase?: 'invalid_archetype' | 'invalid_myth' | 'mixed_optional' | 'all_optional_invalid' | null;
   };
   content: string;
   parsed: ReturnType<typeof parseExtraction>;
@@ -1649,6 +1953,7 @@ async function finalizeExtractionAfterParse(args: {
   targetOutputLanguage: ReturnType<typeof resolveDreamOutputLanguage>;
   outputLanguageCommit: OutputLanguageCommitTelemetry | null;
   rawModelObject?: Record<string, unknown> | null;
+  structuredValidation?: Record<string, unknown> | null;
 }): Promise<{
   extraction: ExtractionResult;
   cost: AiCallCost | null;
@@ -1657,6 +1962,8 @@ async function finalizeExtractionAfterParse(args: {
   preValidation?: { archetypesCount: number; amplificationsCount: number };
   mythicPipelineDebug?: MythicEchoPipelineDebugPacket | null;
   outputLanguageCommit?: OutputLanguageCommitTelemetry | null;
+  structuredValidation?: Record<string, unknown> | null;
+  dedicatedArchetypePipeline?: DedicatedArchetypePipelineResult | null;
 }> {
   const {
     params,
@@ -1667,6 +1974,7 @@ async function finalizeExtractionAfterParse(args: {
     debugInterpretiveEchoes,
     targetOutputLanguage,
     outputLanguageCommit,
+    structuredValidation,
   } = args;
 
   const rawForLanguage =
@@ -1696,7 +2004,13 @@ async function finalizeExtractionAfterParse(args: {
     rawArchetypeCandidates as Array<ArchetypalEcho & { evaluation?: unknown }>,
     { max: MAX_ARCHETYPAL_ECHOES }
   );
-  parsed.extraction.archetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
+  const monolithicArchetypes = archetypeValidation.accepted.map(toPersistedArchetypalEcho);
+  const dedicatedArchetypePipeline = await generateDedicatedArchetypesWithCost({
+    authHeader: params.authHeader,
+    dream: params.dream,
+  });
+  parsed.extraction.archetypes = dedicatedArchetypePipeline.archetypes;
+  costs.push(dedicatedArchetypePipeline.cost);
 
   const closedMythicValidation = validateClosedCatalogMythicEchoes(
     Array.isArray(parsed.parsedAmplificationsBeforeNormalize)
@@ -1725,6 +2039,11 @@ async function finalizeExtractionAfterParse(args: {
     archetypesAccepted: archetypeValidation.accepted.length,
     archetypesRejected: archetypeValidation.rejected.length,
     archetypeRejectReasons: archetypeValidation.rejected.map((r) => r.reason).slice(0, 6),
+    monolithicArchetypesAccepted: monolithicArchetypes.length,
+    dedicatedArchetypeStatus: dedicatedArchetypePipeline.status,
+    dedicatedArchetypeAttempts: dedicatedArchetypePipeline.attempts,
+    dedicatedArchetypeDiscoveryCount: dedicatedArchetypePipeline.discoveryCount,
+    dedicatedArchetypeAcceptedCount: dedicatedArchetypePipeline.acceptedCount,
     outputLanguageTelemetry,
     outputLanguageCommit,
     heroTelemetry: summarizeHeroArchetypeTelemetry({
@@ -1791,6 +2110,8 @@ async function finalizeExtractionAfterParse(args: {
     preValidation,
     mythicPipelineDebug,
     outputLanguageCommit,
+    structuredValidation: structuredValidation ?? null,
+    dedicatedArchetypePipeline,
   };
 }
 

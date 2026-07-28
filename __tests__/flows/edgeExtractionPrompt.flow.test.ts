@@ -87,13 +87,27 @@ describe('edge extraction prompt flow', () => {
 
     // Echo v4.1 — archetypes contrastive + closed myth catalog
     expect(system).toMatch(/GLOBAL ARCHETYPE ACTIVATION/);
+    expect(system).toMatch(/An archetype may be enacted through an event, action, conflict,/);
+    expect(system).toMatch(/A relational, containing, ordering, unifying, or restorative/);
+    expect(system).toMatch(/Core State and Core Restoration dreams remain eligible/);
+    expect(system).toMatch(/Harmony, stillness, mutuality, safety, and sustained attention/);
     expect(system).toMatch(/medium confidence rather than omitting it/);
+    expect(system).toMatch(/organizes a figure, relationship, or process in the dream/);
+    expect(system).toMatch(/meaningfully shapes the dream's relational field, conflict, passage, or change of possibilities/);
+    expect(system).toMatch(/If central_conflicts is \[\], main_tension must be null/);
+    expect(system).toMatch(/A contrast is not automatically a conflict/);
+    expect(system).toMatch(/Do not elevate a small practical obstacle, mild inconvenience, or ordinary task friction/);
+    expect(system).toMatch(/EXPLICIT NEGATION/);
+    expect(system).toMatch(/Explicitly non-romantic companionship must not become Lover/);
     expect(system).toMatch(/CLOSED MECHANISM TAGS/);
     expect(system).toMatch(/CLOSED_MYTH_CATALOG/);
     expect(system).toMatch(/sumerian\.inanna_descent/);
     expect(system).toMatch(/ONEIROS ARCHETYPE CATALOG/);
     expect(system).toMatch(/Never return Ego/);
     expect(system).toMatch(/MYTHIC ECHO — CLOSED CATALOG/);
+    expect(system).toMatch(/most distinctive convergence of dream images, roles, causal turns, and consequences/);
+    expect(system).toMatch(/Do not prefer a candidate merely because it shares a broad plot shape/);
+    expect(system).toMatch(/divergence describes how the dream transforms an otherwise recognizable configuration/);
     expect(system).toMatch(/"catalog_id"/);
     expect(system).toMatch(/"archetypes": \[\]/);
     expect(system).toMatch(/"amplifications": \[\]/);
@@ -120,8 +134,8 @@ describe('edge extraction prompt flow', () => {
 
     expect(DREAM_EXTRACTION_TEMPERATURE).toBe(0);
     expect(DREAM_EXTRACTION_TOKEN_LIMIT).toBe(4200);
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
-    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.9-M1');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
+    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.10-M2.2');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
     expect(
       buildDreamExtractionUserPrompt({

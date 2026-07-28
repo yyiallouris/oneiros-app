@@ -11,11 +11,23 @@ import {
   MYTH_CATALOG_IDS,
   SELECTABLE_ARCHETYPE_IDS,
 } from './catalogs/generated/catalogIdEnums.v1.ts';
+import {
+  archetypeAdjudicationSchema,
+  coerceArchetypeAdjudicationResponse,
+} from './schemas/archetypeAdjudicationSchema.ts';
+import {
+  archetypeRecognitionSchema,
+  coerceArchetypeRecognitionResponse,
+} from './schemas/archetypeRecognitionSchema.ts';
 import { normalizeDreamEvidenceIdList } from './dreamEvidenceSpans.ts';
 import { MAX_LEGACY_MYTHIC_ECHOES, normalizeAmplifications } from './mythicEchoes.ts';
 
+export { archetypeAdjudicationSchema } from './schemas/archetypeAdjudicationSchema.ts';
+
 export const STRUCTURED_AI_TASKS = [
   'dream_extraction',
+  'dream_archetype_recognition',
+  'dream_archetype_adjudication',
   'conversation_element_update',
   'semantic_grouping',
 ] as const;
@@ -27,6 +39,7 @@ export function isStructuredAiTask(task: string | null | undefined): task is Str
 }
 
 const stringArray = z.array(z.string());
+const dreamEvidenceIdSchema = z.string().regex(/^D\d+$/, 'must be a numbered dream evidence id like D1');
 
 const coreModeSchema = z
   .union([
@@ -68,6 +81,24 @@ export const DREAM_EXTRACTION_SOFT_DEFAULTS = {
   missingEchoConfidence: 'medium' as const,
 };
 
+export function normalizeMainTensionAgainstCentralConflicts(
+  rawMainTension: unknown,
+  centralConflicts: string[]
+): string | null {
+  const cleanedConflicts = centralConflicts
+    .map((item) => (typeof item === 'string' ? item.trim() : ''))
+    .filter(Boolean);
+  if (cleanedConflicts.length === 0) return null;
+
+  const firstConflict = cleanedConflicts[0];
+  const mainTension =
+    typeof rawMainTension === 'string' && rawMainTension.trim().length > 0
+      ? rawMainTension.trim()
+      : null;
+
+  return mainTension ? firstConflict : firstConflict;
+}
+
 function withSoftEchoConfidence(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return raw;
   const o = raw as Record<string, unknown>;
@@ -89,6 +120,8 @@ const selectableArchetypeIdSchema = z.enum(
   SELECTABLE_ARCHETYPE_IDS as unknown as [string, ...string[]]
 );
 const mythCatalogIdSchema = z.enum(MYTH_CATALOG_IDS as unknown as [string, ...string[]]);
+const selectableArchetypeIdSet = new Set<string>(SELECTABLE_ARCHETYPE_IDS);
+const mythCatalogIdSet = new Set<string>(MYTH_CATALOG_IDS);
 
 const archetypeEvaluationSchema = z
   .object({
@@ -170,7 +203,7 @@ const extractionArchetypalEchoSchema = z.preprocess((raw) => {
     resonance: z.string().min(12),
     confidence: z.enum(['high', 'medium']),
     mechanism_tags: z.array(archetypeMechanismTagSchema).min(1).max(6),
-    evidence_ids: z.array(z.string().min(1)).min(1).max(10),
+    evidence_ids: z.array(dreamEvidenceIdSchema).min(1).max(10),
     /** Legacy optional bag — mechanism_tags are authoritative for hard gates. */
     evaluation: archetypeEvaluationSchema.optional(),
   })
@@ -252,7 +285,7 @@ const extractionMythicEchoSchema = z.preprocess((raw) => {
   resonance: z.string().min(12),
   divergence: z.string().min(8),
   /** Model-facing: cite [Dn] spans. Transport accepts up to 10; server clamps to 6. */
-  evidence_ids: z.array(z.string().min(1)).max(10).default([]),
+  evidence_ids: z.array(dreamEvidenceIdSchema).max(10).default([]),
   /**
    * App-facing resolved spans. Soft-default [] at Zod stage;
    * mythic validator fills from evidence_ids (or accepts legacy text temporarily).
@@ -403,6 +436,12 @@ export type StructuredValidationLog = {
   schemaErrors: string[] | null;
   repairAttempted: boolean;
   repairSucceeded: boolean | null;
+  salvageAttempted?: boolean;
+  salvageSucceeded?: boolean;
+  salvagedWithoutRepair?: boolean;
+  salvagedArchetypesDropped?: number;
+  salvagedAmplificationsDropped?: number;
+  salvageDropCategories?: string[] | null;
 };
 
 export type StructuredValidationResult =
@@ -524,7 +563,7 @@ function coerceExtractionArchetypes(value: unknown): unknown[] {
 function coerceExtractionAmplifications(value: unknown): unknown[] {
   if (!Array.isArray(value)) return [];
   const out: unknown[] = [];
-  for (const item of value.slice(0, 1)) {
+  for (const item of value) {
     if (!item || typeof item !== 'object') continue;
     const o = item as Record<string, unknown>;
     const {
@@ -561,10 +600,21 @@ function coerceDreamExtraction(raw: unknown): unknown {
     o.symbol_stances !== undefined ? o.symbol_stances : o.symbolStances;
   const centralConflicts =
     o.central_conflicts !== undefined ? o.central_conflicts : o.centralConflicts;
+  const normalizedCentralConflicts = asStringArray(centralConflicts);
+  const normalizedDisplayDistillation =
+    displayDistillation && typeof displayDistillation === 'object'
+      ? {
+          ...(displayDistillation as Record<string, unknown>),
+          main_tension: normalizeMainTensionAgainstCentralConflicts(
+            (displayDistillation as Record<string, unknown>).main_tension,
+            normalizedCentralConflicts
+          ),
+        }
+      : displayDistillation;
   return {
     ...o,
-    ...(displayDistillation !== undefined
-      ? { display_distillation: displayDistillation }
+    ...(normalizedDisplayDistillation !== undefined
+      ? { display_distillation: normalizedDisplayDistillation }
       : {}),
     symbols: asStringArray(o.symbols),
     archetypes: coerceExtractionArchetypes(o.archetypes),
@@ -573,7 +623,7 @@ function coerceDreamExtraction(raw: unknown): unknown {
     motifs: asStringArray(o.motifs),
     relational_dynamics: asStringArray(o.relational_dynamics),
     thresholds: asStringArray(o.thresholds),
-    central_conflicts: asStringArray(centralConflicts),
+    central_conflicts: normalizedCentralConflicts,
     amplifications: coerceExtractionAmplifications(o.amplifications),
     symbol_stances: Array.isArray(symbolStances) ? symbolStances : [],
     core_mode: o.core_mode === undefined ? null : o.core_mode,
@@ -623,10 +673,22 @@ function coerceSemanticGrouping(raw: unknown): unknown {
   };
 }
 
+function coerceDreamArchetypeRecognition(raw: unknown): unknown {
+  return coerceArchetypeRecognitionResponse(raw);
+}
+
+function coerceDreamArchetypeAdjudication(raw: unknown): unknown {
+  return coerceArchetypeAdjudicationResponse(raw);
+}
+
 function schemaForTask(task: StructuredAiTask) {
   switch (task) {
     case 'dream_extraction':
       return dreamExtractionSchema;
+    case 'dream_archetype_recognition':
+      return archetypeRecognitionSchema;
+    case 'dream_archetype_adjudication':
+      return archetypeAdjudicationSchema;
     case 'conversation_element_update':
       return conversationElementUpdateSchema;
     case 'semantic_grouping':
@@ -638,6 +700,10 @@ function coerceForTask(task: StructuredAiTask, raw: unknown): unknown {
   switch (task) {
     case 'dream_extraction':
       return coerceDreamExtraction(raw);
+    case 'dream_archetype_recognition':
+      return coerceDreamArchetypeRecognition(raw);
+    case 'dream_archetype_adjudication':
+      return coerceDreamArchetypeAdjudication(raw);
     case 'conversation_element_update':
       return coerceConversationElementUpdate(raw);
     case 'semantic_grouping':
@@ -650,6 +716,98 @@ function formatZodErrors(error: z.ZodError): string[] {
     const path = issue.path.length > 0 ? issue.path.join('.') : '(root)';
     return `${path}: ${issue.message}`;
   });
+}
+
+type DreamExtractionSalvageSummary = {
+  archetypesDropped: number;
+  amplificationsDropped: number;
+  dropCategories: string[];
+};
+
+function classifyArchetypeEchoDrop(item: unknown, errors: string[]): string {
+  const row = item && typeof item === 'object' ? (item as Record<string, unknown>) : null;
+  const archetypeId = normalizeNamespaceCatalogId(row?.archetype_id);
+  if (archetypeId && mythCatalogIdSet.has(archetypeId)) return 'dream_extraction_echo_namespace_crossover';
+  if (archetypeId && !selectableArchetypeIdSet.has(archetypeId)) return 'dream_extraction_invalid_archetype_dropped';
+  if (errors.some((error) => error.includes('mechanism_tags'))) {
+    return 'dream_extraction_invalid_archetype_dropped';
+  }
+  if (errors.some((error) => error.includes('evidence_ids'))) {
+    return 'dream_extraction_invalid_archetype_dropped';
+  }
+  return 'dream_extraction_invalid_archetype_dropped';
+}
+
+function classifyMythicEchoDrop(item: unknown, errors: string[]): string {
+  const row = item && typeof item === 'object' ? (item as Record<string, unknown>) : null;
+  const catalogId = normalizeNamespaceCatalogId(row?.catalog_id);
+  if (catalogId && selectableArchetypeIdSet.has(catalogId)) return 'dream_extraction_echo_namespace_crossover';
+  if (catalogId && !mythCatalogIdSet.has(catalogId)) return 'dream_extraction_invalid_myth_dropped';
+  if (errors.some((error) => error.includes('evidence_ids'))) {
+    return 'dream_extraction_invalid_myth_dropped';
+  }
+  return 'dream_extraction_invalid_myth_dropped';
+}
+
+function attemptDreamExtractionOptionalEchoSalvage(
+  coerced: unknown
+): { data: unknown; summary: DreamExtractionSalvageSummary } | null {
+  if (!coerced || typeof coerced !== 'object') return null;
+  const candidate = coerced as Record<string, unknown>;
+  const baseResult = dreamExtractionSchema.safeParse({
+    ...candidate,
+    archetypes: [],
+    amplifications: [],
+  });
+  if (!baseResult.success) return null;
+
+  const salvagedArchetypes: unknown[] = [];
+  const salvagedAmplifications: unknown[] = [];
+  const dropCategories: string[] = [];
+  const rawArchetypes = Array.isArray(candidate.archetypes) ? candidate.archetypes : [];
+  const rawAmplifications = Array.isArray(candidate.amplifications) ? candidate.amplifications : [];
+
+  for (const item of rawArchetypes) {
+    const parsed = extractionArchetypalEchoSchema.safeParse(item);
+    if (parsed.success) {
+      salvagedArchetypes.push(parsed.data);
+      continue;
+    }
+    dropCategories.push(classifyArchetypeEchoDrop(item, formatZodErrors(parsed.error)));
+  }
+
+  for (const item of rawAmplifications) {
+    const parsed = extractionMythicEchoSchema.safeParse(item);
+    if (!parsed.success) {
+      dropCategories.push(classifyMythicEchoDrop(item, formatZodErrors(parsed.error)));
+      continue;
+    }
+    if (salvagedAmplifications.length >= 1) {
+      dropCategories.push('dream_extraction_invalid_myth_dropped');
+      continue;
+    }
+    salvagedAmplifications.push(parsed.data);
+  }
+
+  const archetypesDropped = rawArchetypes.length - salvagedArchetypes.length;
+  const amplificationsDropped = rawAmplifications.length - salvagedAmplifications.length;
+  if (archetypesDropped === 0 && amplificationsDropped === 0) return null;
+
+  const finalResult = dreamExtractionSchema.safeParse({
+    ...baseResult.data,
+    archetypes: salvagedArchetypes,
+    amplifications: salvagedAmplifications,
+  });
+  if (!finalResult.success) return null;
+
+  return {
+    data: finalResult.data,
+    summary: {
+      archetypesDropped,
+      amplificationsDropped,
+      dropCategories: [...new Set(dropCategories)],
+    },
+  };
 }
 
 /**
@@ -688,6 +846,31 @@ export function validateStructuredTaskContent(
   const coerced = coerceForTask(task, parsed.value);
   const result = schemaForTask(task).safeParse(coerced);
   if (!result.success) {
+    if (task === 'dream_extraction') {
+      const salvaged = attemptDreamExtractionOptionalEchoSalvage(coerced);
+      if (salvaged) {
+        const data = mergeDreamExtractionDiagnostics(salvaged.data, parsed.value);
+        return {
+          ok: true,
+          data,
+          normalizedContent: JSON.stringify(data),
+          log: {
+            task,
+            provider,
+            validationStage: 'accepted',
+            schemaErrors: null,
+            repairAttempted,
+            repairSucceeded: repairAttempted ? true : null,
+            salvageAttempted: true,
+            salvageSucceeded: true,
+            salvagedWithoutRepair: !repairAttempted,
+            salvagedArchetypesDropped: salvaged.summary.archetypesDropped,
+            salvagedAmplificationsDropped: salvaged.summary.amplificationsDropped,
+            salvageDropCategories: salvaged.summary.dropCategories,
+          },
+        };
+      }
+    }
     const schemaErrors = formatZodErrors(result.error);
     return {
       ok: false,
@@ -699,6 +882,12 @@ export function validateStructuredTaskContent(
         schemaErrors,
         repairAttempted,
         repairSucceeded: repairAttempted ? false : null,
+        salvageAttempted: task === 'dream_extraction',
+        salvageSucceeded: false,
+        salvagedWithoutRepair: false,
+        salvagedArchetypesDropped: 0,
+        salvagedAmplificationsDropped: 0,
+        salvageDropCategories: null,
       },
     };
   }
@@ -720,6 +909,12 @@ export function validateStructuredTaskContent(
       schemaErrors: null,
       repairAttempted,
       repairSucceeded: repairAttempted ? true : null,
+      salvageAttempted: task === 'dream_extraction',
+      salvageSucceeded: false,
+      salvagedWithoutRepair: false,
+      salvagedArchetypesDropped: 0,
+      salvagedAmplificationsDropped: 0,
+      salvageDropCategories: null,
     },
   };
 }
@@ -743,8 +938,12 @@ export function buildStructuredRepairMessages(
   const schemaHint =
     task === 'dream_extraction'
       ? 'Return a JSON object with usable dream metadata arrays and/or display_distillation. Empty metadata-only objects are invalid. archetypes must be objects {archetype_id (exact enum from ONEIROS ARCHETYPE CATALOG), expression, mechanism_tags[>=1], evidence_ids[>=1], resonance, confidence:"high"|"medium"} — never bare strings; never use myth catalog_id values in archetype_id. Do not output canonical_label, carrier_kind, mechanism_actor, carrier_evidence_ids, mechanism_evidence_ids, or free-text evidence. Include confidence on every selected echo. amplifications is 0–1 closed-catalog Mythic Echo {catalog_id (exact enum from CLOSED_MYTH_CATALOG), resonance, divergence, evidence_ids, confidence} or []. Never include title/tradition/source_type or free-text myth evidence. Prefer amplifications:[] when no catalog id is earned. If interpretive_diagnostics was present, preserve it unchanged.'
+      : task === 'dream_archetype_recognition'
+      ? 'Return {"archetypes":[{"archetype_id":"closed enum id","quality":"short phrase","expression":"concrete image-near phrase","resonance":"one natural sentence","confidence":"high|medium","evidence_ids":["D1"]}]} with max 2 unique archetypes. Never return mechanism_tags, canonical_label, myth fields, or free-text evidence.'
+      : task === 'dream_archetype_adjudication'
+        ? 'Return {"decisions":[{"archetype_id":"closed enum id","decision":"accept|reject","decisive_feature":"short distinguishing feature or null","reason":"one concise sentence","evidence_ids":["D1"]}],"accepted_archetype_ids":["closed enum id"]}. accepted_archetype_ids must match accept decisions exactly. Never add new archetypes, mechanism_tags, myth fields, or regenerated quality/expression/resonance.'
       : task === 'conversation_element_update'
-        ? 'Return either {"status":"no_change"} or {"status":"updated", "archetypes":[], "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. When updating archetypes, prefer rich objects {canonical_label, expression, resonance, evidence[], confidence}.'
+        ? 'Return either {"status":"no_change"} or {"status":"updated", "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. For v1, follow-up chat must not revise archetypes; omit the field or leave it unchanged.'
         : 'Return {"symbol_groups":[{"canonical":"...","members":["...","..."]}],"landscape_groups":[...]} with members length >= 2 when present. Empty arrays are allowed.';
 
   const system = `You repair invalid JSON for the Oneiros task "${task}". Return ONLY valid JSON. No markdown. ${schemaHint}`;
@@ -778,6 +977,12 @@ export function safeStructuredValidationLog(
     schemaErrors: log.schemaErrors,
     repairAttempted: log.repairAttempted,
     repairSucceeded: log.repairSucceeded,
+    salvageAttempted: log.salvageAttempted ?? false,
+    salvageSucceeded: log.salvageSucceeded ?? false,
+    salvagedWithoutRepair: log.salvagedWithoutRepair ?? false,
+    salvagedArchetypesDropped: log.salvagedArchetypesDropped ?? 0,
+    salvagedAmplificationsDropped: log.salvagedAmplificationsDropped ?? 0,
+    salvageDropCategories: log.salvageDropCategories ?? null,
   };
 }
 

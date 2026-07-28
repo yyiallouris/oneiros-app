@@ -24,12 +24,12 @@ import { formatArchetypeCatalogForPromptV1 } from '../../src/ai/catalogs/archety
 import { validateClosedCatalogMythicEchoes } from '../../src/ai/validators/mythicCatalogValidator';
 import { validateArchetypalEchoes } from '../../src/ai/validators/archetypalEchoValidator';
 
-describe('Interpretive Echoes v4.1.9-M1 myth contract', () => {
+describe('Interpretive Echoes v4.1.10-M2.2 myth contract', () => {
   const system = buildDreamExtractionSystemPrompt();
 
-  it('versions prompt_id v4.1.9-M1 / prompt_version 4.1.9-M1 / schema 13', () => {
-    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.9-M1');
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
+  it('versions prompt_id v4.1.10-M2.2 / prompt_version 4.1.10-M2.2 / schema 13', () => {
+    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.10-M2.2');
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
     expect(DREAM_EXTRACTION_SCHEMA_VERSION).toBe(13);
   });
 
@@ -81,6 +81,9 @@ describe('Interpretive Echoes v4.1.9-M1 myth contract', () => {
     expect(injected).not.toMatch(/vessel/);
     expect(system).toMatch(/select exact id= values for archetype_id/);
     expect(system).toMatch(/enacted archetypal function or movement/);
+    expect(system).toMatch(/organizes a figure, relationship, or process in the dream/);
+    expect(system).toMatch(/meaningfully shapes the dream's relational field, conflict, passage, or change of possibilities/);
+    expect(system).not.toMatch(/Prefer the action or process that changes what can happen next over a visually/);
     expect(system).not.toMatch(/carrier_evidence_ids/);
     expect(system).not.toMatch(/mechanism_actor/);
   });
@@ -89,6 +92,10 @@ describe('Interpretive Echoes v4.1.9-M1 myth contract', () => {
     expect(system).toMatch(/MYTHIC ECHO — CLOSED CATALOG/);
     expect(system).toMatch(/sumerian\.inanna_descent/);
     expect(system).toMatch(/Never invent or rewrite an ID/);
+    expect(system).toMatch(/most distinctive convergence of dream images, roles, causal turns, and consequences/);
+    expect(system).toMatch(/Do not prefer a candidate merely because it shares a broad plot shape/);
+    expect(system).toMatch(/divergence describes how the dream transforms an otherwise recognizable configuration/);
+    expect(system).not.toMatch(/divergence modifies a real match rather than excusing missing core structure/);
     expect(system).toMatch(/arabian\.fisherman_and_jinni/);
     expect(system).toMatch(/greek\.sisyphus/);
     expect(system).not.toMatch(/Return one myth only when a SPECIFIC/);
@@ -291,9 +298,9 @@ describe('Interpretive Echoes v4.1.9-M1 myth contract', () => {
     expect(normalizeAmplifications(onData.amplifications)).toEqual(normalizeAmplifications(offData.amplifications));
   });
 
-  it('ships prompt v4.1.9-M1 with catalog_id-only myth contract', () => {
-    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.9-M1');
-    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.9-M1');
+  it('ships prompt v4.1.10-M2.2 with catalog_id-only myth contract', () => {
+    expect(DREAM_EXTRACTION_PROMPT_VERSION).toBe('4.1.10-M2.2');
+    expect(DREAM_EXTRACTION_PROMPT_ID).toBe('dream-field-map-interpretive-v4.1.10-M2.2');
     expect(system).toMatch(/evidence_ids/);
     expect(system).toMatch(/archetype_id/);
     expect(system).not.toMatch(/mechanism_actor/);
