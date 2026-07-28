@@ -1,11 +1,38 @@
 # Oneiros AI prompts inventory
 
-> **Note (2026-07-27):** Archetypal/Mythic Echo extraction is at `prompt_version` `4.1.1` / schema `6` / `temperature` `0` (slim mechanism-tag archetypes + closed Mythic catalog v1.1.0). Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). No-prompt-bloat brief: [`ONEIROS_V4_1_1_NO_PROMPT_BLOAT_DEV_BRIEF.md`](./ONEIROS_V4_1_1_NO_PROMPT_BLOAT_DEV_BRIEF.md). Mythic brief: [`ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md`](./ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts` (inventory excerpts below may lag; trust the TS module).
+> **Versioned note (2026-07-28):** Current dream metadata extraction is `prompt_id` `dream-field-map-interpretive-v4.1.9-M1` / `prompt_version` `4.1.9-M1` / schema `13` / `temperature` `0`, with closed Mythic catalog `1.7.0`. Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts`.
+
+## Prompt Maintenance Rule
+
+Whenever a prompt or connected extraction file changes, update this inventory and [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md) in the same commit.
+
+Connected files include:
+- `src/ai/dreamExtractionPrompt.ts`
+- `src/ai/dreamExtractionJsonSchema.ts`
+- `src/ai/structuredTaskValidation.ts`
+- `src/ai/dreamOutputLanguage.ts`
+- `src/ai/catalogs/*`
+- `supabase/functions/_shared/billing-ai.ts`
+
+Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog version aligned with code and the flow docs.
+
+## Current Version Manifest
+
+| Area | Current version |
+|------|-----------------|
+| Dream metadata extraction prompt id | `dream-field-map-interpretive-v4.1.9-M1` |
+| Dream metadata extraction prompt version | `4.1.9-M1` |
+| Dream metadata extraction schema version | `13` |
+| Dream metadata extraction temperature | `0` |
+| Mythic closed catalog version | `1.7.0` |
+| Archetype line highlights | polarity-neutral Mother/Father ids, raw-dream evidence firewall, mechanism-tag hard gates |
+| Repair prompts | structured JSON repair in `src/ai/structuredTaskValidation.ts`; output-language field repair in `src/ai/dreamOutputLanguage.ts` |
 
 Canonical sources:
 - Reflection / chat / essays / grouping / conversation update: `src/services/ai.ts` (client) and mirrored copies in `supabase/functions/_shared/billing-ai.ts` (gateway production path)
 - Dream extraction: shared `src/ai/dreamExtractionPrompt.ts` (client + gateway)
 - JSON repair: `src/ai/structuredTaskValidation.ts`
+- Output-language field repair: `src/ai/dreamOutputLanguage.ts`
 - Model routing only (no prompt text): `supabase/functions/openai-proxy/task-config.ts`
 
 Gateway mirrors constitution/role/format/essay prompts from client; production AI usually goes through entitlements gateway → openai-proxy.

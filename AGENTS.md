@@ -15,6 +15,10 @@ For every code, configuration, schema, flow, or UX change:
 - Use `documentation/flows-00-complete-app-journey.md` for the end-to-end app map.
 - Use `documentation/architecture-app-map.md` and `documentation/architecture-features.md` to understand feature ownership and change impact.
 - Use `documentation/architecture-interpretation.md` plus `docs/SYMBOLS_FLOW.md` for AI interpretation, extraction, `display_distillation`, and Insights metadata changes.
+- For AI prompt, extraction-contract, repair-prompt, or catalog work, also update the prompt inventory docs in the same change:
+  - `docs/AI_PROMPTS_INVENTORY.md`
+  - `docs/ECHOES_PROMPTS_AND_CATALOG.md`
+- When changing any prompt or connected file, keep the code and docs versioned together: update prompt ids / prompt versions / schema versions / catalog versions anywhere they are surfaced to readers.
 - Check whether any Markdown documentation needs an update.
 - Update all relevant `.md` files in the same change, not later.
 - Prefer the existing documentation structure before adding a new file.
