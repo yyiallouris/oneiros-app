@@ -14,6 +14,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `subscriptionSurface.flow.test.tsx` | flows-03 / flows-10 (dedicated Subscription destination, Account entry row, premium-first compare surface) |
 | `accountProfileSave.flow.test.tsx` | flows-03 (sticky Account header Save only for dirty nickname; depth/language remain instant-save; Save redirects to Write) |
 | `legalCopy.flow.test.ts` | flows-08 (consent/privacy/AI disclaimer boundary wording) |
+| `legalSurfaces.flow.test.tsx` | flows-08 (calm consent entry and user-facing privacy screen copy) |
 | `legalSite.flow.test.ts` | flows-08 / release docs (public landing, privacy, and terms pages for store review) |
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
 | `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering, pending metadata skip) |

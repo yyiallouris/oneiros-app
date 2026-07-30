@@ -23,6 +23,10 @@ describe('public legal site', () => {
     expect(fs.existsSync(path.join(siteRoot, 'sitemap.xml'))).toBe(true);
 
     expect(readSiteFile('index.html')).toContain('/assets/oneiros_logo.png');
+    expect(readSiteFile('index.html')).toContain('clear boundaries for a private dream journal');
+    expect(readSiteFile('index.html')).toContain('privacy');
+    expect(readSiteFile('index.html')).toContain('terms');
+    expect(readSiteFile('index.html')).toContain('support');
   });
 
   it('keeps the privacy page aligned with sensitive dream, AI, voice, support, and deletion disclosures', () => {
@@ -47,6 +51,10 @@ describe('public legal site', () => {
     expect(terms).toContain('crisis support');
     expect(terms).toContain('ai-generated output');
     expect(terms).toContain('acceptable use');
+    expect(terms).toContain('premium');
+    expect(terms).toContain('deeper');
+    expect(terms).toContain('apple app store');
+    expect(terms).toContain('google play');
     expect(terms).toContain('support@oneirosjournal.com');
   });
 

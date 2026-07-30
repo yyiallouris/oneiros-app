@@ -13,8 +13,17 @@
 - Notice covers journal data, sensitive information, AI processing, limited operational access, user controls, and emergency boundaries.
 - Hosted Privacy Policy and Terms links are read from `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`; when configured, the screen opens those URLs from the legal notice.
 - Public store-review pages live under `site/` and are served by Vercel: `/privacy`, `/terms`, and `/support`.
+- The public web root (`/`) acts as a quiet legal/support landing page that routes people clearly into Privacy, Terms, and Support instead of trying to do full product marketing.
 - Data export and fallback account deletion requests route to `ContactScreen` with prefilled request text.
-- Product summary only; hosted Privacy Policy / Terms must exist before public release and be configured for EAS/store builds.
+- In-app copy stays user-facing and plain-language. Internal release/setup notes do not appear on the user surface.
+
+## Public legal site (`site/`)
+
+- `site/index.html` is a calm entry layer for public trust information, not a dense legal wall.
+- `site/privacy/index.html` explains data handling in plain language, with a shorter section structure and explicit notes about sensitive dream content, AI providers, voice processing, and user controls.
+- `site/terms/index.html` explains adult-only use, reflective-not-clinical boundaries, AI-generated output, acceptable use, and the live Free / Premium / Deeper subscription reality.
+- `site/support/index.html` handles email support, billing help, account deletion, data deletion, export requests, and the crisis boundary.
+- Public pages should stay user-facing, current to the product, and free of internal rollout or setup wording.
 
 ## Account deletion (`AccountScreen`, `delete-account` edge function)
 
@@ -27,13 +36,19 @@
 
 - Authenticated users must accept the current legal consent version before entering onboarding or the main app.
 - Consent is stored per user with version + timestamp (`legalConsentService`).
-- User confirms age 18+, wellness/self-inquiry-only use, sensitive-data processing, AI-output limitations, and emergency/crisis boundaries.
-- Consent copy uses a protected-space tone but keeps explicit statements that Oneiros is not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.
+- The screen now opens with a calm plain-language summary first: private-journal framing, a clear note about dream-data processing, a reassurance that journal content is not sold/used for advertising, and a separate crisis boundary callout.
+- Explicit confirmation remains required for age 18+, sensitive-data processing, AI-output limitations, and emergency/crisis boundaries before the user can continue.
+- Consent copy should feel containing and respectful, not like a legal ambush, while still stating clearly that Oneiros is not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.
 
 ## AI disclaimers
 
 - Shared AI notices describe reflections as AI-assisted symbolic material for journaling and self-inquiry, not therapy, diagnosis, crisis support, medical care, or professional advice.
 - Chat input and quick prompts avoid implying the AI has authoritative answers.
+
+## Auth entry note (`AuthScreen`)
+
+- Auth keeps only a short informational privacy note with a link into Privacy & Legal.
+- The auth surface should not ask for broad agreement language before the dedicated consent step; explicit acceptance still happens on `LegalConsentScreen`.
 
 ## Login support (`LoginSupportScreen`)
 

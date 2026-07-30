@@ -28,6 +28,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabaseClient';
 import { logEvent, logError } from '../services/logger';
 import { PENDING_PASSWORD_RESET_KEY, MIN_PASSWORD_LENGTH } from '../constants/auth';
+import { AUTH_LEGAL_NOTE } from '../constants/legal';
 import { processAuthDeepLink } from '../utils/authDeepLink';
 import {
   AUTH_APPLE_PROVIDER,
@@ -868,9 +869,7 @@ const AuthScreen: React.FC = () => {
             style={styles.legalLink}
             activeOpacity={0.7}
           >
-            <Text style={styles.legalText}>
-              By continuing, you agree to Oneiros' Privacy & Legal terms. Dream text may be processed to provide AI reflections.
-            </Text>
+            <Text style={styles.legalText}>{AUTH_LEGAL_NOTE}</Text>
           </TouchableOpacity>
         </Card>
 

@@ -3,7 +3,12 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Card, Button, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
-import { CRISIS_NOTICE, LEGAL_CONSENT_ITEMS, WELLNESS_DISCLAIMER } from '../constants/legal';
+import {
+  CRISIS_NOTICE,
+  LEGAL_CONSENT_ITEMS,
+  LEGAL_CONSENT_SUMMARY_POINTS,
+  WELLNESS_DISCLAIMER,
+} from '../constants/legal';
 import { setLegalConsentAccepted } from '../services/legalConsentService';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, borders } from '../theme';
@@ -43,50 +48,63 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-        <Text style={styles.title}>Before we begin</Text>
-        <Text style={styles.subtitle}>
-          A small boundary around a very private space.
-        </Text>
+          <Text style={styles.title}>A private place to begin</Text>
+          <Text style={styles.subtitle}>
+            Before you enter, here are the few boundaries that protect this space.
+          </Text>
 
-        <Card style={styles.card}>
-          <Text style={styles.sectionLabel}>Reflection, not care</Text>
-          <Text style={styles.paragraph}>{WELLNESS_DISCLAIMER}</Text>
-          <Text style={styles.paragraph}>{CRISIS_NOTICE}</Text>
+          <Card style={styles.card}>
+            <View style={styles.summaryBox}>
+              <Text style={styles.sectionLabel}>The short version</Text>
+              <Text style={styles.paragraph}>{WELLNESS_DISCLAIMER}</Text>
+              {LEGAL_CONSENT_SUMMARY_POINTS.map((item) => (
+                <View key={item} style={styles.summaryRow}>
+                  <View style={styles.summaryDot} />
+                  <Text style={styles.summaryText}>{item}</Text>
+                </View>
+              ))}
+            </View>
 
-          <View style={styles.divider} />
+            <View style={styles.crisisBox}>
+              <Text style={styles.crisisLabel}>Important</Text>
+              <Text style={styles.crisisText}>{CRISIS_NOTICE}</Text>
+            </View>
 
-          {LEGAL_CONSENT_ITEMS.map((item, index) => (
+            <View style={styles.divider} />
+            <Text style={styles.confirmLabel}>To continue, please confirm:</Text>
+
+            {LEGAL_CONSENT_ITEMS.map((item, index) => (
+              <TouchableOpacity
+                key={item}
+                style={styles.checkRow}
+                onPress={() => setChecked((prev) => ({ ...prev, [index]: !prev[index] }))}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.checkbox, checked[index] && styles.checkboxChecked]}>
+                  {checked[index] && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text style={styles.checkText}>{item}</Text>
+              </TouchableOpacity>
+            ))}
+
+            <ActionLoadingSlot
+              loading={saving}
+              loadingProps={{ preset: 'consentSave', style: styles.primaryButton }}
+            >
+              <Button
+                title="Agree and enter Oneiros"
+                onPress={handleAccept}
+                disabled={!allChecked}
+                style={styles.primaryButton}
+              />
+            </ActionLoadingSlot>
             <TouchableOpacity
-              key={item}
-              style={styles.checkRow}
-              onPress={() => setChecked((prev) => ({ ...prev, [index]: !prev[index] }))}
+              onPress={() => navigation.navigate('Privacy')}
+              style={styles.linkButton}
               activeOpacity={0.7}
             >
-              <View style={[styles.checkbox, checked[index] && styles.checkboxChecked]}>
-                {checked[index] && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text style={styles.checkText}>{item}</Text>
+              <Text style={styles.linkText}>Read the full privacy policy and terms</Text>
             </TouchableOpacity>
-          ))}
-
-          <ActionLoadingSlot
-            loading={saving}
-            loadingProps={{ preset: 'consentSave', style: styles.primaryButton }}
-          >
-            <Button
-              title="I understand and agree"
-              onPress={handleAccept}
-              disabled={!allChecked}
-              style={styles.primaryButton}
-            />
-          </ActionLoadingSlot>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Privacy')}
-            style={styles.linkButton}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.linkText}>Read privacy and legal details</Text>
-          </TouchableOpacity>
           </Card>
         </ScrollView>
       </DesignExportForeground>
@@ -122,6 +140,14 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: spacing.xl,
   },
+  summaryBox: {
+    backgroundColor: colors.fieldSurface,
+    borderWidth: 1,
+    borderColor: colors.contourLineSoft,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
   sectionLabel: {
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
@@ -134,10 +160,54 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
     marginBottom: spacing.sm,
   },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
+  },
+  summaryDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.buttonPrimary,
+    marginTop: 7,
+    marginRight: spacing.sm,
+    flexShrink: 0,
+  },
+  summaryText: {
+    flex: 1,
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
+  crisisBox: {
+    backgroundColor: colors.buttonPrimaryLight12,
+    borderWidth: 1,
+    borderColor: colors.contourLineSoft,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+  },
+  crisisLabel: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.textPrimary,
+    marginBottom: spacing.xs,
+  },
+  crisisText: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+  },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: borders.primary,
     marginVertical: spacing.md,
+  },
+  confirmLabel: {
+    fontSize: typography.sizes.sm,
+    color: text.secondary,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    marginBottom: spacing.xs,
   },
   checkRow: {
     flexDirection: 'row',

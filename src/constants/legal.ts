@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-export const LEGAL_CONSENT_VERSION = '2026-07-17';
+export const LEGAL_CONSENT_VERSION = '2026-07-30';
 
 function getLegalConfigUrl(extraKey: string, envKey: string): string | null {
   const extra = Constants.expoConfig?.extra ?? (Constants.manifest as any)?.extra ?? {};
@@ -13,20 +13,29 @@ export const LEGAL_LINKS = {
   termsUrl: getLegalConfigUrl('termsUrl', 'EXPO_PUBLIC_TERMS_URL'),
 };
 
+export const AUTH_LEGAL_NOTE =
+  'A private dream journal with clear boundaries. When you ask for reflections, relevant dream text is processed to generate them. Read Privacy & Terms.';
+
 export const AI_REFLECTION_NOTICE =
-  'AI-assisted symbolic reflection for journaling and self-inquiry. Not therapy, diagnosis, crisis support, medical care, or professional advice.';
+  'AI-assisted symbolic reflection for journaling and self-inquiry. It can be meaningful, but it is not therapy, diagnosis, crisis support, medical care, or professional advice.';
 
 export const WELLNESS_DISCLAIMER =
-  'Oneiros is designed as a private, protected dream journal and symbolic reflection space for wellness and self-inquiry. It is not a medical device and does not diagnose, treat, cure, or prevent any medical or mental health condition.';
+  'Oneiros is a private dream journal and symbolic reflection space for wellness and self-inquiry. It is not a medical device and does not diagnose, treat, cure, or prevent any medical or mental health condition.';
 
 export const CRISIS_NOTICE =
   'If you might harm yourself or someone else, or feel in immediate danger, contact local emergency services or a trusted crisis, medical, or mental health professional now. Oneiros is not emergency or crisis support.';
 
+export const LEGAL_CONSENT_SUMMARY_POINTS = [
+  'Oneiros is meant to feel private, respectful, and calm from the start.',
+  'Your journal data is used to save your entries, sync your account, and generate reflections when you ask for them.',
+  'We do not sell your journal content or use it for advertising.',
+  'AI reflections are interpretive material for self-inquiry. Keep what helps, and leave what does not.',
+];
+
 export const LEGAL_CONSENT_ITEMS = [
   'I confirm I am 18 or older.',
-  'I understand Oneiros is a private journal and AI-assisted symbolic reflection space for wellness and self-inquiry only, not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.',
-  'I consent to Oneiros processing my dream entries, reflections, and related data, which may include sensitive personal information, to provide journaling, AI reflections, insights, sync, security, support, and legal compliance.',
-  'I understand AI reflections are automatically generated symbolic material. They may be incomplete, inaccurate, or emotionally unsuitable, and I am responsible for deciding what feels useful or safe to engage with.',
+  'I understand Oneiros may process my dream entries, reflections, and related journal data, which may include sensitive personal information, so it can save my journal, generate AI reflections, provide support, keep the service secure, and meet legal obligations.',
+  'I understand Oneiros is for wellness, journaling, and self-inquiry. AI reflections are generated automatically, may be incomplete or emotionally off, and are not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.',
   'I understand Oneiros cannot provide emergency help. If I might harm myself or someone else, or feel in immediate danger, I should contact local emergency services or a trusted crisis, medical, or mental health professional now.',
 ];
 

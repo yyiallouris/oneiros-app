@@ -23,84 +23,87 @@ const PrivacyScreen: React.FC = () => {
         >
           <Text style={styles.title}>Privacy & Legal</Text>
           <Text style={styles.subtitle}>
-            Clear boundaries for a private journal, written in plain language.
+            This space is private by design. These notes explain what Oneiros does with your
+            journal and where the boundaries are.
           </Text>
 
-        <Card style={styles.card}>
-          {PRIVACY_SECTIONS.map((section) => (
-            <View key={section.title} style={styles.section}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <Text style={styles.paragraph}>{section.body}</Text>
-            </View>
-          ))}
+          <Card style={styles.card}>
+            {PRIVACY_SECTIONS.map((section) => (
+              <View key={section.title} style={styles.section}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <Text style={styles.paragraph}>{section.body}</Text>
+              </View>
+            ))}
 
-          <View style={styles.requestBox}>
-            <Text style={styles.requestTitle}>Data requests</Text>
-            <Text style={styles.requestText}>
-              For export, account deletion, or privacy questions, send a request from Contact us.
-            </Text>
-            <View style={styles.requestActions}>
-              <Button
-                title="Request export"
-                variant="secondary"
-                size="compact"
-                onPress={() =>
-                  navigation.navigate('Contact', {
-                    initialSubject: 'Data export request',
-                    initialMessage: 'I would like to request an export of my Oneiros data.',
-                  })
-                }
-                style={styles.requestButton}
-              />
-              <Button
-                title="Request deletion"
-                variant="ghost"
-                size="compact"
-                onPress={() =>
-                  navigation.navigate('Contact', {
-                    initialSubject: 'Account deletion request',
-                    initialMessage:
-                      'I would like to request deletion of my Oneiros account and associated data.',
-                  })
-                }
-                style={[styles.requestButton, styles.deleteButton]}
-                textStyle={styles.deleteButtonText}
-              />
-            </View>
-          </View>
-
-          {(LEGAL_LINKS.privacyPolicyUrl || LEGAL_LINKS.termsUrl) && (
-            <View style={styles.hostedLinksBox}>
-              <Text style={styles.requestTitle}>Full legal documents</Text>
+            <View style={styles.requestBox}>
+              <Text style={styles.requestTitle}>Data requests</Text>
               <Text style={styles.requestText}>
-                Review the hosted legal documents before using Oneiros in production.
+                For export, account deletion, or privacy questions, send a request from Contact
+                us.
               </Text>
               <View style={styles.requestActions}>
-                {LEGAL_LINKS.privacyPolicyUrl && (
-                  <Button
-                    title="Privacy Policy"
-                    variant="secondary"
-                    size="compact"
-                    onPress={() => Linking.openURL(LEGAL_LINKS.privacyPolicyUrl!)}
-                    style={styles.requestButton}
-                  />
-                )}
-                {LEGAL_LINKS.termsUrl && (
-                  <Button
-                    title="Terms of Use"
-                    variant="secondary"
-                    size="compact"
-                    onPress={() => Linking.openURL(LEGAL_LINKS.termsUrl!)}
-                    style={styles.requestButton}
-                  />
-                )}
+                <Button
+                  title="Request export"
+                  variant="secondary"
+                  size="compact"
+                  onPress={() =>
+                    navigation.navigate('Contact', {
+                      initialSubject: 'Data export request',
+                      initialMessage: 'I would like to request an export of my Oneiros data.',
+                    })
+                  }
+                  style={styles.requestButton}
+                />
+                <Button
+                  title="Request deletion"
+                  variant="ghost"
+                  size="compact"
+                  onPress={() =>
+                    navigation.navigate('Contact', {
+                      initialSubject: 'Account deletion request',
+                      initialMessage:
+                        'I would like to request deletion of my Oneiros account and associated data.',
+                    })
+                  }
+                  style={[styles.requestButton, styles.deleteButton]}
+                  textStyle={styles.deleteButtonText}
+                />
               </View>
             </View>
-          )}
 
-          <Text style={styles.footer}>
-            This in-app notice is a product summary. Public releases must also provide hosted Privacy Policy and Terms of Use URLs in the relevant store console.
-          </Text>
+            {(LEGAL_LINKS.privacyPolicyUrl || LEGAL_LINKS.termsUrl) && (
+              <View style={styles.hostedLinksBox}>
+                <Text style={styles.requestTitle}>Full documents</Text>
+                <Text style={styles.requestText}>
+                  If you want the full legal documents, you can read them here any time.
+                </Text>
+                <View style={styles.requestActions}>
+                  {LEGAL_LINKS.privacyPolicyUrl && (
+                    <Button
+                      title="Privacy Policy"
+                      variant="secondary"
+                      size="compact"
+                      onPress={() => Linking.openURL(LEGAL_LINKS.privacyPolicyUrl!)}
+                      style={styles.requestButton}
+                    />
+                  )}
+                  {LEGAL_LINKS.termsUrl && (
+                    <Button
+                      title="Terms of Use"
+                      variant="secondary"
+                      size="compact"
+                      onPress={() => Linking.openURL(LEGAL_LINKS.termsUrl!)}
+                      style={styles.requestButton}
+                    />
+                  )}
+                </View>
+              </View>
+            )}
+
+            <Text style={styles.footer}>
+              This in-app notice is a plain-language summary. If anything feels unclear, you can
+              always contact us.
+            </Text>
           </Card>
         </ScrollView>
       </DesignExportForeground>

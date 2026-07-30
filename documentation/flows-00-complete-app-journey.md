@@ -21,8 +21,9 @@ Related docs: [flows-01-app-entry-session.md](./flows-01-app-entry-session.md), 
 ## 2. Auth, consent, and onboarding
 
 - `AuthScreen` handles email login, email signup with OTP or magic link confirmation, forgot-password link requests, and social continue-with icons (Google, Apple on iOS, Discord).
+- `AuthScreen` keeps only a short privacy/boundaries note with a path into `PrivacyScreen`, rather than front-loading full agreement language there.
 - Recovery links set `PENDING_PASSWORD_RESET_KEY`; `SetPasswordScreen` clears it after `supabase.auth.updateUser`.
-- `LegalConsentScreen` must be accepted per user and consent version before entering onboarding or tabs.
+- `LegalConsentScreen` must be accepted per user and consent version before entering onboarding or tabs, but now opens with a calm plain-language summary before the explicit confirmations.
 - `OnboardingNavigator` runs name, interpretation depth, Insights language, subscription choice, and optional biometric lock setup.
 - `SubscriptionScreen` later becomes the permanent manage-subscription destination for restore, renewal, pricing, and quota state.
 - `AccountScreen` later lets the user update display name, interpretation depth, Insights language, mythic resonance, biometric app lock, privacy routes, and account deletion, while keeping only a compact link into Subscription.

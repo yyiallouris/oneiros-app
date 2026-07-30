@@ -3,14 +3,17 @@
  */
 import {
   AI_REFLECTION_NOTICE,
+  AUTH_LEGAL_NOTE,
   CRISIS_NOTICE,
   LEGAL_CONSENT_ITEMS,
+  LEGAL_CONSENT_SUMMARY_POINTS,
   PRIVACY_SECTIONS,
   WELLNESS_DISCLAIMER,
 } from '../../src/constants/legal';
 
 const combinedConsent = LEGAL_CONSENT_ITEMS.join(' ').toLowerCase();
 const combinedPrivacy = PRIVACY_SECTIONS.map((section) => `${section.title} ${section.body}`).join(' ').toLowerCase();
+const combinedSummary = LEGAL_CONSENT_SUMMARY_POINTS.join(' ').toLowerCase();
 
 describe('legal copy flow', () => {
   it('keeps consent acceptance anchored to age, wellness scope, data processing, AI limits, and crisis boundaries', () => {
@@ -23,6 +26,16 @@ describe('legal copy flow', () => {
     expect(combinedConsent).toContain('incomplete');
     expect(combinedConsent).toContain('emergency');
     expect(combinedConsent).toContain('crisis');
+  });
+
+  it('keeps the entry copy calm about privacy, processing, and user choice', () => {
+    expect(AUTH_LEGAL_NOTE.toLowerCase()).toContain('private dream journal');
+    expect(AUTH_LEGAL_NOTE.toLowerCase()).toContain('processed');
+    expect(AUTH_LEGAL_NOTE.toLowerCase()).toContain('privacy');
+    expect(AUTH_LEGAL_NOTE.toLowerCase()).toContain('terms');
+    expect(combinedSummary).toContain('private');
+    expect(combinedSummary).toContain('do not sell your journal content');
+    expect(combinedSummary).toContain('leave what does not');
   });
 
   it('keeps shared notices clear that Oneiros is reflective, not clinical or emergency support', () => {
