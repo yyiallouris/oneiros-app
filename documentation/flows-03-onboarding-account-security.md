@@ -11,11 +11,12 @@ Quiet progress chrome (`OnboardingProgress`) shows step N of 5 on every screen.
 - **Language:** Insights language for Recent Dream Field and Period Reflection. Device language is preferred/preselected when supported; Continue persists via `patternInsightLanguageService`. No Skip for the same reason as Depth.
 - **Subscription:** explicit plan choice before security.
   - Free remains explicit: unlimited entries, 1 reflection every 7 days, and 5 follow-up replies on that free reflection.
-  - Premium offers monthly and yearly billing with the same paid entitlements; only the billing window differs.
+  - Premium offers monthly and yearly billing with 35 reflections, 10 Recent Dream Field reports, 1 monthly essay, and a 7-day free trial.
+  - Deeper offers monthly and yearly billing with 80 reflections, unlimited Recent Dream Field reports, weekly essays, and a 7-day free trial.
   - Plan cards are presented in a horizontal carousel rather than a stacked comparison block, with Premium shown first and Free available by swiping left.
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly pricing switch is hidden whenever the free card is the active visible card.
-  - Native purchase starts directly from the Premium card, while `Continue with Free` proceeds directly.
+  - Native purchase starts directly from the Premium or Deeper card, while `Continue with Free` proceeds directly.
   - “Decide later in Subscription” remains the only deferral path on this step.
 - **Secure:** optional biometric app lock. Single primary CTA **Get started** completes onboarding (`setOnboardingCompleted` → `onComplete` → `MainTabs`). No duplicate Skip, because biometrics are already optional via the toggle.
 
@@ -39,7 +40,7 @@ Reachable from **Write** tab → menu → **Subscription & Billing** or from the
   - active paid access → `Manage`
   - free or lapsed → `Restore purchases`
   - unsupported runtime (for example Expo Go) → helper message instead of broken native actions
-- Free and Premium cards use the same comparison carousel as onboarding, with Premium visible first by default.
+- Free, Premium, and Deeper cards use the same comparison carousel as onboarding, with Premium visible first by default.
 
 ## Account screen (`Account`)
 
@@ -52,7 +53,7 @@ Reachable from **Write** tab → menu → **Account**.
 
 - **Profile:** “Name or nickname” is the only draft field. Sticky nav **Save** text appears top-right only while the nickname is dirty (then brief **Saved**), then redirects to the **Write** tab. Depth, Insights language, and Security still commit immediately on tap/toggle — Save intentionally does **not** activate for those.
 - **Dream analysis — level:** `quick` | `standard` | `advanced` (stored via `userSettingsService` on select).
-- **Insights language:** selects the language for Recent Dream Field and Period Reflection; persisted on select and applied by both Insights flows.
+- **Insights language:** selects the language for Recent Dream Field and Essays; persisted on select and applied by both Insights flows.
 - **Mythic Resonance:** toggle only relevant when depth is **advanced**; persisted remotely/local settings.
 - **Security — Lock app with Face ID / fingerprint:** `enableBiometric` / `disableBiometric`; synced with remote profile (see `biometricAuthService`).
 

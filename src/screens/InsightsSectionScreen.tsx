@@ -86,7 +86,7 @@ import {
 import { isOnline } from '../utils/network';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import { EntitlementError, generateEntitledPeriodReflection } from '../services/entitledAiService';
-import { getFallbackPlan, getTargetPlanForInterval } from '../services/subscriptionService';
+import { getPaidPlanOptionsForInterval } from '../services/subscriptionService';
 import type { BillingInterval } from '../types/subscription';
 
 type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
@@ -273,13 +273,13 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [upsellVisible, setUpsellVisible] = useState(false);
   const patternReportOpacity = useRef(new Animated.Value(0)).current;
   const [interpretationDepth, setInterpretationDepth] = useState<InterpretationDepth>('standard');
-  const premiumPlan = useMemo(
-    () =>
-      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+  const [premiumPlan, deeperPlan] = useMemo(
+    () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+  const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
+  const essayCadence = subscriptionStatus?.essayCadence ?? 'weekly';
 
   useEffect(() => {
     if (!embedded) {
@@ -1112,7 +1112,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 title="Generate reflection"
                 size="compact"
                 style={styles.patternGenerateButton}
-                disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey)]}
+                disabled={!!patternReportsArchive[getReportKeyForGeneration(patternSelectedMonthKey, essayCadence)]}
                 onPress={async () => {
                   const online = await isOnline();
                   if (!online) {
@@ -1125,7 +1125,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                   }
                   const now = new Date();
                   const isCurrentMonth = patternSelectedMonthKey === getCurrentMonthKey();
-                  const effectiveReportKey = getReportKeyForGeneration(patternSelectedMonthKey);
+                  const effectiveReportKey = getReportKeyForGeneration(patternSelectedMonthKey, essayCadence);
 
                   if (patternReportsArchive[effectiveReportKey]) {
                     if (isCurrentMonth) {
@@ -1333,13 +1333,18 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           source="period_reflection"
           billingInterval={billingInterval}
           premiumPlan={premiumPlan}
+          deeperPlan={deeperPlan}
           displayMode="premium_only"
-          upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+          currentPlanTier={currentPlanTier}
+          upgradeTitle={{
+            premium: purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium',
+            deeper: purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper',
+          }}
           upgradeDisabled={purchasingPlanCode !== null}
           onClose={() => setUpsellVisible(false)}
           onIntervalChange={setBillingInterval}
-          onUpgrade={async () => {
-            const started = await purchasePlan(billingInterval, 'period_reflection');
+          onUpgrade={async (planTier) => {
+            const started = await purchasePlan(planTier, billingInterval, 'period_reflection');
             if (started) {
               setUpsellVisible(false);
             }

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Oneiros Reading Expert"
+  short_description: "Writes calm, human Oneiros user copy."
+  brand_color: "#4B3158"
+  default_prompt: "Use $oneiros-reading-expert to rewrite this Oneiros user-facing copy so it feels calm, clear, intimate, and free of product jargon."
+policy:
+  allow_implicit_invocation: true

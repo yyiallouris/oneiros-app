@@ -7,18 +7,19 @@ import { SubscriptionPlanCard } from '../components/subscription/SubscriptionPla
 import { useSubscription } from '../providers/SubscriptionProvider';
 import type { BillingInterval } from '../types/subscription';
 import {
+  DEEPER_PLAN_FEATURES,
   FREE_PLAN_FEATURES,
   PREMIUM_PLAN_FEATURES,
-  getFallbackPlan,
   getFreePlanCardModel,
   getIapUnavailableMessage,
+  getPaidPlanOptionsForInterval,
   getReadOnlyLapseMessage,
-  getTargetPlanForInterval,
 } from '../services/subscriptionService';
 import { colors, spacing, text, typography } from '../theme';
 
-const FREE_IMAGE = require('../assets/subscription/free.png');
-const PREMIUM_IMAGE = require('../assets/subscription/premium.png');
+const FREE_IMAGE = require('../assets/icons/subscription/oneiros_glyph_free.png');
+const PREMIUM_IMAGE = require('../assets/icons/subscription/oneiros_glyph_premium.png');
+const DEEPER_IMAGE = require('../assets/icons/subscription/oneiros_glyph_deeper.png');
 
 const SubscriptionScreen: React.FC = () => {
   const {
@@ -34,26 +35,31 @@ const SubscriptionScreen: React.FC = () => {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const [activeCardIndex, setActiveCardIndex] = useState(1);
 
-  const premiumPlan = useMemo(
-    () =>
-      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+  const [premiumPlan, deeperPlan] = useMemo(
+    () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
   const freePlan = getFreePlanCardModel();
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+  const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
   const showPricingSwitch = activeCardIndex !== 0;
   const showManageAction = hasPaidAccess && iapRuntimeAvailable;
   const showRestoreAction = !hasPaidAccess && iapRuntimeAvailable;
   const showIapHelper = !iapRuntimeAvailable;
 
-  const handleUpgrade = useCallback(async () => {
-    await purchasePlan(billingInterval, 'subscription');
-  }, [billingInterval, purchasePlan]);
+  const handleUpgrade = useCallback(
+    async (planTier: 'premium' | 'deeper') => {
+      await purchasePlan(planTier, billingInterval, 'subscription');
+    },
+    [billingInterval, purchasePlan]
+  );
 
-  const premiumNote = hasPaidAccess
+  const premiumNote = currentPlanTier === 'premium'
     ? getReadOnlyLapseMessage()
-    : 'No hidden pricing, no countdowns, and no fake urgency.';
+    : 'A balanced rhythm for regular dream work.';
+  const deeperNote = currentPlanTier === 'deeper'
+    ? getReadOnlyLapseMessage()
+    : 'More room for a deeper ongoing practice.';
 
   return (
     <View style={styles.container}>
@@ -70,7 +76,7 @@ const SubscriptionScreen: React.FC = () => {
           <Card style={styles.card}>
             <Text style={styles.sectionLabel}>Choose your mode</Text>
             <Text style={styles.compareCopy}>
-              Free keeps the journal open. Premium unlocks reflections, follow-ups, insights, reports, and read-only-safe premium artifacts.
+              Free keeps the journal open. Premium is the recommended rhythm. Deeper opens more monthly room, weekly essays, and unlimited recent-field reports.
             </Text>
 
             {showPricingSwitch && (
@@ -92,37 +98,66 @@ const SubscriptionScreen: React.FC = () => {
                 priceDetail="Unlimited entries, one reflection per week"
                 features={FREE_PLAN_FEATURES}
                 imageSource={FREE_IMAGE}
-                actionTitle={!hasPaidAccess ? 'Current plan' : 'Free baseline'}
+                actionTitle={currentPlanTier === 'free' ? 'Current plan' : 'Continue free'}
                 onPress={() => undefined}
-                current={!hasPaidAccess}
-                disabled
+                current={currentPlanTier === 'free'}
+                disabled={currentPlanTier === 'free'}
                 note="Free stays simple and clear: unlimited entries, one reflection per week, and five follow-up replies on that free reflection."
+                variant="free"
               />
 
               <SubscriptionPlanCard
                 title={premiumPlan.title}
-                eyebrow="Full mode"
+                eyebrow="The natural choice"
+                badgeText="Recommended"
                 price={premiumPlan.displayPrice}
                 priceDetail={premiumPlan.totalPriceLabel}
                 secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+                trialLabel={premiumPlan.trialLabel}
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
                 actionTitle={
-                  hasPaidAccess
+                  currentPlanTier === 'premium'
                     ? 'Current plan'
                     : purchasingPlanCode === premiumPlan.planCode
                       ? 'Opening store…'
-                      : 'Go Premium'
+                      : 'Choose Premium'
                 }
                 onPress={() => {
-                  if (hasPaidAccess) return;
-                  void handleUpgrade();
+                  if (currentPlanTier === 'premium') return;
+                  void handleUpgrade('premium');
                 }}
-                premium
                 selected
-                current={hasPaidAccess}
+                current={currentPlanTier === 'premium'}
                 note={premiumNote}
-                disabled={hasPaidAccess || purchasingPlanCode !== null}
+                disabled={currentPlanTier === 'premium' || purchasingPlanCode !== null}
+                variant="premium"
+              />
+
+              <SubscriptionPlanCard
+                title={deeperPlan.title}
+                eyebrow="For going further"
+                price={deeperPlan.displayPrice}
+                priceDetail={deeperPlan.totalPriceLabel}
+                secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+                trialLabel={deeperPlan.trialLabel}
+                features={DEEPER_PLAN_FEATURES}
+                imageSource={DEEPER_IMAGE}
+                actionTitle={
+                  currentPlanTier === 'deeper'
+                    ? 'Current plan'
+                    : purchasingPlanCode === deeperPlan.planCode
+                      ? 'Opening store…'
+                      : 'Choose Deeper'
+                }
+                onPress={() => {
+                  if (currentPlanTier === 'deeper') return;
+                  void handleUpgrade('deeper');
+                }}
+                current={currentPlanTier === 'deeper'}
+                note={deeperNote}
+                disabled={currentPlanTier === 'deeper' || purchasingPlanCode !== null}
+                variant="deeper"
               />
             </SubscriptionPlanCarousel>
           </Card>

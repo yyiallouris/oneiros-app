@@ -38,6 +38,7 @@ import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import {
+  consumeGrantedQuotaBonus,
   EntitlementError,
   ensureDreamMetadataExtraction,
   forceDreamMetadataExtractionForDebug,
@@ -50,7 +51,7 @@ import {
   resumeOrAttachDreamReflection,
 } from '../services/entitledAiService';
 import { getPendingReflectionJob } from '../services/pendingReflectionJobService';
-import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
+import { getPaidPlanOptionsForInterval, getReadOnlyLapseMessage } from '../services/subscriptionService';
 import { remoteGetInterpretationById } from '../services/remoteStorage';
 import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
@@ -451,13 +452,12 @@ type IconProps = {
     const streamingReflectionMessageIdRef = useRef<string | null>(null);
     const hadStreamingReflectionRef = useRef(false);
     const reflectionFocusGenerationRef = useRef(0);
-    const premiumPlan = useMemo(
-      () =>
-        products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-        getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+    const [premiumPlan, deeperPlan] = useMemo(
+      () => getPaidPlanOptionsForInterval(products, billingInterval),
       [billingInterval, products]
     );
     const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+    const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
 
     useEffect(() => {
       if (!isGeneratingInitial) {
@@ -888,6 +888,13 @@ type IconProps = {
         });
 
         applyCommittedInterpretation(newInterpretation, { openChat: true });
+        const bonusGrant = consumeGrantedQuotaBonus();
+        if (bonusGrant) {
+          Alert.alert(
+            'A small gift from us',
+            'You reached the edge of this cycle, so we opened 5 extra reflections and 5 extra Recent Dream Field reports for you. If this happens again, it may be time to upgrade.'
+          );
+        }
         logInfo('dream_detail_reflection_flow_done', {
           dreamId: dreamData.id,
           interpretationId: newInterpretation.id,
@@ -987,6 +994,13 @@ type IconProps = {
         scheduleMetadataRefresh(updatedInterpretation);
         setTypingMessageId(shouldTypeFinalReflection ? updatedInterpretation.messages[0]?.id ?? null : null);
         hadStreamingReflectionRef.current = false;
+        const bonusGrant = consumeGrantedQuotaBonus();
+        if (bonusGrant) {
+          Alert.alert(
+            'A small gift from us',
+            'You reached the edge of this cycle, so we opened 5 extra reflections and 5 extra Recent Dream Field reports for you. If this happens again, it may be time to upgrade.'
+          );
+        }
 
         // Show chat
         setShowChat(true);
@@ -1546,13 +1560,18 @@ type IconProps = {
             source={upsellSource}
             billingInterval={billingInterval}
             premiumPlan={premiumPlan}
+            deeperPlan={deeperPlan}
             displayMode="premium_only"
-            upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+            currentPlanTier={currentPlanTier}
+            upgradeTitle={{
+              premium: purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium',
+              deeper: purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper',
+            }}
             upgradeDisabled={purchasingPlanCode !== null}
             onClose={() => setUpsellVisible(false)}
             onIntervalChange={setBillingInterval}
-            onUpgrade={async () => {
-              const started = await purchasePlan(billingInterval, upsellSource);
+            onUpgrade={async (planTier) => {
+              const started = await purchasePlan(planTier, billingInterval, upsellSource);
               if (started) {
                 setUpsellVisible(false);
               }

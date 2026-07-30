@@ -37,6 +37,10 @@ type GatewayDeniedResponse = {
   status: 'denied' | 'released' | 'pending';
   reason?: string | null;
   quota_event_id?: string;
+  bonus_grant?: QuotaBonusGrant | null;
+  result?: {
+    bonus_grant?: QuotaBonusGrant | null;
+  } | null;
   partial_reflection?: string;
   partial_reflection_updated_at?: string;
   partial_reflection_done?: boolean;
@@ -48,6 +52,7 @@ type GatewayReflectionResponse = {
   interpretation_id: string;
   reflection: string;
   interpretation?: Interpretation;
+  bonus_grant?: QuotaBonusGrant | null;
   reflection_ai_ms?: number;
   save_reflection_ms?: number;
   reflection_ai_cost?: Record<string, unknown> | null;
@@ -57,6 +62,10 @@ type GatewayReflectionResponse = {
 type GatewayReflectionPendingResponse = {
   status: 'pending';
   quota_event_id: string;
+  bonus_grant?: QuotaBonusGrant | null;
+  result?: {
+    bonus_grant?: QuotaBonusGrant | null;
+  } | null;
   partial_reflection?: string;
   partial_reflection_updated_at?: string;
   partial_reflection_done?: boolean;
@@ -113,10 +122,20 @@ type GatewayArtifactResponse = {
   artifact_id?: string;
   content: string;
   scope_key: string;
+  bonus_grant?: QuotaBonusGrant | null;
   recent_dream_field_ai_cost?: Record<string, unknown> | null;
   recent_dream_field_cost_usd?: number | null;
   period_reflection_ai_cost?: Record<string, unknown> | null;
   period_reflection_cost_usd?: number | null;
+};
+
+export type QuotaBonusGrant = {
+  granted?: boolean;
+  kind?: string;
+  plan_tier?: 'premium' | 'deeper' | 'free' | null;
+  dream_reflection_bonus?: number | null;
+  recent_dream_field_bonus?: number | null;
+  message_key?: string | null;
 };
 
 const PREMIUM_REQUIRED_REASONS = new Set([
@@ -135,6 +154,7 @@ const REFLECTION_STATUS_POLL_DELAY_MS = 1000;
 export const REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000;
 const metadataExtractionInFlight = new Map<string, Promise<GatewayMetadataResponse | null>>();
 const reflectionInFlight = new Map<string, Promise<Interpretation>>();
+let lastGrantedQuotaBonus: QuotaBonusGrant | null = null;
 
 export type DreamReflectionProgress = {
   text: string;
@@ -192,26 +212,56 @@ function assertCommitted<T extends { status?: string }>(response: T | GatewayDen
   throw new EntitlementError(deniedResponse.reason ?? 'unknown_quota_error');
 }
 
+function readQuotaBonusGrant(value: unknown): QuotaBonusGrant | null {
+  if (!value || typeof value !== 'object') return null;
+  const raw = value as QuotaBonusGrant;
+  if (raw.granted !== true) return null;
+  return raw;
+}
+
+function stageQuotaBonusGrant(value: unknown) {
+  const grant = readQuotaBonusGrant(value);
+  if (!grant) return;
+  lastGrantedQuotaBonus = grant;
+}
+
+function maybeStageQuotaBonusGrantFromGatewayResponse(
+  response:
+    | GatewayDeniedResponse
+    | GatewayReflectionResponse
+    | GatewayReflectionPendingResponse
+    | GatewayArtifactResponse
+) {
+  stageQuotaBonusGrant(response.bonus_grant);
+  if ('result' in response) {
+    stageQuotaBonusGrant(response.result?.bonus_grant);
+  }
+}
+
+export function consumeGrantedQuotaBonus(): QuotaBonusGrant | null {
+  const next = lastGrantedQuotaBonus;
+  lastGrantedQuotaBonus = null;
+  return next;
+}
+
 function toUserFacingError(reason: string): string {
   switch (reason) {
     case 'free_weekly_reflection_unavailable':
       return 'Free mode includes one reflection every 7 days. You can wait for the reset or upgrade to Premium.';
     case 'dream_reflection_quota_reached':
-      return 'You have used all 60 Premium reflections for this billing cycle.';
+      return 'You have used this plan’s reflection room for the current billing cycle. If this keeps happening, consider moving up a tier.';
     case 'chat_reply_limit_reached':
       return 'This reflection has reached its 5 follow-up replies.';
     case 'recent_dream_field_quota_reached':
-      return 'You have used all 10 Recent Dream Field generations for this billing cycle.';
+      return 'You have used this plan’s Recent Dream Field room for the current billing cycle. If this keeps happening, consider moving up a tier.';
     case 'period_reflection_already_exists':
-      return 'That period reflection already exists and can be reopened without spending quota.';
+      return 'That essay already exists and can be reopened without spending quota.';
     case 'not_enough_reflected_dreams':
-      return 'Reflect on at least 2 dreams in this period before generating a report.';
-    case 'no_new_reflected_dream_since_last_generation':
-      return 'Add at least one newly reflected dream before generating another current-month reflection.';
+      return 'Reflect on at least 2 dreams in this period before generating an essay.';
     case 'paid_reflection_read_only_after_lapse':
-      return 'This premium reflection is now read-only until Premium is renewed.';
+      return 'This paid reflection is now read-only until your paid plan is renewed.';
     case 'paid_subscription_required':
-      return 'This action is available with Premium.';
+      return 'This action is available on the paid plans.';
     default:
       return 'This action is unavailable right now. Please try again later.';
   }
@@ -698,6 +748,7 @@ export async function generateEntitledDreamReflection(
       depth,
       async: true,
     });
+    maybeStageQuotaBonusGrantFromGatewayResponse(response);
     const gatewayDurationMs = Date.now() - gatewayStartedAt;
 
     if (response.status === 'pending') {
@@ -851,6 +902,7 @@ export async function generateEntitledRecentDreamField(
     count,
     language,
   });
+  maybeStageQuotaBonusGrantFromGatewayResponse(response);
 
   assertCommitted(response);
   logInfo('recent_dream_field_gateway_committed', {
@@ -883,6 +935,7 @@ export async function generateEntitledPeriodReflection(
     monthKey,
     language,
   });
+  maybeStageQuotaBonusGrantFromGatewayResponse(response);
 
   assertCommitted(response);
   logInfo('period_reflection_gateway_committed', {

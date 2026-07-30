@@ -16,9 +16,9 @@ describe('subscription service', () => {
       current_period_end: '2027-07-01T00:00:00.000Z',
       quotas: {
         dream_reflections: {
-          limit: 60,
+          limit: 35,
           used: 4,
-          remaining: 56,
+          remaining: 31,
           next_reset_at: '2027-07-01T00:00:00.000Z',
         },
       },
@@ -26,7 +26,8 @@ describe('subscription service', () => {
 
     expect(status.planCode).toBe('paid_yearly');
     expect(status.hasPaidAccess).toBe(true);
-    expect(status.quotas.dreamReflections.remaining).toBe(56);
+    expect(status.planTier).toBe('premium');
+    expect(status.quotas.dreamReflections.remaining).toBe(31);
   });
 
   it('keeps yearly fallback pricing and savings clear', () => {
@@ -34,13 +35,13 @@ describe('subscription service', () => {
 
     expect(plan.displayPrice).toBe('€47.88 / year');
     expect(plan.monthlyEquivalentLabel).toBe('€3.99 / month');
-    expect(plan.savingsLabel).toBe('Save €12 / year');
+    expect(plan.savingsLabel).toBe('Save €12.00 / year');
   });
 
   it('returns source-aware upsell copy and lapse messaging', () => {
     expect(getPremiumSourceCopy('period_reflection')).toEqual({
-      title: 'Period reflection',
-      body: 'Month-to-date and archived period reflections live in Premium, with clean cadence rules and stored reports.',
+      title: 'Essays and long-form patterns',
+      body: 'Premium includes one monthly essay. Deeper opens the weekly rhythm for people who want to stay closer to the material.',
     });
     expect(getReadOnlyLapseMessage()).toMatch(/readable/i);
   });

@@ -74,11 +74,12 @@ jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
 
 jest.mock('../../src/providers/SubscriptionProvider', () => ({
   useSubscription: () => ({
-    status: { hasPaidAccess: mockHasPaidAccess },
+    status: mockHasPaidAccess ? { hasPaidAccess: true, planTier: 'premium' } : { hasPaidAccess: false, planTier: 'free' },
     loading: false,
     products: [
       {
         planCode: 'paid_monthly',
+        planTier: 'premium',
         billingInterval: 'monthly',
         productId: 'monthly',
         displayPrice: '€4.99 / month',
@@ -86,9 +87,11 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         monthlyEquivalentLabel: null,
         savingsLabel: null,
         title: 'Premium Monthly',
+        trialLabel: '7-day free trial',
       },
       {
         planCode: 'paid_yearly',
+        planTier: 'premium',
         billingInterval: 'yearly',
         productId: 'yearly',
         displayPrice: '€47.88 / year',
@@ -96,6 +99,31 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         monthlyEquivalentLabel: '€3.99 / month',
         savingsLabel: 'Save €12 / year',
         title: 'Premium Yearly',
+        trialLabel: '7-day free trial',
+      },
+      {
+        planCode: 'deeper_monthly',
+        planTier: 'deeper',
+        billingInterval: 'monthly',
+        productId: 'deeper-monthly',
+        displayPrice: '€8.99 / month',
+        totalPriceLabel: 'Billed monthly',
+        monthlyEquivalentLabel: null,
+        savingsLabel: null,
+        title: 'Deeper Monthly',
+        trialLabel: '7-day free trial',
+      },
+      {
+        planCode: 'deeper_yearly',
+        planTier: 'deeper',
+        billingInterval: 'yearly',
+        productId: 'deeper-yearly',
+        displayPrice: '€86.28 / year',
+        totalPriceLabel: '€86.28 billed yearly',
+        monthlyEquivalentLabel: '€7.19 / month',
+        savingsLabel: 'Save €21.60 / year',
+        title: 'Deeper Yearly',
+        trialLabel: '7-day free trial',
       },
     ],
     purchasingPlanCode: null,
@@ -137,10 +165,10 @@ describe('Onboarding subscription flow', () => {
   it('starts purchase directly from onboarding premium CTA', async () => {
     const screen = render(<OnboardingSubscriptionScreen />);
 
-    fireEvent.press(screen.getByText('Go Premium'));
+    fireEvent.press(screen.getByText('Choose Premium'));
 
     await waitFor(() => {
-      expect(mockPurchasePlan).toHaveBeenCalledWith('monthly', 'onboarding');
+      expect(mockPurchasePlan).toHaveBeenCalledWith('premium', 'monthly', 'onboarding');
     });
   });
 

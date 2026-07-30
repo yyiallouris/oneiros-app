@@ -34,9 +34,9 @@ type SocialAuthProviderRowProps = {
 
 /** Logo-only assets (true transparent PNG). Squircle chrome is styled in-app. */
 const PROVIDER_ICONS: Record<AuthOAuthProviderId, ImageSourcePropType> = {
-  google: require('../../assets/login/signup/providers_icons/google.png'),
-  apple: require('../../assets/login/signup/providers_icons/apple.png'),
-  discord: require('../../assets/login/signup/providers_icons/discord.png'),
+  google: require('../../assets/icons/providers_icons/google.png'),
+  apple: require('../../assets/icons/providers_icons/apple.png'),
+  discord: require('../../assets/icons/providers_icons/discord.png'),
 };
 
 const PROVIDER_VARIANTS: Record<AuthOAuthProviderId, SocialVisualVariant> = {

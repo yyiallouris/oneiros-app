@@ -1,4 +1,17 @@
-import type { EntitlementState, PlanCode, ReflectionOrigin } from './types.ts';
+import type { EntitlementState, PlanCode, PlanTier, ReflectionOrigin } from './types.ts';
+
+export function getPlanTier(planCode: PlanCode | null | undefined): PlanTier {
+  switch (planCode) {
+    case 'paid_monthly':
+    case 'paid_yearly':
+      return 'premium';
+    case 'deeper_monthly':
+    case 'deeper_yearly':
+      return 'deeper';
+    default:
+      return 'free';
+  }
+}
 
 export type CalendarScope = {
   monthKey: string;
@@ -46,7 +59,7 @@ export function hasPaidAccess(params: {
   at?: Date;
 }): boolean {
   const at = params.at ?? new Date();
-  if (params.planCode !== 'paid_monthly' && params.planCode !== 'paid_yearly') return false;
+  if (getPlanTier(params.planCode) === 'free') return false;
   if (!params.entitlementState || !['active', 'grace_period', 'billing_retry'].includes(params.entitlementState)) {
     return false;
   }
@@ -78,6 +91,18 @@ export function buildCurrentMonthScope(at: Date, timeZone: string): CalendarScop
     monthKey,
     weekOfMonth,
     scopeKey: `${monthKey}-W${weekOfMonth}`,
+    startDate: `${monthKey}-01`,
+    endDate: `${monthKey}-${pad(day)}`,
+  };
+}
+
+export function buildCurrentMonthMonthlyScope(at: Date, timeZone: string): CalendarScope {
+  const { year, month, day } = formatDateParts(at, timeZone);
+  const monthKey = `${year}-${pad(month)}`;
+  return {
+    monthKey,
+    weekOfMonth: 0,
+    scopeKey: monthKey,
     startDate: `${monthKey}-01`,
     endDate: `${monthKey}-${pad(day)}`,
   };

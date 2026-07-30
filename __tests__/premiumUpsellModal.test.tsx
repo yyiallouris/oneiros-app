@@ -42,6 +42,7 @@ jest.mock('../src/components/subscription/SubscriptionPlanCard', () => ({
 
 const premiumPlan = {
   planCode: 'paid_monthly' as const,
+  planTier: 'premium' as const,
   billingInterval: 'monthly' as const,
   productId: 'monthly',
   displayPrice: '€4.99 / month',
@@ -49,6 +50,20 @@ const premiumPlan = {
   monthlyEquivalentLabel: null,
   savingsLabel: null,
   title: 'Premium Monthly',
+  trialLabel: '7-day free trial',
+};
+
+const deeperPlan = {
+  planCode: 'deeper_monthly' as const,
+  planTier: 'deeper' as const,
+  billingInterval: 'monthly' as const,
+  productId: 'deeper-monthly',
+  displayPrice: '€8.99 / month',
+  totalPriceLabel: 'Billed monthly',
+  monthlyEquivalentLabel: null,
+  savingsLabel: null,
+  title: 'Deeper Monthly',
+  trialLabel: '7-day free trial',
 };
 
 describe('PremiumUpsellModal', () => {
@@ -59,6 +74,7 @@ describe('PremiumUpsellModal', () => {
         source="insights"
         billingInterval="monthly"
         premiumPlan={premiumPlan}
+        deeperPlan={deeperPlan}
         onClose={jest.fn()}
         onIntervalChange={jest.fn()}
         onUpgrade={jest.fn()}
@@ -67,7 +83,7 @@ describe('PremiumUpsellModal', () => {
 
     expect(screen.getByText('Free')).toBeTruthy();
     expect(screen.getByText('Premium Monthly')).toBeTruthy();
-    expect(screen.getByText('Stay on Free')).toBeTruthy();
+    expect(screen.getByText('Current plan')).toBeTruthy();
     expect(screen.getByText('InitialIndex:1')).toBeTruthy();
     expect(screen.getByText('IndicatorPosition:top')).toBeTruthy();
     expect(screen.getByText('Interval:monthly')).toBeTruthy();
@@ -80,6 +96,7 @@ describe('PremiumUpsellModal', () => {
         source="followup"
         billingInterval="monthly"
         premiumPlan={premiumPlan}
+        deeperPlan={deeperPlan}
         displayMode="premium_only"
         onClose={jest.fn()}
         onIntervalChange={jest.fn()}
@@ -101,6 +118,7 @@ describe('PremiumUpsellModal', () => {
         source="insights"
         billingInterval="monthly"
         premiumPlan={premiumPlan}
+        deeperPlan={deeperPlan}
         onClose={jest.fn()}
         onIntervalChange={jest.fn()}
         onUpgrade={jest.fn()}

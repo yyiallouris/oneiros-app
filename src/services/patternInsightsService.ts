@@ -15,6 +15,7 @@ import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
 import { normalizeAmplifications } from '../ai/mythicEchoes';
 import type { Interpretation } from '../types/dream';
 import type { InsightsPeriod, RecentSequenceReflection } from '../types/insights';
+import type { EssayCadence } from '../types/subscription';
 
 const MAX_DREAMS_FOR_INSIGHTS = 30;
 export const MIN_PATTERN_INSIGHT_DREAMS = 2;
@@ -253,8 +254,9 @@ export function isFirstWeekOfMonthFinished(monthKey: string): boolean {
 /**
  * Report key for generation: for current month use week key (YYYY-MM-Wk), for past months use month key (YYYY-MM).
  */
-export function getReportKeyForGeneration(monthKey: string): string {
+export function getReportKeyForGeneration(monthKey: string, cadence: EssayCadence = 'weekly'): string {
   if (monthKey !== getCurrentMonthKey()) return monthKey;
+  if (cadence !== 'weekly') return monthKey;
   const weekNum = getWeekNumOfMonth(new Date().getDate());
   return `${monthKey}-W${weekNum}`;
 }

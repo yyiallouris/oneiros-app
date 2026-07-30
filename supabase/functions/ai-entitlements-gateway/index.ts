@@ -85,7 +85,35 @@ declare const EdgeRuntime: {
   waitUntil: (promise: Promise<unknown>) => void;
 };
 
+function extractBonusGrant(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object') return null;
+  const raw = value as {
+    bonus_grant?: unknown;
+    result?: { bonus_grant?: unknown } | null;
+  };
+  const candidate =
+    raw.bonus_grant && typeof raw.bonus_grant === 'object'
+      ? raw.bonus_grant
+      : raw.result?.bonus_grant && typeof raw.result.bonus_grant === 'object'
+        ? raw.result.bonus_grant
+        : null;
+  return candidate ? (candidate as Record<string, unknown>) : null;
+}
+
+function readEssayCadence(status: Record<string, unknown>): 'monthly' | 'weekly' | null {
+  if (status.essay_cadence === 'monthly' || status.essay_cadence === 'weekly') {
+    return status.essay_cadence;
+  }
+  const quotas = status.quotas;
+  if (!quotas || typeof quotas !== 'object') return null;
+  const periodReflection = (quotas as { period_reflection?: unknown }).period_reflection;
+  if (!periodReflection || typeof periodReflection !== 'object') return null;
+  const cadence = (periodReflection as { cadence?: unknown }).cadence;
+  return cadence === 'monthly' || cadence === 'weekly' ? cadence : null;
+}
+
 function normalizeReservation(reservation: QuotaReservation): Record<string, unknown> {
+  const bonusGrant = extractBonusGrant(reservation);
   return {
     status: reservation.status,
     quota_event_id: reservation.quotaEventId,
@@ -93,6 +121,7 @@ function normalizeReservation(reservation: QuotaReservation): Record<string, unk
     bucket_id: reservation.bucketId,
     reason: reservation.reason,
     result: reservation.result,
+    bonus_grant: bonusGrant,
   };
 }
 
@@ -659,6 +688,7 @@ serve(async (req: Request) => {
             ? (quotaEvent.result_context as Record<string, unknown>)
             : {};
         if (resultContext.async_background_started === true) {
+          const bonusGrant = extractBonusGrant(resultContext);
           console.log('[ai-entitlements-gateway] async reflection replay pending', {
             action: body.action,
             dreamId: body.dreamId,
@@ -670,6 +700,7 @@ serve(async (req: Request) => {
             {
               status: 'pending',
               quota_event_id: reservation.quotaEventId,
+              bonus_grant: bonusGrant,
             },
             200,
             methods
@@ -739,6 +770,7 @@ serve(async (req: Request) => {
           {
             status: 'pending',
             quota_event_id: reservation.quotaEventId,
+            bonus_grant: extractBonusGrant(reservation),
           },
           200,
           methods
@@ -795,6 +827,7 @@ serve(async (req: Request) => {
         {
           status: 'committed',
           quota_event_id: result.reservation.quotaEventId,
+          bonus_grant: extractBonusGrant(result.reservation),
           ...result.value,
         },
         200,
@@ -1199,7 +1232,9 @@ serve(async (req: Request) => {
       if (!body.monthKey) throw new HttpError(400, 'monthKey is required');
       const monthKey = body.monthKey;
       const timeZone = await getUserTimeZone(admin, userId);
-      const scope = buildMonthScope(monthKey, timeZone);
+      const subscriptionStatus = await getSubscriptionStatus(admin, userId);
+      const essayCadence = readEssayCadence(subscriptionStatus);
+      const scope = buildMonthScope(monthKey, timeZone, essayCadence);
       const entries = await getPatternEntriesForPeriod(admin, userId, scope.startDate, scope.endDate);
       const latestReflectedAt = entries[entries.length - 1]?.interpretationCreatedAt ?? null;
       console.log('[ai-entitlements-gateway] period reflection ai start', {
@@ -1281,7 +1316,15 @@ serve(async (req: Request) => {
           scopeKey: scope.scopeKey,
           language,
         });
-        return jsonResponse({ status: 'cached', ...result.reservation.result }, 200, methods);
+        return jsonResponse(
+          {
+            status: 'cached',
+            bonus_grant: extractBonusGrant(result.reservation),
+            ...result.reservation.result,
+          },
+          200,
+          methods
+        );
       }
       if (result.reservation.status !== 'committed') {
         console.log('[ai-entitlements-gateway] period reflection not committed', {

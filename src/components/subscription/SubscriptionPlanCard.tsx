@@ -1,22 +1,25 @@
 import React from 'react';
 import { Image, ImageSourcePropType, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Card } from '../ui';
-import { borderRadius, colors, spacing, subscriptionButtons, text, typography } from '../../theme';
+import { borderRadius, colors, spacing, subscriptionButtons, subscriptionCards, text, typography } from '../../theme';
 import type { SubscriptionFeatureRow } from '../../types/subscription';
+import type { PlanTier } from '../../billing/types';
 
 type Props = {
   title: string;
   eyebrow?: string;
+  badgeText?: string;
   price: string;
   priceDetail?: string | null;
   secondaryPriceDetail?: string | null;
+  trialLabel?: string | null;
   features: SubscriptionFeatureRow[];
   imageSource: ImageSourcePropType;
   actionTitle: string;
   onPress: () => void;
   selected?: boolean;
   current?: boolean;
-  premium?: boolean;
+  variant?: PlanTier;
   disabled?: boolean;
   note?: string | null;
 };
@@ -24,19 +27,34 @@ type Props = {
 export const SubscriptionPlanCard: React.FC<Props> = ({
   title,
   eyebrow,
+  badgeText,
   price,
   priceDetail,
   secondaryPriceDetail,
+  trialLabel,
   features,
   imageSource,
   actionTitle,
   onPress,
   selected = false,
   current = false,
-  premium = false,
+  variant = 'free',
   disabled = false,
   note,
 }) => {
+  const isPremium = variant === 'premium';
+  const isDeeper = variant === 'deeper';
+  const cardTextPrimary = isPremium
+    ? styles.textPremiumPrimary
+    : isDeeper
+      ? styles.textDeeperPrimary
+      : styles.textFreePrimary;
+  const cardTextSecondary = isPremium
+    ? styles.textPremiumSecondary
+    : isDeeper
+      ? styles.textDeeperSecondary
+      : styles.textFreeSecondary;
+
   return (
     <TouchableOpacity activeOpacity={0.86} onPress={onPress} disabled={disabled} style={styles.touchable}>
       <Card
@@ -44,35 +62,61 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
         style={[
           styles.card,
           selected && styles.cardSelected,
-          premium && styles.cardPremium,
+          variant === 'premium' && styles.cardPremium,
+          variant === 'deeper' && styles.cardDeeper,
           disabled && styles.cardDisabled,
         ]}
       >
-        <View style={[styles.heroWrap, premium && styles.heroWrapPremium]}>
+        <View
+          style={[
+            styles.heroWrap,
+            variant === 'premium' && styles.heroWrapPremium,
+            variant === 'deeper' && styles.heroWrapDeeper,
+          ]}
+        >
           <Image source={imageSource} style={styles.heroImage} resizeMode="contain" />
           <View style={styles.badgeRow}>
-            {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : <View />}
+            {badgeText ? (
+              <Text style={[styles.badgeText, isPremium && styles.badgeTextPremium]}>
+                {badgeText}
+              </Text>
+            ) : eyebrow ? (
+              <Text style={[styles.eyebrow, cardTextSecondary]}>{eyebrow}</Text>
+            ) : (
+              <View />
+            )}
             {current && <Text style={styles.currentBadge}>Current</Text>}
           </View>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={[styles.price, premium && styles.pricePremium]}>{price}</Text>
-          {!!priceDetail && <Text style={styles.priceDetail}>{priceDetail}</Text>}
-          {!!secondaryPriceDetail && <Text style={styles.secondaryDetail}>{secondaryPriceDetail}</Text>}
+          {eyebrow && badgeText ? <Text style={[styles.eyebrow, cardTextSecondary]}>{eyebrow}</Text> : null}
+          <Text style={[styles.title, cardTextPrimary]}>{title}</Text>
+          <Text style={[styles.price, cardTextPrimary]}>{price}</Text>
+          {!!priceDetail && <Text style={[styles.priceDetail, cardTextSecondary]}>{priceDetail}</Text>}
+          {!!secondaryPriceDetail && <Text style={[styles.secondaryDetail, cardTextSecondary]}>{secondaryPriceDetail}</Text>}
+          {!!trialLabel && <Text style={[styles.trialLabel, cardTextSecondary]}>{trialLabel}</Text>}
 
           <View style={styles.featureList}>
             {features.map((feature) => (
               <View key={feature.label} style={styles.featureRow}>
-                <Text style={[styles.featureIcon, !feature.included && styles.featureIconMuted]}>
+                <Text
+                  style={[
+                    styles.featureIcon,
+                    isPremium && styles.featureIconPremium,
+                    isDeeper && styles.featureIconDeeper,
+                    !feature.included && styles.featureIconMuted,
+                  ]}
+                >
                   {feature.included ? '✓' : '•'}
                 </Text>
                 <Text
                   style={[
                     styles.featureText,
+                    cardTextSecondary,
                     !feature.included && styles.featureTextMuted,
                     feature.emphasis && styles.featureTextEmphasis,
+                    feature.emphasis && cardTextPrimary,
                   ]}
                 >
                   {feature.label}
@@ -83,7 +127,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
 
           {!!note && <Text style={styles.note}>{note}</Text>}
 
-          {premium ? (
+          {isPremium ? (
             <Pressable
               onPress={onPress}
               disabled={disabled}
@@ -95,6 +139,19 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
               ]}
             >
               <Text style={[styles.buttonText, styles.premiumButtonText]}>{actionTitle}</Text>
+            </Pressable>
+          ) : isDeeper ? (
+            <Pressable
+              onPress={onPress}
+              disabled={disabled}
+              style={({ pressed }) => [
+                styles.buttonBase,
+                styles.subscriptionButton,
+                styles.deeperButton,
+                pressed && styles.deeperButtonPressed,
+              ]}
+            >
+              <Text style={[styles.buttonText, styles.deeperButtonText]}>{actionTitle}</Text>
             </Pressable>
           ) : (
             <Pressable
@@ -128,26 +185,42 @@ const styles = StyleSheet.create({
     padding: 0,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: subscriptionCards.freeBorder,
+    borderRadius: 24,
+    backgroundColor: subscriptionCards.freeBackground,
   },
   cardSelected: {
     borderColor: colors.buttonPrimary40,
     shadowOpacity: 0.14,
   },
   cardPremium: {
-    backgroundColor: 'rgba(248, 244, 251, 0.9)',
+    backgroundColor: subscriptionCards.premiumBackgroundBottom,
+    borderColor: subscriptionCards.premiumBorder,
+    transform: [{ scale: 1.02 }],
+    shadowColor: subscriptionButtons.premiumShadow,
+    shadowOpacity: 1,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+  },
+  cardDeeper: {
+    backgroundColor: subscriptionCards.deeperBackground,
+    borderColor: subscriptionCards.deeperBorder,
   },
   cardDisabled: {
     opacity: 0.96,
   },
   heroWrap: {
-    backgroundColor: 'rgba(255, 253, 249, 0.92)',
+    backgroundColor: subscriptionCards.freeBackground,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
   },
   heroWrapPremium: {
-    backgroundColor: 'rgba(91, 70, 109, 0.08)',
+    backgroundColor: subscriptionCards.premiumBackgroundTop,
+  },
+  heroWrapDeeper: {
+    backgroundColor: subscriptionCards.deeperBackgroundUndertone,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -162,6 +235,18 @@ const styles = StyleSheet.create({
     color: text.muted,
     fontFamily: typography.medium,
   },
+  badgeText: {
+    fontSize: typography.sizes.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: borderRadius.full,
+    backgroundColor: subscriptionCards.premiumBadgeBackground,
+    color: subscriptionCards.premiumBadgeText,
+    fontFamily: typography.semibold,
+  },
+  badgeTextPremium: {
+    letterSpacing: 0.2,
+  },
   currentBadge: {
     fontSize: typography.sizes.xs,
     color: colors.buttonPrimary,
@@ -173,8 +258,9 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 154,
+    height: 112,
     alignSelf: 'center',
+    marginTop: spacing.sm,
   },
   content: {
     paddingHorizontal: spacing.lg,
@@ -188,22 +274,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   price: {
-    fontSize: typography.sizes.xl,
-    color: text.primary,
+    fontSize: typography.sizes.xxl,
     fontFamily: typography.medium,
-  },
-  pricePremium: {
-    color: '#5B466D',
   },
   priceDetail: {
     fontSize: typography.sizes.sm,
-    color: text.secondary,
     marginTop: 4,
   },
   secondaryDetail: {
     fontSize: typography.sizes.sm,
-    color: '#5B466D',
     marginTop: 4,
+    fontFamily: typography.medium,
+  },
+  trialLabel: {
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.sm,
     fontFamily: typography.medium,
   },
   featureList: {
@@ -216,24 +301,28 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   featureIcon: {
-    color: colors.buttonPrimary,
+    color: subscriptionCards.freeTextPrimary,
     fontSize: typography.sizes.md,
     marginTop: 1,
+  },
+  featureIconPremium: {
+    color: subscriptionCards.premiumTextPrimary,
+  },
+  featureIconDeeper: {
+    color: subscriptionCards.deeperTextPrimary,
   },
   featureIconMuted: {
     color: text.muted,
   },
   featureText: {
     flex: 1,
-    color: text.secondary,
     fontSize: typography.sizes.sm,
     lineHeight: typography.sizes.sm * 1.45,
   },
   featureTextMuted: {
-    color: text.muted,
+    opacity: 0.72,
   },
   featureTextEmphasis: {
-    color: text.primary,
     fontFamily: typography.medium,
   },
   note: {
@@ -274,6 +363,21 @@ const styles = StyleSheet.create({
   premiumButtonText: {
     color: subscriptionButtons.premiumText,
   },
+  deeperButton: {
+    backgroundColor: subscriptionButtons.deeperBackground,
+    borderColor: subscriptionButtons.deeperBorder,
+    shadowColor: subscriptionButtons.deeperShadow,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 1,
+    elevation: 3,
+  },
+  deeperButtonPressed: {
+    backgroundColor: subscriptionButtons.deeperBackgroundPressed,
+  },
+  deeperButtonText: {
+    color: subscriptionButtons.deeperText,
+  },
   freeButton: {
     backgroundColor: subscriptionButtons.freeBackground,
     borderColor: subscriptionButtons.freeBorder,
@@ -291,5 +395,23 @@ const styles = StyleSheet.create({
   },
   freeButtonTextPressed: {
     color: subscriptionButtons.freeTextPressed,
+  },
+  textFreePrimary: {
+    color: subscriptionCards.freeTextPrimary,
+  },
+  textFreeSecondary: {
+    color: subscriptionCards.freeTextSecondary,
+  },
+  textPremiumPrimary: {
+    color: subscriptionCards.premiumTextPrimary,
+  },
+  textPremiumSecondary: {
+    color: subscriptionCards.premiumTextSecondary,
+  },
+  textDeeperPrimary: {
+    color: subscriptionCards.deeperTextPrimary,
+  },
+  textDeeperSecondary: {
+    color: subscriptionCards.deeperTextSecondary,
   },
 });

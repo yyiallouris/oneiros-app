@@ -19,8 +19,9 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 | Ritual Plum | `#65446F` | `text.accent` |
 | Night Plum | `#4B3158` | `accent.buttonPrimary` |
 | Soft Amethyst | `#A88BB2` | `accent.buttonPrimaryDisabled` |
-| Subscription Premium | `#4B3158` | `subscriptionButtons.premiumBackground` |
-| Subscription Free | `#E6DFE8` | `subscriptionButtons.freeBackground` |
+| Subscription Premium CTA | `#FBF5EC` | `subscriptionButtons.premiumBackground` |
+| Subscription Free CTA | `transparent` | `subscriptionButtons.freeBackground` |
+| Subscription Deeper CTA | `rgba(255,255,255,0.10)` | `subscriptionButtons.deeperBackground` |
 | Old Gold | `#B58A4A` | `accent.oldGold` |
 | Clay Brown | `#8C6B5A` | `accent.clayBrown` |
 | Paper border | `#E2D8CC` | `borders.primary` |
@@ -59,12 +60,21 @@ Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrim
 
 Styles: **`SubscriptionPlanCard.tsx`**. These tokens are a separate CTA category for subscription plan cards only; changing them must not alter shared app buttons in `buttons.ts`.
 
-- Premium default: `premiumBackground` (`#4B3158`) + `premiumText` (`#FFFDF9`)
-- Premium pressed: `premiumBackgroundPressed` (`#3F294A`)
-- Premium border/shadow: `premiumBorder` (`rgba(255, 255, 255, 0.10)`) + `premiumShadow` (`rgba(45, 36, 48, 0.16)`)
-- Free default: `freeBackground` (`#E6DFE8`) + `freeText` (`#4B3158`)
-- Free pressed: `freeBackgroundPressed` (`#D9D1DC`) + `freeTextPressed` (`#432C50`)
-- Free border/shadow: `freeBorder` (`#D4CAD7`) + `freeShadow` (`rgba(45, 36, 48, 0.08)`)
+- Premium default: `premiumBackground` (`#FBF5EC`) + `premiumText` (`#4E4053`)
+- Premium pressed: `premiumBackgroundPressed`
+- Premium border/shadow: `premiumBorder` + `premiumShadow`
+- Free default: `freeBackground` (`transparent`) + `freeText` (`#403744`)
+- Free pressed: `freeBackgroundPressed` + `freeTextPressed`
+- Free border/shadow: `freeBorder` (`#817682`) + `freeShadow`
+- Deeper default: `deeperBackground` (`rgba(255,255,255,0.10)`) + `deeperText` (`#F8F1FA`)
+- Deeper pressed: `deeperBackgroundPressed`
+- Deeper border/shadow: `deeperBorder` + `deeperShadow`
+
+### Subscription cards
+
+- `subscriptionCards.free*` — warm parchment / stone card, calm and fully respectable
+- `subscriptionCards.premium*` — muted dusk plum card, recommended badge, light raised depth
+- `subscriptionCards.deeper*` — midnight plum / ink card, quieter and more serious than Premium
 
 ### Contours
 

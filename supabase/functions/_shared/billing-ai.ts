@@ -4,7 +4,11 @@ import {
   estimateAiCallCost,
   type AiCallCost,
 } from '../../../src/billing/aiPricing.ts';
-import { buildCurrentMonthScope, getRecentSequenceScopeKey } from '../../../src/billing/policy.ts';
+import {
+  buildCurrentMonthMonthlyScope,
+  buildCurrentMonthScope,
+  getRecentSequenceScopeKey,
+} from '../../../src/billing/policy.ts';
 import { buildDreamExtractionResponseFormat } from '../../../src/ai/dreamExtractionResponseFormat.ts';
 import {
   buildDreamExtractionSystemPrompt,
@@ -2180,14 +2184,21 @@ export function buildRecentScope(entries: PatternEntry[], count: number): string
   return getRecentSequenceScopeKey(entries.map((entry) => entry.dreamId), count);
 }
 
-export function buildMonthScope(monthKey: string, timeZone: string): {
+export function buildMonthScope(
+  monthKey: string,
+  timeZone: string,
+  cadence: 'monthly' | 'weekly' | null = 'weekly'
+): {
   scopeKey: string;
   startDate: string;
   endDate: string;
   isCurrentMonth: boolean;
 } {
   const now = new Date();
-  const current = buildCurrentMonthScope(now, timeZone);
+  const current =
+    cadence === 'monthly'
+      ? buildCurrentMonthMonthlyScope(now, timeZone)
+      : buildCurrentMonthScope(now, timeZone);
   if (monthKey === current.monthKey) {
     return {
       scopeKey: current.scopeKey,

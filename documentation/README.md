@@ -15,10 +15,10 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 | [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md) | Write, drafts, voice transcription, save, Journal, Dream detail/editor, Calendar |
 | [flows-05-sync-offline.md](./flows-05-sync-offline.md) | Offline-first saves, reconnect sync, logout cleanup, dev offline toggle |
 | [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md) | Entitlement-gated reflection, follow-up chat, limits, `InterpretationChat` route. **Locked contracts:** (1) DreamDetail ~15s streamed reflection keeps `PhasedTypingText` (user approval to change); (2) metadata extraction resilience — soft defaults + dual deploy so `structured_schema_invalid` does not recur after echo/schema edits. |
-| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Recent Dream Field, premium paywalls, pattern reports, filters → journal |
+| [flows-07-insights-reports.md](./flows-07-insights-reports.md) | Period presets, Recent Dream Field, paid-plan paywalls, essays/pattern reports, filters → journal |
 | [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md) | Contact, Privacy, support while locked out |
 | [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) | Error paths, empty states, ordering notes for test suites |
-| [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Subscription UX, yearly/monthly plans, entitlement source of truth, quota rules, and AI gateway contract |
+| [flows-10-subscriptions-billing.md](./flows-10-subscriptions-billing.md) | Three-tier subscription UX, store products, quota rules, grace bundle behavior, and AI gateway contract |
 | [architecture-app-map.md](./architecture-app-map.md) | Practical subsystem map for navigation, screens, services, storage, Supabase, AI, theme, and impact analysis |
 | [architecture-features.md](./architecture-features.md) | Feature-by-feature map of entry points, dependencies, docs/tests, platform, and deploy considerations |
 | [architecture-interpretation.md](./architecture-interpretation.md) | AI interpretation architecture: reflection, chat, extraction (shared canonical prompt in `src/ai/dreamExtractionPrompt.ts`), `display_distillation`, metadata, proxy routing, sync, and tests |

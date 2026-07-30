@@ -5,22 +5,26 @@ import { SubscriptionPlanCarousel } from './SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from './SubscriptionPlanCard';
 import { borderRadius, colors, spacing, text, typography } from '../../theme';
 import type { BillingInterval, PremiumGateSource, StoreSubscriptionPlan } from '../../types/subscription';
-import { FREE_PLAN_FEATURES, PREMIUM_PLAN_FEATURES, getFreePlanCardModel, getPremiumSourceCopy } from '../../services/subscriptionService';
+import { DEEPER_PLAN_FEATURES, FREE_PLAN_FEATURES, PREMIUM_PLAN_FEATURES, getFreePlanCardModel, getPremiumSourceCopy } from '../../services/subscriptionService';
+import type { PlanTier } from '../../billing/types';
 
-const FREE_IMAGE = require('../../assets/subscription/free.png');
-const PREMIUM_IMAGE = require('../../assets/subscription/premium.png');
+const FREE_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_free.png');
+const PREMIUM_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_premium.png');
+const DEEPER_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_deeper.png');
 
 type Props = {
   visible: boolean;
   source: PremiumGateSource;
   billingInterval: BillingInterval;
   premiumPlan: StoreSubscriptionPlan;
+  deeperPlan: StoreSubscriptionPlan;
   displayMode?: 'compare' | 'premium_only';
-  upgradeTitle?: string;
+  currentPlanTier?: PlanTier;
+  upgradeTitle?: Partial<Record<Exclude<PlanTier, 'free'>, string>>;
   upgradeDisabled?: boolean;
   onClose: () => void;
   onIntervalChange: (value: BillingInterval) => void;
-  onUpgrade: () => void;
+  onUpgrade: (planTier: Exclude<PlanTier, 'free'>) => void;
 };
 
 export const PremiumUpsellModal: React.FC<Props> = ({
@@ -28,7 +32,9 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   source,
   billingInterval,
   premiumPlan,
+  deeperPlan,
   displayMode = 'compare',
+  currentPlanTier = 'free',
   upgradeTitle,
   upgradeDisabled = false,
   onClose,
@@ -40,6 +46,8 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   const isPremiumOnly = displayMode === 'premium_only';
   const [activeCardIndex, setActiveCardIndex] = useState(isPremiumOnly ? 0 : 1);
   const showPricingSwitch = isPremiumOnly || activeCardIndex !== 0;
+  const premiumTitle = upgradeTitle?.premium ?? 'Choose Premium';
+  const deeperTitle = upgradeTitle?.deeper ?? 'Choose Deeper';
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -75,26 +83,49 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                   priceDetail={freePlan.totalPriceLabel}
                   features={FREE_PLAN_FEATURES}
                   imageSource={FREE_IMAGE}
-                  actionTitle="Stay on Free"
+                  actionTitle={currentPlanTier === 'free' ? 'Current plan' : 'Continue free'}
                   onPress={onClose}
+                  variant="free"
+                  current={currentPlanTier === 'free'}
+                  disabled={currentPlanTier === 'free'}
                   note="You can continue journaling freely and upgrade later from Subscription."
                 />
               )}
 
               <SubscriptionPlanCard
                 title={premiumPlan.title}
-                eyebrow="Unlock full mode"
+                eyebrow="Recommended path"
+                badgeText="Recommended"
                 price={premiumPlan.displayPrice}
                 priceDetail={premiumPlan.totalPriceLabel}
                 secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+                trialLabel={premiumPlan.trialLabel}
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
-                actionTitle={upgradeTitle ?? 'Go Premium'}
-                onPress={onUpgrade}
+                actionTitle={currentPlanTier === 'premium' ? 'Current plan' : premiumTitle}
+                onPress={() => onUpgrade('premium')}
                 selected
-                premium
-                disabled={upgradeDisabled}
-                note={premiumPlan.savingsLabel ?? 'Premium outputs remain readable even if your paid access later lapses.'}
+                variant="premium"
+                current={currentPlanTier === 'premium'}
+                disabled={upgradeDisabled || currentPlanTier === 'premium'}
+                note={premiumPlan.savingsLabel ?? 'A balanced rhythm for regular dream work.'}
+              />
+
+              <SubscriptionPlanCard
+                title={deeperPlan.title}
+                eyebrow="For those going further"
+                price={deeperPlan.displayPrice}
+                priceDetail={deeperPlan.totalPriceLabel}
+                secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+                trialLabel={deeperPlan.trialLabel}
+                features={DEEPER_PLAN_FEATURES}
+                imageSource={DEEPER_IMAGE}
+                actionTitle={currentPlanTier === 'deeper' ? 'Current plan' : deeperTitle}
+                onPress={() => onUpgrade('deeper')}
+                variant="deeper"
+                current={currentPlanTier === 'deeper'}
+                disabled={upgradeDisabled || currentPlanTier === 'deeper'}
+                note="More room for a deeper ongoing practice."
               />
             </SubscriptionPlanCarousel>
           </ScrollView>

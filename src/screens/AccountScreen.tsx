@@ -299,7 +299,7 @@ const AccountScreen: React.FC = () => {
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Insights language</Text>
           <Text style={styles.fieldLabel}>
-            Language used for Recent Dream Field and Period Reflection.
+            Language used for Recent Dream Field and Essays.
           </Text>
           <TouchableOpacity
             style={styles.languageTrigger}

@@ -33,12 +33,13 @@ import { OfflineMessage } from '../components/OfflineMessage';
 import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import {
+  consumeGrantedQuotaBonus,
   EntitlementError,
   generateEntitledDreamReflection,
   generateEntitledFollowupReply,
   triggerPendingDreamMetadataExtraction,
 } from '../services/entitledAiService';
-import { getFallbackPlan, getReadOnlyLapseMessage, getTargetPlanForInterval } from '../services/subscriptionService';
+import { getPaidPlanOptionsForInterval, getReadOnlyLapseMessage } from '../services/subscriptionService';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
@@ -243,13 +244,12 @@ const InterpretationChatScreen: React.FC = () => {
   const [upsellSource, setUpsellSource] = useState<PremiumGateSource>('followup');
 
   const flatListRef = useRef<FlatList>(null);
-  const premiumPlan = useMemo(
-    () =>
-      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+  const [premiumPlan, deeperPlan] = useMemo(
+    () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+  const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
 
   useEffect(() => {
     loadData();
@@ -328,6 +328,13 @@ const InterpretationChatScreen: React.FC = () => {
       setInterpretation(newInterpretation);
       setMessages(newInterpretation.messages);
       triggerPendingDreamMetadataExtraction(newInterpretation);
+      const bonusGrant = consumeGrantedQuotaBonus();
+      if (bonusGrant) {
+        Alert.alert(
+          'A small gift from us',
+          'You reached the edge of this cycle, so we opened 5 extra reflections and 5 extra Recent Dream Field reports for you. If this happens again, it may be time to upgrade.'
+        );
+      }
       // Start typing animation
       setTypingMessageId(newInterpretation.messages[0]?.id ?? null);
     } catch (error: any) {
@@ -659,13 +666,18 @@ const InterpretationChatScreen: React.FC = () => {
         source={upsellSource}
         billingInterval={billingInterval}
         premiumPlan={premiumPlan}
+        deeperPlan={deeperPlan}
         displayMode="premium_only"
-        upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+        currentPlanTier={currentPlanTier}
+        upgradeTitle={{
+          premium: purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium',
+          deeper: purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper',
+        }}
         upgradeDisabled={purchasingPlanCode !== null}
         onClose={() => setUpsellVisible(false)}
         onIntervalChange={setBillingInterval}
-        onUpgrade={async () => {
-          const started = await purchasePlan(billingInterval, upsellSource);
+        onUpgrade={async (planTier) => {
+          const started = await purchasePlan(planTier, billingInterval, upsellSource);
           if (started) {
             setUpsellVisible(false);
           }

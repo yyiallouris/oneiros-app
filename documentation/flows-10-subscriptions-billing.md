@@ -8,25 +8,38 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - Unlimited calendar / dream entry access.
   - 1 dream reflection every rolling 7 days.
   - That free reflection keeps its own 5 follow-up assistant replies.
-- **Paid monthly (`paid_monthly`)**
+- **Premium monthly (`paid_monthly`)**
   - Price target: **EUR 4.99 / month** through store subscriptions.
-- **Paid yearly (`paid_yearly`)**
-  - Price target: **EUR 47.88 / year** shown as **EUR 3.99 / month equivalent** with a simple **Save EUR 12 / year** badge.
-- **Both paid plans**
-  - 60 dream reflections per paid billing cycle.
+- **Premium yearly (`paid_yearly`)**
+  - Same annual discount ratio as current Premium yearly pricing.
+- **Deeper monthly (`deeper_monthly`)**
+  - Price target: **EUR 8.99 / month** through store subscriptions.
+- **Deeper yearly (`deeper_yearly`)**
+  - Uses the same annual discount ratio as Premium yearly.
+- **Premium**
+  - 35 dream reflections per paid billing cycle.
   - 5 follow-up assistant replies per reflected dream.
   - 10 Recent Dream Field generations per paid billing cycle.
-  - Period reflections are paid-only and cadence-gated rather than counted against the 60 or 10 quotas.
-  - Same entitlements and quota rules; only the billing period differs.
+  - 1 essay per calendar month.
+  - 7-day free trial when store eligibility allows it.
+- **Deeper**
+  - 80 dream reflections per paid billing cycle.
+  - 5 follow-up assistant replies per reflected dream.
+  - Unlimited Recent Dream Field generations.
+  - 1 essay per calendar week.
+  - 7-day free trial when store eligibility allows it.
+- **Paid grace bundle**
+  - The first paid-quota exhaustion grants a one-time lifetime bundle of `+5` dream reflections and `+5` Recent Dream Field reports.
+  - The bundle is tracked server-side in `billing_bonus_grants`, surfaced as `bonus_grant` metadata by the gateway, and never granted to free weekly reflections.
 
 ## Mobile UX surfaces
 
 - **Onboarding**
   - Plan selection now sits between interpretation depth and security.
-  - Free and Premium cards are shown in a reusable horizontal carousel with Premium as the default visible card.
+  - Free, Premium, and Deeper cards are shown in a reusable horizontal carousel with Premium as the default visible card.
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly switch is hidden whenever the free card is the active visible card.
-  - User can continue with Free or start native purchase directly from the Premium card.
+  - User can continue with Free or start native purchase directly from the Premium or Deeper card.
 - **Subscription**
   - Permanent manage-subscription destination.
   - Shows the full plan comparison without usage statistics or quota counters on the screen itself.
@@ -37,7 +50,8 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Write menu**
   - Includes a dedicated **Subscription & Billing** entry that routes into `Subscription`.
 - **Premium taps**
-  - Free-plan taps on Recent Dream Field, Period Reflection, premium regenerate, and premium follow-up surfaces open the reusable paywall in premium-only mode.
+  - Free-plan taps on Recent Dream Field, Essays, regenerate, and paid follow-up surfaces open the reusable paywall in premium-only mode.
+  - Premium is visually recommended; Deeper feels more advanced rather than more promotional.
   - No fake urgency, hidden pricing, or “most popular” framing.
 - **Native runtime requirement**
   - Restore / manage subscription actions require a development build or store build.
@@ -65,13 +79,17 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Authenticated function.
 - Returns:
   - `plan_code`
+  - `plan_tier`
   - `entitlement_state`
   - `current_period_start`
   - `current_period_end`
+  - `essay_cadence`
+  - `bonus_grace_bundle_used`
+  - `bonus_grace_bundle_granted_at`
   - stable purchase-linking identifiers:
     - `app_account_token`
     - `google_obfuscated_account_id`
-  - feature quota summaries for dream reflections and Recent Dream Field.
+  - feature quota summaries for dream reflections, Recent Dream Field, and essays.
 
 ### `billing-register-purchase`
 
@@ -106,14 +124,19 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 
 - **Apple**
   - One subscription group.
-  - Two auto-renewables:
+  - Four auto-renewables:
     - `oneiros_premium_monthly`
     - `oneiros_premium_yearly`
+    - `oneiros_deeper_monthly`
+    - `oneiros_deeper_yearly`
 - **Google**
-  - One subscription product: `oneiros_premium`
-  - Two base plans:
+  - Two subscription products:
+    - `oneiros_premium`
+    - `oneiros_deeper`
+  - Shared base plans:
     - `monthly`
     - `yearly`
+  - Both paid tiers must expose a 7-day free trial offer in store configuration.
 
 ## Store webhook ingestion
 
@@ -134,10 +157,12 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 ### Dream reflections
 
 - Free users get 1 rolling-7-day bucket.
-- Paid users get a 60-use billing-cycle bucket by default.
-- Manual/test overrides may raise that cycle limit via `subscription_entitlements.raw.dream_reflection_limit` (see `billing_paid_dream_reflection_limit` and `scripts/sql/grant-test-user-200-dreams.sql`).
+- Premium users get a 35-use billing-cycle bucket by default.
+- Deeper users get an 80-use billing-cycle bucket by default.
+- Manual/test overrides may raise that cycle limit via `subscription_entitlements.raw.dream_reflection_limit`.
 - A new initial reflection or a full regenerate/update consumes 1 dream-reflection slot.
 - Follow-up assistant replies do **not** consume the paid dream-reflection bucket.
+- First paid exhaustion attempts the one-time server-side grace bundle before denial.
 - Reflection quota is committed once the user-facing reflection is generated and persisted. Post-reflection metadata extraction failure does not release quota because the reflection was delivered.
 - Reflection timeout/error before persistence releases the quota reservation.
 - Cost logs are observability-only and do not affect quota: the gateway logs reflection cost when the reflection call completes, metadata cost when extraction completes, and a combined reflection+metadata estimated USD when both are available.
@@ -156,25 +181,29 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 ### Recent Dream Field
 
 - Paid-only.
-- 10 generations per paid billing cycle.
+- Premium: 10 generations per paid billing cycle.
+- Deeper: unlimited, so count denials do not apply.
+- First paid exhaustion attempts the same one-time grace bundle before denial.
 - Exact same dream-sequence scope + language reuses the cached artifact instead of spending quota again.
 
-### Period reflection
+### Essays (`period_reflection_generate`)
 
 - Paid-only.
 - Minimum 2 reflected dreams in the requested scope.
-- **Current month**
-  - month-to-date only
-  - max 1 generation per calendar week
-  - require at least 1 new reflected dream since the last current-month generation
+- **Premium**
+  - 1 essay per calendar month.
+  - Current month uses month-to-date scope with a month-level cache/report key.
+- **Deeper**
+  - 1 essay per calendar week.
+  - Current month uses week-level scope keys inside the month.
 - **Finished months**
   - immutable once generated for that month scope
   - same-language reruns reuse the cached artifact
 
 ## Persistence notes
 
-- Premium outputs remain readable after lapse through `ai_generation_artifacts`.
-- Period reflections are mirrored to `pattern_reports` for compatibility with existing Insights storage.
+- Paid outputs remain readable after lapse through `ai_generation_artifacts`.
+- Essays are mirrored to `pattern_reports` for compatibility with existing Insights storage.
 - `user_settings.time_zone` is the persisted timezone used for calendar-based quota and current-month cadence logic. Fallback is `UTC`.
 
 ## Live cutover notes
@@ -185,4 +214,4 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - `dream_followup_reply`
   - `recent_dream_field_generate`
   - `period_reflection_generate`
-- Premium artifacts remain readable after lapse, but paid-origin chat and paid generation paths become read-only until renewal.
+- Paid artifacts remain readable after lapse, but paid-origin chat and paid generation paths become read-only until renewal.

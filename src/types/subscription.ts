@@ -1,4 +1,4 @@
-import type { GatewayAction, PlanCode, EntitlementState } from '../billing/types';
+import type { GatewayAction, PlanCode, PlanTier, EntitlementState } from '../billing/types';
 
 export type BillingInterval = 'monthly' | 'yearly';
 
@@ -15,22 +15,34 @@ export type SubscriptionQuota = {
   nextResetAt: string | null;
 };
 
+export type EssayCadence = 'monthly' | 'weekly' | null;
+
+export type EssayQuota = SubscriptionQuota & {
+  cadence: EssayCadence;
+};
+
 export type SubscriptionStatus = {
   planCode: PlanCode;
+  planTier: PlanTier;
   entitlementState: EntitlementState;
   currentPeriodStart: string | null;
   currentPeriodEnd: string | null;
+  essayCadence: EssayCadence;
+  bonusGraceBundleUsed: boolean;
+  bonusGraceBundleGrantedAt: string | null;
   appAccountToken: string | null;
   googleObfuscatedAccountId: string | null;
   quotas: {
     dreamReflections: SubscriptionQuota;
     recentDreamField: SubscriptionQuota;
+    essays: EssayQuota;
   };
   hasPaidAccess: boolean;
 };
 
 export type StoreSubscriptionPlan = {
-  planCode: Extract<PlanCode, 'paid_monthly' | 'paid_yearly'>;
+  planCode: Extract<PlanCode, 'paid_monthly' | 'paid_yearly' | 'deeper_monthly' | 'deeper_yearly'>;
+  planTier: Exclude<PlanTier, 'free'>;
   billingInterval: BillingInterval;
   productId: string;
   displayPrice: string;
@@ -39,6 +51,20 @@ export type StoreSubscriptionPlan = {
   savingsLabel: string | null;
   offerTokenAndroid?: string | null;
   title: string;
+  trialLabel: string | null;
+};
+
+export type FreePlanCardModel = {
+  planCode: 'free';
+  planTier: 'free';
+  billingInterval: 'monthly';
+  productId: 'free';
+  displayPrice: string;
+  totalPriceLabel: string;
+  monthlyEquivalentLabel: null;
+  savingsLabel: null;
+  title: string;
+  trialLabel: null;
 };
 
 export type PremiumGateSource =

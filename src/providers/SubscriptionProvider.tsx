@@ -4,12 +4,12 @@ import type { ProductSubscription, Purchase } from 'expo-iap';
 import { deepLinkToSubscriptions, getTransactionJwsIOS, showManageSubscriptionsIOS, useIAP } from 'expo-iap';
 import { supabase } from '../services/supabaseClient';
 import {
-  createIdempotencyKey,
   fetchSubscriptionStatus,
   getFallbackPlan,
   getIapUnavailableMessage,
   getInitialIapRuntimeAvailability,
   getPurchaseRequest,
+  getTargetPlanForTierInterval,
   isMissingNativeIapError,
   getStorePlanOptions,
   registerApplePurchase,
@@ -23,6 +23,7 @@ import type {
   StoreSubscriptionPlan,
   SubscriptionStatus,
 } from '../types/subscription';
+import type { PlanTier } from '../billing/types';
 import { logError } from '../services/logger';
 
 type SubscriptionContextValue = {
@@ -34,7 +35,7 @@ type SubscriptionContextValue = {
   purchasingPlanCode: StoreSubscriptionPlan['planCode'] | null;
   products: StoreSubscriptionPlan[];
   refreshStatus: () => Promise<void>;
-  purchasePlan: (interval: BillingInterval, source: PremiumGateSource) => Promise<boolean>;
+  purchasePlan: (planTier: Exclude<PlanTier, 'free'>, interval: BillingInterval, source: PremiumGateSource) => Promise<boolean>;
   restorePurchases: () => Promise<void>;
   openManageSubscriptions: () => Promise<void>;
 };
@@ -44,6 +45,8 @@ const SubscriptionContext = createContext<SubscriptionContextValue | null>(null)
 const initialFallbackProducts = [
   getFallbackPlan('paid_monthly'),
   getFallbackPlan('paid_yearly'),
+  getFallbackPlan('deeper_monthly'),
+  getFallbackPlan('deeper_yearly'),
 ];
 
 export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -174,8 +177,16 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const skus =
       Platform.OS === 'ios'
-        ? [subscriptionConfig.appleMonthlyProductId, subscriptionConfig.appleYearlyProductId]
-        : [subscriptionConfig.googleSubscriptionProductId];
+        ? [
+            subscriptionConfig.applePremiumMonthlyProductId,
+            subscriptionConfig.applePremiumYearlyProductId,
+            subscriptionConfig.appleDeeperMonthlyProductId,
+            subscriptionConfig.appleDeeperYearlyProductId,
+          ]
+        : [
+            subscriptionConfig.googlePremiumSubscriptionProductId,
+            subscriptionConfig.googleDeeperSubscriptionProductId,
+          ];
 
     iap.fetchProducts({ skus, type: 'subs' }).catch((error) => {
       logError('subscription_fetch_products_failed', error);
@@ -187,7 +198,11 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setProducts(normalizedProducts);
   }, [iap.subscriptions]);
 
-  const purchasePlan = async (interval: BillingInterval, source: PremiumGateSource) => {
+  const purchasePlan = async (
+    planTier: Exclude<PlanTier, 'free'>,
+    interval: BillingInterval,
+    source: PremiumGateSource
+  ) => {
     if (!iapRuntimeAvailable) {
       Alert.alert('Subscriptions unavailable', getIapUnavailableMessage(iapUnavailableReason));
       return false;
@@ -202,7 +217,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     const effectiveStatus = status ?? (await fetchSubscriptionStatus());
-    const planCode = interval === 'yearly' ? 'paid_yearly' : 'paid_monthly';
+    const planCode = getTargetPlanForTierInterval(planTier, interval);
     const plan = products.find((item) => item.planCode === planCode) ?? getFallbackPlan(planCode);
 
     if (Platform.OS === 'android' && !plan.offerTokenAndroid) {
@@ -262,7 +277,10 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       } else {
         await deepLinkToSubscriptions({
           packageNameAndroid: subscriptionConfig.androidPackageName,
-          skuAndroid: subscriptionConfig.googleSubscriptionProductId,
+          skuAndroid:
+            status?.planTier === 'deeper'
+              ? subscriptionConfig.googleDeeperSubscriptionProductId
+              : subscriptionConfig.googlePremiumSubscriptionProductId,
         });
       }
     } catch (error) {

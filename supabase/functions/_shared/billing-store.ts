@@ -6,12 +6,15 @@ const APPLE_KEY_ID = Deno.env.get('APPLE_KEY_ID') ?? '';
 const APPLE_PRIVATE_KEY = Deno.env.get('APPLE_PRIVATE_KEY') ?? '';
 const APPLE_BUNDLE_ID = Deno.env.get('APPLE_BUNDLE_ID') ?? '';
 const APPLE_SUBSCRIPTION_PRODUCT_ID = Deno.env.get('APPLE_SUBSCRIPTION_PRODUCT_ID') ?? '';
-const APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID =
+const APPLE_PREMIUM_MONTHLY_PRODUCT_ID =
   Deno.env.get('APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID') ?? APPLE_SUBSCRIPTION_PRODUCT_ID;
-const APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID = Deno.env.get('APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID') ?? '';
+const APPLE_PREMIUM_YEARLY_PRODUCT_ID = Deno.env.get('APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID') ?? '';
+const APPLE_DEEPER_MONTHLY_PRODUCT_ID = Deno.env.get('APPLE_DEEPER_SUBSCRIPTION_MONTHLY_PRODUCT_ID') ?? '';
+const APPLE_DEEPER_YEARLY_PRODUCT_ID = Deno.env.get('APPLE_DEEPER_SUBSCRIPTION_YEARLY_PRODUCT_ID') ?? '';
 
 const GOOGLE_PACKAGE_NAME = Deno.env.get('GOOGLE_PACKAGE_NAME') ?? '';
-const GOOGLE_SUBSCRIPTION_PRODUCT_ID = Deno.env.get('GOOGLE_SUBSCRIPTION_PRODUCT_ID') ?? '';
+const GOOGLE_PREMIUM_SUBSCRIPTION_PRODUCT_ID = Deno.env.get('GOOGLE_SUBSCRIPTION_PRODUCT_ID') ?? '';
+const GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID = Deno.env.get('GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID') ?? '';
 const GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID =
   Deno.env.get('GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID') ?? 'monthly';
 const GOOGLE_SUBSCRIPTION_YEARLY_BASE_PLAN_ID =
@@ -110,14 +113,21 @@ function parseAppleState(transaction: Record<string, unknown>): EntitlementState
 }
 
 function isConfiguredAppleProduct(productId: string): boolean {
-  return [APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID, APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID]
+  return [
+    APPLE_PREMIUM_MONTHLY_PRODUCT_ID,
+    APPLE_PREMIUM_YEARLY_PRODUCT_ID,
+    APPLE_DEEPER_MONTHLY_PRODUCT_ID,
+    APPLE_DEEPER_YEARLY_PRODUCT_ID,
+  ]
     .filter(Boolean)
     .includes(productId);
 }
 
-function resolveApplePlanCode(productId: string): 'paid_monthly' | 'paid_yearly' {
-  if (productId === APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID) return 'paid_yearly';
-  if (productId === APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID || !APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID) {
+function resolveApplePlanCode(productId: string): 'paid_monthly' | 'paid_yearly' | 'deeper_monthly' | 'deeper_yearly' {
+  if (productId === APPLE_PREMIUM_YEARLY_PRODUCT_ID) return 'paid_yearly';
+  if (productId === APPLE_DEEPER_MONTHLY_PRODUCT_ID) return 'deeper_monthly';
+  if (productId === APPLE_DEEPER_YEARLY_PRODUCT_ID) return 'deeper_yearly';
+  if (productId === APPLE_PREMIUM_MONTHLY_PRODUCT_ID || !APPLE_PREMIUM_YEARLY_PRODUCT_ID) {
     return 'paid_monthly';
   }
   throw new HttpError(400, `Apple product id is not configured for subscriptions: ${productId}`);
@@ -126,7 +136,7 @@ function resolveApplePlanCode(productId: string): 'paid_monthly' | 'paid_yearly'
 function mapApplePurchase(userId: string, transaction: Record<string, unknown>): { purchase: VerifiedPurchase; snapshot: EntitlementSnapshot } {
   const transactionId = String(transaction.transactionId ?? '');
   const originalTransactionId = String(transaction.originalTransactionId ?? transactionId);
-  const productId = String(transaction.productId ?? APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID);
+  const productId = String(transaction.productId ?? APPLE_PREMIUM_MONTHLY_PRODUCT_ID);
   const appAccountToken = typeof transaction.appAccountToken === 'string' ? transaction.appAccountToken : null;
   const environment = typeof transaction.environment === 'string' ? transaction.environment : null;
   const entitlementState = parseAppleState(transaction);
@@ -225,7 +235,7 @@ type AppleWebhookInput = {
 const appleProvider: EntitlementProvider<ApplePurchaseInput, AppleWebhookInput> = {
   name: 'apple',
   async verifyPurchase(input) {
-    requireEnv(APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID, 'APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID');
+    requireEnv(APPLE_PREMIUM_MONTHLY_PRODUCT_ID, 'APPLE_SUBSCRIPTION_MONTHLY_PRODUCT_ID');
     const unverified = decodeJwtPayload<Record<string, unknown>>(input.signedTransactionInfo);
     const transactionId = String(unverified.transactionId ?? '');
     const verifiedTransaction = await fetchAppleTransaction(transactionId, typeof unverified.environment === 'string' ? unverified.environment : null);
@@ -351,19 +361,25 @@ function mapGoogleState(subscriptionState: string, expiryTime: string | null): E
   return 'active';
 }
 
-function resolveGooglePlanCode(lineItem: Record<string, unknown>): 'paid_monthly' | 'paid_yearly' {
+function resolveGooglePlanCode(
+  lineItem: Record<string, unknown>,
+  productId: string
+): 'paid_monthly' | 'paid_yearly' | 'deeper_monthly' | 'deeper_yearly' {
   const offerDetails = (lineItem.offerDetails ?? {}) as Record<string, unknown>;
   const basePlanId = String(offerDetails.basePlanId ?? '');
+  const isDeeper = productId === GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID;
 
-  if (basePlanId === GOOGLE_SUBSCRIPTION_YEARLY_BASE_PLAN_ID) return 'paid_yearly';
-  if (basePlanId === GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID || !basePlanId) return 'paid_monthly';
+  if (basePlanId === GOOGLE_SUBSCRIPTION_YEARLY_BASE_PLAN_ID) return isDeeper ? 'deeper_yearly' : 'paid_yearly';
+  if (basePlanId === GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID || !basePlanId) {
+    return isDeeper ? 'deeper_monthly' : 'paid_monthly';
+  }
   throw new HttpError(400, `Google base plan id is not configured for subscriptions: ${basePlanId}`);
 }
 
 function mapGooglePurchase(userId: string, payload: Record<string, unknown>, purchaseToken: string): { purchase: VerifiedPurchase; snapshot: EntitlementSnapshot } {
   const lineItems = Array.isArray(payload.lineItems) ? payload.lineItems as Array<Record<string, unknown>> : [];
   const lineItem = lineItems[0] ?? {};
-  const productId = String(lineItem.productId ?? GOOGLE_SUBSCRIPTION_PRODUCT_ID);
+  const productId = String(lineItem.productId ?? GOOGLE_PREMIUM_SUBSCRIPTION_PRODUCT_ID);
   const latestOrderId = String(payload.latestOrderId ?? purchaseToken);
   const startTime = typeof payload.startTime === 'string' ? payload.startTime : null;
   const expiryTime = typeof lineItem.expiryTime === 'string' ? lineItem.expiryTime : null;
@@ -374,7 +390,7 @@ function mapGooglePurchase(userId: string, payload: Record<string, unknown>, pur
     : null;
   const entitlementState = mapGoogleState(subscriptionState, expiryTime);
   const autoRenewStatus = lineItem.autoRenewingPlan ? true : null;
-  const planCode = resolveGooglePlanCode(lineItem);
+  const planCode = resolveGooglePlanCode(lineItem, productId);
 
   const purchase: VerifiedPurchase = {
     userId,
@@ -449,12 +465,12 @@ const googleProvider: EntitlementProvider<GooglePurchaseInput, GoogleWebhookInpu
   name: 'google',
   async verifyPurchase(input) {
     requireEnv(GOOGLE_PACKAGE_NAME, 'GOOGLE_PACKAGE_NAME');
-    requireEnv(GOOGLE_SUBSCRIPTION_PRODUCT_ID, 'GOOGLE_SUBSCRIPTION_PRODUCT_ID');
+    requireEnv(GOOGLE_PREMIUM_SUBSCRIPTION_PRODUCT_ID, 'GOOGLE_SUBSCRIPTION_PRODUCT_ID');
     const packageName = input.packageName || GOOGLE_PACKAGE_NAME;
     const subscription = await fetchGoogleSubscription(packageName, input.purchaseToken);
     const mapped = mapGooglePurchase(input.userId, subscription, input.purchaseToken);
 
-    if (mapped.purchase.productId !== GOOGLE_SUBSCRIPTION_PRODUCT_ID) {
+    if (![GOOGLE_PREMIUM_SUBSCRIPTION_PRODUCT_ID, GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID].filter(Boolean).includes(mapped.purchase.productId)) {
       throw new HttpError(400, 'Google product id does not match configured subscription');
     }
 

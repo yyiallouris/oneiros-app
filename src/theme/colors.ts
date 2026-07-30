@@ -59,17 +59,44 @@ export const accent = {
 
 /** Subscription plan CTAs use their own palette and do not affect shared app buttons. */
 export const subscriptionButtons = {
-  premiumBackground: '#4B3158',
-  premiumBackgroundPressed: '#3F294A',
-  premiumText: '#FFFDF9',
-  premiumBorder: 'rgba(255, 255, 255, 0.10)',
-  premiumShadow: 'rgba(45, 36, 48, 0.16)',
-  freeBackground: '#E6DFE8',
-  freeBackgroundPressed: '#D9D1DC',
-  freeText: '#4B3158',
-  freeTextPressed: '#432C50',
-  freeBorder: '#D4CAD7',
-  freeShadow: 'rgba(45, 36, 48, 0.08)',
+  premiumBackground: '#FBF5EC',
+  premiumBackgroundPressed: '#F4E7D5',
+  premiumText: '#4E4053',
+  premiumBorder: 'rgba(255, 255, 255, 0.16)',
+  premiumShadow: 'rgba(52, 39, 56, 0.16)',
+  freeBackground: 'transparent',
+  freeBackgroundPressed: 'rgba(129, 118, 130, 0.08)',
+  freeText: '#403744',
+  freeTextPressed: '#342C37',
+  freeBorder: '#817682',
+  freeShadow: 'rgba(45, 36, 48, 0.06)',
+  deeperBackground: 'rgba(255, 255, 255, 0.10)',
+  deeperBackgroundPressed: 'rgba(255, 255, 255, 0.14)',
+  deeperText: '#F8F1FA',
+  deeperBorder: 'rgba(255, 255, 255, 0.26)',
+  deeperShadow: 'rgba(19, 16, 24, 0.18)',
+} as const;
+
+export const subscriptionCards = {
+  freeBackground: '#F5F0E8',
+  freeGlyph: 'rgba(30, 25, 31, 0.86)',
+  freeBorder: 'rgba(216, 206, 215, 0.52)',
+  freeTextPrimary: '#1E191F',
+  freeTextSecondary: '#5B525D',
+  premiumBackgroundTop: '#746078',
+  premiumBackgroundBottom: '#5F4D64',
+  premiumGlyph: '#F8F2E8',
+  premiumBorder: 'rgba(255,255,255,0.18)',
+  premiumTextPrimary: '#FFF9F2',
+  premiumTextSecondary: 'rgba(255, 249, 242, 0.76)',
+  premiumBadgeBackground: '#F4E7C9',
+  premiumBadgeText: '#56465B',
+  deeperBackground: '#2B2633',
+  deeperBackgroundUndertone: '#32283A',
+  deeperGlyph: '#EDE3F2',
+  deeperBorder: 'rgba(199, 173, 211, 0.22)',
+  deeperTextPrimary: '#F7F1F8',
+  deeperTextSecondary: 'rgba(247, 241, 248, 0.68)',
 } as const;
 
 export const surfaces = {
@@ -159,6 +186,7 @@ export type BackgroundKey = keyof typeof backgrounds;
 export type TextKey = keyof typeof text;
 export type AccentKey = keyof typeof accent;
 export type SubscriptionButtonKey = keyof typeof subscriptionButtons;
+export type SubscriptionCardKey = keyof typeof subscriptionCards;
 export type SemanticKey = keyof typeof semantic;
 export type BorderKey = keyof typeof borders;
 export type ShadowKey = keyof typeof shadows;

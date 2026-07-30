@@ -40,8 +40,12 @@ import {
 import { getPatternInsightLanguage } from '../services/patternInsightLanguageService';
 import { isOnline } from '../utils/network';
 import { useSubscription } from '../providers/SubscriptionProvider';
-import { generateEntitledRecentDreamField, EntitlementError } from '../services/entitledAiService';
-import { getFallbackPlan, getTargetPlanForInterval } from '../services/subscriptionService';
+import {
+  consumeGrantedQuotaBonus,
+  EntitlementError,
+  generateEntitledRecentDreamField,
+} from '../services/entitledAiService';
+import { getPaidPlanOptionsForInterval } from '../services/subscriptionService';
 import type {
   CrossCategoryPatternItem,
   InsightsOverviewModel,
@@ -135,13 +139,12 @@ const InsightsScreen: React.FC = () => {
   recentCountRef.current = recentCount;
   const currentPeriod = getPeriodThisMonth();
   const periodLabel = getPeriodLabel(currentPeriod);
-  const premiumPlan = useMemo(
-    () =>
-      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+  const [premiumPlan, deeperPlan] = useMemo(
+    () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
+  const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
 
   const restoreScrollOffset = useCallback(() => {
     const y = scrollOffsetRef.current;
@@ -250,6 +253,13 @@ const InsightsScreen: React.FC = () => {
       setRecentReflection(result);
       const cached = await getCachedRecentDreamFieldReflection(recentCount, recentLanguage);
       setRecentCachedAt(cached?.generated_at ?? new Date().toISOString());
+      const bonusGrant = consumeGrantedQuotaBonus();
+      if (bonusGrant) {
+        Alert.alert(
+          'A small gift from us',
+          'You reached the edge of this cycle, so we opened 5 extra reflections and 5 extra Recent Dream Field reports for you. If this happens again, it may be time to upgrade.'
+        );
+      }
     } catch (e: any) {
       if (e instanceof EntitlementError && e.premiumRequired) {
         setUpsellVisible(true);
@@ -448,13 +458,13 @@ const InsightsScreen: React.FC = () => {
               <PatternRecognitionIcon size={72} />
             </View>
             <View style={styles.reflectionContent}>
-              <Text style={styles.cardTitle}>Period Reflection</Text>
+              <Text style={styles.cardTitle}>Essays</Text>
               <Text style={styles.reflectionBody}>
                 {!hasPaidAccess
-                  ? 'Premium unlocks month-to-date and archived period reflections with clear cadence and saved reports.'
+                  ? 'Premium unlocks a monthly essay rhythm. Deeper opens weekly essays with the same saved archive.'
                   : hasEnoughForReflection
                   ? 'Generate or revisit a symbolic essay on this period’s dream field.'
-                  : 'Reflect on at least 2 dreams in this period to generate a meaningful period reflection.'}
+                  : 'Reflect on at least 2 dreams in this period to generate a meaningful essay.'}
               </Text>
               <Text style={styles.reflectionCta}>
                 {!hasPaidAccess ? 'Unlock Premium' : hasEnoughForReflection ? 'Open reflection' : 'View reflection space'}
@@ -526,13 +536,18 @@ const InsightsScreen: React.FC = () => {
           source="insights"
           billingInterval={billingInterval}
           premiumPlan={premiumPlan}
+          deeperPlan={deeperPlan}
           displayMode="premium_only"
-          upgradeTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+          currentPlanTier={currentPlanTier}
+          upgradeTitle={{
+            premium: purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium',
+            deeper: purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper',
+          }}
           upgradeDisabled={purchasingPlanCode !== null}
           onClose={() => setUpsellVisible(false)}
           onIntervalChange={setBillingInterval}
-          onUpgrade={async () => {
-            const started = await purchasePlan(billingInterval, 'insights');
+          onUpgrade={async (planTier) => {
+            const started = await purchasePlan(planTier, billingInterval, 'insights');
             if (started) {
               setUpsellVisible(false);
             }

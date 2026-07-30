@@ -9,18 +9,19 @@ import { SubscriptionPlanCarousel } from '../../components/subscription/Subscrip
 import { SubscriptionPlanCard } from '../../components/subscription/SubscriptionPlanCard';
 import { useSubscription } from '../../providers/SubscriptionProvider';
 import {
+  DEEPER_PLAN_FEATURES,
   FREE_PLAN_FEATURES,
   PREMIUM_PLAN_FEATURES,
-  getFallbackPlan,
   getFreePlanCardModel,
-  getTargetPlanForInterval,
+  getPaidPlanOptionsForInterval,
 } from '../../services/subscriptionService';
 import { borderRadius, colors, spacing, text, typography } from '../../theme';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import type { BillingInterval } from '../../types/subscription';
 
-const FREE_IMAGE = require('../../assets/subscription/free.png');
-const PREMIUM_IMAGE = require('../../assets/subscription/premium.png');
+const FREE_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_free.png');
+const PREMIUM_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_premium.png');
+const DEEPER_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_deeper.png');
 
 type NavProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingSubscription'>;
 
@@ -30,10 +31,8 @@ const OnboardingSubscriptionScreen: React.FC = () => {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const [activeCardIndex, setActiveCardIndex] = useState(1);
 
-  const premiumPlan = useMemo(
-    () =>
-      products.find((product) => product.planCode === getTargetPlanForInterval(billingInterval)) ??
-      getFallbackPlan(getTargetPlanForInterval(billingInterval)),
+  const [premiumPlan, deeperPlan] = useMemo(
+    () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
   const freePlan = getFreePlanCardModel();
@@ -44,8 +43,8 @@ const OnboardingSubscriptionScreen: React.FC = () => {
     }
   }, [navigation, status?.hasPaidAccess]);
 
-  const handlePremiumPress = async () => {
-    await purchasePlan(billingInterval, 'onboarding');
+  const handlePremiumPress = async (planTier: 'premium' | 'deeper') => {
+    await purchasePlan(planTier, billingInterval, 'onboarding');
   };
 
   return (
@@ -65,7 +64,7 @@ const OnboardingSubscriptionScreen: React.FC = () => {
           <OnboardingProgress step={4} />
           <Text style={styles.title}>Choose your mode</Text>
           <Text style={styles.subtitle}>
-            Start grounded with Free, or unlock the full Oneiros flow now. Pricing stays clear and you can manage it later from Subscription.
+            Start grounded with Free, choose Premium for the natural rhythm, or step into Deeper if you want more room each month.
           </Text>
 
           {activeCardIndex !== 0 && (
@@ -89,23 +88,44 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               imageSource={FREE_IMAGE}
               actionTitle="Continue with Free"
               onPress={() => navigation.navigate('OnboardingSecure')}
+              variant="free"
             />
 
             <SubscriptionPlanCard
               title={premiumPlan.title}
-              eyebrow="Full mode"
+              eyebrow="The natural choice"
+              badgeText="Recommended"
               price={premiumPlan.displayPrice}
               priceDetail={premiumPlan.totalPriceLabel}
               secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+              trialLabel={premiumPlan.trialLabel}
               features={PREMIUM_PLAN_FEATURES}
               imageSource={PREMIUM_IMAGE}
-              actionTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Go Premium'}
+              actionTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium'}
               onPress={() => {
-                void handlePremiumPress();
+                void handlePremiumPress('premium');
               }}
-              premium
               selected
-              note="No hidden pricing, no countdowns, no tricks."
+              note="7 days free, then the selected plan begins if the store says the user is eligible."
+              variant="premium"
+              disabled={purchasingPlanCode !== null}
+            />
+
+            <SubscriptionPlanCard
+              title={deeperPlan.title}
+              eyebrow="For those going further"
+              price={deeperPlan.displayPrice}
+              priceDetail={deeperPlan.totalPriceLabel}
+              secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+              trialLabel={deeperPlan.trialLabel}
+              features={DEEPER_PLAN_FEATURES}
+              imageSource={DEEPER_IMAGE}
+              actionTitle={purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper'}
+              onPress={() => {
+                void handlePremiumPress('deeper');
+              }}
+              note="More monthly room, weekly essays, and unlimited recent dream field reports."
+              variant="deeper"
               disabled={purchasingPlanCode !== null}
             />
           </SubscriptionPlanCarousel>

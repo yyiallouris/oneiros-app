@@ -126,11 +126,13 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
   useSubscription: () => ({
     status: {
       hasPaidAccess: mockHasPaidAccess,
+      planTier: mockHasPaidAccess ? 'premium' : 'free',
       entitlementState: mockEntitlementState,
       currentPeriodEnd: '2026-08-01T00:00:00.000Z',
       quotas: {
-        dreamReflections: { remaining: 56, used: 4, limit: 60, nextResetAt: null },
+        dreamReflections: { remaining: 31, used: 4, limit: 35, nextResetAt: null },
         recentDreamField: { remaining: 8, used: 2, limit: 10, nextResetAt: null },
+        essays: { remaining: null, used: 0, limit: 1, nextResetAt: null, cadence: 'monthly' },
       },
     },
     loading: false,
@@ -140,6 +142,7 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
     products: [
       {
         planCode: 'paid_monthly',
+        planTier: 'premium',
         billingInterval: 'monthly',
         productId: 'monthly',
         displayPrice: '€4.99 / month',
@@ -147,9 +150,11 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         monthlyEquivalentLabel: null,
         savingsLabel: null,
         title: 'Premium Monthly',
+        trialLabel: '7-day free trial',
       },
       {
         planCode: 'paid_yearly',
+        planTier: 'premium',
         billingInterval: 'yearly',
         productId: 'yearly',
         displayPrice: '€47.88 / year',
@@ -157,6 +162,31 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         monthlyEquivalentLabel: '€3.99 / month',
         savingsLabel: 'Save €12 / year',
         title: 'Premium Yearly',
+        trialLabel: '7-day free trial',
+      },
+      {
+        planCode: 'deeper_monthly',
+        planTier: 'deeper',
+        billingInterval: 'monthly',
+        productId: 'deeper-monthly',
+        displayPrice: '€8.99 / month',
+        totalPriceLabel: 'Billed monthly',
+        monthlyEquivalentLabel: null,
+        savingsLabel: null,
+        title: 'Deeper Monthly',
+        trialLabel: '7-day free trial',
+      },
+      {
+        planCode: 'deeper_yearly',
+        planTier: 'deeper',
+        billingInterval: 'yearly',
+        productId: 'deeper-yearly',
+        displayPrice: '€86.28 / year',
+        totalPriceLabel: '€86.28 billed yearly',
+        monthlyEquivalentLabel: '€7.19 / month',
+        savingsLabel: 'Save €21.60 / year',
+        title: 'Deeper Yearly',
+        trialLabel: '7-day free trial',
       },
     ],
     purchasingPlanCode: null,
@@ -211,11 +241,11 @@ describe('subscription surface flow', () => {
   it('starts a premium purchase from the dedicated Subscription screen', async () => {
     const screen = render(<SubscriptionScreen />);
 
-    await waitFor(() => expect(screen.getByText('Go Premium')).toBeTruthy());
-    fireEvent.press(screen.getByText('Go Premium'));
+    await waitFor(() => expect(screen.getByText('Choose Premium')).toBeTruthy());
+    fireEvent.press(screen.getByText('Choose Premium'));
 
     await waitFor(() => {
-      expect(mockPurchasePlan).toHaveBeenCalledWith('monthly', 'subscription');
+      expect(mockPurchasePlan).toHaveBeenCalledWith('premium', 'monthly', 'subscription');
     });
   });
 
