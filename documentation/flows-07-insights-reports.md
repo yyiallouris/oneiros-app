@@ -16,7 +16,7 @@
   - The top-right uppercase Premium tag is not shown in the free locked state.
   - Locked taps open a premium-only upsell card rather than a full free-vs-premium compare view.
   - The inline “recent field is forming” helper box is not shown anymore when the current scope is still too light.
-- **Essays:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports.
+- **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports.
   - Free users see a locked paid-plan card with tappable upsell behavior rather than a dead end.
 - **Returning Patterns:** unified strongest patterns across categories.
   - Images → **`JournalFilter`** with `filterSymbol`.
@@ -47,7 +47,7 @@ Per `sectionId`:
 - **Emotional Weather:** recurring felt tones from `affects` (`sectionId: emotional-weather`); count is distinct dreams per tone; single appearances are collapsed by default; no journal filter in this pass.
 - **Thresholds / Inner Tensions:** recurring transition points and tensions; single crossings/tensions are collapsed by default.
 - **Archetypal Echoes:** still routable for deep/legacy views, but removed from the main Forming Patterns grid.
-- **Essays:** AI calendar-period reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; Premium current month uses a month-level report key, while Deeper keeps week keys for the current month via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered); generation now routes through `generateEntitledPeriodReflection`.
+- **Period Reflection:** AI calendar-period reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; Premium current month uses a month-level report key, while Deeper keeps week keys for the current month via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered); generation now routes through `generateEntitledPeriodReflection`.
 - **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateEntitledRecentDreamField` for the standard paid path; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
 - **Collective:** `getCollectiveInsights()` — currently **placeholder** empty aggregates (`insightsService` TODO).
 
@@ -65,7 +65,7 @@ Per `sectionId`:
 - First paid quota exhaustion can surface the one-time grace-bundle gift message (`+5` reflections, `+5` recent-field reports) before future denials fall back to upgrade copy only.
 - Backend artifacts live in `ai_generation_artifacts` and period reflections are mirrored into `pattern_reports` for compatibility.
 - Lapsed paid users can still read stored premium artifacts, but generation entrypoints become read-only and route to renewal messaging.
-- Locked paid-plan taps across Insights now use the premium-only paywall mode for Recent Dream Field, Essays, regenerate, and paid follow-up entrypoints.
+- Locked paid-plan taps across Insights now use the premium-only paywall mode for Recent Dream Field, Period Reflection, regenerate, and paid follow-up entrypoints.
 - Reflections whose extraction metadata is still `pending` are temporarily skipped by Recent Dream Field and Essay inputs; they become eligible when the post-reflection metadata action marks metadata `ready`.
 
 ### Online checks

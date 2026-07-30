@@ -14,7 +14,7 @@ export const LEGAL_LINKS = {
 };
 
 export const AUTH_LEGAL_NOTE =
-  'A private dream journal with clear boundaries. When you ask for reflections, relevant dream text is processed to generate them. Read Privacy & Terms.';
+  'Privacy & Terms. Your dream text is used only for your journal and the reflections you ask for.';
 
 export const AI_REFLECTION_NOTICE =
   'AI-assisted symbolic reflection for journaling and self-inquiry. It can be meaningful, but it is not therapy, diagnosis, crisis support, medical care, or professional advice.';
@@ -26,18 +26,14 @@ export const CRISIS_NOTICE =
   'If you might harm yourself or someone else, or feel in immediate danger, contact local emergency services or a trusted crisis, medical, or mental health professional now. Oneiros is not emergency or crisis support.';
 
 export const LEGAL_CONSENT_SUMMARY_POINTS = [
-  'Oneiros is meant to feel private, respectful, and calm from the start.',
-  'Your journal data is used to save your entries, sync your account, and generate reflections when you ask for them.',
+  'Your journal is private to your account.',
+  'Dream text is used to save your entries and generate reflections only when you ask for them.',
   'We do not sell your journal content or use it for advertising.',
-  'AI reflections are interpretive material for self-inquiry. Keep what helps, and leave what does not.',
+  'Oneiros is for reflection and self-inquiry, not therapy, diagnosis, medical care, or emergency support.',
 ];
 
-export const LEGAL_CONSENT_ITEMS = [
-  'I confirm I am 18 or older.',
-  'I understand Oneiros may process my dream entries, reflections, and related journal data, which may include sensitive personal information, so it can save my journal, generate AI reflections, provide support, keep the service secure, and meet legal obligations.',
-  'I understand Oneiros is for wellness, journaling, and self-inquiry. AI reflections are generated automatically, may be incomplete or emotionally off, and are not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.',
-  'I understand Oneiros cannot provide emergency help. If I might harm myself or someone else, or feel in immediate danger, I should contact local emergency services or a trusted crisis, medical, or mental health professional now.',
-];
+export const LEGAL_CONSENT_ACKNOWLEDGEMENT =
+  'By continuing, you agree to the Privacy Policy and Terms of Use and confirm that you are 18 or older.';
 
 export const PRIVACY_SECTIONS = [
   {

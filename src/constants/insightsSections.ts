@@ -9,7 +9,7 @@ export const INSIGHTS_SECTION_TITLES: Record<InsightsSectionId, string> = {
   thresholds: 'Thresholds',
   'core-conflicts': 'Inner Tensions',
   'space-landscapes': 'Dream Places',
-  'pattern-recognition': 'Essays',
+  'pattern-recognition': 'Period Reflection',
   collective: 'Collective dreaming',
 };
 

@@ -26,8 +26,6 @@ const micPlayIcon = require('../../assets/icons/action_icons/mic_play.png');
 const micStopIcon = require('../../assets/icons/action_icons/mic_stop.png');
 const MAX_RECORDING_MS = 5 * 60 * 1000;
 const LONG_RECORDING_NOTICE_MS = 4.5 * 60 * 1000;
-const OFFLINE_QUEUE_STATUSES = new Set<PendingVoiceTranscription['status']>(['queued', 'retrying', 'needs_attention']);
-
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
   disabled?: boolean;
@@ -68,21 +66,15 @@ const messageForError = (code: VoiceErrorCode): { title: string; message: string
   }
 };
 
-const getQueueStatusMessage = (
-  item: PendingVoiceTranscription,
-  previousStatus: PendingVoiceTranscription['status'] | null
-): string | null => {
+const getQueueStatusMessage = (item: PendingVoiceTranscription): string | null => {
   switch (item.status) {
     case 'transcribing':
-      return previousStatus && OFFLINE_QUEUE_STATUSES.has(previousStatus)
-        ? 'You’re back online — transcribing your saved voice note…'
-        : 'Turning your saved voice note into text…';
+      return 'Turning your voice note into text…';
     case 'retrying':
-      return 'Your voice note is still saved safely. We’ll try again automatically.';
-    case 'needs_attention':
-      return 'Your voice note is saved safely. Choose Retry now whenever you’re ready.';
     case 'queued':
-      return 'Saved safely. We’ll turn your voice note into text when your connection is ready.';
+      return 'Saved offline. We’ll keep trying.';
+    case 'needs_attention':
+      return 'Voice note saved. Retry now or discard.';
     case 'completed':
       return null;
     default:
@@ -107,7 +99,6 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const [pendingItem, setPendingItem] = useState<PendingVoiceTranscription | null>(null);
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
   const completionCallbackRef = useRef(onTranscriptionComplete);
-  const previousQueueStatusRef = useRef<PendingVoiceTranscription['status'] | null>(null);
   completionCallbackRef.current = onTranscriptionComplete;
 
   const safelySetState = (callback: () => void) => {
@@ -143,9 +134,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       setPendingItem(queued);
       const online = await isOnline();
       safelySetState(() => {
-        setStatusMessage(online
-          ? 'Saved safely. We’re turning your voice note into text now.'
-          : 'Saved safely. We’ll turn it into text when you’re back online.');
+        setStatusMessage(online ? 'Turning your voice note into text…' : 'Saved offline. We’ll keep trying.');
         setDuration(0);
       });
     } finally {
@@ -166,7 +155,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       setDuration(status.duration);
       if (status.duration >= LONG_RECORDING_NOTICE_MS && !longRecordingNoticeShownRef.current) {
         longRecordingNoticeShownRef.current = true;
-        setStatusMessage('Almost there — Oneiros will save this note at five minutes.');
+        setStatusMessage(null);
       }
       if (status.duration >= MAX_RECORDING_MS) {
         logEvent('voice_recording_max_duration_reached', { durationMs: status.duration });
@@ -185,10 +174,9 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       if (!item) {
         setPendingItem(null);
         setIsTranscribing(false);
+        setStatusMessage(null);
         return;
       }
-      const previousStatus = previousQueueStatusRef.current;
-      previousQueueStatusRef.current = item.status;
       setPendingItem(item);
       if (item.status === 'transcribing') {
         setIsTranscribing(true);
@@ -197,7 +185,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       } else {
         setIsTranscribing(false);
       }
-      setStatusMessage(getQueueStatusMessage(item, previousStatus));
+      setStatusMessage(getQueueStatusMessage(item));
     };
 
     // Sole append path: claimCompleted removes the row, so concurrent calls cannot double-append.
@@ -216,7 +204,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
           transcripts.forEach((transcript) => completionCallbackRef.current(transcript));
           setPendingItem(null);
           setIsTranscribing(false);
-          setStatusMessage('Your saved voice note is ready in your text.');
+          setStatusMessage(null);
         } while (deliverRequested && mountedRef.current);
       } finally {
         claimInFlight = false;
@@ -275,7 +263,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
     }
     safelySetState(() => {
       setDuration(0);
-      setStatusMessage('Keep speaking — Oneiros is recording.');
+      setStatusMessage(null);
       longRecordingNoticeShownRef.current = false;
       setIsRecording(true);
     });
@@ -288,7 +276,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
 
   const retryNow = async () => {
     if (!pendingItem) return;
-    setStatusMessage('Trying your safely saved voice note now…');
+    setStatusMessage('Turning your voice note into text…');
     await voiceTranscriptionQueueService.retryNow(pendingItem.id);
   };
 

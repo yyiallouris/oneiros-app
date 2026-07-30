@@ -42,16 +42,18 @@ describe('legal surfaces flow', () => {
     jest.clearAllMocks();
   });
 
-  it('opens consent with a calmer summary before the explicit confirmations', () => {
+  it('opens consent with a calmer summary and a single agreement path', () => {
     const screen = render(<LegalConsentScreen onAccepted={jest.fn()} />);
 
-    expect(screen.getByText('A private place to begin')).toBeTruthy();
-    expect(screen.getByText('The short version')).toBeTruthy();
-    expect(screen.getByText('Agree and enter Oneiros')).toBeTruthy();
+    expect(screen.getByText('Welcome to Oneiros')).toBeTruthy();
+    expect(screen.getByText('Before you continue')).toBeTruthy();
+    expect(screen.getByText('Agree and continue')).toBeTruthy();
     expect(screen.getByText('Read the full privacy policy and terms')).toBeTruthy();
     expect(
       screen.getByText('We do not sell your journal content or use it for advertising.')
     ).toBeTruthy();
+    expect(screen.queryByText('Important')).toBeNull();
+    expect(screen.queryByText(/If you might harm yourself or someone else/i)).toBeNull();
   });
 
   it('keeps the privacy screen user-facing and free of release-checklist wording', () => {

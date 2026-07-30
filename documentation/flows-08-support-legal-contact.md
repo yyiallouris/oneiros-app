@@ -36,9 +36,10 @@
 
 - Authenticated users must accept the current legal consent version before entering onboarding or the main app.
 - Consent is stored per user with version + timestamp (`legalConsentService`).
-- The screen now opens with a calm plain-language summary first: private-journal framing, a clear note about dream-data processing, a reassurance that journal content is not sold/used for advertising, and a separate crisis boundary callout.
-- Explicit confirmation remains required for age 18+, sensitive-data processing, AI-output limitations, and emergency/crisis boundaries before the user can continue.
-- Consent copy should feel containing and respectful, not like a legal ambush, while still stating clearly that Oneiros is not therapy, diagnosis, medical or mental health care, crisis support, or professional advice.
+- The screen opens with a short plain-language summary first: private-journal framing, a clear note about dream-data processing, and a reassurance that journal content is not sold/used for advertising.
+- Consent is explicit through a single `Agree and continue` action plus links to the full Privacy Policy and Terms of Use.
+- The entry surface must not feel like a checkbox wall or a fear-first warning screen.
+- Clinical/emergency boundaries remain part of Oneiros legal copy, but they should not be presented as the first emotional note on app entry.
 
 ## AI disclaimers
 

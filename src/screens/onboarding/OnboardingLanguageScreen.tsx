@@ -44,7 +44,7 @@ const OnboardingLanguageScreen: React.FC = () => {
           <OnboardingProgress step={3} />
           <Text style={styles.title}>Insights language</Text>
           <Text style={styles.subtitle}>
-            This is the language for Recent Dream Field and Essays. We start from your device language when we can — change anytime in Account.
+            This is the language for Recent Dream Field and Period Reflection. We start from your device language when we can — change anytime in Account.
           </Text>
 
           <Card style={styles.card}>

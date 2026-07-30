@@ -4,8 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Card, Button, PaperBackground, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import {
-  CRISIS_NOTICE,
-  LEGAL_CONSENT_ITEMS,
+  LEGAL_CONSENT_ACKNOWLEDGEMENT,
   LEGAL_CONSENT_SUMMARY_POINTS,
   WELLNESS_DISCLAIMER,
 } from '../constants/legal';
@@ -21,13 +20,10 @@ interface LegalConsentScreenProps {
 
 const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) => {
   const navigation = useNavigation<NavProp>();
-  const [checked, setChecked] = useState<Record<number, boolean>>({});
   const [saving, setSaving] = useState(false);
 
-  const allChecked = LEGAL_CONSENT_ITEMS.every((_, index) => checked[index]);
-
   const handleAccept = useCallback(async () => {
-    if (!allChecked || saving) return;
+    if (saving) return;
     setSaving(true);
     try {
       await setLegalConsentAccepted();
@@ -37,7 +33,7 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
     } finally {
       setSaving(false);
     }
-  }, [allChecked, onAccepted, saving]);
+  }, [onAccepted, saving]);
 
   return (
     <View style={styles.container}>
@@ -48,14 +44,14 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.title}>A private place to begin</Text>
+          <Text style={styles.title}>Welcome to Oneiros</Text>
           <Text style={styles.subtitle}>
-            Before you enter, here are the few boundaries that protect this space.
+            A private space for dreams, reflection, and the patterns that return.
           </Text>
 
           <Card style={styles.card}>
             <View style={styles.summaryBox}>
-              <Text style={styles.sectionLabel}>The short version</Text>
+              <Text style={styles.sectionLabel}>Before you continue</Text>
               <Text style={styles.paragraph}>{WELLNESS_DISCLAIMER}</Text>
               {LEGAL_CONSENT_SUMMARY_POINTS.map((item) => (
                 <View key={item} style={styles.summaryRow}>
@@ -65,36 +61,16 @@ const LegalConsentScreen: React.FC<LegalConsentScreenProps> = ({ onAccepted }) =
               ))}
             </View>
 
-            <View style={styles.crisisBox}>
-              <Text style={styles.crisisLabel}>Important</Text>
-              <Text style={styles.crisisText}>{CRISIS_NOTICE}</Text>
-            </View>
-
             <View style={styles.divider} />
-            <Text style={styles.confirmLabel}>To continue, please confirm:</Text>
-
-            {LEGAL_CONSENT_ITEMS.map((item, index) => (
-              <TouchableOpacity
-                key={item}
-                style={styles.checkRow}
-                onPress={() => setChecked((prev) => ({ ...prev, [index]: !prev[index] }))}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.checkbox, checked[index] && styles.checkboxChecked]}>
-                  {checked[index] && <Text style={styles.checkmark}>✓</Text>}
-                </View>
-                <Text style={styles.checkText}>{item}</Text>
-              </TouchableOpacity>
-            ))}
+            <Text style={styles.confirmLabel}>{LEGAL_CONSENT_ACKNOWLEDGEMENT}</Text>
 
             <ActionLoadingSlot
               loading={saving}
               loadingProps={{ preset: 'consentSave', style: styles.primaryButton }}
             >
               <Button
-                title="Agree and enter Oneiros"
+                title="Agree and continue"
                 onPress={handleAccept}
-                disabled={!allChecked}
                 style={styles.primaryButton}
               />
             </ActionLoadingSlot>
@@ -180,24 +156,6 @@ const styles = StyleSheet.create({
     color: text.secondary,
     lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
   },
-  crisisBox: {
-    backgroundColor: colors.buttonPrimaryLight12,
-    borderWidth: 1,
-    borderColor: colors.contourLineSoft,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-  },
-  crisisLabel: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  crisisText: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
-    lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
-  },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: borders.primary,
@@ -206,44 +164,11 @@ const styles = StyleSheet.create({
   confirmLabel: {
     fontSize: typography.sizes.sm,
     color: text.secondary,
-    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
-    marginBottom: spacing.xs,
-  },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: spacing.sm,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
-    borderColor: colors.buttonPrimary40,
-    backgroundColor: colors.fieldSurface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
-    marginTop: 1,
-  },
-  checkboxChecked: {
-    backgroundColor: colors.buttonPrimary,
-    borderColor: colors.buttonPrimary,
-  },
-  checkmark: {
-    color: colors.white,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.bold,
-    lineHeight: typography.sizes.sm,
-  },
-  checkText: {
-    flex: 1,
-    fontSize: typography.sizes.sm,
-    color: colors.textPrimary,
     lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    marginBottom: spacing.sm,
   },
   primaryButton: {
-    marginTop: spacing.lg,
+    marginTop: spacing.sm,
     marginBottom: spacing.sm,
   },
   linkButton: {

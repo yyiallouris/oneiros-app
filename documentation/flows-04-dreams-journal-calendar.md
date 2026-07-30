@@ -5,10 +5,10 @@
 1. On focus: load **today’s non-archived dream** if any (`archived === false`; legacy treats missing flag as archived), else **draft** for today, else empty form.
 2. **Auto-save draft:** after ~2s idle when `content` non-empty → `saveDraft` (today’s date).
 3. **Voice (offline-first):** `VoiceRecordButton` requests microphone access and records a single app-wide clip for up to five minutes, regardless of connectivity. On stop it safely stores the local clip and queues transcription; a confirmed transcript appends on a new line to dream content.
-   - On Write, the mic sits as a compact centered control beneath the writing area, not floating over the text itself.
+   - On Write, the mic stays anchored at the lower-right of the notebook page, with reserved writing-space padding so status copy never overlaps dream text.
    - While transcribing, the mic shows a compact progress state and cannot start another recording.
    - A recoverable network, timeout, upstream, or rate-limit failure preserves the local clip for retry logic; audio is deleted only after success, discard, or stale-file cleanup.
-   - Write keeps feedback intentionally quiet: no verbose inline “saved / back online / ready” copy inside the notebook page. Permission denial still offers **Open Settings**; typing remains available throughout.
+   - Write feedback stays intentionally minimal: concise inline states for offline save / active transcription / retry-needed only. Once the transcript lands in the text, there is no extra “ready” confirmation line. Permission denial still offers **Open Settings**; typing remains available throughout.
    - The Write surface uses a stable target key (`active`) so pending notes remain visible across midnight and re-entry.
    - Transcript delivery goes only through `claimCompleted` so the same clip cannot append twice after remount.
    - Stuck `transcribing` clips reclaim only after the full client upload budget (~7+ minutes) and never while this process still owns the upload; Retry/Discard appear for queued / retrying / needs-attention only.

@@ -53,7 +53,7 @@ Reachable from **Write** tab → menu → **Account**.
 
 - **Profile:** “Name or nickname” is the only draft field. Sticky nav **Save** text appears top-right only while the nickname is dirty (then brief **Saved**), then redirects to the **Write** tab. Depth, Insights language, and Security still commit immediately on tap/toggle — Save intentionally does **not** activate for those.
 - **Dream analysis — level:** `quick` | `standard` | `advanced` (stored via `userSettingsService` on select).
-- **Insights language:** selects the language for Recent Dream Field and Essays; persisted on select and applied by both Insights flows.
+- **Insights language:** selects the language for Recent Dream Field and Period Reflection; persisted on select and applied by both Insights flows.
 - **Mythic Resonance:** toggle only relevant when depth is **advanced**; persisted remotely/local settings.
 - **Security — Lock app with Face ID / fingerprint:** `enableBiometric` / `disableBiometric`; synced with remote profile (see `biometricAuthService`).
 

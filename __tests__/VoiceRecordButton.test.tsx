@@ -126,8 +126,25 @@ describe('VoiceRecordButton', () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByText('Turning your saved voice note into text…')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Turning your voice note into text…')).toBeTruthy());
     expect(screen.queryByText('You’re back online — transcribing your saved voice note…')).toBeNull();
+  });
+
+  it('clears inline status once the transcript has been delivered', async () => {
+    const claimCompleted = jest
+      .requireMock('../src/services/voiceTranscriptionQueueService')
+      .voiceTranscriptionQueueService.claimCompleted as jest.Mock;
+    claimCompleted.mockResolvedValueOnce(['transcribed line']);
+
+    const screen = render(
+      <VoiceRecordButton
+        target={{ surface: 'write', key: 'active' }}
+        onTranscriptionComplete={jest.fn()}
+      />
+    );
+
+    await waitFor(() => expect(screen.queryByText('Your saved voice note is ready in your text.')).toBeNull());
+    expect(screen.queryByText('Turning your voice note into text…')).toBeNull();
   });
 
   it('keeps compact presentation icon-only even when queue status exists', async () => {

@@ -458,13 +458,13 @@ const InsightsScreen: React.FC = () => {
               <PatternRecognitionIcon size={72} />
             </View>
             <View style={styles.reflectionContent}>
-              <Text style={styles.cardTitle}>Essays</Text>
+              <Text style={styles.cardTitle}>Period Reflection</Text>
               <Text style={styles.reflectionBody}>
                 {!hasPaidAccess
-                  ? 'Premium unlocks a monthly essay rhythm. Deeper opens weekly essays with the same saved archive.'
+                  ? 'Premium unlocks a monthly reflection rhythm. Deeper opens a weekly rhythm with the same saved archive.'
                   : hasEnoughForReflection
-                  ? 'Generate or revisit a symbolic essay on this period’s dream field.'
-                  : 'Reflect on at least 2 dreams in this period to generate a meaningful essay.'}
+                  ? 'Generate or revisit a symbolic reflection on this period’s dream field.'
+                  : 'Reflect on at least 2 dreams in this period to generate a meaningful reflection.'}
               </Text>
               <Text style={styles.reflectionCta}>
                 {!hasPaidAccess ? 'Unlock Premium' : hasEnoughForReflection ? 'Open reflection' : 'View reflection space'}

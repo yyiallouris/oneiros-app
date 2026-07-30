@@ -1203,7 +1203,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
               <View style={styles.patternEmptyCard}>
                 <Text style={styles.patternEmptyTitle}>A light field is forming</Text>
                 <Text style={styles.patternEmptyBody}>
-                  Reflect on at least 2 dreams in this period to generate a meaningful dream essay.
+                  Reflect on at least 2 dreams in this period to generate a meaningful reflection.
                 </Text>
               </View>
             )}

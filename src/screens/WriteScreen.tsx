@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -41,6 +42,7 @@ const writePalette = {
 const WriteScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [todaysDream, setTodaysDream] = useState<Dream | null>(null);
@@ -208,6 +210,9 @@ const WriteScreen: React.FC = () => {
 
   const floatingTabBarInset = Math.max(insets.bottom, MIN_FLOATING_TAB_BOTTOM_INSET);
   const saveBarOffset = floatingTabBarInset + FLOATING_TAB_BAR_HEIGHT - SAVE_BUTTON_NAV_GAP_OFFSET;
+  const isCompactHeight = windowHeight < 760;
+  const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
+  const contentInputBottomPadding = voiceButtonBottom + 84;
   const isSaveInactive = !content.trim();
   const mountainHeight = WRITE_MOUNTAIN_HEIGHT;
   const mountainTop = mainCardBottom == null ? undefined : Math.max(0, mainCardBottom - mountainHeight);
@@ -264,7 +269,7 @@ const WriteScreen: React.FC = () => {
           <View style={styles.contentInputContainer}>
             <TextInput
               ref={contentInputRef}
-              style={styles.contentInput}
+              style={[styles.contentInput, { paddingBottom: contentInputBottomPadding }]}
               placeholder="Write it as you remember it, without correcting."
               placeholderTextColor={colors.textMuted}
               value={content}
@@ -273,9 +278,8 @@ const WriteScreen: React.FC = () => {
               textAlignVertical="top"
               autoFocus={false}
             />
-            <View style={styles.voiceButtonContainer}>
+            <View style={[styles.voiceButtonContainer, { bottom: voiceButtonBottom }]}>
               <VoiceRecordButton
-                presentation="compact"
                 surface="field"
                 target={{ surface: 'write', key: 'active' }}
                 onTranscriptionComplete={(text) => {
@@ -492,11 +496,13 @@ const styles = StyleSheet.create({
     minHeight: 300,
     padding: 0,
     paddingTop: spacing.xs,
+    paddingRight: 64,
   },
   voiceButtonContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: spacing.md,
+    position: 'absolute',
+    right: 0,
+    alignItems: 'flex-end',
+    maxWidth: 190,
   },
   bottomActions: {
     position: 'absolute',
