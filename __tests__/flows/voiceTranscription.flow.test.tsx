@@ -62,6 +62,7 @@ describe('voice transcription flow', () => {
     const onTranscriptionComplete = jest.fn();
     const screen = render(
       <VoiceRecordButton
+        presentation="compact"
         target={{ surface: 'write', key: 'active' }}
         onTranscriptionComplete={onTranscriptionComplete}
       />,
@@ -75,6 +76,6 @@ describe('voice transcription flow', () => {
       expect.objectContaining({ id: 'voice-flow' }),
       { surface: 'write', key: 'active' },
     ));
-    expect(screen.getByText(/Saved safely/i)).toBeTruthy();
+    expect(screen.queryByText(/Saved safely/i)).toBeNull();
   });
 });
