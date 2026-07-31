@@ -5,6 +5,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import {
   ArchetypalEnergiesIcon,
   DreamPlacesIcon,
+  EmotionalWeatherIcon,
   InnerTensionsIcon,
   PatternRecognitionIcon,
   RepeatingPatternsIcon,
@@ -18,6 +19,7 @@ describe('insights icons', () => {
       <View>
         <ArchetypalEnergiesIcon testID="icon-archetypal-energies" size={88} />
         <DreamPlacesIcon testID="icon-dream-places" size={88} />
+        <EmotionalWeatherIcon testID="icon-emotional-weather" size={88} />
         <InnerTensionsIcon testID="icon-inner-tensions" size={88} />
         <PatternRecognitionIcon testID="icon-pattern-recognition" size={88} />
         <RepeatingPatternsIcon testID="icon-repeating-patterns" size={88} />
@@ -28,11 +30,16 @@ describe('insights icons', () => {
 
     expect(getByTestId('icon-archetypal-energies')).toBeTruthy();
     expect(getByTestId('icon-dream-places')).toBeTruthy();
+    expect(getByTestId('icon-emotional-weather')).toBeTruthy();
     expect(getByTestId('icon-inner-tensions')).toBeTruthy();
     expect(getByTestId('icon-pattern-recognition')).toBeTruthy();
     expect(getByTestId('icon-repeating-patterns')).toBeTruthy();
     expect(getByTestId('icon-returning-images')).toBeTruthy();
     expect(getByTestId('icon-thresholds')).toBeTruthy();
+  });
+
+  it('uses a dedicated emotional weather PNG instead of the pattern-recognition placeholder', () => {
+    expect(EmotionalWeatherIcon).not.toBe(PatternRecognitionIcon);
   });
 
   it('crops the supplied transparent canvas to the requested visual size', () => {

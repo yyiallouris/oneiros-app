@@ -11,11 +11,13 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Premium monthly (`paid_monthly`)**
   - Price target: **EUR 4.99 / month** through store subscriptions.
 - **Premium yearly (`paid_yearly`)**
-  - Same annual discount ratio as current Premium yearly pricing.
+  - Monthly equivalent target: **EUR 3.99 / month** (20% under monthly), billed as **EUR 47.88 / year**.
+  - Yearly cards show the monthly list price with strikethrough above the discounted monthly equivalent, plus a clear yearly savings line (**Save EUR 12.00 / year**).
 - **Deeper monthly (`deeper_monthly`)**
   - Price target: **EUR 8.99 / month** through store subscriptions.
 - **Deeper yearly (`deeper_yearly`)**
-  - Uses the same annual discount ratio as Premium yearly.
+  - Monthly equivalent target: **EUR 6.49 / month**, billed as **EUR 77.88 / year**.
+  - Same yearly card treatment as Premium: strikethrough list price (**EUR 8.99 / month**), discounted monthly equivalent, and savings (**Save EUR 30.00 / year** vs paying monthly).
 - **Premium**
   - 35 dream reflections per paid billing cycle.
   - 5 follow-up assistant replies per reflected dream.
@@ -37,8 +39,10 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Onboarding**
   - Plan selection now sits between interpretation depth and security.
   - Free, Premium, and Deeper cards are shown in a reusable horizontal carousel with Premium as the default visible card.
+  - Yearly Premium/Deeper cards show the prior monthly price with a strikethrough, the discounted monthly equivalent beneath it, the yearly billed total, and the yearly savings amount.
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly switch is hidden whenever the free card is the active visible card.
+  - The Yearly switch badge shows the compact savings for the currently visible paid card (`Save €12` on Premium, `Save €30` on Deeper), including when Monthly is still selected.
   - User can continue with Free or start native purchase directly from the Premium or Deeper card.
 - **Subscription**
   - Permanent manage-subscription destination.

@@ -5,7 +5,7 @@ import { SubscriptionPlanCarousel } from './SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from './SubscriptionPlanCard';
 import { borderRadius, colors, spacing, text, typography } from '../../theme';
 import type { BillingInterval, PremiumGateSource, StoreSubscriptionPlan } from '../../types/subscription';
-import { DEEPER_PLAN_FEATURES, FREE_PLAN_FEATURES, PREMIUM_PLAN_FEATURES, getFreePlanCardModel, getPremiumSourceCopy } from '../../services/subscriptionService';
+import { DEEPER_PLAN_FEATURES, FREE_PLAN_FEATURES, PREMIUM_PLAN_FEATURES, getFreePlanCardModel, getPaidPlanCardPricing, getPremiumSourceCopy, getYearlySavingsBadgeForVisibleCard } from '../../services/subscriptionService';
 import type { PlanTier } from '../../billing/types';
 
 const FREE_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_free.png');
@@ -43,9 +43,17 @@ export const PremiumUpsellModal: React.FC<Props> = ({
 }) => {
   const copy = getPremiumSourceCopy(source);
   const freePlan = getFreePlanCardModel();
+  const premiumPricing = getPaidPlanCardPricing(premiumPlan);
+  const deeperPricing = getPaidPlanCardPricing(deeperPlan);
   const isPremiumOnly = displayMode === 'premium_only';
   const [activeCardIndex, setActiveCardIndex] = useState(isPremiumOnly ? 0 : 1);
   const showPricingSwitch = isPremiumOnly || activeCardIndex !== 0;
+  const yearlySavingsBadge = getYearlySavingsBadgeForVisibleCard({
+    activeCardIndex,
+    premiumPlan,
+    deeperPlan,
+    includesFreeCard: !isPremiumOnly,
+  });
   const premiumTitle = upgradeTitle?.premium ?? 'Choose Premium';
   const deeperTitle = upgradeTitle?.deeper ?? 'Choose Deeper';
 
@@ -66,7 +74,11 @@ export const PremiumUpsellModal: React.FC<Props> = ({
             </View>
 
             {showPricingSwitch && (
-              <SubscriptionBillingSwitch value={billingInterval} onChange={onIntervalChange} />
+              <SubscriptionBillingSwitch
+                value={billingInterval}
+                onChange={onIntervalChange}
+                yearlySavingsBadge={yearlySavingsBadge}
+              />
             )}
 
             <SubscriptionPlanCarousel
@@ -96,9 +108,10 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 title={premiumPlan.title}
                 eyebrow="Recommended path"
                 badgeText="Recommended"
-                price={premiumPlan.displayPrice}
-                priceDetail={premiumPlan.totalPriceLabel}
-                secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+                price={premiumPricing.price}
+                compareAtPrice={premiumPricing.compareAtPrice}
+                priceDetail={premiumPricing.priceDetail}
+                secondaryPriceDetail={premiumPricing.secondaryPriceDetail}
                 trialLabel={premiumPlan.trialLabel}
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
@@ -108,15 +121,16 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 variant="premium"
                 current={currentPlanTier === 'premium'}
                 disabled={upgradeDisabled || currentPlanTier === 'premium'}
-                note={premiumPlan.savingsLabel ?? 'A balanced rhythm for regular dream work.'}
+                note="A balanced rhythm for regular dream work."
               />
 
               <SubscriptionPlanCard
                 title={deeperPlan.title}
                 eyebrow="For those going further"
-                price={deeperPlan.displayPrice}
-                priceDetail={deeperPlan.totalPriceLabel}
-                secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+                price={deeperPricing.price}
+                compareAtPrice={deeperPricing.compareAtPrice}
+                priceDetail={deeperPricing.priceDetail}
+                secondaryPriceDetail={deeperPricing.secondaryPriceDetail}
                 trialLabel={deeperPlan.trialLabel}
                 features={DEEPER_PLAN_FEATURES}
                 imageSource={DEEPER_IMAGE}

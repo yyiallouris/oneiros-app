@@ -65,26 +65,45 @@ type PaidPlanCode = Exclude<PlanCode, 'free'>;
 
 type FallbackPlanCopy = Pick<
   StoreSubscriptionPlan,
-  'billingInterval' | 'displayPrice' | 'totalPriceLabel' | 'monthlyEquivalentLabel' | 'savingsLabel' | 'trialLabel'
+  | 'billingInterval'
+  | 'displayPrice'
+  | 'totalPriceLabel'
+  | 'compareAtPriceLabel'
+  | 'monthlyEquivalentLabel'
+  | 'savingsLabel'
+  | 'trialLabel'
 >;
 
 const DEFAULT_TRIAL_LABEL = '7-day free trial';
 const PREMIUM_MONTHLY_PRICE = 4.99;
 const DEEPER_MONTHLY_PRICE = 8.99;
-const ANNUAL_DISCOUNT_RATIO = 0.8;
+/** Premium yearly monthly equivalent = monthly × this ratio (4.99 → 3.99). */
+const PREMIUM_ANNUAL_DISCOUNT_RATIO = 0.8;
+/** Deeper yearly is priced to a fixed monthly equivalent, not the Premium ratio. */
+const DEEPER_YEARLY_MONTHLY_EQUIVALENT = 6.49;
 
 function formatMoney(value: number): string {
   return `€${value.toFixed(2)}`;
 }
 
-function buildYearlyCopy(monthlyPrice: number): Pick<FallbackPlanCopy, 'displayPrice' | 'totalPriceLabel' | 'monthlyEquivalentLabel' | 'savingsLabel'> {
-  const monthlyEquivalent = Math.round(monthlyPrice * ANNUAL_DISCOUNT_RATIO * 100) / 100;
+function buildYearlyCopy(
+  monthlyPrice: number,
+  monthlyEquivalentOverride?: number
+): Pick<
+  FallbackPlanCopy,
+  'displayPrice' | 'totalPriceLabel' | 'compareAtPriceLabel' | 'monthlyEquivalentLabel' | 'savingsLabel'
+> {
+  const monthlyEquivalent =
+    typeof monthlyEquivalentOverride === 'number'
+      ? Math.round(monthlyEquivalentOverride * 100) / 100
+      : Math.round(monthlyPrice * PREMIUM_ANNUAL_DISCOUNT_RATIO * 100) / 100;
   const yearlyPrice = Math.round(monthlyEquivalent * 12 * 100) / 100;
   const yearlySavings = Math.round((monthlyPrice * 12 - yearlyPrice) * 100) / 100;
 
   return {
     displayPrice: `${formatMoney(yearlyPrice)} / year`,
     totalPriceLabel: `${formatMoney(yearlyPrice)} billed yearly`,
+    compareAtPriceLabel: `${formatMoney(monthlyPrice)} / month`,
     monthlyEquivalentLabel: `${formatMoney(monthlyEquivalent)} / month`,
     savingsLabel: `Save ${formatMoney(yearlySavings)} / year`,
   };
@@ -111,6 +130,7 @@ const FALLBACK_PLAN_COPY: Record<PlanCode, FallbackPlanCopy> = {
     billingInterval: 'monthly',
     displayPrice: 'Free',
     totalPriceLabel: 'Always free',
+    compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
     trialLabel: null,
@@ -119,6 +139,7 @@ const FALLBACK_PLAN_COPY: Record<PlanCode, FallbackPlanCopy> = {
     billingInterval: 'monthly',
     displayPrice: `${formatMoney(PREMIUM_MONTHLY_PRICE)} / month`,
     totalPriceLabel: 'Billed monthly',
+    compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
     trialLabel: DEFAULT_TRIAL_LABEL,
@@ -132,13 +153,14 @@ const FALLBACK_PLAN_COPY: Record<PlanCode, FallbackPlanCopy> = {
     billingInterval: 'monthly',
     displayPrice: `${formatMoney(DEEPER_MONTHLY_PRICE)} / month`,
     totalPriceLabel: 'Billed monthly',
+    compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
     trialLabel: DEFAULT_TRIAL_LABEL,
   },
   deeper_yearly: {
     billingInterval: 'yearly',
-    ...buildYearlyCopy(DEEPER_MONTHLY_PRICE),
+    ...buildYearlyCopy(DEEPER_MONTHLY_PRICE, DEEPER_YEARLY_MONTHLY_EQUIVALENT),
     trialLabel: DEFAULT_TRIAL_LABEL,
   },
 };
@@ -369,11 +391,66 @@ function buildStorePlan(planCode: PaidPlanCode, productId: string, displayPrice?
     billingInterval: fallback.billingInterval,
     displayPrice: displayPrice || fallback.displayPrice,
     totalPriceLabel: fallback.totalPriceLabel,
+    compareAtPriceLabel: fallback.compareAtPriceLabel,
     monthlyEquivalentLabel: fallback.monthlyEquivalentLabel,
     savingsLabel: fallback.savingsLabel,
     trialLabel: fallback.trialLabel,
     offerTokenAndroid: offerTokenAndroid ?? null,
   };
+}
+
+/** Card pricing presentation: yearly shows strikethrough list price + discounted monthly + savings. */
+export function getPaidPlanCardPricing(plan: StoreSubscriptionPlan): {
+  price: string;
+  compareAtPrice: string | null;
+  priceDetail: string;
+  secondaryPriceDetail: string | null;
+} {
+  if (plan.billingInterval === 'yearly' && plan.monthlyEquivalentLabel) {
+    return {
+      price: plan.monthlyEquivalentLabel,
+      compareAtPrice: plan.compareAtPriceLabel,
+      priceDetail: plan.totalPriceLabel,
+      secondaryPriceDetail: plan.savingsLabel,
+    };
+  }
+
+  return {
+    price: plan.displayPrice,
+    compareAtPrice: null,
+    priceDetail: plan.totalPriceLabel,
+    secondaryPriceDetail: null,
+  };
+}
+
+/** Compact Yearly switch badge: "Save €12.00 / year" → "Save €12". */
+export function getCompactYearlySavingsBadge(savingsLabel: string | null | undefined): string | null {
+  if (!savingsLabel) return null;
+  return savingsLabel.replace(/\s*\/\s*year$/i, '').replace(/(\d+)\.00\b/g, '$1');
+}
+
+/**
+ * Yearly switch badge for the currently visible paid card.
+ * Compare carousels: index 0 = Free, 1 = Premium, 2 = Deeper.
+ * Premium-only carousels: index 0 = Premium.
+ */
+export function getYearlySavingsBadgeForVisibleCard(params: {
+  activeCardIndex: number;
+  premiumPlan: StoreSubscriptionPlan;
+  deeperPlan: StoreSubscriptionPlan;
+  includesFreeCard?: boolean;
+}): string | null {
+  const includesFreeCard = params.includesFreeCard !== false;
+  const paidIndex = includesFreeCard ? params.activeCardIndex - 1 : params.activeCardIndex;
+  const plan = paidIndex >= 1 ? params.deeperPlan : params.premiumPlan;
+  // Prefer yearly savings even when the switch is currently on monthly (teaser on Yearly tab).
+  const yearlySavings =
+    plan.billingInterval === 'yearly'
+      ? plan.savingsLabel
+      : plan.planTier === 'deeper'
+        ? FALLBACK_PLAN_COPY.deeper_yearly.savingsLabel
+        : FALLBACK_PLAN_COPY.paid_yearly.savingsLabel;
+  return getCompactYearlySavingsBadge(yearlySavings);
 }
 
 function formatPlanFromIos(product: ProductSubscription): StoreSubscriptionPlan | null {
@@ -625,6 +702,7 @@ export function getFreePlanCardModel(): FreePlanCardModel {
     billingInterval: 'monthly',
     displayPrice: FALLBACK_PLAN_COPY.free.displayPrice,
     totalPriceLabel: FALLBACK_PLAN_COPY.free.totalPriceLabel,
+    compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
     trialLabel: null,

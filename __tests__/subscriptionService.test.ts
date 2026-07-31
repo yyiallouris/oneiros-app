@@ -1,8 +1,11 @@
 import {
+  getCompactYearlySavingsBadge,
   getFallbackPlan,
   getIapUnavailableMessage,
+  getPaidPlanCardPricing,
   getPremiumSourceCopy,
   getReadOnlyLapseMessage,
+  getYearlySavingsBadgeForVisibleCard,
   isMissingNativeIapError,
   normalizeSubscriptionStatus,
 } from '../src/services/subscriptionService';
@@ -31,11 +34,73 @@ describe('subscription service', () => {
   });
 
   it('keeps yearly fallback pricing and savings clear', () => {
-    const plan = getFallbackPlan('paid_yearly');
+    const premiumYearly = getFallbackPlan('paid_yearly');
+    expect(premiumYearly.displayPrice).toBe('€47.88 / year');
+    expect(premiumYearly.compareAtPriceLabel).toBe('€4.99 / month');
+    expect(premiumYearly.monthlyEquivalentLabel).toBe('€3.99 / month');
+    expect(premiumYearly.savingsLabel).toBe('Save €12.00 / year');
+    expect(getPaidPlanCardPricing(premiumYearly)).toEqual({
+      price: '€3.99 / month',
+      compareAtPrice: '€4.99 / month',
+      priceDetail: '€47.88 billed yearly',
+      secondaryPriceDetail: 'Save €12.00 / year',
+    });
 
-    expect(plan.displayPrice).toBe('€47.88 / year');
-    expect(plan.monthlyEquivalentLabel).toBe('€3.99 / month');
-    expect(plan.savingsLabel).toBe('Save €12.00 / year');
+    const deeperYearly = getFallbackPlan('deeper_yearly');
+    expect(deeperYearly.displayPrice).toBe('€77.88 / year');
+    expect(deeperYearly.compareAtPriceLabel).toBe('€8.99 / month');
+    expect(deeperYearly.monthlyEquivalentLabel).toBe('€6.49 / month');
+    expect(deeperYearly.savingsLabel).toBe('Save €30.00 / year');
+    expect(getPaidPlanCardPricing(deeperYearly)).toEqual({
+      price: '€6.49 / month',
+      compareAtPrice: '€8.99 / month',
+      priceDetail: '€77.88 billed yearly',
+      secondaryPriceDetail: 'Save €30.00 / year',
+    });
+  });
+
+  it('makes the Yearly switch badge follow the visible paid card', () => {
+    const premiumYearly = getFallbackPlan('paid_yearly');
+    const deeperYearly = getFallbackPlan('deeper_yearly');
+    const premiumMonthly = getFallbackPlan('paid_monthly');
+    const deeperMonthly = getFallbackPlan('deeper_monthly');
+
+    expect(getCompactYearlySavingsBadge('Save €12.00 / year')).toBe('Save €12');
+    expect(getCompactYearlySavingsBadge('Save €30.00 / year')).toBe('Save €30');
+
+    expect(
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex: 1,
+        premiumPlan: premiumYearly,
+        deeperPlan: deeperYearly,
+      })
+    ).toBe('Save €12');
+
+    expect(
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex: 2,
+        premiumPlan: premiumYearly,
+        deeperPlan: deeperYearly,
+      })
+    ).toBe('Save €30');
+
+    // Monthly interval still teases the matching yearly savings for the visible card.
+    expect(
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex: 2,
+        premiumPlan: premiumMonthly,
+        deeperPlan: deeperMonthly,
+      })
+    ).toBe('Save €30');
+
+    expect(
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex: 0,
+        premiumPlan: premiumYearly,
+        deeperPlan: deeperYearly,
+        includesFreeCard: false,
+      })
+    ).toBe('Save €12');
   });
 
   it('returns source-aware upsell copy and lapse messaging', () => {

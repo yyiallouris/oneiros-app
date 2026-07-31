@@ -10,6 +10,8 @@ type Props = {
   eyebrow?: string;
   badgeText?: string;
   price: string;
+  /** Prior monthly list price; shown with strikethrough above the discounted yearly price. */
+  compareAtPrice?: string | null;
   priceDetail?: string | null;
   secondaryPriceDetail?: string | null;
   trialLabel?: string | null;
@@ -29,6 +31,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
   eyebrow,
   badgeText,
   price,
+  compareAtPrice,
   priceDetail,
   secondaryPriceDetail,
   trialLabel,
@@ -92,6 +95,9 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
         <View style={styles.content}>
           {eyebrow && badgeText ? <Text style={[styles.eyebrow, cardTextSecondary]}>{eyebrow}</Text> : null}
           <Text style={[styles.title, cardTextPrimary]}>{title}</Text>
+          {!!compareAtPrice && (
+            <Text style={[styles.compareAtPrice, cardTextSecondary]}>{compareAtPrice}</Text>
+          )}
           <Text style={[styles.price, cardTextPrimary]}>{price}</Text>
           {!!priceDetail && <Text style={[styles.priceDetail, cardTextSecondary]}>{priceDetail}</Text>}
           {!!secondaryPriceDetail && <Text style={[styles.secondaryDetail, cardTextSecondary]}>{secondaryPriceDetail}</Text>}
@@ -272,6 +278,13 @@ const styles = StyleSheet.create({
     color: text.primary,
     fontFamily: typography.bold,
     marginBottom: spacing.xs,
+  },
+  compareAtPrice: {
+    fontSize: typography.sizes.md,
+    fontFamily: typography.medium,
+    textDecorationLine: 'line-through',
+    opacity: 0.72,
+    marginBottom: 2,
   },
   price: {
     fontSize: typography.sizes.xxl,

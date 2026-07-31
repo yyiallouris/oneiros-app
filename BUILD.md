@@ -183,6 +183,7 @@ Production Android config expectations:
 - `android.versionCode`: increment for every Google Play upload.
 - `production.android.buildType`: `app-bundle` in `eas.json`.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
+- Support routing: set `EXPO_PUBLIC_CONTACT_EMAIL` so authenticated contact requests reach the correct inbox.
 - Microphone permission copy describes optional dream voice journaling and transcription.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 
@@ -192,7 +193,7 @@ Before Google Play review, complete these manual steps:
 - Complete Data Safety for account data, dream/user content, voice audio/transcription, support messages, AI processing, and processors such as Supabase, OpenAI/Anthropic, Google, Resend, and Postmark.
 - Add the hosted Privacy Policy URL, support/contact details, age rating consistent with 18+ consent, screenshots, store listing copy, and content declarations.
 - Confirm Google OAuth release SHA-1 / Play App Signing certificate is registered wherever the OAuth client requires it.
-- Create the production Google Play subscription product `oneiros_premium` with base plans `monthly` and `yearly`, matching the runtime config used by the app.
+- Create the production Google Play subscription products `oneiros_premium` and `oneiros_deeper`, each with base plans `monthly` and `yearly`, matching the runtime config used by the app.
 - Confirm Google RTDN / PubSub delivery is wired to the deployed `billing-google-rtdn` webhook and that the production billing secrets/env vars are set for the billing functions.
 - Deploy changed AI functions before production builds:
   ```bash
@@ -237,6 +238,7 @@ Production iOS config expectations:
 - `ios.usesAppleSignIn`: enabled, because the app offers Google/Discord social sign-in.
 - Microphone purpose string: describes optional dream voice journaling and transcription.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
+- Support routing: set `EXPO_PUBLIC_CONTACT_EMAIL` so authenticated contact requests reach the correct inbox.
 
 Before TestFlight/App Review, complete these manual steps:
 
@@ -245,7 +247,7 @@ Before TestFlight/App Review, complete these manual steps:
 - Export compliance answers consistent with `ITSAppUsesNonExemptEncryption: false`.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 - Supabase providers are configured for Apple, Google, and Discord.
-- Create the App Store Connect subscription products `oneiros_premium_monthly` and `oneiros_premium_yearly`, matching the runtime config used by the app.
+- Create the App Store Connect subscription products `oneiros_premium_monthly`, `oneiros_premium_yearly`, `oneiros_deeper_monthly`, and `oneiros_deeper_yearly`, matching the runtime config used by the app.
 - Confirm App Store Server Notifications are pointed at the deployed `billing-apple-notifications` webhook and that the production billing secrets/env vars are set for the billing functions.
 - Changed AI functions are deployed before production builds:
   ```bash

@@ -38,7 +38,7 @@
 Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Insight report language is configured from Account rather than inside report screens.
 
 - **Forming pattern period picker:** `Returning Images`, `Recurring Scenes`, `Emotional Weather`, `Thresholds`, `Inner Tensions`, and `Dream Places` own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place. Archetypal Echoes remain extractable and routable for Dream Detail / deep links, but are no longer one of the six main Forming Patterns tiles.
-- **Insights icon refresh:** the Period Reflection entry and the six forming-pattern categories now render from the supplied PNG icon set. The shared icon renderer crops the transparent source canvases to their visible artwork bounds, and the previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
+- **Insights icon refresh:** the Period Reflection entry and the six forming-pattern categories now render from the supplied PNG icon set, including a dedicated Emotional Weather asset (`oneiros_insight_emotional_weather.png`). The shared icon renderer crops the transparent 900×900 RGBA source canvases to their visible artwork bounds, and the previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
 
 Per `sectionId`:
 

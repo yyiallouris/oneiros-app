@@ -37,6 +37,10 @@ const ICON_SOURCES = {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_archetypal_energies_sheet_extract_rgba_900.png'),
     bounds: { left: 285, top: 192, width: 329, height: 568 },
   },
+  emotionalWeather: {
+    source: require('../../assets/icons/insights_section_icons/oneiros_insight_emotional_weather.png'),
+    bounds: { left: 236, top: 36, width: 464, height: 743 },
+  },
   patternRecognition: {
     source: require('../../assets/icons/insights_section_icons/oneiros_pattern_recognition_from_sheet_true_rgba_900.png'),
     bounds: { left: 230, top: 254, width: 440, height: 433 },
@@ -86,10 +90,8 @@ export const ThresholdsIcon = createInsightsPngIcon(ICON_SOURCES.thresholds.sour
 export const InnerTensionsIcon = createInsightsPngIcon(ICON_SOURCES.innerTensions.source, ICON_SOURCES.innerTensions.bounds);
 export const DreamPlacesIcon = createInsightsPngIcon(ICON_SOURCES.dreamPlaces.source, ICON_SOURCES.dreamPlaces.bounds);
 export const ArchetypalEnergiesIcon = createInsightsPngIcon(ICON_SOURCES.archetypalEnergies.source, ICON_SOURCES.archetypalEnergies.bounds);
+export const EmotionalWeatherIcon = createInsightsPngIcon(ICON_SOURCES.emotionalWeather.source, ICON_SOURCES.emotionalWeather.bounds);
 export const PatternRecognitionIcon = createInsightsPngIcon(ICON_SOURCES.patternRecognition.source, ICON_SOURCES.patternRecognition.bounds);
-
-// Temporary Emotional Weather tile icon until a dedicated PNG asset lands.
-export const EmotionalWeatherIcon = PatternRecognitionIcon;
 
 // Backward-compatible aliases while screens migrate to the explicit names above.
 export const SymbolsIcon = ReturningImagesIcon;

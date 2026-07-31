@@ -13,7 +13,9 @@ import {
   FREE_PLAN_FEATURES,
   PREMIUM_PLAN_FEATURES,
   getFreePlanCardModel,
+  getPaidPlanCardPricing,
   getPaidPlanOptionsForInterval,
+  getYearlySavingsBadgeForVisibleCard,
 } from '../../services/subscriptionService';
 import { borderRadius, colors, spacing, text, typography } from '../../theme';
 import type { OnboardingStackParamList } from '../../navigation/types';
@@ -34,6 +36,18 @@ const OnboardingSubscriptionScreen: React.FC = () => {
   const [premiumPlan, deeperPlan] = useMemo(
     () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
+  );
+  const premiumPricing = useMemo(() => getPaidPlanCardPricing(premiumPlan), [premiumPlan]);
+  const deeperPricing = useMemo(() => getPaidPlanCardPricing(deeperPlan), [deeperPlan]);
+  const yearlySavingsBadge = useMemo(
+    () =>
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex,
+        premiumPlan,
+        deeperPlan,
+        includesFreeCard: true,
+      }),
+    [activeCardIndex, deeperPlan, premiumPlan]
   );
   const freePlan = getFreePlanCardModel();
 
@@ -69,7 +83,11 @@ const OnboardingSubscriptionScreen: React.FC = () => {
 
           {activeCardIndex !== 0 && (
             <View style={styles.switchWrap}>
-              <SubscriptionBillingSwitch value={billingInterval} onChange={setBillingInterval} />
+              <SubscriptionBillingSwitch
+                value={billingInterval}
+                onChange={setBillingInterval}
+                yearlySavingsBadge={yearlySavingsBadge}
+              />
             </View>
           )}
 
@@ -95,9 +113,10 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               title={premiumPlan.title}
               eyebrow="The natural choice"
               badgeText="Recommended"
-              price={premiumPlan.displayPrice}
-              priceDetail={premiumPlan.totalPriceLabel}
-              secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+              price={premiumPricing.price}
+              compareAtPrice={premiumPricing.compareAtPrice}
+              priceDetail={premiumPricing.priceDetail}
+              secondaryPriceDetail={premiumPricing.secondaryPriceDetail}
               trialLabel={premiumPlan.trialLabel}
               features={PREMIUM_PLAN_FEATURES}
               imageSource={PREMIUM_IMAGE}
@@ -114,9 +133,10 @@ const OnboardingSubscriptionScreen: React.FC = () => {
             <SubscriptionPlanCard
               title={deeperPlan.title}
               eyebrow="For those going further"
-              price={deeperPlan.displayPrice}
-              priceDetail={deeperPlan.totalPriceLabel}
-              secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+              price={deeperPricing.price}
+              compareAtPrice={deeperPricing.compareAtPrice}
+              priceDetail={deeperPricing.priceDetail}
+              secondaryPriceDetail={deeperPricing.secondaryPriceDetail}
               trialLabel={deeperPlan.trialLabel}
               features={DEEPER_PLAN_FEATURES}
               imageSource={DEEPER_IMAGE}

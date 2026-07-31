@@ -12,8 +12,10 @@ import {
   PREMIUM_PLAN_FEATURES,
   getFreePlanCardModel,
   getIapUnavailableMessage,
+  getPaidPlanCardPricing,
   getPaidPlanOptionsForInterval,
   getReadOnlyLapseMessage,
+  getYearlySavingsBadgeForVisibleCard,
 } from '../services/subscriptionService';
 import { colors, spacing, text, typography } from '../theme';
 
@@ -38,6 +40,18 @@ const SubscriptionScreen: React.FC = () => {
   const [premiumPlan, deeperPlan] = useMemo(
     () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
+  );
+  const premiumPricing = useMemo(() => getPaidPlanCardPricing(premiumPlan), [premiumPlan]);
+  const deeperPricing = useMemo(() => getPaidPlanCardPricing(deeperPlan), [deeperPlan]);
+  const yearlySavingsBadge = useMemo(
+    () =>
+      getYearlySavingsBadgeForVisibleCard({
+        activeCardIndex,
+        premiumPlan,
+        deeperPlan,
+        includesFreeCard: true,
+      }),
+    [activeCardIndex, deeperPlan, premiumPlan]
   );
   const freePlan = getFreePlanCardModel();
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
@@ -81,7 +95,11 @@ const SubscriptionScreen: React.FC = () => {
 
             {showPricingSwitch && (
               <View style={styles.switchWrap}>
-                <SubscriptionBillingSwitch value={billingInterval} onChange={setBillingInterval} />
+                <SubscriptionBillingSwitch
+                  value={billingInterval}
+                  onChange={setBillingInterval}
+                  yearlySavingsBadge={yearlySavingsBadge}
+                />
               </View>
             )}
 
@@ -110,9 +128,10 @@ const SubscriptionScreen: React.FC = () => {
                 title={premiumPlan.title}
                 eyebrow="The natural choice"
                 badgeText="Recommended"
-                price={premiumPlan.displayPrice}
-                priceDetail={premiumPlan.totalPriceLabel}
-                secondaryPriceDetail={premiumPlan.monthlyEquivalentLabel ?? premiumPlan.savingsLabel}
+                price={premiumPricing.price}
+                compareAtPrice={premiumPricing.compareAtPrice}
+                priceDetail={premiumPricing.priceDetail}
+                secondaryPriceDetail={premiumPricing.secondaryPriceDetail}
                 trialLabel={premiumPlan.trialLabel}
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
@@ -137,9 +156,10 @@ const SubscriptionScreen: React.FC = () => {
               <SubscriptionPlanCard
                 title={deeperPlan.title}
                 eyebrow="For going further"
-                price={deeperPlan.displayPrice}
-                priceDetail={deeperPlan.totalPriceLabel}
-                secondaryPriceDetail={deeperPlan.monthlyEquivalentLabel ?? deeperPlan.savingsLabel}
+                price={deeperPricing.price}
+                compareAtPrice={deeperPricing.compareAtPrice}
+                priceDetail={deeperPricing.priceDetail}
+                secondaryPriceDetail={deeperPricing.secondaryPriceDetail}
                 trialLabel={deeperPlan.trialLabel}
                 features={DEEPER_PLAN_FEATURES}
                 imageSource={DEEPER_IMAGE}

@@ -14,6 +14,8 @@ Quiet progress chrome (`OnboardingProgress`) shows step N of 5 on every screen.
   - Premium offers monthly and yearly billing with 35 reflections, 10 Recent Dream Field reports, 1 monthly essay, and a 7-day free trial.
   - Deeper offers monthly and yearly billing with 80 reflections, unlimited Recent Dream Field reports, weekly essays, and a 7-day free trial.
   - Plan cards are presented in a horizontal carousel rather than a stacked comparison block, with Premium shown first and Free available by swiping left.
+  - Yearly cards show the monthly list price struck through, the discounted monthly equivalent, the yearly billed total, and the savings line.
+  - The Yearly switch badge follows the visible paid card (`Save €12` on Premium, `Save €30` on Deeper).
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly pricing switch is hidden whenever the free card is the active visible card.
   - Native purchase starts directly from the Premium or Deeper card, while `Continue with Free` proceeds directly.

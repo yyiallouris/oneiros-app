@@ -6,9 +6,15 @@ import type { BillingInterval } from '../../types/subscription';
 type Props = {
   value: BillingInterval;
   onChange: (value: BillingInterval) => void;
+  /** Compact savings teaser for the currently visible paid plan, e.g. "Save €12". */
+  yearlySavingsBadge?: string | null;
 };
 
-export const SubscriptionBillingSwitch: React.FC<Props> = ({ value, onChange }) => {
+export const SubscriptionBillingSwitch: React.FC<Props> = ({
+  value,
+  onChange,
+  yearlySavingsBadge,
+}) => {
   return (
     <View style={styles.shell}>
       <TouchableOpacity
@@ -29,9 +35,11 @@ export const SubscriptionBillingSwitch: React.FC<Props> = ({ value, onChange }) 
           <Text style={[styles.optionLabel, value === 'yearly' && styles.optionLabelActive]}>
             Yearly
           </Text>
-          <View style={styles.savingsBadge}>
-            <Text style={styles.savingsText}>Save €12</Text>
-          </View>
+          {!!yearlySavingsBadge && (
+            <View style={styles.savingsBadge}>
+              <Text style={styles.savingsText}>{yearlySavingsBadge}</Text>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     </View>

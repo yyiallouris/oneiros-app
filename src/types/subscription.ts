@@ -47,6 +47,8 @@ export type StoreSubscriptionPlan = {
   productId: string;
   displayPrice: string;
   totalPriceLabel: string;
+  /** Full monthly list price shown with strikethrough on yearly cards. */
+  compareAtPriceLabel: string | null;
   monthlyEquivalentLabel: string | null;
   savingsLabel: string | null;
   offerTokenAndroid?: string | null;
@@ -61,6 +63,7 @@ export type FreePlanCardModel = {
   productId: 'free';
   displayPrice: string;
   totalPriceLabel: string;
+  compareAtPriceLabel: null;
   monthlyEquivalentLabel: null;
   savingsLabel: null;
   title: string;

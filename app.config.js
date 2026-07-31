@@ -101,6 +101,7 @@ const extraFromEnv = {
     ['EXPO_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'],
     ''
   ),
+  contactEmail: getEnv(['EXPO_PUBLIC_CONTACT_EMAIL', 'CONTACT_EMAIL'], ''),
   privacyPolicyUrl: getEnv(['EXPO_PUBLIC_PRIVACY_POLICY_URL', 'PRIVACY_POLICY_URL'], ''),
   termsUrl: getEnv(['EXPO_PUBLIC_TERMS_URL', 'TERMS_URL'], ''),
   appleSubscriptionMonthlyProductId: getEnv(
@@ -111,9 +112,21 @@ const extraFromEnv = {
     ['EXPO_PUBLIC_APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID', 'APPLE_SUBSCRIPTION_YEARLY_PRODUCT_ID'],
     'oneiros_premium_yearly'
   ),
+  appleDeeperSubscriptionMonthlyProductId: getEnv(
+    ['EXPO_PUBLIC_APPLE_DEEPER_SUBSCRIPTION_MONTHLY_PRODUCT_ID', 'APPLE_DEEPER_SUBSCRIPTION_MONTHLY_PRODUCT_ID'],
+    'oneiros_deeper_monthly'
+  ),
+  appleDeeperSubscriptionYearlyProductId: getEnv(
+    ['EXPO_PUBLIC_APPLE_DEEPER_SUBSCRIPTION_YEARLY_PRODUCT_ID', 'APPLE_DEEPER_SUBSCRIPTION_YEARLY_PRODUCT_ID'],
+    'oneiros_deeper_yearly'
+  ),
   googleSubscriptionProductId: getEnv(
     ['EXPO_PUBLIC_GOOGLE_SUBSCRIPTION_PRODUCT_ID', 'GOOGLE_SUBSCRIPTION_PRODUCT_ID'],
     'oneiros_premium'
+  ),
+  googleDeeperSubscriptionProductId: getEnv(
+    ['EXPO_PUBLIC_GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID', 'GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID'],
+    'oneiros_deeper'
   ),
   googleSubscriptionMonthlyBasePlanId: getEnv(
     ['EXPO_PUBLIC_GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID', 'GOOGLE_SUBSCRIPTION_MONTHLY_BASE_PLAN_ID'],
