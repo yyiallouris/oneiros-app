@@ -13,6 +13,11 @@
 7. While that local route state resolves, RootNavigator shows branded `LoadingScreen` (never a blank paper view).
 8. User lands on the appropriate root (see `documentation/README.md` gating table).
 
+## Paper background continuity
+
+- `App.tsx` root shell and `NavigationContainer` both carry the Oneiros paper background tone, so route transitions and intermediate navigator surfaces do not flash default white behind screens.
+- Individual screens still own their `PaperBackground` image treatment, but the global navigator fallback must remain warm paper when a scene is mounting, unmounting, or mid-transition.
+
 ## Navigator route boundary
 
 - **No session (public):** `Auth`, `LoginSupport`, `Privacy` only.

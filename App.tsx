@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { LoadingScreen, WebContentShell } from './src/components/ui';
 import { SubscriptionProvider } from './src/providers/SubscriptionProvider';
+import { colors } from './src/theme';
 import {
   DESIGN_EXPORT_DEVICE_HEIGHT,
   DESIGN_EXPORT_DEVICE_WIDTH,
@@ -113,7 +114,7 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
         <WebContentShell>

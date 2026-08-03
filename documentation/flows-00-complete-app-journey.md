@@ -40,7 +40,7 @@ Main app tabs are `Write`, `Journal`, and `Insights`.
 - `DreamDetailScreen`: shows the dream, generates or displays the Jungian reflection, presents `display_distillation`, supports inline follow-up chat, editing, regeneration, deletion/reset paths, and offline guards for AI actions.
 - `JournalScreen`: archive/search/filter view of dreams. Filters can come from Insights via `JournalFilterScreen`.
 - `CalendarScreen`: day-level dream map; opens existing dreams or creates a dated dream through `DreamEditorScreen`.
-- `InsightsScreen`: current-month overview, recent dream-field reflection, recurring patterns, Pattern Explorer, locked premium cards, and entry to category detail screens.
+- `InsightsScreen`: current-month overview, recent dream-field reflection, grouped insight categories, the Period Reflection card, locked premium cards, and entry to category detail screens.
 - Subscription enforcement is now live for reflection, follow-up chat, Recent Dream Field, and period reflections through Supabase Edge Functions and SQL quota ledgers.
 
 Related docs: [flows-04-dreams-journal-calendar.md](./flows-04-dreams-journal-calendar.md), [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md), [flows-07-insights-reports.md](./flows-07-insights-reports.md).

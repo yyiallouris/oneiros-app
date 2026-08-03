@@ -171,6 +171,20 @@ jest.mock('../../src/constants/symbolArchetypeInfo', () => ({
 
 import DreamDetailScreen from '../../src/screens/DreamDetailScreen';
 
+function collectRenderedText(node: any, acc: string[] = []): string[] {
+  if (!node) return acc;
+  if (typeof node === 'string') {
+    acc.push(node);
+    return acc;
+  }
+  if (Array.isArray(node)) {
+    node.forEach((child) => collectRenderedText(child, acc));
+    return acc;
+  }
+  collectRenderedText(node.children, acc);
+  return acc;
+}
+
 const dream = {
   id: 'dream-1',
   date: '2025-04-01',
@@ -305,20 +319,70 @@ describe('DreamDetail offline message flow', () => {
     expect(screen.queryByText('Archetypal energies')).toBeNull();
   });
 
+  it('shows prose in the settled symbolic reflection teaser instead of a heading-only first line', async () => {
+    mockGetInterpretationByDreamId.mockResolvedValue({
+      ...interpretation,
+      messages: [
+        {
+          id: 'm-heading-preview',
+          role: 'assistant',
+          content:
+            '## Core Tension\n\nThe dream keeps the moon at a distance, as if closeness must first be approached through reflection rather than contact.',
+          timestamp: '2025-04-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const screen = render(<DreamDetailScreen />);
+
+    expect(
+      await screen.findByText(
+        'The dream keeps the moon at a distance, as if closeness must first be approached through reflection rather than contact.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Core Tension')).toBeNull();
+  });
+
   it('keeps symbolic layers collapsed until opened', async () => {
     mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
 
     const screen = render(<DreamDetailScreen />);
 
     await screen.findByText('Explore symbolic layers');
-    expect(screen.queryByText('Emotional Weather')).toBeNull();
+    expect(screen.queryByText('Emotional Atmosphere')).toBeNull();
     expect(screen.queryByText('Dream Fabric')).toBeNull();
 
     fireEvent.press(screen.getByText('Explore symbolic layers'));
 
     expect(await screen.findByText('Dream Fabric')).toBeTruthy();
-    expect(screen.getByText('Emotional Weather')).toBeTruthy();
+    expect(screen.getByText('Emotional Atmosphere')).toBeTruthy();
     expect(screen.getByText('wonder')).toBeTruthy();
+  });
+
+  it('places Continue exploring after Explore symbolic layers in the dream details flow', async () => {
+    mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
+
+    const screen = render(<DreamDetailScreen />);
+
+    await screen.findByText('Explore symbolic layers');
+    await screen.findByText('A first reflection on the dream.');
+    await screen.findByText('Continue exploring');
+
+    const renderedText = collectRenderedText(screen.toJSON()).join(' ');
+    const previewTitleIndex = renderedText.lastIndexOf('Symbolic reflection');
+    expect(renderedText.indexOf('Explore symbolic layers')).toBeGreaterThan(-1);
+    expect(previewTitleIndex).toBeGreaterThan(-1);
+    expect(renderedText.indexOf('A first reflection on the dream.')).toBeGreaterThan(-1);
+    expect(renderedText.indexOf('Continue exploring')).toBeGreaterThan(-1);
+    expect(renderedText.indexOf('Explore symbolic layers')).toBeLessThan(
+      previewTitleIndex
+    );
+    expect(previewTitleIndex).toBeLessThan(
+      renderedText.indexOf('A first reflection on the dream.')
+    );
+    expect(renderedText.indexOf('A first reflection on the dream.')).toBeLessThan(
+      renderedText.indexOf('Continue exploring')
+    );
   });
 
   it.each(['ios', 'android'] as const)('renders the sanctuary summary on %s', async (os) => {
@@ -330,6 +394,8 @@ describe('DreamDetail offline message flow', () => {
 
     expect(await screen.findByText('Dream essence')).toBeTruthy();
     fireEvent.press(screen.getByText('Continue exploring'));
+    expect(screen.getByText('Exploring the dream')).toBeTruthy();
+    expect(screen.queryByText('Symbolic reflection')).toBeNull();
     expect(screen.getByPlaceholderText('Ask about an image, feeling, or pattern...')).toBeTruthy();
 
     Object.defineProperty(Platform, 'OS', { value: originalOS, configurable: true });

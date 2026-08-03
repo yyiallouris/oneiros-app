@@ -14,9 +14,9 @@ export const ARCHETYPE_SECTION_TITLES = {
 
 export const ARCHETYPE_SECTION_NOTES = {
   core:
-    'The deeper structures of the psyche. These are enduring functions like Ego, Shadow, or Persona that shape how experience gets organized.',
+    'Recurring ways the psyche organizes experience. Patterns such as Ego, Persona, and Shadow describe positions or organizing tendencies within the dream, not fixed parts of your identity.',
   dynamic:
-    "Patterns that move through you for a time. They describe a living mood or current, not a fixed identity.",
+    'Living human patterns that become active within a dream. They describe a movement taking shape in the psyche, not who you are.',
 } as const;
 
 export const DREAM_LAYER_OVERVIEW = [
@@ -82,10 +82,10 @@ export interface InfoModalContent {
 
 export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   'main-symbols': {
-    title: 'What are key symbols?',
-    subtitle: 'More direct, more immediate',
+    title: 'What are dream images?',
+    subtitle: 'Figures, objects, and forms that carry weight in the dream',
     paragraphs: [
-      'Symbols are the images, places, people or actions that stood out in your dream.',
+      'Dream images are the figures, places, people, objects, or actions that stand out in the dream.',
       'They are not "codes" with fixed meanings, but living images that carry personal and emotional significance.',
       'A symbol may reflect:',
       'The same symbol can mean very different things for different people — or even for you, at different times.',
@@ -95,14 +95,14 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
     bulletsAfterParagraph: 2,
   },
   'symbolic-motifs': {
-    title: 'What are recurring scenes?',
-    subtitle: 'The form the dream takes',
+    title: 'What are motifs?',
+    subtitle: 'Scenes that give form to recognizable human situations',
     paragraphs: [
-      'Recurring scenes describe the imaginal form of the dream — how it is structured, not what it means.',
-      'If symbols are the standout images, recurring scenes are the situations, pathways, or spatial shapes linking those images together.',
-      'They are scene-shapes and situations, not every transition point or psychological conflict.',
+      'Motifs describe the imaginal form of the dream — how a human situation is staged, not what it means.',
+      'If symbols are the standout images, motifs are the situations, pathways, or scene-shapes linking those images together.',
+      'They are recognizable situations and scenes, not every transition point or psychological conflict.',
       'Examples:',
-      'These patterns often recur across dreams. They bridge concrete images and deeper psychic organization.',
+      'They bridge concrete images and deeper psychic organization without reducing the dream to a fixed message.',
     ],
     bullets: [
       'descending underground',
@@ -115,9 +115,9 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'contextual-thresholds': {
     title: 'What are thresholds?',
-    subtitle: 'Where the dream changes ground',
+    subtitle: 'Places or moments of passage, hesitation, and change',
     paragraphs: [
-      'Thresholds are moments of crossing, departure, arrival, sleep, work, shelter, or change of place.',
+      'Thresholds are places or moments of passage, hesitation, and change.',
       'They are kept separate from motifs because they mark where the dreamer moves from one psychic ground to another.',
       'Examples:',
       'A threshold may feed a motif, but it is tracked as its own transition point.',
@@ -132,9 +132,9 @@ export const SYMBOL_ARCHETYPE_INFO: Record<InfoModalKey, InfoModalContent> = {
   },
   'core-conflicts': {
     title: 'What are inner tensions?',
-    subtitle: 'The tension the dream stages',
+    subtitle: 'Opposing pulls or demands held within the dream',
     paragraphs: [
-      'Inner tensions name the psychological opposition organizing the dream.',
+      'Inner tensions name the opposing pulls or demands the dream is holding.',
       'They are written as “X vs Y” so the tension remains visible without turning into a fixed conclusion.',
       'Examples:',
       'They help reports notice repeated tensions without collapsing them into symbols or motifs.',

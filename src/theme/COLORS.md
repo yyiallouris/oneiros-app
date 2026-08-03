@@ -114,4 +114,6 @@ Flat `colors.*` aliases remain for existing screens. Prefer grouped exports in n
 
 Full-screen field: `assets/backgrounds/BG_paper.png` via `PaperBackground`.
 
+`PaperBackground` now tiles the paper texture with `resizeMode="repeat"` instead of stretching/cropping a single phone-sized image. This keeps the paper feel consistent on taller Android screens, long content areas, and navigation transitions where a scaled image could wash out into a flatter white field.
+
 Legacy wave exports stay in the repo for reference only (`LegacyWaveBackground`, `LegacyMountainWaveBackground`).

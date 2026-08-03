@@ -47,6 +47,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Subscription**
   - Permanent manage-subscription destination.
   - Shows the full plan comparison without usage statistics or quota counters on the screen itself.
+  - The introduction and carousel now sit directly on the page instead of inside an extra wrapper card, so only the actual plan cards read as cards.
   - Uses the same top-positioned dot/line pagination indicator as onboarding.
   - Uses one contextual bottom action only: `Manage` for active paid access, `Restore purchases` for free/lapsed, or helper copy when native IAP is unavailable.
 - **Account**
@@ -57,6 +58,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - Free-plan taps on Recent Dream Field, Essays, regenerate, and paid follow-up surfaces open the reusable paywall in premium-only mode.
   - Premium is visually recommended; Deeper feels more advanced rather than more promotional.
   - No fake urgency, hidden pricing, or “most popular” framing.
+  - The upsell sheet remains fully scrollable to its last card/action above the device bottom inset.
 - **Native runtime requirement**
   - Restore / manage subscription actions require a development build or store build.
   - Expo Go / unsupported runtimes show explanatory helper copy instead of broken native IAP actions.

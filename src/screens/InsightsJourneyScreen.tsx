@@ -17,7 +17,7 @@ import { useContentWidth } from '../layout/WebLayoutContext';
 
 type JourneyRoute = RouteProp<RootStackParamList, 'InsightsJourney'>;
 
-/** Legacy swipeable journey order: images → scenes → weather → thresholds → tensions → places. */
+/** Legacy swipeable journey order: images → motifs → atmosphere → thresholds → tensions → landscapes. */
 const JOURNEY_SECTIONS: InsightsSectionId[] = [
   'recurring-symbols',
   'symbolic-motifs',

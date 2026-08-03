@@ -67,6 +67,33 @@ type IconProps = {
   color?: string;
 };
 
+const buildInterpretationPreviewExcerpt = (text: string): string => {
+  const paragraphs = text
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  for (const paragraph of paragraphs) {
+    const lines = paragraph
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const bodyLines = lines.filter((line) => {
+      const normalized = line.replace(/^#+\s*/, '').trim();
+      if (!normalized) return false;
+      const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+      const headingOnly = /^#+\s/.test(line) || (wordCount <= 5 && !/[.!?]/.test(normalized));
+      return !headingOnly;
+    });
+    const candidate = bodyLines.join(' ').trim();
+    if (!candidate) continue;
+    const wordCount = candidate.split(/\s+/).filter(Boolean).length;
+    if (wordCount >= 8 || /[.!?]/.test(candidate)) return candidate;
+  }
+
+  return paragraphs[0]?.replace(/^#+\s*/, '').trim() ?? '';
+};
+
   // Edit icon
   const EditIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -340,11 +367,11 @@ type IconProps = {
 
     const fabricRows: TagRow[] = (
       [
-        { kind: 'tags' as const, title: 'Emotional Weather', items: model.symbolicLayers.emotionalWeather },
-        { kind: 'tags' as const, title: 'Dream Places', items: model.symbolicLayers.dreamSetting },
+        { kind: 'tags' as const, title: 'Emotional Atmosphere', items: model.symbolicLayers.emotionalWeather },
+        { kind: 'tags' as const, title: 'Dream Landscapes', items: model.symbolicLayers.dreamSetting },
         { kind: 'tags' as const, title: 'Relationship Field', items: model.symbolicLayers.relationshipField },
         { kind: 'tags' as const, title: 'Thresholds', items: model.symbolicLayers.thresholds },
-        { kind: 'tags' as const, title: 'Dream Motifs', items: model.symbolicLayers.repeatingPatterns },
+        { kind: 'tags' as const, title: 'Motifs', items: model.symbolicLayers.repeatingPatterns },
       ] satisfies TagRow[]
     ).filter((row) => row.items.length > 0);
 
@@ -808,7 +835,6 @@ type IconProps = {
     );
 
     const animateChatOpen = () => {
-      // Chat opens immediately, no animation needed
       setShowChat(true);
     };
 
@@ -1168,15 +1194,10 @@ type IconProps = {
       interpretation?.messages?.[0]?.content?.trim() ??
       '';
 
-    const interpretationCollapsedPreview = (() => {
-      const text = firstAssistantInterpretationText;
-      if (!text) return '';
-      // First paragraph only for the card teaser; line cap below adds a single trailing ellipsis.
-      return (text.split('\n\n')[0] || text).trim();
-    })();
+    const interpretationPreviewExcerpt = buildInterpretationPreviewExcerpt(firstAssistantInterpretationText);
 
     const showInterpretationPreview =
-      Boolean(interpretationCollapsedPreview) || Boolean(firstAssistantInterpretationText);
+      Boolean(interpretationPreviewExcerpt) || Boolean(firstAssistantInterpretationText);
     const displayModel = buildDreamDetailDisplayModel(dream, interpretation);
     const isMetadataPending = interpretation?.metadata_status === 'pending';
     const reflectionLoadingCopy =
@@ -1275,36 +1296,23 @@ type IconProps = {
                       </>
                     )}
                     
-                    {showInterpretationPreview && (
-                      <View style={styles.reflectionPreviewSection}>
-                        <Text style={styles.summarySectionTitle}>Symbolic reflection</Text>
-                        <Text
-                          style={styles.interpretationPreview}
-                          textBreakStrategy="highQuality"
-                          selectable={true}
-                          numberOfLines={6}
-                          ellipsizeMode="tail"
-                        >
-                          {formatInterpretationMarkdown(interpretationCollapsedPreview)}
-                        </Text>
-                      </View>
-                    )}
-
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowChat(true);
-                        animateChatOpen();
-                      }}
-                      style={styles.continueExploringButton}
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
-                      accessibilityLabel="Continue exploring"
-                    >
-                      <Text style={styles.continueExploringText}>Continue exploring</Text>
-                    </TouchableOpacity>
                   </View>
 
                   <SymbolicLayersAccordion model={displayModel} />
+                  {showInterpretationPreview && (
+                    <View style={styles.reflectionPreviewSection}>
+                      <Text style={styles.reflectionPreviewTitle}>Symbolic reflection</Text>
+                      <Text
+                        style={styles.interpretationPreview}
+                        textBreakStrategy="highQuality"
+                        selectable={true}
+                        numberOfLines={5}
+                        ellipsizeMode="tail"
+                      >
+                        {formatInterpretationMarkdown(interpretationPreviewExcerpt || firstAssistantInterpretationText)}
+                      </Text>
+                    </View>
+                  )}
                   {typeof __DEV__ !== 'undefined' && __DEV__ && interpretation?.id ? (
                     <TouchableOpacity
                       onPress={() => {
@@ -1341,6 +1349,17 @@ type IconProps = {
                       <Text style={styles.debugReextractLabel}>↻ Re-extract echoes (debug packet)</Text>
                     </TouchableOpacity>
                   ) : null}
+                  {!showChat && (
+                    <TouchableOpacity
+                      onPress={animateChatOpen}
+                      style={styles.continueExploringButton}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel="Continue exploring"
+                    >
+                      <Text style={styles.continueExploringText}>Continue exploring</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               ) : (
                 <View style={styles.noInterpretationPanel}>
@@ -1378,7 +1397,7 @@ type IconProps = {
 
           {/* Inline Chat Section - replaces reflection section */}
           {showChat && (
-            <View style={styles.chatSection}>
+            <View testID="dream-detail-chat-section" style={styles.chatSection}>
               <View style={styles.chatHeader}>
                 <View style={styles.chatTitleWrap}>
                   <Text style={styles.chatTitle}>Exploring the dream</Text>
@@ -1747,7 +1766,18 @@ type IconProps = {
       lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
     },
     reflectionPreviewSection: {
-      marginTop: spacing.md,
+      marginTop: spacing.lg,
+      paddingTop: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.contourLineFaint,
+    },
+    reflectionPreviewTitle: {
+      fontSize: typography.sizes.xs,
+      fontFamily: typography.medium,
+      color: colors.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+      marginBottom: spacing.sm,
     },
     updateNoticeText: {
       fontSize: typography.sizes.sm,
@@ -1918,11 +1948,17 @@ type IconProps = {
       width: '100%',
     },
     chatSection: {
-      marginTop: spacing.lg,
-      backgroundColor: colors.cardGlassSoft,
+      marginTop: spacing.xxl,
+      marginHorizontal: spacing.xs,
+      backgroundColor: colors.cardGlassStrong,
       borderRadius: borderRadius.lg,
       borderWidth: 1,
-      borderColor: colors.contourLineFaint,
+      borderColor: colors.contourLineSoft,
+      shadowColor: colors.shadow,
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 2,
       // No overflow:'hidden' / flex:1 — those collapse or clip the nested chat ScrollView
       // inside the page ScrollView (see dreamDetailChatLayout.ts).
     },
@@ -1930,14 +1966,17 @@ type IconProps = {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: spacing.md,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.contourLineFaint,
     },
     chatTitle: {
-      fontSize: typography.sizes.md,
+      fontSize: typography.sizes.lg,
       fontFamily: typography.medium,
       color: colors.textTitle,
+      letterSpacing: 0.2,
     },
     chatTitleWrap: {
       flex: 1,
@@ -1964,7 +2003,7 @@ type IconProps = {
     },
     chatContent: {
       paddingHorizontal: spacing.md,
-      paddingTop: spacing.sm,
+      paddingTop: spacing.md,
       // Keep last lines clear of the Ask composer edge
       paddingBottom: spacing.xxl,
     },

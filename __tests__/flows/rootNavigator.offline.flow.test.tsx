@@ -8,6 +8,7 @@ import { AppState, Linking } from 'react-native';
 
 let authStateChangeHandler: ((event: string, session: any) => Promise<void> | void) | null = null;
 let networkStateHandler: ((online: boolean) => Promise<void> | void) | null = null;
+let lastNavigationContainerProps: Record<string, unknown> | null = null;
 
 const mockGetSession = jest.fn();
 const mockOnAuthStateChange = jest.fn();
@@ -30,7 +31,20 @@ const mockDiscardAllVoice = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const React = require('react');
   return {
-    NavigationContainer: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    NavigationContainer: ({ children, ...props }: { children: React.ReactNode }) => {
+      lastNavigationContainerProps = props as Record<string, unknown>;
+      return <>{children}</>;
+    },
+    DefaultTheme: {
+      colors: {
+        primary: '#000000',
+        background: '#ffffff',
+        card: '#ffffff',
+        text: '#000000',
+        border: '#000000',
+        notification: '#000000',
+      },
+    },
   };
 });
 
@@ -144,6 +158,7 @@ jest.mock('../../src/utils/authDeepLink', () => ({
 }));
 
 import { RootNavigator } from '../../src/navigation/RootNavigator';
+import { colors } from '../../src/theme';
 
 const session = {
   user: { id: 'user-1' },
@@ -193,6 +208,7 @@ describe('RootNavigator offline flow', () => {
     jest.useFakeTimers();
     authStateChangeHandler = null;
     networkStateHandler = null;
+    lastNavigationContainerProps = null;
 
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
     jest.spyOn(AppState, 'addEventListener').mockImplementation(
@@ -409,5 +425,13 @@ describe('RootNavigator offline flow', () => {
     });
     expect(mockIsBiometricEnabled).toHaveBeenCalled();
     expect(mockSyncBiometricFromRemote).toHaveBeenCalled();
+  });
+
+  it('keeps the navigation container on the Oneiros paper background theme', async () => {
+    await renderNavigator();
+
+    expect(lastNavigationContainerProps).toBeTruthy();
+    expect((lastNavigationContainerProps?.theme as any)?.colors?.background).toBe(colors.background);
+    expect((lastNavigationContainerProps?.theme as any)?.colors?.card).toBe(colors.background);
   });
 });

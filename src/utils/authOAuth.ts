@@ -54,6 +54,11 @@ export function getAuthOAuthProviderLabel(id: AuthOAuthProviderId | null | undef
   return getAuthOAuthProvider(id).label;
 }
 
+export function getAuthOAuthSuccessMessage(id: AuthOAuthProviderId | null | undefined): string {
+  const providerLabel = getAuthOAuthProviderLabel(id);
+  return providerLabel ? `You're signed in with ${providerLabel}.` : "You're signed in.";
+}
+
 export function isNewOAuthUser(user: AuthOAuthUserLike): boolean {
   if (!user) return false;
   const identities = user.identities ?? [];

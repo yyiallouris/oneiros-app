@@ -168,11 +168,11 @@ export interface InsightsPeriod {
 export type InsightsSectionId =
   | 'recurring-symbols'   // overview: bars + 1 line + View symbol details
   | 'symbol-details'     // deep dive: recurring symbols, clusters, all symbols
-  | 'recurring-archetypes' // kept routable for Dream Detail / deep links; off main Forming Patterns grid
-  | 'symbolic-motifs'    // Recurring Scenes: recurring structural/spatial patterns from dreams
-  | 'emotional-weather'  // Forming Patterns: recurring felt tones from affects
-  | 'thresholds'         // transition points: work, travel, sleep, crossing, shelter
+  | 'recurring-archetypes' // archetypal echoes across dreams
+  | 'symbolic-motifs'    // Motifs: dream situations and shapes
+  | 'emotional-weather'  // Emotional Atmosphere: felt tones from affects
+  | 'thresholds'         // Thresholds: moments of passage, hesitation, and change
   | 'core-conflicts'     // dynamic tensions stated as "X vs Y"
-  | 'space-landscapes'   // recurring settings/places (e.g. forest, beach)
+  | 'space-landscapes'   // Dream Landscapes: recurring settings/places
   | 'pattern-recognition' // AI-generated monthly/quarterly pattern insights
   | 'collective';

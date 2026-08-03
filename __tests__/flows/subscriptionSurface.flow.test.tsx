@@ -36,7 +36,7 @@ jest.mock('../../src/components/ui', () => {
   const { Text, TouchableOpacity, View } = require('react-native');
   return {
     PaperBackground: ({ children }: any) => <View>{children}</View>,
-    Card: ({ children }: any) => <View>{children}</View>,
+    Card: ({ children }: any) => <View testID="surface-card">{children}</View>,
     Button: ({ title, onPress, disabled }: any) => (
       <TouchableOpacity onPress={onPress} disabled={disabled}>
         <Text>{title}</Text>
@@ -233,6 +233,7 @@ describe('subscription surface flow', () => {
     const screen = render(<SubscriptionScreen />);
 
     await waitFor(() => expect(screen.getByTestId('subscription-screen-carousel')).toBeTruthy());
+    expect(screen.queryAllByTestId('surface-card')).toHaveLength(0);
     expect(screen.getByText('InitialIndex:1')).toBeTruthy();
     expect(screen.getByText('IndicatorPosition:top')).toBeTruthy();
     expect(screen.getByText('Interval:monthly')).toBeTruthy();

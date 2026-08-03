@@ -9,14 +9,18 @@ import {
   Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { borderRadius, colors, spacing, typography, text } from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
+  ArchetypalEnergiesIcon,
   DreamPlacesIcon,
   EmotionalWeatherIcon,
   InnerTensionsIcon,
@@ -47,7 +51,6 @@ import {
 } from '../services/entitledAiService';
 import { getPaidPlanOptionsForInterval } from '../services/subscriptionService';
 import type {
-  CrossCategoryPatternItem,
   InsightsOverviewModel,
   InsightsSectionId,
 } from '../types/insights';
@@ -59,10 +62,19 @@ type ExploreLink = {
   sectionId: InsightsSectionId;
   title: string;
   icon: React.ReactNode;
+  iconFrameStyle?: StyleProp<ViewStyle>;
+};
+
+type ExploreGroup = {
+  title: string;
+  description: string;
+  links: ExploreLink[];
 };
 
 const INSIGHTS_MOUNTAIN_HEIGHT = 240;
 const SHOW_LEGACY_DREAM_FIELD_OVERVIEW = false;
+const INSIGHTS_TILE_ICON_SIZE = 42;
+const INSIGHTS_WIDE_TILE_ICON_SIZE = 58;
 
 const EMPTY_OVERVIEW: InsightsOverviewModel = {
   dreamsLoggedCount: 0,
@@ -75,28 +87,7 @@ const EMPTY_OVERVIEW: InsightsOverviewModel = {
   topArchetypalEchoes: [],
   topAffects: [],
   strongestPatterns: [],
-  fieldSummary: 'No dream field yet. Reflect on a dream to begin seeing recurring images, places, and movements.',
-};
-
-const kindLabel = (item: CrossCategoryPatternItem): string => {
-  switch (item.kind) {
-    case 'image':
-      return 'Image';
-    case 'motif':
-      return 'Scene';
-    case 'threshold':
-      return 'Threshold';
-    case 'tension':
-      return 'Tension';
-    case 'place':
-      return 'Place';
-    case 'archetypal_echo':
-      return 'Echo';
-    case 'affect':
-      return 'Weather';
-    default:
-      return 'Pattern';
-  }
+  fieldSummary: 'No dream field yet. Reflect on a dream to begin seeing images, landscapes, and movements gather.',
 };
 
 const RECENT_SCOPE_OPTIONS: { count: RecentDreamFieldCount; label: string; scopeLabel: string }[] = [
@@ -119,6 +110,7 @@ function parseReflectionSections(raw: string): { title: string; body: string }[]
 }
 
 const InsightsScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
   const [overview, setOverview] = useState<InsightsOverviewModel>(EMPTY_OVERVIEW);
@@ -162,7 +154,7 @@ const InsightsScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       let mounted = true;
-      // Soft refresh on return: keep the ScrollView mounted so Forming Patterns scroll position survives back.
+      // Soft refresh on return: keep the ScrollView mounted so the user's spot survives back navigation.
       const isFirstLoad = !hasLoadedOnceRef.current;
       if (isFirstLoad) {
         setLoading(true);
@@ -272,36 +264,66 @@ const InsightsScreen: React.FC = () => {
     }
   };
 
-  const exploreLinks: ExploreLink[] = [
+  const dreamFabricLinks: ExploreLink[] = [
     {
       sectionId: 'recurring-symbols',
-      title: 'Returning Images',
-      icon: <ReturningImagesIcon size={42} />,
+      title: 'Images',
+      icon: <ReturningImagesIcon size={INSIGHTS_TILE_ICON_SIZE} />,
     },
     {
       sectionId: 'symbolic-motifs',
-      title: 'Recurring Scenes',
-      icon: <RepeatingPatternsIcon size={42} />,
+      title: 'Motifs',
+      icon: <RepeatingPatternsIcon size={INSIGHTS_TILE_ICON_SIZE} />,
     },
     {
       sectionId: 'emotional-weather',
-      title: 'Emotional Weather',
-      icon: <EmotionalWeatherIcon size={42} />,
+      title: 'Emotional Atmosphere',
+      icon: <EmotionalWeatherIcon size={INSIGHTS_TILE_ICON_SIZE} />,
     },
+    {
+      sectionId: 'space-landscapes',
+      title: 'Dream Landscapes',
+      icon: <DreamPlacesIcon size={INSIGHTS_TILE_ICON_SIZE} />,
+    },
+  ];
+
+  const dreamMovementLinks: ExploreLink[] = [
     {
       sectionId: 'thresholds',
       title: 'Thresholds',
-      icon: <ThresholdsIcon size={42} />,
+      icon: <ThresholdsIcon size={INSIGHTS_TILE_ICON_SIZE} />,
     },
     {
       sectionId: 'core-conflicts',
       title: 'Inner Tensions',
-      icon: <InnerTensionsIcon size={42} />,
+      icon: <InnerTensionsIcon size={INSIGHTS_TILE_ICON_SIZE} />,
+    },
+  ];
+
+  const deeperEchoesLinks: ExploreLink[] = [
+    {
+      sectionId: 'recurring-archetypes',
+      title: 'Archetypal Echoes',
+      icon: <ArchetypalEnergiesIcon size={INSIGHTS_WIDE_TILE_ICON_SIZE} />,
+      iconFrameStyle: styles.exploreIconWide,
+    },
+  ];
+
+  const exploreGroups: ExploreGroup[] = [
+    {
+      title: 'Dream Fabric',
+      description: 'The images, scenes, places, and atmosphere that give the dream its particular world.',
+      links: dreamFabricLinks,
     },
     {
-      sectionId: 'space-landscapes',
-      title: 'Dream Places',
-      icon: <DreamPlacesIcon size={42} />,
+      title: 'Dream Movement',
+      description: 'How the dream holds tension, approaches boundaries, and moves toward or away from change.',
+      links: dreamMovementLinks,
+    },
+    {
+      title: 'Deeper Echoes',
+      description: 'Deeper patterns of human experience that may resonate through the dream material.',
+      links: deeperEchoesLinks,
     },
   ];
 
@@ -338,7 +360,10 @@ const InsightsScreen: React.FC = () => {
         <ScrollView
           ref={scrollRef}
           style={[styles.scroll, Platform.OS === 'web' && styles.webScroll]}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: spacing.xxxl + insets.bottom + spacing.xxl },
+          ]}
           showsVerticalScrollIndicator={false}
           onScroll={handleScroll}
           scrollEventThrottle={16}
@@ -455,7 +480,7 @@ const InsightsScreen: React.FC = () => {
             activeOpacity={0.78}
           >
             <View style={styles.reflectionIcon}>
-              <PatternRecognitionIcon size={72} />
+              <PatternRecognitionIcon size={84} />
             </View>
             <View style={styles.reflectionContent}>
               <Text style={styles.cardTitle}>Period Reflection</Text>
@@ -473,63 +498,28 @@ const InsightsScreen: React.FC = () => {
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
 
-          {/*
-            Legacy: standalone Forming/Returning Patterns card.
-            Hidden after moving the pattern entry point into the Forming Patterns grid below.
-
-            <Card transparent style={styles.card}>
-              <View style={styles.sectionHeaderRow}>
-                <Text style={styles.cardTitle}>{patternTitle}</Text>
-                <TouchableOpacity onPress={navigateToPatternExplorer} activeOpacity={0.7}>
-                  <Text style={styles.headerLink}>Explore</Text>
-                </TouchableOpacity>
-              </View>
-              {overview.strongestPatterns.length === 0 ? (
-                <Text style={styles.mutedBody}>No recurring patterns are visible in this period yet.</Text>
-              ) : (
-                overview.strongestPatterns.map((item) => (
+          {exploreGroups.map((group) => (
+            <Card transparent style={styles.card} key={group.title}>
+              <Text style={styles.cardTitle}>{group.title}</Text>
+              <Text style={styles.groupDescription}>{group.description}</Text>
+              <View style={styles.exploreGrid}>
+                {group.links.map((link) => (
                   <TouchableOpacity
-                    key={`${item.kind}:${item.label}`}
-                    style={styles.patternRow}
-                    onPress={() => navigateToPattern(item)}
+                    key={link.sectionId}
+                    style={[
+                      styles.exploreTile,
+                      group.links.length === 1 && styles.exploreTileFullWidth,
+                    ]}
+                    onPress={() => navigateToSection(link.sectionId)}
                     activeOpacity={0.72}
                   >
-                    <View style={styles.patternTextBlock}>
-                      <Text style={styles.patternLabel} numberOfLines={1}>{item.label}</Text>
-                      <Text style={styles.patternKind}>{kindLabel(item)}</Text>
-                    </View>
-                    <Text style={styles.patternCount}>×{item.count}</Text>
+                    <View style={[styles.exploreIcon, link.iconFrameStyle]}>{link.icon}</View>
+                    <Text style={styles.exploreTitle} numberOfLines={2}>{link.title}</Text>
                   </TouchableOpacity>
-                ))
-              )}
-              {overview.strongestPatterns.length > 0 && (
-                <TouchableOpacity
-                  style={styles.exploreAllButton}
-                  onPress={navigateToPatternExplorer}
-                  activeOpacity={0.72}
-                >
-                  <Text style={styles.exploreAllText}>Explore all patterns</Text>
-                </TouchableOpacity>
-              )}
+                ))}
+              </View>
             </Card>
-          */}
-
-          <Card transparent style={styles.card}>
-            <Text style={styles.cardTitle}>Forming Patterns</Text>
-            <View style={styles.exploreGrid}>
-              {exploreLinks.map((link) => (
-                <TouchableOpacity
-                  key={link.sectionId}
-                  style={styles.exploreTile}
-                  onPress={() => navigateToSection(link.sectionId)}
-                  activeOpacity={0.72}
-                >
-                  <View style={styles.exploreIcon}>{link.icon}</View>
-                  <Text style={styles.exploreTitle} numberOfLines={2}>{link.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Card>
+          ))}
         </ScrollView>
         <PremiumUpsellModal
           visible={upsellVisible}
@@ -797,50 +787,11 @@ const styles = StyleSheet.create({
     lineHeight: typography.sizes.sm * 1.55,
     color: text.secondary,
   },
-  exploreAllButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.sm,
-    paddingRight: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  exploreAllText: {
+  groupDescription: {
     fontSize: typography.sizes.sm,
-    color: colors.buttonPrimary,
-    fontWeight: typography.weights.semibold,
-  },
-  mutedBody: {
-    fontSize: typography.sizes.sm,
-    color: text.secondary,
     lineHeight: typography.sizes.sm * 1.45,
-  },
-  patternRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-  },
-  patternTextBlock: {
-    flex: 1,
-    minWidth: 0,
-  },
-  patternLabel: {
-    fontSize: typography.sizes.md,
-    color: colors.textTitle,
-    fontWeight: typography.weights.semibold,
-  },
-  patternKind: {
-    marginTop: 2,
-    fontSize: typography.sizes.xs,
     color: text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0,
-  },
-  patternCount: {
-    marginLeft: spacing.md,
-    fontSize: typography.sizes.sm,
-    color: colors.buttonPrimary,
-    fontWeight: typography.weights.semibold,
+    marginBottom: spacing.md,
   },
   exploreGrid: {
     flexDirection: 'row',
@@ -856,6 +807,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.contourLineFaint,
   },
+  exploreTileFullWidth: {
+    width: '100%',
+  },
   exploreIcon: {
     width: 48,
     height: 48,
@@ -863,6 +817,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
+  },
+  exploreIconWide: {
+    width: 64,
+    height: 64,
+    marginBottom: spacing.md,
   },
   exploreTitle: {
     width: '100%',

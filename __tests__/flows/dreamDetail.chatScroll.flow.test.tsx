@@ -282,9 +282,13 @@ describe('DreamDetail exploring chat scroll flow', () => {
     await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
     fireEvent.press(screen.getByText('Continue exploring'));
 
+    const chatSection = await screen.findByTestId('dream-detail-chat-section');
     const chatScroll = await screen.findByTestId(DREAM_DETAIL_CHAT_SCROLL_TEST_ID);
+    const sectionStyle = StyleSheet.flatten(chatSection.props.style) as Record<string, unknown>;
     const flatStyle = StyleSheet.flatten(chatScroll.props.style) as Record<string, unknown>;
 
+    expect(sectionStyle.borderWidth).toBe(1);
+    expect(sectionStyle.borderRadius).toBeTruthy();
     expect(flatStyle.maxHeight).toBe(DREAM_DETAIL_CHAT_SCROLL_MAX_HEIGHT);
     expect(flatStyle.overflow).toBeUndefined();
     expect(chatScroll.props.nestedScrollEnabled).toBe(true);

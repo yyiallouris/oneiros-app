@@ -12,6 +12,26 @@ type IconProps = Omit<ImageProps, 'source'> & {
   color?: string;
 };
 
+type IconBounds = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+type IconCanvas = {
+  width: number;
+  height: number;
+};
+
+type IconAsset = {
+  source: ImageSourcePropType;
+  bounds: IconBounds;
+  canvas?: IconCanvas;
+};
+
+const DEFAULT_ICON_CANVAS: IconCanvas = { width: 900, height: 900 };
+
 const ICON_SOURCES = {
   returningImages: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_returning_images_sheet_extract_rgba_900.png'),
@@ -34,31 +54,27 @@ const ICON_SOURCES = {
     bounds: { left: 162, top: 288, width: 554, height: 367 },
   },
   archetypalEnergies: {
-    source: require('../../assets/icons/insights_section_icons/oneiros_insight_archetypal_energies_sheet_extract_rgba_900.png'),
-    bounds: { left: 285, top: 192, width: 329, height: 568 },
+    source: require('../../assets/icons/insights_section_icons/oneiros_isnights_archetypes.png'),
+    bounds: { left: 0, top: 0, width: 559, height: 591 },
+    canvas: { width: 559, height: 591 },
   },
   emotionalWeather: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_emotional_weather.png'),
     bounds: { left: 236, top: 36, width: 464, height: 743 },
   },
   patternRecognition: {
-    source: require('../../assets/icons/insights_section_icons/oneiros_pattern_recognition_from_sheet_true_rgba_900.png'),
-    bounds: { left: 230, top: 254, width: 440, height: 433 },
+    source: require('../../assets/icons/insights_section_icons/pattern_recognition_essay/oneiros_pattern_recognition_essay.png'),
+    bounds: { left: 144, top: 172, width: 720, height: 632 },
+    canvas: { width: 1024, height: 1024 },
   },
 } as const;
 
-type IconBounds = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
-
-function createInsightsPngIcon(source: ImageSourcePropType, bounds: IconBounds) {
+function createInsightsPngIcon(asset: IconAsset) {
   return ({ size = 24, color: _color, style, ...props }: IconProps) => {
+    const { source, bounds, canvas = DEFAULT_ICON_CANVAS } = asset;
     const scale = size / Math.max(bounds.width, bounds.height);
-    const renderedWidth = 900 * scale;
-    const renderedHeight = 900 * scale;
+    const renderedWidth = canvas.width * scale;
+    const renderedHeight = canvas.height * scale;
     const offsetX = (size - bounds.width * scale) / 2 - bounds.left * scale;
     const offsetY = (size - bounds.height * scale) / 2 - bounds.top * scale;
 
@@ -84,14 +100,14 @@ function createInsightsPngIcon(source: ImageSourcePropType, bounds: IconBounds) 
   };
 }
 
-export const ReturningImagesIcon = createInsightsPngIcon(ICON_SOURCES.returningImages.source, ICON_SOURCES.returningImages.bounds);
-export const RepeatingPatternsIcon = createInsightsPngIcon(ICON_SOURCES.repeatingPatterns.source, ICON_SOURCES.repeatingPatterns.bounds);
-export const ThresholdsIcon = createInsightsPngIcon(ICON_SOURCES.thresholds.source, ICON_SOURCES.thresholds.bounds);
-export const InnerTensionsIcon = createInsightsPngIcon(ICON_SOURCES.innerTensions.source, ICON_SOURCES.innerTensions.bounds);
-export const DreamPlacesIcon = createInsightsPngIcon(ICON_SOURCES.dreamPlaces.source, ICON_SOURCES.dreamPlaces.bounds);
-export const ArchetypalEnergiesIcon = createInsightsPngIcon(ICON_SOURCES.archetypalEnergies.source, ICON_SOURCES.archetypalEnergies.bounds);
-export const EmotionalWeatherIcon = createInsightsPngIcon(ICON_SOURCES.emotionalWeather.source, ICON_SOURCES.emotionalWeather.bounds);
-export const PatternRecognitionIcon = createInsightsPngIcon(ICON_SOURCES.patternRecognition.source, ICON_SOURCES.patternRecognition.bounds);
+export const ReturningImagesIcon = createInsightsPngIcon(ICON_SOURCES.returningImages);
+export const RepeatingPatternsIcon = createInsightsPngIcon(ICON_SOURCES.repeatingPatterns);
+export const ThresholdsIcon = createInsightsPngIcon(ICON_SOURCES.thresholds);
+export const InnerTensionsIcon = createInsightsPngIcon(ICON_SOURCES.innerTensions);
+export const DreamPlacesIcon = createInsightsPngIcon(ICON_SOURCES.dreamPlaces);
+export const ArchetypalEnergiesIcon = createInsightsPngIcon(ICON_SOURCES.archetypalEnergies);
+export const EmotionalWeatherIcon = createInsightsPngIcon(ICON_SOURCES.emotionalWeather);
+export const PatternRecognitionIcon = createInsightsPngIcon(ICON_SOURCES.patternRecognition);
 
 // Backward-compatible aliases while screens migrate to the explicit names above.
 export const SymbolsIcon = ReturningImagesIcon;

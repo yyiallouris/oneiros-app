@@ -20,6 +20,7 @@ describe('LoadingScreen', () => {
     const { getByTestId, getByText } = render(<LoadingScreen />);
 
     expect(getByTestId('paper-background')).toBeTruthy();
+    expect(getByTestId('paper-background-image').props.resizeMode).toBe('repeat');
     expect(getByTestId('loading-logo')).toBeTruthy();
     expect(getByText('Oneiros')).toBeTruthy();
   });

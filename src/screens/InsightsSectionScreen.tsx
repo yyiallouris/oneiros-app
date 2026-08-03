@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground, Button } from '../components/ui';
@@ -72,6 +73,7 @@ import {
 } from '../services/remoteStorage';
 import { UserService } from '../services/userService';
 import { toSafeSymbolLabel } from '../constants/safeLabels';
+import { INSIGHTS_SECTION_SUBTITLES } from '../constants/insightsSections';
 import {
   getPatternInsightLanguage,
 } from '../services/patternInsightLanguageService';
@@ -123,6 +125,7 @@ const FORMING_PATTERN_SECTION_IDS: InsightsSectionId[] = [
   'thresholds',
   'core-conflicts',
   'space-landscapes',
+  'recurring-archetypes',
 ];
 const PERIOD_PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'this_month', label: 'This month' },
@@ -198,6 +201,7 @@ export type InsightsSectionScreenProps = {
 };
 
 const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props) => {
+  const insets = useSafeAreaInsets();
   const { embedded, overrideSectionId, overridePeriod, overridePeriodLabel } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
@@ -223,6 +227,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const periodLabel = embedded
     ? (routePeriodLabel ?? getPeriodLabel(period))
     : (sectionPeriodPreset === 'all_time' ? 'All time' : getPeriodLabel(sectionPeriod));
+  const sectionSubtitle = INSIGHTS_SECTION_SUBTITLES[sectionId];
   const showSectionPeriodPicker = !embedded && FORMING_PATTERN_SECTION_IDS.includes(sectionId);
   const [loading, setLoading] = useState(true);
   const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
@@ -240,9 +245,6 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [lessFrequentExpanded, setLessFrequentExpanded] = useState(false);
   const [allSymbolsExpanded, setAllSymbolsExpanded] = useState(false);
   const [clustersExpanded, setClustersExpanded] = useState(false);
-  const [singleAppearancesExpanded, setSingleAppearancesExpanded] = useState(false);
-  const [singleMotifsExpanded, setSingleMotifsExpanded] = useState(false);
-  const [singleAffectsExpanded, setSingleAffectsExpanded] = useState(false);
   const [singleCrossingsExpanded, setSingleCrossingsExpanded] = useState(false);
   const [singleTensionsExpanded, setSingleTensionsExpanded] = useState(false);
   const [singlePlacesExpanded, setSinglePlacesExpanded] = useState(false);
@@ -464,7 +466,10 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       <DesignExportForeground fill>
         <ScrollView
           style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: spacing.xxxl + insets.bottom + spacing.xxl },
+          ]}
           showsVerticalScrollIndicator={false}
         >
         {showSectionPeriodPicker && (
@@ -506,7 +511,10 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
             )}
           </View>
         )}
-        {/* Returning images: split into recurring (count ≥ 2) and visited once */}
+        {sectionSubtitle ? (
+          <Text style={styles.sectionIntro}>{sectionSubtitle}</Text>
+        ) : null}
+        {/* Images: split into recurring (count ≥ 2) and visited once */}
         {sectionId === 'recurring-symbols' && (() => {
           const recurring = symbols.filter((s) => s.count >= 2);
           const visitedOnce = symbols.filter((s) => s.count < 2);
@@ -516,12 +524,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionReturningImagesIcon />
               </View>
               {symbols.length === 0 ? (
-                <Text style={styles.empty}>No images yet. Get dream interpretations to see returning images.</Text>
+                <Text style={styles.empty}>No distinct dream images have been identified here.</Text>
               ) : (
                 <>
                   {recurring.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Some images seem to insist on returning</Text>
+                      <Text style={styles.sectionFraming}>Some images arrive with a particular presence and ask to be noticed.</Text>
                       {recurring.map((s) => (
                         <TouchableOpacity
                           key={s.normalizedKey}
@@ -537,19 +545,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No returning images this period.</Text>
+                    <Text style={styles.mutedNote}>No image is carrying clear weight in this period yet.</Text>
                   )}
                   {visitedOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
-                      <TouchableOpacity
-                        onPress={() => setSingleAppearancesExpanded((v) => !v)}
-                        style={styles.collapsibleHeader}
-                        activeOpacity={0.7}
-                      >
+                      <View style={styles.collapsibleHeader}>
                         <Text style={styles.subSectionLabel}>Single Appearances</Text>
-                        <Text style={styles.expandHint}>{singleAppearancesExpanded ? '▼' : '▶'}</Text>
-                      </TouchableOpacity>
-                      {singleAppearancesExpanded && visitedOnce.map((s) => (
+                      </View>
+                      {visitedOnce.map((s) => (
                         <TouchableOpacity
                           key={s.normalizedKey}
                           style={styles.archetypeRow}
@@ -716,7 +719,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           </>
         )}
 
-        {/* Recurring Scenes: recurring structural/spatial patterns */}
+        {/* Motifs: recurring structural and situational patterns */}
         {sectionId === 'symbolic-motifs' && (() => {
           const recurringMotifs = motifs.filter((m) => m.count >= 2);
           const seenOnce = motifs.filter((m) => m.count < 2);
@@ -726,12 +729,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionRepeatingPatternsIcon />
               </View>
               {motifs.length === 0 ? (
-                <Text style={styles.empty}>No recurring scenes yet. Get dream interpretations to see recurring dream situations.</Text>
+                <Text style={styles.empty}>No clear dream motifs have been identified here.</Text>
               ) : (
                 <>
                   {recurringMotifs.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Scene-shapes that keep returning across dreams</Text>
+                      <Text style={styles.sectionFraming}>Dreams often place us within recognizable human situations and dramas.</Text>
                       {recurringMotifs.map((m) => (
                         <TouchableOpacity
                           key={m.normalizedKey}
@@ -745,19 +748,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring scenes this period.</Text>
+                    <Text style={styles.mutedNote}>No motif is standing out clearly in this period yet.</Text>
                   )}
                   {seenOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
-                      <TouchableOpacity
-                        onPress={() => setSingleMotifsExpanded((v) => !v)}
-                        style={styles.collapsibleHeader}
-                        activeOpacity={0.7}
-                      >
+                      <View style={styles.collapsibleHeader}>
                         <Text style={styles.subSectionLabel}>Single Appearances</Text>
-                        <Text style={styles.expandHint}>{singleMotifsExpanded ? '▼' : '▶'}</Text>
-                      </TouchableOpacity>
-                      {singleMotifsExpanded && seenOnce.map((m) => (
+                      </View>
+                      {seenOnce.map((m) => (
                         <TouchableOpacity
                           key={m.normalizedKey}
                           style={styles.archetypeRow}
@@ -775,7 +773,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           );
         })()}
 
-        {/* Emotional Weather: recurring felt tones from affects */}
+        {/* Emotional Atmosphere: recurring felt tones from affects */}
         {sectionId === 'emotional-weather' && (() => {
           const recurringAffects = affects.filter((a) => a.count >= 2);
           const seenOnce = affects.filter((a) => a.count < 2);
@@ -785,12 +783,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionEmotionalWeatherIcon />
               </View>
               {affects.length === 0 ? (
-                <Text style={styles.empty}>No emotional weather yet. Interpret dreams to see felt tones that return.</Text>
+                <Text style={styles.empty}>No distinct emotional atmosphere has been identified here.</Text>
               ) : (
                 <>
                   {recurringAffects.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Felt tones that keep returning across your dreams</Text>
+                      <Text style={styles.sectionFraming}>A felt atmosphere surrounds and moves through the dream.</Text>
                       {recurringAffects.map((a) => (
                         <View key={a.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{a.name}</Text>
@@ -799,19 +797,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring emotional weather this period.</Text>
+                    <Text style={styles.mutedNote}>No distinct emotional climate is standing out in this period yet.</Text>
                   )}
                   {seenOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
-                      <TouchableOpacity
-                        onPress={() => setSingleAffectsExpanded((v) => !v)}
-                        style={styles.collapsibleHeader}
-                        activeOpacity={0.7}
-                      >
+                      <View style={styles.collapsibleHeader}>
                         <Text style={styles.subSectionLabel}>Single Appearances</Text>
-                        <Text style={styles.expandHint}>{singleAffectsExpanded ? '▼' : '▶'}</Text>
-                      </TouchableOpacity>
-                      {singleAffectsExpanded && seenOnce.map((a) => (
+                      </View>
+                      {seenOnce.map((a) => (
                         <View key={a.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{a.name}</Text>
                         </View>
@@ -834,12 +827,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionThresholdsIcon />
               </View>
               {thresholds.length === 0 ? (
-                <Text style={styles.empty}>No thresholds yet. Interpret dreams to see recurring transition points.</Text>
+                <Text style={styles.empty}>No clear threshold or passage has appeared here.</Text>
               ) : (
                 <>
                   {recurringThresholds.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Places where the dream changes ground</Text>
+                      <Text style={styles.sectionFraming}>The dream brings you to an edge between one place, state, or world and another.</Text>
                       {recurringThresholds.map((t) => (
                         <View key={t.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{t.name}</Text>
@@ -848,7 +841,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring thresholds this period.</Text>
+                    <Text style={styles.mutedNote}>No threshold is standing out clearly in this period yet.</Text>
                   )}
                   {seenOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
@@ -857,7 +850,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                         style={styles.collapsibleHeader}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.subSectionLabel}>Single Crossings</Text>
+                        <Text style={styles.subSectionLabel}>Single Thresholds</Text>
                         <Text style={styles.expandHint}>{singleCrossingsExpanded ? '▼' : '▶'}</Text>
                       </TouchableOpacity>
                       {singleCrossingsExpanded && seenOnce.map((t) => (
@@ -883,12 +876,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionInnerTensionsIcon />
               </View>
               {centralConflicts.length === 0 ? (
-                <Text style={styles.empty}>No inner tensions yet. Interpret dreams to see the tensions they stage.</Text>
+                <Text style={styles.empty}>No distinct inner tension has been identified here.</Text>
               ) : (
                 <>
                   {recurringConflicts.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Tensions that keep returning</Text>
+                      <Text style={styles.sectionFraming}>The dream may hold two directions in tension without resolving them.</Text>
                       {recurringConflicts.map((c) => (
                         <View key={c.normalizedKey} style={styles.archetypeRow}>
                           <Text style={styles.archetypeName} numberOfLines={1}>{c.name}</Text>
@@ -897,7 +890,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring inner tensions this period.</Text>
+                    <Text style={styles.mutedNote}>No inner tension is standing out clearly in this period yet.</Text>
                   )}
                   {seenOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
@@ -932,12 +925,12 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionDreamPlacesIcon />
               </View>
               {landscapes.length === 0 ? (
-                <Text style={styles.empty}>No dream places yet. Get dream interpretations to see recurring settings and places.</Text>
+                <Text style={styles.empty}>No distinct dream landscape has been identified here.</Text>
               ) : (
                 <>
                   {recurringPlaces.length > 0 ? (
                     <>
-                      <Text style={styles.sectionFraming}>Places you often return to</Text>
+                      <Text style={styles.sectionFraming}>The setting shapes what can happen and how the dream is felt.</Text>
                       {recurringPlaces.map((l) => (
                         <TouchableOpacity
                           key={l.normalizedKey}
@@ -951,7 +944,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       ))}
                     </>
                   ) : (
-                    <Text style={styles.mutedNote}>No recurring places this period.</Text>
+                    <Text style={styles.mutedNote}>No dream landscape is standing out clearly in this period yet.</Text>
                   )}
                   {visitedOnce.length > 0 && (
                     <View style={styles.collapsibleBlock}>
@@ -992,9 +985,10 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                 <SectionArchetypalEnergiesIcon />
               </View>
               {archetypes.length === 0 ? (
-                <Text style={styles.empty}>No archetypes yet. Get dream interpretations to see recurring archetypes.</Text>
+                <Text style={styles.empty}>No clear archetypal echoes have been identified here.</Text>
               ) : (
                 <>
+                  <Text style={styles.sectionFraming}>Some dream material may resonate with deeper patterns of human experience.</Text>
                   {/* DREAM_LAYER_OVERVIEW intentionally hidden for now until we decide its final placement. */}
 
                   {/* Inner structures — the deeper functions that organize experience */}
@@ -1366,6 +1360,12 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxxl },
   sectionPeriodWrap: {
+    marginBottom: spacing.lg,
+  },
+  sectionIntro: {
+    fontSize: typography.sizes.md,
+    lineHeight: typography.sizes.md * 1.45,
+    color: text.secondary,
     marginBottom: spacing.lg,
   },
   sectionPeriodKicker: {

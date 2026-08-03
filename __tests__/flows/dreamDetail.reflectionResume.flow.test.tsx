@@ -221,7 +221,7 @@ describe('dreamDetail reflection resume flow', () => {
     resolveResume(interpretation);
 
     await waitFor(() => {
-      expect(screen.getByText('A resumed reflection.')).toBeTruthy();
+      expect(screen.getAllByText('A resumed reflection.').length).toBeGreaterThan(0);
     });
     expect(screen.queryByText('Reflect on this dream')).toBeNull();
   });

@@ -12,6 +12,7 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius } from '../theme';
 import { PaperBackground, Card, DesignExportForeground, LoadingState } from '../components/ui';
 import {
+  ArchetypalEnergiesIcon,
   DreamPlacesIcon,
   EmotionalWeatherIcon,
   InnerTensionsIcon,
@@ -55,25 +56,27 @@ const EMPTY_OVERVIEW: InsightsOverviewModel = {
   topArchetypalEchoes: [],
   topAffects: [],
   strongestPatterns: [],
-  fieldSummary: 'No dream field yet. Reflect on a dream to begin seeing recurring images, places, and movements.',
+  fieldSummary: 'No dream field yet. Reflect on a dream to begin seeing images, landscapes, and movements gather.',
 };
+
+const PATTERN_EXPLORER_INTRO = 'See what gathers, returns, and changes across your dreams.';
 
 const kindMeta = (item: CrossCategoryPatternItem): string => {
   switch (item.kind) {
     case 'image':
       return 'Image';
     case 'motif':
-      return 'Scene';
+      return 'Motif';
     case 'threshold':
       return 'Threshold';
     case 'tension':
       return 'Tension';
     case 'place':
-      return 'Place';
+      return 'Landscape';
     case 'archetypal_echo':
-      return 'Echo';
+      return 'Archetypal Echo';
     case 'affect':
-      return 'Weather';
+      return 'Atmosphere';
     default:
       return 'Pattern';
   }
@@ -136,35 +139,35 @@ const PatternExplorerScreen: React.FC = () => {
   const categories: PatternCategory[] = [
     {
       id: 'images',
-      title: 'Returning Images',
-      description: 'Concrete images and figures that keep appearing.',
+      title: 'Images',
+      description: 'Images that return or gather weight across dreams',
       sectionId: 'recurring-symbols',
       items: overview.topImages,
-      emptyText: 'No returning images in this period yet.',
+      emptyText: 'No images in this period yet.',
       icon: <ReturningImagesIcon size={58} />,
     },
     {
       id: 'motifs',
-      title: 'Recurring Scenes',
-      description: 'Scene-shapes and situations that keep returning.',
+      title: 'Motifs',
+      description: 'Human situations that reappear in changing forms',
       sectionId: 'symbolic-motifs',
       items: overview.topMotifs,
-      emptyText: 'No recurring scenes in this period yet.',
+      emptyText: 'No motifs in this period yet.',
       icon: <RepeatingPatternsIcon size={58} />,
     },
     {
       id: 'affects',
-      title: 'Emotional Weather',
-      description: 'Felt tones that keep returning across your dreams.',
+      title: 'Emotional Atmosphere',
+      description: 'Emotional climates that persist, return, or shift',
       sectionId: 'emotional-weather',
       items: overview.topAffects,
-      emptyText: 'No emotional weather in this period yet.',
+      emptyText: 'No emotional atmosphere in this period yet.',
       icon: <EmotionalWeatherIcon size={58} />,
     },
     {
       id: 'thresholds',
       title: 'Thresholds',
-      description: 'Places where the dream changes ground.',
+      description: 'Ways your dreams approach, resist, or cross boundaries',
       sectionId: 'thresholds',
       items: overview.topThresholds,
       emptyText: 'No thresholds in this period yet.',
@@ -173,7 +176,7 @@ const PatternExplorerScreen: React.FC = () => {
     {
       id: 'tensions',
       title: 'Inner Tensions',
-      description: 'Tensions that keep returning.',
+      description: 'Opposing pulls your dreams continue to stage',
       sectionId: 'core-conflicts',
       items: overview.topTensions,
       emptyText: 'No inner tensions in this period yet.',
@@ -181,12 +184,21 @@ const PatternExplorerScreen: React.FC = () => {
     },
     {
       id: 'places',
-      title: 'Dream Places',
-      description: 'Settings and places you return to.',
+      title: 'Dream Landscapes',
+      description: 'Places your dreams revisit, reshape, or leave behind',
       sectionId: 'space-landscapes',
       items: overview.topPlaces,
-      emptyText: 'No dream places in this period yet.',
+      emptyText: 'No dream landscapes in this period yet.',
       icon: <DreamPlacesIcon size={58} />,
+    },
+    {
+      id: 'archetypes',
+      title: 'Archetypal Echoes',
+      description: 'Deeper patterns becoming more visible across a series of dreams',
+      sectionId: 'recurring-archetypes',
+      items: overview.topArchetypalEchoes,
+      emptyText: 'No archetypal echoes in this period yet.',
+      icon: <ArchetypalEnergiesIcon size={58} />,
     },
   ];
 
@@ -214,6 +226,7 @@ const PatternExplorerScreen: React.FC = () => {
         >
           <Text style={styles.kicker}>{periodLabel}</Text>
           <Text style={styles.title}>Pattern Explorer</Text>
+          <Text style={styles.intro}>{PATTERN_EXPLORER_INTRO}</Text>
           <Text style={styles.summary}>{overview.fieldSummary}</Text>
 
           {overview.strongestPatterns.length > 0 && (
@@ -303,6 +316,12 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xl,
     fontFamily: typography.medium,
     color: colors.textTitle,
+    marginBottom: spacing.xs,
+  },
+  intro: {
+    fontSize: typography.sizes.md,
+    lineHeight: typography.sizes.md * 1.45,
+    color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
   summary: {

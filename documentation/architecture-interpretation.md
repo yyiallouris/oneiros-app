@@ -14,7 +14,7 @@ This document explains the AI interpretation system: how a dream becomes a refle
    - Dream essence and movement from `display_distillation`.
    - Visible anchors from distillation first, fallback model second.
    - Symbolic layers from full metadata.
-   - Assistant reflection and inline chat (nested Exploring `ScrollView` — see `src/screens/dreamDetailChatLayout.ts`; never `overflow: 'hidden'` on that nested chat style).
+   - Assistant reflection plus the existing Exploring follow-up chat surface; the `Continue exploring` trigger now sits lower in the DreamDetail flow, after the symbolic layers section (nested Exploring `ScrollView` — see `src/screens/dreamDetailChatLayout.ts`; never `overflow: 'hidden'` on that nested chat style).
 
 The alternate `InterpretationChatScreen` mirrors this conceptual flow but is not currently a primary in-app navigation path.
 

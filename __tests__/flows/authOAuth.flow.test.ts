@@ -5,6 +5,7 @@ import {
   AUTH_APPLE_PROVIDER,
   AUTH_OAUTH_PROVIDERS,
   getAuthOAuthProviderLabel,
+  getAuthOAuthSuccessMessage,
   isNewOAuthUser,
   parseAuthCallbackParams,
   parseAuthSessionTokens,
@@ -30,6 +31,13 @@ describe('auth OAuth flow utilities', () => {
     expect(getAuthOAuthProviderLabel('google')).toBe('Google');
     expect(getAuthOAuthProviderLabel('discord')).toBe('Discord');
     expect(getAuthOAuthProviderLabel(undefined)).toBeNull();
+  });
+
+  it('builds provider-aware returning-user success copy', () => {
+    expect(getAuthOAuthSuccessMessage('google')).toBe("You're signed in with Google.");
+    expect(getAuthOAuthSuccessMessage('discord')).toBe("You're signed in with Discord.");
+    expect(getAuthOAuthSuccessMessage('apple')).toBe("You're signed in with Apple.");
+    expect(getAuthOAuthSuccessMessage(undefined)).toBe("You're signed in.");
   });
 
   it('parses auth session tokens from hash redirects', () => {

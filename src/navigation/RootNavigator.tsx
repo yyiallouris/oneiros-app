@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
 import { AppState, AppStateStatus, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
 import { MainTabsNavigator } from './MainTabsNavigator';
@@ -85,6 +85,18 @@ const ONBOARDING_ROUTE_NAMES = [
 ] as const;
 const SHOW_DEV_OFFLINE_TOGGLE = false;
 
+const oneirosNavigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: colors.background,
+    card: colors.background,
+    text: colors.textPrimary,
+    border: colors.contourLineFaint,
+    primary: colors.buttonPrimary,
+  },
+};
+
 const isRootRouteName = (route: string): route is keyof RootStackParamList =>
   ROOT_ROUTE_NAMES.includes(route as keyof RootStackParamList);
 
@@ -138,7 +150,7 @@ const DesignExportRootNavigator: React.FC = () => {
   return (
     <PendingPasswordResetContext.Provider value={() => undefined}>
       <BiometricUnlockContext.Provider value={() => undefined}>
-        <NavigationContainer>
+        <NavigationContainer theme={oneirosNavigationTheme}>
           <Stack.Navigator
             initialRouteName={initialRouteName}
             screenOptions={{
@@ -882,7 +894,7 @@ export const RootNavigator: React.FC = () => {
   return (
     <PendingPasswordResetContext.Provider value={setPendingPasswordReset}>
       <BiometricUnlockContext.Provider value={() => setBiometricUnlocked(true)}>
-        <NavigationContainer>
+        <NavigationContainer theme={oneirosNavigationTheme}>
           <Stack.Navigator
             screenOptions={{
               headerShown: false,

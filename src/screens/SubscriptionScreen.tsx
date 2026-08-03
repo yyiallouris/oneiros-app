@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { PaperBackground, Card, Button, DesignExportForeground } from '../components/ui';
+import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
 import { SubscriptionBillingSwitch } from '../components/subscription/SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from '../components/subscription/SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from '../components/subscription/SubscriptionPlanCard';
@@ -87,7 +87,7 @@ const SubscriptionScreen: React.FC = () => {
         >
           <Text style={styles.title}>Subscription</Text>
 
-          <Card style={styles.card}>
+          <View style={styles.planSection}>
             <Text style={styles.sectionLabel}>Choose your mode</Text>
             <Text style={styles.compareCopy}>
               Free keeps the journal open. Premium is the recommended rhythm. Deeper opens more monthly room, weekly essays, and unlimited recent-field reports.
@@ -180,7 +180,7 @@ const SubscriptionScreen: React.FC = () => {
                 variant="deeper"
               />
             </SubscriptionPlanCarousel>
-          </Card>
+          </View>
 
           <View style={styles.footerArea}>
             {showManageAction && (
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
-  card: {
+  planSection: {
     gap: spacing.lg,
   },
   sectionLabel: {

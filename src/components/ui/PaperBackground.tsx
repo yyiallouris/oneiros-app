@@ -20,8 +20,9 @@ export const PaperBackground: React.FC<PaperBackgroundProps> = ({ style, ...rest
     <Image
       source={require('../../../assets/backgrounds/BG_paper.png')}
       style={styles.image}
-      resizeMode="cover"
+      resizeMode="repeat"
       fadeDuration={0}
+      testID="paper-background-image"
     />
   </View>
 );
@@ -33,7 +34,6 @@ const styles = StyleSheet.create({
   },
   image: {
     ...StyleSheet.absoluteFillObject,
-    width: undefined,
-    height: undefined,
+    opacity: 0.94,
   },
 });

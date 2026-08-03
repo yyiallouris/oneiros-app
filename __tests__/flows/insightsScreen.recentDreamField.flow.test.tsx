@@ -24,6 +24,10 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn().mockResolvedValue(undefined),
@@ -163,7 +167,7 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     expect(screen.getByText('Recent Dream Field')).toBeTruthy();
     expect(screen.queryByText('Dream Field Overview')).toBeNull();
     expect(screen.queryByText('This month in your dreams')).toBeNull();
-    expect(screen.getByText('Returning Images')).toBeTruthy();
+    expect(screen.getByText('Images')).toBeTruthy();
     expect(screen.queryByText('Images that keep returning')).toBeNull();
     expect(screen.queryByText('English')).toBeNull();
     expect(screen.getByText('Latest 3 reflected dreams')).toBeTruthy();
@@ -231,12 +235,18 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     expect(screen.getByText('Paywall:insights:premium_only')).toBeTruthy();
   });
 
-  it('keeps Forming Patterns visible after the first load instead of remounting a full loading screen', async () => {
+  it('keeps the grouped insight categories visible after the first load instead of remounting a full loading screen', async () => {
     const screen = render(<InsightsScreen />);
 
-    await waitFor(() => expect(screen.getByText('Forming Patterns')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Dream Fabric')).toBeTruthy());
     expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.queryByText('Forming Patterns')).toBeNull();
+    expect(screen.getByText('Dream Fabric')).toBeTruthy();
+    expect(screen.getByText('Dream Movement')).toBeTruthy();
+    expect(screen.getByText('Deeper Echoes')).toBeTruthy();
     expect(screen.getByText('Thresholds')).toBeTruthy();
-    expect(screen.getByText('Emotional Weather')).toBeTruthy();
+    expect(screen.getByText('Emotional Atmosphere')).toBeTruthy();
+    expect(screen.getByText('Archetypal Echoes')).toBeTruthy();
+    expect(screen.queryByText('Open Pattern Explorer')).toBeNull();
   });
 });

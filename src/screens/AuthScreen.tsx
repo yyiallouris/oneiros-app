@@ -33,7 +33,7 @@ import { processAuthDeepLink } from '../utils/authDeepLink';
 import {
   AUTH_APPLE_PROVIDER,
   getAuthOAuthProvider,
-  getAuthOAuthProviderLabel,
+  getAuthOAuthSuccessMessage,
   isNewOAuthUser,
   parseAuthCallbackParams,
   type AuthOAuthProviderConfig,
@@ -74,8 +74,7 @@ const showOAuthSuccessAlert = (providerId: AuthOAuthProviderId | undefined, isNe
   if (now - lastOAuthSuccessAlertAt < 4_000) return;
   lastOAuthSuccessAlertAt = now;
 
-  const providerLabel = getAuthOAuthProviderLabel(providerId);
-  Alert.alert('Welcome back!', providerLabel ? `You're signed in with ${providerLabel}.` : "You're signed in.");
+  Alert.alert('Welcome back!', getAuthOAuthSuccessMessage(providerId));
 };
 
 const AuthScreen: React.FC = () => {
@@ -102,6 +101,7 @@ const AuthScreen: React.FC = () => {
   const [forgotPasswordCooldown, setForgotPasswordCooldown] = useState(0);
 
   const lastProcessedUrlRef = React.useRef<string | null>(null);
+  const expectedOAuthProviderRef = React.useRef<AuthOAuthProviderId | null>(null);
 
   useEffect(() => {
     const handleDeepLink = async (url: string) => {
@@ -120,7 +120,9 @@ const AuthScreen: React.FC = () => {
         if (result.isRecovery) {
           Alert.alert('Reset link verified', 'Set your new password on the next screen.');
         } else if (result.isOAuth) {
-          showOAuthSuccessAlert(result.provider, result.isNewUser);
+          const alertProvider = expectedOAuthProviderRef.current ?? result.provider;
+          expectedOAuthProviderRef.current = null;
+          showOAuthSuccessAlert(alertProvider, result.isNewUser);
         } else {
           Alert.alert("You're all set!", 'Your email is verified. Welcome!');
         }
@@ -395,6 +397,7 @@ const AuthScreen: React.FC = () => {
   const handleOAuthProvider = async (provider: AuthOAuthProviderConfig) => {
     setIsLoading(true);
     setOauthLoadingLabel(`Continuing with ${provider.label}…`);
+    expectedOAuthProviderRef.current = provider.id;
     logEvent(`${provider.eventPrefix}_start`, { mode });
     authDebugLog(`[Auth] Starting ${provider.label} OAuth flow...`);
 
@@ -455,11 +458,8 @@ const AuthScreen: React.FC = () => {
             mode,
             source: callback.code ? 'pkce_code' : 'auth_session_url',
           });
-          if (result.isOAuth) {
-            showOAuthSuccessAlert(result.provider ?? provider.id, result.isNewUser);
-          } else {
-            showOAuthSuccessAlert(provider.id, result.isNewUser);
-          }
+          showOAuthSuccessAlert(provider.id, result.isNewUser);
+          expectedOAuthProviderRef.current = null;
           return;
         }
 
@@ -468,6 +468,7 @@ const AuthScreen: React.FC = () => {
         if (session) {
           logEvent(`${provider.eventPrefix}_success`, { mode, source: 'session_fallback' });
           showOAuthSuccessAlert(provider.id, isNewOAuthUser(session.user));
+          expectedOAuthProviderRef.current = null;
           return;
         }
 
@@ -484,9 +485,11 @@ const AuthScreen: React.FC = () => {
           logEvent(`${provider.eventPrefix}_success`, { mode, source: 'dismiss_then_session' });
           // Deep link handler shows the success alert when it owns the URL; otherwise welcome here.
           showOAuthSuccessAlert(provider.id, isNewOAuthUser(session.user));
+          expectedOAuthProviderRef.current = null;
           return;
         }
         logEvent(`${provider.eventPrefix}_cancel`, { mode });
+        expectedOAuthProviderRef.current = null;
         Alert.alert('Sign-in cancelled', `${provider.label} sign-in was cancelled.`);
         return;
       }
@@ -496,6 +499,7 @@ const AuthScreen: React.FC = () => {
     } catch (error: any) {
       authDebugError(`[Auth] ${provider.label} OAuth error:`, error);
       logError(`${provider.eventPrefix}_error`, error, { mode });
+      expectedOAuthProviderRef.current = null;
       Alert.alert(`${provider.label} sign-in error`, error.message || 'Something went wrong. Please try again.');
     } finally {
       setOauthLoadingLabel(null);

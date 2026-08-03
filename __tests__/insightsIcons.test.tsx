@@ -1,4 +1,5 @@
 import React from 'react';
+import fs from 'fs';
 import { render } from '@testing-library/react-native';
 import { Image, StyleSheet, View } from 'react-native';
 
@@ -51,5 +52,15 @@ describe('insights icons', () => {
     expect(flattenedStyle.height).toBeGreaterThan(88);
     expect(flattenedStyle.left).toBeLessThan(0);
     expect(flattenedStyle.top).toBeLessThan(0);
+  });
+
+  it('points archetypes and pattern recognition at the true transparent PNG assets', () => {
+    const source = fs.readFileSync('src/components/icons/InsightsIcons.tsx', 'utf8');
+
+    expect(source).toContain('oneiros_isnights_archetypes.png');
+    expect(source).toContain('pattern_recognition_essay/oneiros_pattern_recognition_essay.png');
+    expect(source).toContain('canvas: { width: 559, height: 591 }');
+    expect(source).toContain('canvas: { width: 1024, height: 1024 }');
+    expect(source).not.toContain('visualScale:');
   });
 });

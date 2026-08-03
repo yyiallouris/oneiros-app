@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SubscriptionBillingSwitch } from './SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from './SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from './SubscriptionPlanCard';
@@ -41,6 +42,7 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   onIntervalChange,
   onUpgrade,
 }) => {
+  const insets = useSafeAreaInsets();
   const copy = getPremiumSourceCopy(source);
   const freePlan = getFreePlanCardModel();
   const premiumPricing = getPaidPlanCardPricing(premiumPlan);
@@ -62,7 +64,15 @@ export const PremiumUpsellModal: React.FC<Props> = ({
       <View style={styles.backdrop}>
         <TouchableOpacity style={styles.backdropTouchable} onPress={onClose} activeOpacity={1} />
         <View style={styles.sheet}>
-          <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.sheetScroll}
+            contentContainerStyle={[
+              styles.sheetContent,
+              { paddingBottom: spacing.xxxl + insets.bottom + spacing.lg },
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <View style={styles.headerRow}>
               <View style={styles.headerText}>
                 <Text style={styles.title}>{copy.title}</Text>
@@ -167,9 +177,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  sheetScroll: {
+    flexShrink: 1,
+  },
   sheetContent: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxxl,
+    paddingTop: spacing.xs,
     gap: spacing.lg,
   },
   headerRow: {
