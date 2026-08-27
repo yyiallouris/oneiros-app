@@ -21,8 +21,10 @@ import { formatDate, getTodayDate, generateId } from '../utils/date';
 import { saveDream, getDreamsByDate, saveDraft, getDraft, clearDraft } from '../utils/storage';
 import { Dream } from '../types/dream';
 import { UserService } from '../services/userService';
+import { VoiceComposerService } from '../services/voiceComposerService';
 import { logInfo } from '../services/logger';
 import { getRandomSymbol } from '../components/symbols';
+import { EditRevisionGuard } from '../utils/editRevisionGuard';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
@@ -30,6 +32,7 @@ const FLOATING_TAB_BAR_HEIGHT = 86;
 const SAVE_BUTTON_NAV_GAP_OFFSET = Platform.OS === 'android' ? 44 : 8;
 const WRITE_MOUNTAIN_HEIGHT = 320;
 const SAVE_LOADING_REVEAL_DELAY_MS = 450;
+const WRITE_VOICE_TARGET = { surface: 'write', key: 'active' } as const;
 const writePalette = {
   background: colors.background,
   secondaryWash: colors.backgroundSecondary,
@@ -54,6 +57,7 @@ const WriteScreen: React.FC = () => {
   const autoSaveTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const saveLoadingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
+  const contentEditGuardRef = useRef(new EditRevisionGuard());
 
   const today = getTodayDate();
   const headerGreeting = displayName ? `Hello, ${displayName}` : 'Hello';
@@ -78,6 +82,7 @@ const WriteScreen: React.FC = () => {
   );
 
   const loadTodaysDream = async () => {
+    const hydrationRevision = contentEditGuardRef.current.capture();
     // Only load non-archived dreams (archived dreams don't show on WriteScreen)
     const dreams = await getDreamsByDate(today);
     // Treat any dream without an explicit archived flag as archived (legacy data)
@@ -87,25 +92,30 @@ const WriteScreen: React.FC = () => {
       // Show existing non-archived dream for today
       setTodaysDream(nonArchivedDream);
       setTitle(nonArchivedDream.title || '');
-      setContent(nonArchivedDream.content);
+      if (contentEditGuardRef.current.isCurrent(hydrationRevision)) setContent(nonArchivedDream.content);
     } else {
       // Load draft if no non-archived dream exists
       const draft = await getDraft();
       if (draft && draft.date === today) {
         // Only load draft if it's from today
         setTitle(draft.title || '');
-        setContent(draft.content);
+        if (contentEditGuardRef.current.isCurrent(hydrationRevision)) setContent(draft.content);
         setTodaysDream(null);
       } else {
         // Clear form for fresh writing
         setTitle('');
-        setContent('');
+        if (contentEditGuardRef.current.isCurrent(hydrationRevision)) setContent('');
         setTodaysDream(null);
         // Also clear any stale draft that's not from today
         if (draft && draft.date !== today) {
           await clearDraft();
         }
       }
+    }
+    const voiceComposer = await VoiceComposerService.getSnapshot(WRITE_VOICE_TARGET);
+    if (voiceComposer != null && contentEditGuardRef.current.isCurrent(hydrationRevision)) {
+      setContent(voiceComposer.text);
+      void VoiceComposerService.acknowledgeVisibleSnapshot(voiceComposer);
     }
   };
 
@@ -179,6 +189,7 @@ const WriteScreen: React.FC = () => {
       });
       const clearDraftStartedAt = Date.now();
       await clearDraft();
+      await VoiceComposerService.clear(WRITE_VOICE_TARGET);
       logInfo('write_save_dream_clear_draft_done', {
         dreamId: dream.id,
         durationMs: Date.now() - clearDraftStartedAt,
@@ -273,7 +284,11 @@ const WriteScreen: React.FC = () => {
               placeholder="Write it as you remember it, without correcting."
               placeholderTextColor={colors.textMuted}
               value={content}
-              onChangeText={setContent}
+              onChangeText={(text) => {
+                contentEditGuardRef.current.markEdited();
+                setContent(text);
+                void VoiceComposerService.saveText(WRITE_VOICE_TARGET, text);
+              }}
               multiline
               textAlignVertical="top"
               autoFocus={false}
@@ -281,9 +296,11 @@ const WriteScreen: React.FC = () => {
             <View style={[styles.voiceButtonContainer, { bottom: voiceButtonBottom }]}>
               <VoiceRecordButton
                 surface="field"
-                target={{ surface: 'write', key: 'active' }}
+                target={WRITE_VOICE_TARGET}
+                getComposerText={() => content}
                 onTranscriptionComplete={(text) => {
-                  setContent((prev) => (prev ? `${prev}\n${text}` : text));
+                  contentEditGuardRef.current.markEdited();
+                  setContent(text);
                 }}
                 disabled={isSaving}
               />
