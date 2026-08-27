@@ -816,31 +816,55 @@ Both:
 - strip that marker before the final text is shown or persisted
 - run through the `pattern_insights` task family
 
-### Shared essay context fields
+### Accepted Phase 1 production contract and closed Phase 2 research
 
-Each dream included in the essay context contributes:
+The live prompt family is shared from `src/ai/reflectiveEssayPrompt.ts`:
 
-- `core_mode`
+- Period: `oneiros-period-reflection-v2` / `2.0.3-phase1`
+- Recent: `oneiros-recent-dream-field-v2` / `2.0.3-phase1`
+- production essay context: Phase 1 metadata-heavy version `1`
+- research-only narrative-first context: version `2`
+- frozen variables: prompt `2.0.3-phase1`, model routing, temperatures, sections, length policy, and compact retry remain unchanged
+- objective: articulate what is most psychologically alive or generative; conflict is one possible organizing quality, never the default
+- evidence: select only the 2–3 images, contrasts, or shifts that carry the reading
+- output: semantically distinct sections, no standalone `Thresholds and Conflicts` obligation, exactly one reflective question under the compatibility heading
+- Period scope: weekly and monthly headings follow the resolved scope instead of always claiming a month
+- operational retry: one full compact rewrite on incomplete output or initial hard-cap overflow; small post-retry tolerance; never string truncation
+- topology-first gate: privately choose one supported field, parallel/local clusters, or a loose field before interpretation, then preserve that choice through every section and reflective question
+- unifying evidence must be concrete and cross-dream; generic abstractions or prior interpretation language cannot be the only bridge
+- one quoted anchor per dream does not make an umbrella interpretation concrete; a shared stance counts only when the same response recurs in comparable dream situations
+- shared-stance recurrence requires comparable situation → comparable affective stance → comparable action/response; an opening no-field disclaimer cannot be reversed by later abstract synthesis
+- no unified field is a successful output; parallel clusters remain parallel; chronology alone does not establish development
+- discrimination counterweight: when concrete cross-dream evidence does support one field, name it clearly rather than defaulting to skepticism
+
+Production retains every metadata-heavy field listed in the historical block below. The rejected Phase 2 candidate instead led with bounded raw dream narrative, retained affects, symbols, `symbol_stances`, landscapes, and relational dynamics, and kept a much shorter interpretation note. Core Mode, motifs, thresholds, central conflicts, Archetypal Echoes, and Mythic Echoes were excluded only in that research arm. Extraction and Echo persistence never changed.
+
+Current whole-essay policies are 400–500 target / 550 hard maximum for 2–4 Period dreams, 550–650 / 700 for 5+, and 300–380 / 425 for Recent. The shared builder also retains a 250–300 / 350 one-dream fallback for direct-path compatibility. Retry tolerance ceilings are respectively 575, 725, 450, and 375.
+
+### Phase 2 narrative-first essay context fields
+
+Each dream included in the Phase 2 candidate contributes:
+
+- bounded raw dream narrative: Recent 1,600 chars; Period 1,400 for 2–4 dreams, 900 for 5–10, 600 for 11–30; shortening preserves beginning and ending around `[...dream excerpt shortened...]`
 - `affects`
-- `symbols`
+- up to five `symbols`
 - `symbol_stances`
-- `landscapes`
-- `motifs`
+- up to three `landscapes`
 - `relational_dynamics`
-- `thresholds`
-- `central_conflicts`
-- formatted Archetypal Echoes
-- formatted Mythic Echoes
-- a trimmed interpretation excerpt
+- a secondary interpretation note capped at 250 chars for Recent and 300 for Period
 
-## Period Reflection essay
+The Phase 1 metadata-heavy builder is the shippable client/gateway path. Narrative-first context remains available only to the regression and architecture-spike harnesses.
+
+The Phase 2 regression completed at `7 PASS / 2 FAIL`. Its single Field Map → unchanged essay follow-up scored manual `2 PASS / 7 FAIL`: the original loose Recent passed, but the parallel-cluster target returned no valid map, coherent fields were downgraded to loose, and two map-bound essays reintroduced unsupported glue. The frozen stop rule therefore closes Phase 2 R&D. See `docs/ONEIROS_REFLECTIVE_ESSAYS_FIELD_MAP_SPIKE_REVIEW_2026-08-26.md`.
+
+## Historical v1 Period Reflection essay — frozen regression baseline
 
 Purpose:
 
 - a monthly or quarterly symbolic synthesis of the dream field
 - used in Insights period reflection flows
 
-### Exact live system prompt
+### Exact historical system prompt
 
 ```text
 You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
@@ -894,7 +918,7 @@ Describe whether the dreams move toward coherence, intensification, retreat, par
 Name the unresolved question or psychic pressure the month seems to leave behind.
 
 ## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field. Preserve the chosen topology in that question and never use it to invent a cross-dream relation the essay did not earn. Keep it under 30 words and use no advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
 
 Length:
 - If 1 dream: 250–400 words.
@@ -906,7 +930,7 @@ After the complete response, append this exact hidden marker on its own line:
 <!--END_DREAM_ESSAY-->
 ```
 
-### Exact live user prompt templates
+### Exact historical user prompt templates
 
 Client template:
 
@@ -963,7 +987,7 @@ Important:
 ${languageInstruction}
 ```
 
-### Runtime contract
+### Historical runtime contract
 
 - Task: `pattern_insights`
 - Temperature:
@@ -982,14 +1006,14 @@ ${languageInstruction}
 - body/questions must follow the requested language
 - archetypal/mythic material should remain optional deepening, not dominate the essay
 
-## Recent Dream Field essay
+## Historical v1 Recent Dream Field essay — frozen regression baseline
 
 Purpose:
 
 - short recent-sequence symbolic reflection
 - explicitly not a monthly/archive reflection
 
-### Exact live system prompt
+### Exact historical system prompt
 
 ```text
 You are Dream Weaver, a post-Jungian dream essayist reviewing the user's latest reflected dreams as a short recent sequence.
@@ -1035,7 +1059,7 @@ Describe what seems active now: repetition, intensification, hesitation, crossin
 Name the unresolved question or psychic pressure the recent sequence leaves behind.
 
 ## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field. Preserve the chosen topology in that question and never use it to invent a cross-dream relation the essay did not earn. Keep it under 30 words and use no advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
 
 Length:
 - 350–550 words.
@@ -1045,7 +1069,7 @@ After the complete response, append this exact hidden marker on its own line:
 <!--END_DREAM_ESSAY-->
 ```
 
-### Exact live user prompt template
+### Exact historical user prompt template
 
 ```text
 You are writing a Recent Dream Field reflection.
@@ -1103,17 +1127,26 @@ Preserve extracted symbols in English only if needed, but explain them in the re
 
 ## Shared essay retry prompt
 
-If an essay response is truncated or missing the hidden completion marker, the compact retry path uses:
+If an essay response is incomplete, missing the hidden completion marker, or above its initial hard maximum, the compact retry path uses one full rewrite:
 
 ```text
-Your previous essay was too long and was cut off.
+Your previous essay was too long, incomplete, or missing its completion marker.
 Rewrite the entire essay from scratch in a compact complete form.
-Keep the same section headings and the same requested language.
-Preserve the strongest concrete patterns and both reflective questions.
-Do not add preambles or explanations.
-End with the required hidden marker on its own line:
+Do not continue the previous response.
+
+Keep only what is most psychologically alive or generative in the field and the 2–3 strongest pieces of dream evidence.
+Each section must do a different job.
+Remove repeated formulations, secondary themes, decorative transitions, and recap language.
+Stay near the lower end of the target range and below the hard maximum.
+Preserve the complete reflective-question section. One strong question is complete; add a second only when it contributes genuine psychological or experiential value.
+Never cut a sentence or question to satisfy the word limit.
+
+Technical requirement:
+After the complete response, append this exact hidden marker on its own line:
 <!--END_DREAM_ESSAY-->
 ```
+
+The target range and hard maximum are inserted from the selected length policy. After this one retry, the runtime measures a small tolerance ceiling, preserves semantic completeness even if the result remains slightly long, and never truncates the essay string.
 
 ## Maintenance rule for this packet
 

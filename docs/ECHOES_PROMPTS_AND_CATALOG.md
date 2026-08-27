@@ -1,5 +1,13 @@
 # Archetypal / Mythic Echo prompts & catalog (v4.1.10-M2.2)
 
+> **2026-08-26 transcription note:** voice transcription uses server-owned, language-neutral strategy `voice-transcription-v3.0.0-language-neutral` and `gpt-transcribe` (no primary prose prompt; detected-language hints only on bounded recovery). This is an independent pre-dream-input path; no Echo prompt, extraction id/version, schema, catalog, evidence, or validation behavior changed.
+
+> **2026-08-26 reflective-essay Phase 2 final note:** Period Reflection and Recent Dream Field keep the frozen prompt ids `oneiros-period-reflection-v2` / `oneiros-recent-dream-field-v2` at `2.0.3-phase1`. Production returns to metadata-heavy context version `1`, which includes bounded Archetypal and Mythic Echo summaries. Narrative-first context version `2` and the Field Map pre-pass are offline research artifacts only. Echo extraction, catalog, validation, persistence, Insights aggregation, and Dream Detail behavior are unchanged.
+
+> Phase 2 scored `7 PASS / 2 FAIL`; the one permitted Field Map spike then failed its stop rule at manual `2 PASS / 7 FAIL`. Phase 2 R&D is closed and neither context-v2 nor Field Map is approved for deployment. No Echo extraction, catalog, schema, persistence, or UI change is authorized.
+
+> **2026-08-26 reflective-essay topology-first calibration:** essay prompt version `2.0.3-phase1` chooses one supported field, parallel/local clusters, or a loose field before interpretation and must preserve that topology through every section and question. Generic interpretive qualities and prior interpretation language cannot serve as the sole bridge; quoting one anchor per dream is still insufficient when distinct actions become similar only through an umbrella paraphrase. That prompt is frozen for the Phase 2 context-only evaluation. No Echo prompt, extraction id/version, schema, catalog, validator, persistence, or Dream Detail behavior changed.
+
 Canonical sources:
 - Prompt: `src/ai/dreamExtractionPrompt.ts` (`prompt_version` `4.1.10-M2.2`)
 - Prompt id: `dream-field-map-interpretive-v4.1.10-M2.2` / schema `13`

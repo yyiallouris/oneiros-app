@@ -27,15 +27,29 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 | Mythic closed catalog version | `1.2.0` |
 | Archetype line highlights | polarity-neutral Mother/Father ids, Lover 1.7.1 calm-beloved wording, raw-dream evidence firewall, mechanism-tag hard gates |
 | Repair prompts | structured JSON repair in `src/ai/structuredTaskValidation.ts`; output-language field repair in `src/ai/dreamOutputLanguage.ts` |
+| Voice transcription strategy | `voice-transcription-v3.0.0-language-neutral` in `supabase/functions/whisper-transcription/index.ts` |
+| Period reflection essay | `oneiros-period-reflection-v2` / `2.0.3-phase1` |
+| Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.3-phase1` |
+| Reflective-essay Field Map spike | offline-only `oneiros-reflective-essay-field-map-spike` / `0.1.0-rd`, schema `1` (failed stop rule; no production wiring) |
 
 Canonical sources:
-- Reflection / chat / essays / grouping / conversation update: `src/services/ai.ts` (client) and mirrored copies in `supabase/functions/_shared/billing-ai.ts` (gateway production path)
+- Recent/period essay prompt construction: shared `src/ai/reflectiveEssayPrompt.ts` (client + gateway)
+- Reflection / chat / grouping / conversation update: `src/services/ai.ts` (client) and corresponding runtime wiring in `supabase/functions/_shared/billing-ai.ts` (gateway production path)
 - Dream extraction: shared `src/ai/dreamExtractionPrompt.ts` (client + gateway)
 - JSON repair: `src/ai/structuredTaskValidation.ts`
 - Output-language field repair: `src/ai/dreamOutputLanguage.ts`
 - Model routing only (no prompt text): `supabase/functions/openai-proxy/task-config.ts`
 
 Gateway mirrors constitution/role/format/essay prompts from client; production AI usually goes through entitlements gateway → openai-proxy.
+
+## Voice transcription — language-neutral strategy and recovery
+
+**Strategy id:** `voice-transcription-v3.0.0-language-neutral`
+
+**Source:** `supabase/functions/whisper-transcription/index.ts`
+**Model:** `gpt-transcribe`
+
+Primary transcription sends no prose prompt because the audio language is not known in advance and OpenAI requires prompt language to match audio language. If the deterministic quality gate rejects the first result, one recovery request may provide the model-detected `languages[]` values and a temperature `0` hint; that hint reduces variance but does not make model output deterministic. It still sends no prose prompt. The client cannot supply or override model, prompt, languages, or recovery parameters. This strategy change does not alter dream metadata extraction ids, schema `13`, or either Echo catalog.
 
 ## Standalone Archetype Recognition Spike
 
@@ -471,7 +485,8 @@ Use the Standard mode, but with hidden structure:
 - If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
 - Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
 
-End with exactly 2 reflective questions.
+End with exactly one reflective question selected through the reflective-question method.
+One strong question is complete.
 The response must end naturally and not be cut off.
 
 Technical requirement:
@@ -502,7 +517,8 @@ Allow brief mythic resonance only when it is unmistakably earned by the dream im
 Prefer one precise mythic echo over extended amplification.
 Do not create a Mythic Resonance section or lecture on mythology.
 
-End with exactly 2 reflective questions.
+End with exactly one reflective question selected through the reflective-question method.
+One strong question is complete.
 The response must end naturally and not be cut off.
 
 Technical requirement:
@@ -687,10 +703,10 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First question: somatic-observational when possible.
-- Second question: symbolic, relational, or imaginal.
-- Questions should deepen the central movement, not open a new analytic thread.
+- Output exactly one reflective question selected through the canonical reflective-question method.
+- One strong question is complete.
+- Let the psychologically most alive unexplored point determine the question.
+- Keep the question inside the dream's living material.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
@@ -768,15 +784,15 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First: somatic-observational when possible.
-- Somatic questions should refer to the remembered dream-body or bodily tone, not instruct the user to perform an exercise.
-- Second: symbolic, relational, or imaginal.
+- Output exactly one reflective question selected through the canonical reflective-question method.
+- One strong question is complete.
+- Let the psychologically most alive unexplored point determine the question.
+- Keep the question inside the dream's living material.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
 Length: aim for 550–800 words. Prefer density and continuity over coverage.
-Finish the full response, including both reflective questions and the end marker. Do not stop mid-sentence or mid-question.
+Finish the full response, including the complete reflective-question section and the end marker. One valid question is a complete section. Do not stop mid-sentence or mid-question.
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -794,7 +810,7 @@ Chat mode:
 - Be concise, but do not become casual, flattened, or generic.
 - Prefer one precise development over a quick summary of many points.
 - Target 90–220 words. Rarely up to 260 if the user's question genuinely requires it. At most 2–3 short paragraphs or 1–2 sections; no mini-essays.
-- End with exactly ONE reflective question (observational, somatic or symbolic). Never two questions in chat.
+- Non-final replies end with exactly one question selected through the shared psychological-aliveness method. The final allowed reply ends without a question.
 - Summarize connections to the dream or user context (e.g. therapy, relationships) without redoing a full analysis. No repetition of what was already said in the initial interpretation.
 - Focus on one or two key insights; avoid listing many points. Fewer, sharper observations.
 ```
@@ -812,9 +828,104 @@ Always include explicit status: "no_change" when leaving elements unchanged, or 
 Write revised user-facing string values in the same primary language as the dream. Keep enum keys and whitelisted archetype names in English. Return valid JSON only — no markdown fences or commentary.
 ```
 
-## MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT
+## Reflective essays v2 — accepted Phase 1 production baseline
 
-**Source:** `src/services/ai.ts → MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT`
+**Canonical source:** `src/ai/reflectiveEssayPrompt.ts`
+
+**Design contract:** [`ONEIROS_REFLECTIVE_ESSAYS_V2_REDESIGN.md`](./ONEIROS_REFLECTIVE_ESSAYS_V2_REDESIGN.md)
+
+**Prompt ids:** `oneiros-period-reflection-v2` and `oneiros-recent-dream-field-v2`
+
+**Prompt versions:** `2.0.3-phase1`
+**Production context version:** `1`
+
+**Research-only narrative context version:** `2`
+
+Both client and gateway keep the accepted `2.0.3-phase1` prompt, provider/model routing, temperatures (`0.48` Period, `0.46` Recent), sections, length policy, and compact-retry contract unchanged. Production uses metadata-heavy context version `1`: Core Mode, affects, symbols, symbol stances, landscapes, motifs, relational dynamics, thresholds, central conflicts, Archetypal/Mythic Echoes, and an interpretation excerpt. The shared `src/ai/reflectiveEssayContext.ts` keeps narrative-first version `2` only for reproducible offline evaluation.
+
+Each Phase 2 dream block contains `date`, `dream narrative excerpt`, `affects`, up to five `key symbols`, `symbol stances`, up to three `landscapes`, `relational dynamics`, and a secondary interpretation note. It excludes Core Mode, motifs, thresholds, central conflicts, Archetypal Echoes, and Mythic Echoes from default essay injection. This does not change extraction, validation, persistence, or Dream Detail rendering of those fields.
+
+Narrative budgets are 1,600 characters per Recent dream; Period uses 1,400 for 2–4 dreams, 900 for 5–10, and 600 for 11–30. Shortened narratives preserve approximately 65% of the beginning and 35% of the ending around `[...dream excerpt shortened...]`. Interpretation notes are capped at 250 characters for Recent and 300 for Period.
+
+Phase 2 evaluation result: `7 PASS / 2 FAIL` across the original and anti-coherence sets. The single permitted Field Map → essay architecture spike then produced manual `2 PASS / 7 FAIL`: it closed loose Recent but failed the parallel-cluster target, under-read coherent fields as loose, produced two invalid maps, and still allowed composition to reintroduce unsupported glue. Phase 2 R&D is closed; see [`ONEIROS_REFLECTIVE_ESSAYS_FIELD_MAP_SPIKE_REVIEW_2026-08-26.md`](./ONEIROS_REFLECTIVE_ESSAYS_FIELD_MAP_SPIKE_REVIEW_2026-08-26.md).
+
+### Offline Field Map architecture spike — rejected
+
+`src/ai/reflectiveEssayFieldMapSpike.ts` contains the evaluation-only prompt `oneiros-reflective-essay-field-map-spike` / `0.1.0-rd`, schema `1`, temperature `0`. It emits JSON topology, clusters, concrete evidence, weak/unsupported affinities, and supported/unsupported temporal movement before an unchanged essay pass. It is imported only by the live review runner, never by the client or gateway. No repair prompt or retry was added. The spike failed its frozen stop rule, so it is a historical R&D artifact rather than a new production prompt family.
+
+The generated system prompts use this shared objective:
+
+```text
+Articulate what is most psychologically alive or generative across the dreams without exhausting its meaning.
+
+The center may be an atmosphere, image, relation, movement, affect, transformation, coherence, absence, repetition, tension, contradiction, or lack of coherence. Conflict is one possible organizing quality, never the default definition of depth. If no coherent organization is well supported, do not manufacture one.
+
+Support the reading with only the 2–3 concrete images, contrasts, or shifts that carry the most weight. Each section must do a different job; every paragraph must add evidence, a genuine complication, or temporal movement. Previous interpretation conclusions are secondary hypotheses, not evidence.
+```
+
+Patch line `2.0.1-phase1` added an evidence-before-synthesis topology gate. Calibration `2.0.2-phase1` makes the concrete-evidence test operational when every dream has a quotable anchor:
+
+```text
+A shared field must be earned by concrete cross-dream evidence.
+Before writing, distinguish privately among one supported field, multiple local clusters, or a loose/fragmented set.
+Generic qualities such as attention, restraint, presence, proportion, care, openness, agency, or non-interference are not sufficient unifying evidence by themselves.
+Quoting one concrete anchor from each dream does not make the bridge concrete when distinct actions or situations become similar only after an umbrella paraphrase.
+A shared stance counts only when recognizably the same response recurs in comparable dream situations; different actions are not equivalent merely because all can be redescribed as restraint or non-interference.
+If a bridge exists mainly at the interpretive level, preserve separate scenes or local clusters.
+No unified field is a successful reading.
+Parallel clusters without a concrete bridge must remain parallel.
+Chronology is not development.
+Do not default to fragmentation when concrete cross-dream evidence genuinely supports a shared field.
+```
+
+Calibration `2.0.3-phase1` makes topology a whole-essay contract:
+
+```text
+Field topology comes before interpretation.
+Before writing, choose exactly one private topology: one supported field, parallel/local clusters, or a loose field with no sufficiently dense organization yet.
+Preserve that topology through every section and the reflective questions.
+A loose-field disclaimer must not later become a unified stance, shared movement, common mode of response, or master abstraction.
+Abstract equivalence is not recurrence.
+For a shared stance, require comparable situation → comparable affective stance → comparable action or response.
+An opening disclaimer does not compensate for contradictory synthesis later in the essay.
+```
+
+Period headings are generated from the resolved scope:
+
+```text
+## The Week's Dream Field      OR  ## The Month's Dream Field
+## Recurring Images and Pressures
+## Movement Across the Week    OR  ## Movement Across the Month
+## What Remains Open
+## Reflective Questions
+```
+
+Recent uses a lighter, current-sequence structure:
+
+```text
+## Recent Dream Field
+## What Keeps Returning
+## Current Movement
+## What Remains Open
+## Reflective Questions
+```
+
+Whole-essay length policy, including questions but excluding Markdown headings:
+
+| Surface | Target | Initial hard maximum | Accepted retry tolerance |
+|---|---:|---:|---:|
+| Period, 1 dream fallback | 250–300 | 350 | 375 |
+| Period, 2–4 dreams | 400–500 | 550 | 575 |
+| Period, 5+ dreams | 550–650 | 700 | 725 |
+| Recent Dream Field | 300–380 | 425 | 450 |
+
+An incomplete or initially over-limit essay receives one compact full rewrite at temperature `0.35`. A semantically complete retry is never string-truncated; any post-retry overflow is logged without raw prompt or essay content.
+
+The exact generated system prompts, user templates, language directive composition, completion marker, and retry prompt are all in `src/ai/reflectiveEssayPrompt.ts`; production and research context builders are in `src/ai/reflectiveEssayContext.ts`. The full approved prompt copy and Phase 1/Phase 2 boundary are reproduced in the redesign brief linked above. Only Phase 1 context version `1` is shippable; Phase 2 and the Field Map spike are not approved for deployment.
+
+## Historical v1 monthly essay system prompt — frozen regression baseline
+
+**Source:** pre-v2 `src/services/ai.ts → MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT`; no longer executed
 
 ```
 You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
@@ -868,7 +979,7 @@ Describe whether the dreams move toward coherence, intensification, retreat, par
 Name the unresolved question or psychic pressure the month seems to leave behind.
 
 ## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field. Preserve the chosen topology in that question and never use it to invent a cross-dream relation the essay did not earn. Keep it under 30 words and use no advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
 
 Length:
 - If 1 dream: 250–400 words.
@@ -880,9 +991,9 @@ After the complete response, append this exact hidden marker on its own line:
 ${END_MARKER_DREAM_ESSAY}
 ```
 
-## RECENT_DREAM_FIELD_SYSTEM_PROMPT
+## Historical v1 Recent Dream Field system prompt — frozen regression baseline
 
-**Source:** `src/services/ai.ts → RECENT_DREAM_FIELD_SYSTEM_PROMPT`
+**Source:** pre-v2 `src/services/ai.ts → RECENT_DREAM_FIELD_SYSTEM_PROMPT`; no longer executed
 
 ```
 You are Dream Weaver, a post-Jungian dream essayist reviewing the user's latest reflected dreams as a short recent sequence.
@@ -928,7 +1039,7 @@ Describe what seems active now: repetition, intensification, hesitation, crossin
 Name the unresolved question or psychic pressure the recent sequence leaves behind.
 
 ## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
+Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field. Preserve the chosen topology in that question and never use it to invent a cross-dream relation the essay did not earn. Keep it under 30 words and use no advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
 
 Length:
 - 350–550 words.
@@ -946,9 +1057,9 @@ ${END_MARKER_DREAM_ESSAY}
 OUTPUT LANGUAGE (mandatory): Keep all markdown section headings exactly as specified in English for UI consistency. Write all paragraph text, bullets, and reflective questions in the same primary language as the dream narrative and any user notes in this request. Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.
 ```
 
-## Monthly/Weekly essay — USER template
+## Historical v1 Monthly/Weekly essay — USER template
 
-**Source:** `src/services/ai.ts`
+**Source:** pre-v2 `src/services/ai.ts`; no longer executed
 
 ```
 You are writing a ${period} dream essay.
@@ -975,9 +1086,9 @@ Important:
 ${langInstruction}
 ```
 
-## Recent Dream Field — USER template
+## Historical v1 Recent Dream Field — USER template
 
-**Source:** `src/services/ai.ts`
+**Source:** pre-v2 `src/services/ai.ts`; no longer executed
 
 ```
 You are writing a Recent Dream Field reflection.
@@ -1059,7 +1170,7 @@ task === 'dream_extraction'
 You are continuing a symbolic dream reflection.
 Be concise, grounded, and psychologically precise.
 Do not redo the full interpretation.
-${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without inviting another question.' : 'End with one reflective question.'}
+${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without inviting another question.' : 'End with exactly ONE reflective question selected through the reflective-question method.'}
 ```
 
 ## DREAM_FIRST_READING_DIRECTIVE
@@ -1069,7 +1180,7 @@ ${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without
 ```
 Let the dream narrative lead: image, affect, ego-position, figures, spaces, and movement.
 
-Return to the dream sequence and charged images first.
+Return to the dream sequence and the images, relations, affects, or atmospheres with the strongest presence first.
 Do not organize the reading around categories, tags, or frameworks.
 Do not mention indexing fields.
 
@@ -1149,6 +1260,6 @@ Important: No more follow-ups. This is your final response. Conclude the reflect
 
 ## Pattern essay tasks
 
-- Monthly/Weekly: `MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT` + dynamic user template
-- Recent Dream Field: `RECENT_DREAM_FIELD_SYSTEM_PROMPT` + dynamic user template
-- Essay truncation: `COMPRESSION_RETRY_ESSAY_SYSTEM_PROMPT`
+- Monthly/Weekly/Quarterly: `buildPeriodReflectionSystemPrompt()` + `buildPeriodReflectionUserPrompt()` from `src/ai/reflectiveEssayPrompt.ts`
+- Recent Dream Field: `RECENT_DREAM_FIELD_SYSTEM_PROMPT` + `buildRecentDreamFieldUserPrompt()` from the same shared module
+- Incomplete or initial length overflow: `buildEssayCompressionRetryPrompt()`; one full rewrite only, then semantic-completeness-first tolerance with no string truncation

@@ -22,6 +22,25 @@ import {
   DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
 import {
+  buildEssayCompressionRetryPrompt,
+  buildPeriodReflectionSystemPrompt,
+  buildPeriodReflectionUserPrompt,
+  buildRecentDreamFieldUserPrompt,
+  countRenderedEssayWords,
+  END_MARKER_DREAM_ESSAY,
+  essayExceedsHardMaximum,
+  essayExceedsRetryTolerance,
+  ESSAY_COMPRESSION_RETRY_TEMPERATURE,
+  getPeriodEssayLengthPolicy,
+  PERIOD_REFLECTION_TEMPERATURE,
+  RECENT_DREAM_FIELD_LENGTH_POLICY,
+  RECENT_DREAM_FIELD_SYSTEM_PROMPT,
+  RECENT_DREAM_FIELD_TEMPERATURE,
+  type EssayLengthPolicy,
+  type PeriodEssayScope,
+} from '../../../src/ai/reflectiveEssayPrompt.ts';
+import { buildMetadataFirstEssayContext } from '../../../src/ai/reflectiveEssayContext.ts';
+import {
   auditDreamExtractionOutputLanguage,
   resolveDreamOutputLanguage,
   runOutputLanguageCommitGate,
@@ -163,7 +182,6 @@ type ReflectionProgressCallback = (progress: {
 
 const DEFAULT_AI_PROXY_TIMEOUT_MS = 60000;
 const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
-const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
 const AI_COST_FIELD = '__oneiros_ai_cost';
 const DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS = 2;
 
@@ -231,7 +249,8 @@ You offer a symbolic psychological reading that illuminates how the psyche organ
 
 Prioritize:
 - Emotional atmosphere and bodily affect
-- Inner tensions, ambivalences, or flows the dream actually stages
+- Whatever is most psychologically alive: tension when genuinely present, but also flow, beauty, calm, vitality, intimacy, transformation, strangeness, numinosity, or coherence
+- Inner tensions, ambivalences, or flows only as the dream actually stages them
 - How the ego relates to what appears (what it approaches, avoids, or cannot yet metabolize)
 - Where the ego belongs, withdraws, watches, hides, approaches, refuses, or imagines exit
 - What each image does to the dreamer’s attention, body, or stance
@@ -258,130 +277,6 @@ const INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE =
   'Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. ' +
   'If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.';
 
-/* ============================
-   PATTERN ESSAY PROMPTS
-   Keep these Recent Dream Field and period essay contracts in parity with src/services/ai.ts
-   as of the 2026-06-09 prompt baseline.
-   ============================ */
-
-const MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT = `
-You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
-
-Your role is to synthesize the month's dream material into a reflective symbolic essay.
-You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
-You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
-
-Core principles:
-- Read the dreams as a field, not as isolated events.
-- Track recurring images, affects, symbol stances, relational dynamics, thresholds, and central conflicts.
-- Do not write as if explaining metadata fields.
-- Use extracted fields only to see the dream-field more clearly.
-- The essay should feel synthesized from images and movements, not generated from tags.
-- Use thresholds and central conflicts as high-value synthesis material only when the data clearly stages crossings or opposing pressures.
-- Notice whether the month shows movement, repetition, intensification, retreat, partial integration, contradiction, or unresolved suspension.
-- Do not force progress. If the month is cyclical, stalled, fragmented, or contradictory, say so plainly.
-- Do not flatten everything into generic themes like "change", "growth", or "anxiety".
-- Every major claim must be grounded in at least one concrete recurrence or contrast from the dream data.
-- If there are too few dreams to support a strong pattern, say so and offer a lighter reading.
-- Treat interpretation excerpts as supporting material, but do not simply repeat them.
-- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
-- Shadow means unintegrated charge, intensity, vitality, fear, anger, or instinct — not moral negativity.
-- Self should appear only if the month shows a credible organizing center or movement toward coherence.
-
-Style:
-- Write like a psychologically precise essay, not a bullet-point analytics report.
-- Use vivid, grounded, image-near language.
-- Prefer synthesis over listing.
-- Avoid generic coaching language.
-- Avoid advice.
-- Avoid conclusions that sound final.
-- Keep markdown section headings exactly as specified in English for UI consistency.
-- Write body text and reflective questions in the user's requested language.
-
-Essay shape:
-## The Month's Dream Field
-A short opening that names the dominant atmosphere or organizing movement of the month.
-
-## Recurring Images and Pressures
-Synthesize the main repeated symbols, affects, landscapes, and symbol stances. Focus on what the images are doing.
-
-## Thresholds and Conflicts
-Optional. Include this section only when crossings, transitions, or conflict pairs are concrete and structurally important. Otherwise weave those pressures into Recurring Images and Pressures or Movement Across the Month.
-Stay image-near and tied to the excerpts; avoid generic "X vs Y" psychology templates unless the month's images support each side.
-
-## Movement Across the Month
-Describe whether the dreams move toward coherence, intensification, retreat, partial repair, contradiction, or unresolved suspension. Do not force an evolution.
-
-## What Remains Open
-Name the unresolved question or psychic pressure the month seems to leave behind.
-
-## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
-
-Length:
-- If 1 dream: 250–400 words.
-- If 2–4 dreams: 450–700 words.
-- If 5+ dreams: 650–800 words.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_ESSAY}
-`;
-
-const RECENT_DREAM_FIELD_SYSTEM_PROMPT = `
-You are Dream Weaver, a post-Jungian dream essayist reviewing the user's latest reflected dreams as a short recent sequence.
-
-Your role is to synthesize what feels currently active in the latest dreams the user has explored.
-You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
-You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
-
-Core principles:
-- Read the dreams as a recent sequence, not as a completed calendar period.
-- Look for what is currently active, repeating, intensifying, shifting, or unresolved.
-- Do not force a monthly narrative or archive-style conclusion.
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Use extracted fields only to see the recent dream-field more clearly.
-- The reflection should feel synthesized from images and movements, not generated from metadata.
-- Stay close to concrete images, affects, symbol stances, thresholds, and tensions.
-- Every major claim must be grounded in at least one concrete recurrence, contrast, or sequence detail.
-- If the recent sequence is light or only loosely connected, say so plainly and offer a lighter reading.
-- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
-
-Style:
-- Write like a psychologically precise reflection, not a report.
-- Use vivid, grounded, image-near language.
-- Prefer synthesis over listing.
-- Avoid generic coaching language.
-- Avoid advice.
-- Avoid conclusions that sound final.
-- Keep markdown section headings exactly as specified in English for UI consistency.
-- Write body text and reflective questions in the user's requested language.
-
-Essay shape:
-## Recent Dream Field
-A short opening that names the dominant atmosphere or immediate movement of the latest dream sequence.
-
-## What Keeps Returning
-Synthesize repeated or echoing images, affects, places, pressures, or stances. Focus on what they are doing.
-
-## Current Movement
-Describe what seems active now: repetition, intensification, hesitation, crossing, partial repair, contradiction, or unresolved suspension.
-
-## What Remains Open
-Name the unresolved question or psychic pressure the recent sequence leaves behind.
-
-## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
-
-Length:
-- 350–550 words.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_ESSAY}
-`;
-
 const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
 BRIEF mode (Quick Glance):
 - Total 80–180 words.
@@ -393,6 +288,8 @@ BRIEF mode (Quick Glance):
   3. follow one central psychological movement
   4. include one felt-sense sentence only if bodily tone is clearly present
 - End with exactly one observational reflective question.
+- Keep it close to the dream image unless another movement is clearly supported.
+- Do not manufacture a problem when the dream is calm, joyful, beautiful, vital, cohesive, transformative, or numinous.
 - Do not use archetype labels, amplifications, or extra framework language.
 - Do not summarize the whole dream before entering it.
 - Do not list symbols.
@@ -1058,7 +955,9 @@ function buildFollowupMessages(dream: DreamRecord, conversation: ChatMessage[], 
   const system = `You are continuing a symbolic dream reflection.
 Be concise, grounded, and psychologically precise.
 Do not redo the full interpretation.
-${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without inviting another question.' : 'End with one reflective question.'}`;
+${isFinalResponse
+  ? 'This is the final allowed assistant reply. Conclude without inviting another question.'
+  : 'End with exactly ONE reflective question (observational, somatic or symbolic). Never two questions in chat.'}`;
 
   const user = `Dream title: ${dream.title || 'Untitled'}
 Dream date: ${dream.date}
@@ -1082,25 +981,38 @@ ${userMessage}`;
   };
 }
 
+function buildEssayContext(entries: PatternEntry[], surface: 'period' | 'recent'): string {
+  return buildMetadataFirstEssayContext(
+    entries.map((entry) => ({
+      date: entry.date,
+      coreMode: entry.extracted.core_mode ?? '',
+      affects: entry.extracted.affects,
+      symbols: entry.extracted.symbols,
+      symbolStances: entry.extracted.symbol_stances.map(
+        (stance) => `${stance.symbol}: ${stance.stance}`
+      ),
+      landscapes: entry.extracted.landscapes,
+      motifs: entry.extracted.motifs,
+      relationalDynamics: entry.extracted.relational_dynamics,
+      thresholds: entry.extracted.thresholds,
+      centralConflicts: entry.extracted.central_conflicts,
+      archetypalEchoes: formatArchetypesForEssay(entry.extracted.archetypes),
+      mythicEchoes: formatAmplificationsForEssay(entry.extracted.amplifications),
+      interpretation: entry.interpretation,
+    })),
+    surface
+  );
+}
+
 function buildRecentEssayMessages(entries: PatternEntry[], language: string) {
-  const context = entries.map((entry, index) => `
-Dream ${index + 1}
-Date: ${entry.date}
-Core Mode: ${entry.extracted.core_mode || '(not set)'}
-Affects: ${entry.extracted.affects.join(', ') || '(none)'}
-Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
-Symbol stances: ${entry.extracted.symbol_stances.map((stance) => `${stance.symbol}: ${stance.stance}`).join('; ') || '(none)'}
-Landscapes: ${entry.extracted.landscapes.slice(0, 3).join(', ') || '(none)'}
-Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
-Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
-Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
-Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Archetypal Echoes: ${formatArchetypesForEssay(entry.extracted.archetypes)}
-Mythic Echoes: ${formatAmplificationsForEssay(entry.extracted.amplifications)}
-Interpretation excerpt: ${trim(entry.interpretation, 520)}
-`).join('\n');
+  const context = buildEssayContext(entries, 'recent');
 
   const languageInstruction = buildEssayLanguageInstruction(language);
+  const userPrompt = buildRecentDreamFieldUserPrompt({
+    dreamCount: entries.length,
+    context,
+    languageInstruction,
+  });
 
   return {
     task: 'pattern_insights',
@@ -1111,88 +1023,52 @@ Interpretation excerpt: ${trim(entry.interpretation, 520)}
       },
       {
         role: 'user' as const,
-        content: `You are writing a Recent Dream Field reflection.
-
-Scope: latest reflected dreams
-Number of interpreted dreams: ${entries.length}
-
-Dream data:
-${context}
-
-Write a symbolic reflection that synthesizes this recent dream sequence.
-
-Important:
-- Treat these as the latest dreams the user has explored, not as a month or completed calendar period.
-- Look for what is active now: what repeats, intensifies, shifts, hesitates, or remains unresolved.
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Use extracted fields only to see the recent dream-field more clearly.
-- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
-- Keep all claims hypothetical and grounded in the data.
-- No advice, no diagnosis, no prescriptions, no reassurance.
-${languageInstruction}`,
+        content: userPrompt,
       },
     ],
-    temperature: 0.46,
+    temperature: RECENT_DREAM_FIELD_TEMPERATURE,
     tokenLimit: 1400,
   };
 }
 
-function buildPeriodEssayMessages(entries: PatternEntry[], monthKey: string, language: string) {
-  const context = entries.map((entry, index) => `
-Dream ${index + 1}
-Date: ${entry.date}
-Core Mode: ${entry.extracted.core_mode || '(not set)'}
-Affects: ${entry.extracted.affects.join(', ') || '(none)'}
-Symbols: ${entry.extracted.symbols.join(', ') || '(none)'}
-Symbol stances: ${entry.extracted.symbol_stances.map((stance) => `${stance.symbol}: ${stance.stance}`).join('; ') || '(none)'}
-Landscapes: ${entry.extracted.landscapes.slice(0, 3).join(', ') || '(none)'}
-Motifs: ${entry.extracted.motifs.join('; ') || '(none)'}
-Relational dynamics: ${entry.extracted.relational_dynamics.join('; ') || '(none)'}
-Thresholds: ${entry.extracted.thresholds.join('; ') || '(none)'}
-Central conflicts: ${entry.extracted.central_conflicts.join('; ') || '(none)'}
-Archetypal Echoes: ${formatArchetypesForEssay(entry.extracted.archetypes)}
-Mythic Echoes: ${formatAmplificationsForEssay(entry.extracted.amplifications)}
-Interpretation excerpt: ${trim(entry.interpretation, 650)}
-`).join('\n');
+export type PeriodReflectionPromptScope = {
+  kind: PeriodEssayScope;
+  scopeKey: string;
+  startDate: string;
+  endDate: string;
+};
+
+function buildPeriodEssayMessages(
+  entries: PatternEntry[],
+  scope: PeriodReflectionPromptScope,
+  language: string
+) {
+  const context = buildEssayContext(entries, 'period');
 
   const languageInstruction = buildEssayLanguageInstruction(language);
+  const userPrompt = buildPeriodReflectionUserPrompt({
+    scope: scope.kind,
+    scopeKey: scope.scopeKey,
+    startDate: scope.startDate,
+    endDate: scope.endDate,
+    dreamCount: entries.length,
+    context,
+    languageInstruction,
+  });
 
   return {
     task: 'pattern_insights',
     messages: [
       {
         role: 'system' as const,
-        content: MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT,
+        content: buildPeriodReflectionSystemPrompt(scope.kind, entries.length),
       },
       {
         role: 'user' as const,
-        content: `You are writing a monthly dream essay.
-
-Period: monthly
-Month key: ${monthKey}
-Number of interpreted dreams: ${entries.length}
-
-Dream data:
-${context}
-
-Write a symbolic monthly/quarterly essay that synthesizes the dream field as a whole.
-
-Important:
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Do not write as if explaining metadata fields.
-- Use extracted fields only to see the dream-field more clearly.
-- The essay should feel synthesized from images and movements, not generated from tags.
-- Find the field-level pattern: recurring images, pressures, thresholds, conflicts, and movements.
-- Use thresholds and conflicts as major synthesis anchors only when they are concrete and recurring or structurally important.
-- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
-- Keep all claims hypothetical and grounded in the data.
-- No advice, no diagnosis, no prescriptions, no reassurance.
-${languageInstruction}`,
+        content: userPrompt,
       },
     ],
-    temperature: 0.48,
+    temperature: PERIOD_REFLECTION_TEMPERATURE,
     tokenLimit: entries.length >= 5 ? 2200 : 1700,
   };
 }
@@ -2149,35 +2025,123 @@ export async function generateFollowupReply(params: {
   return extractContent(payload);
 }
 
+type EssayProxyRequest = {
+  task: string;
+  messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+  temperature: number;
+  tokenLimit: number;
+};
+
+function essayPayloadIsTruncated(payload: Record<string, unknown>): boolean {
+  const choices = Array.isArray(payload.choices) ? payload.choices as Array<Record<string, unknown>> : [];
+  const finishReason = choices[0]?.finish_reason;
+  return finishReason === 'length' || finishReason === 'max_tokens';
+}
+
+async function generateEssayWithOperationalRetry(params: {
+  authHeader: string;
+  request: EssayProxyRequest;
+  retryTokenLimit: number;
+  lengthPolicy: EssayLengthPolicy;
+  language: string;
+  essayKind: 'period' | 'recent';
+}): Promise<{ content: string; cost: AiCallCost | null }> {
+  const primaryPayload = await invokeOpenAiProxy({
+    authHeader: params.authHeader,
+    ...params.request,
+  });
+  const primaryMarkedContent = extractContent(primaryPayload);
+  const primaryIncomplete =
+    essayPayloadIsTruncated(primaryPayload) || !primaryMarkedContent.includes(END_MARKER_DREAM_ESSAY);
+  const primaryTooLong = essayExceedsHardMaximum(
+    primaryMarkedContent,
+    params.lengthPolicy,
+    params.language
+  );
+
+  if (!primaryIncomplete && !primaryTooLong) {
+    return {
+      content: stripEndMarker(primaryMarkedContent, END_MARKER_DREAM_ESSAY),
+      cost: aiCallCostFromPayload(primaryPayload),
+    };
+  }
+
+  console.log('[billing-ai] pattern essay compact retry start', {
+    essayKind: params.essayKind,
+    retryReason: primaryIncomplete ? 'incomplete' : 'length_overflow',
+    wordCount: countRenderedEssayWords(primaryMarkedContent, params.language),
+    hardMaximum: params.lengthPolicy.hardMaximum,
+  });
+
+  const retryPayload = await invokeOpenAiProxy({
+    authHeader: params.authHeader,
+    task: 'pattern_insights_retry_compact',
+    messages: [
+      ...params.request.messages,
+      { role: 'system', content: buildEssayCompressionRetryPrompt(params.lengthPolicy) },
+    ],
+    temperature: ESSAY_COMPRESSION_RETRY_TEMPERATURE,
+    tokenLimit: params.retryTokenLimit,
+  });
+  const retryMarkedContent = extractContent(retryPayload);
+  if (essayPayloadIsTruncated(retryPayload) || !retryMarkedContent.includes(END_MARKER_DREAM_ESSAY)) {
+    throw new HttpError(502, 'AI proxy returned an incomplete compact essay');
+  }
+
+  const retryWordCount = countRenderedEssayWords(retryMarkedContent, params.language);
+  const beyondTolerance = essayExceedsRetryTolerance(
+    retryMarkedContent,
+    params.lengthPolicy,
+    params.language
+  );
+  console.log('[billing-ai] pattern essay compact retry done', {
+    essayKind: params.essayKind,
+    retryReason: primaryIncomplete ? 'incomplete' : 'length_overflow',
+    wordCount: retryWordCount,
+    hardMaximum: params.lengthPolicy.hardMaximum,
+    retryToleranceCeiling: params.lengthPolicy.retryToleranceCeiling,
+    beyondTolerance,
+  });
+
+  return {
+    content: stripEndMarker(retryMarkedContent, END_MARKER_DREAM_ESSAY),
+    cost: sumAiCallCosts([
+      aiCallCostFromPayload(primaryPayload),
+      aiCallCostFromPayload(retryPayload),
+    ]),
+  };
+}
+
 export async function generateRecentReflection(
   authHeader: string,
   entries: PatternEntry[],
   language: string
 ): Promise<{ content: string; cost: AiCallCost | null }> {
-  const payload = await invokeOpenAiProxy({
+  return generateEssayWithOperationalRetry({
     authHeader,
-    ...buildRecentEssayMessages(entries, language),
+    request: buildRecentEssayMessages(entries, language),
+    retryTokenLimit: 1100,
+    lengthPolicy: RECENT_DREAM_FIELD_LENGTH_POLICY,
+    language,
+    essayKind: 'recent',
   });
-  return {
-    content: stripEndMarker(extractContent(payload), END_MARKER_DREAM_ESSAY),
-    cost: aiCallCostFromPayload(payload),
-  };
 }
 
 export async function generatePeriodReflection(
   authHeader: string,
   entries: PatternEntry[],
-  monthKey: string,
+  scope: PeriodReflectionPromptScope,
   language: string
 ): Promise<{ content: string; cost: AiCallCost | null }> {
-  const payload = await invokeOpenAiProxy({
+  const lengthPolicy = getPeriodEssayLengthPolicy(entries.length);
+  return generateEssayWithOperationalRetry({
     authHeader,
-    ...buildPeriodEssayMessages(entries, monthKey, language),
+    request: buildPeriodEssayMessages(entries, scope, language),
+    retryTokenLimit: entries.length >= 5 ? 1700 : entries.length >= 2 ? 1300 : 850,
+    lengthPolicy,
+    language,
+    essayKind: 'period',
   });
-  return {
-    content: stripEndMarker(extractContent(payload), END_MARKER_DREAM_ESSAY),
-    cost: aiCallCostFromPayload(payload),
-  };
 }
 
 export function buildRecentScope(entries: PatternEntry[], count: number): string {
@@ -2193,6 +2157,7 @@ export function buildMonthScope(
   startDate: string;
   endDate: string;
   isCurrentMonth: boolean;
+  kind: Extract<PeriodEssayScope, 'weekly' | 'monthly'>;
 } {
   const now = new Date();
   const current =
@@ -2205,6 +2170,7 @@ export function buildMonthScope(
       startDate: current.startDate,
       endDate: current.endDate,
       isCurrentMonth: true,
+      kind: cadence === 'monthly' ? 'monthly' : 'weekly',
     };
   }
 
@@ -2215,5 +2181,6 @@ export function buildMonthScope(
     startDate: `${monthKey}-01`,
     endDate: `${monthKey}-${String(lastDay).padStart(2, '0')}`,
     isCurrentMonth: false,
+    kind: 'monthly',
   };
 }

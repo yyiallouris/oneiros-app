@@ -207,7 +207,8 @@ describe('ai service', () => {
     expect(extraction.display_distillation?.visible_anchors[0].ui_meaning).toMatch(/…$/);
     expect(extraction.display_distillation?.visible_anchors[4].type).toBe('archetypal_echo');
     expect(extraction.display_distillation?.dream_movement).toBe('approaching');
-    expect(extraction.display_distillation?.main_tension).toBe('entry vs blockage');
+    expect(extraction.display_distillation?.main_tension).toBe('closed door vs wanting entry');
+    expect(extraction.display_distillation?.main_tension).toBe(extraction.central_conflicts[0]);
   });
 
   it('returns empty extraction instead of leaking malformed JSON into flows', async () => {
@@ -744,6 +745,43 @@ describe('ai service', () => {
     expect(bodies.map((body) => body.task)).toEqual(['pattern_insights', 'pattern_insights_retry_compact']);
   });
 
+  it('runs one compact rewrite when a complete pattern essay exceeds its hard maximum', async () => {
+    const overflowingEssay = `${Array.from({ length: 351 }, () => 'word').join(' ')}\n\n<!--END_DREAM_ESSAY-->`;
+    mockFetch
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [{ message: { content: overflowingEssay }, finish_reason: 'stop' }],
+        })
+      )
+      .mockResolvedValueOnce(
+        apiResponse({
+          choices: [
+            {
+              message: { content: 'Compact complete essay\n\n<!--END_DREAM_ESSAY-->' },
+              finish_reason: 'stop',
+            },
+          ],
+        })
+      );
+    const ai = await loadAiWithProxyEndpoint();
+
+    const result = await ai.generatePatternInsights(
+      [{ dreamId: 'dream-1', date: '2024-01-01', extracted: { symbols: ['door'], symbol_stances: [], archetypes: [], landscapes: [], affects: [], motifs: [], relational_dynamics: [], thresholds: [], central_conflicts: [], core_mode: null, amplifications: [] }, interpretation: 'A reading.' }],
+      'monthly',
+      'en'
+    );
+
+    const bodies = mockFetch.mock.calls.map((call) => JSON.parse(call[1]?.body as string));
+    expect(bodies.map((body) => body.task)).toEqual([
+      'pattern_insights',
+      'pattern_insights_retry_compact',
+    ]);
+    expect(bodies[0].temperature).toBe(0.48);
+    expect(bodies[1].temperature).toBe(0.35);
+    expect(bodies[1].messages.at(-1)?.content).toMatch(/Rewrite the entire essay from scratch/);
+    expect(result).toBe('Compact complete essay');
+  });
+
   it('throws when API key missing', async () => {
     jest.resetModules();
     jest.doMock('expo-constants', () => ({
@@ -764,7 +802,7 @@ describe('ai service', () => {
     ).rejects.toThrow(/OpenAI API key/);
   });
 
-  it('formats rich archetypal and mythic echoes for period/recent essay context without object dumps', async () => {
+  it('formats rich archetypal and mythic echoes in the Phase 1 metadata context without object dumps', async () => {
     mockFetch.mockResolvedValueOnce(
       apiResponse({
         choices: [{ message: { content: 'Essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
@@ -813,12 +851,12 @@ describe('ai service', () => {
 
     const body = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string);
     const userText = body.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
-    expect(userText).toContain(
-      'Archetypal Echoes: The Divine Child (the guiding child at the end of the thread) — A childlike figure carries orientation through the descent.'
-    );
-    expect(userText).toContain(
-      'Mythic Echoes: Ariadne and the Labyrinth (Greek) — A descent whose return stays unfinished. No completed return is staged.'
-    );
+    expect(userText).not.toContain('Dream narrative excerpt:');
+    expect(userText).toContain('Core Mode:');
+    expect(userText).toContain('Archetypal Echoes:');
+    expect(userText).toContain('Divine Child');
+    expect(userText).toContain('Mythic Echoes:');
+    expect(userText).toContain('Ariadne and the Labyrinth');
     expect(userText).not.toContain('[object Object]');
     expect(userText).not.toContain('"canonical_label"');
   });

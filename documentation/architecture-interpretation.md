@@ -54,7 +54,7 @@ The repository now also contains a backend-first AI entitlement layer in Supabas
 Important rollout boundary:
 
 - Current mobile reflection, follow-up, Recent Dream Field, and period reflection flows call the backend gateway for quota-controlled generation.
-- Gateway Recent Dream Field and period reflection prompts must stay in parity with the canonical June 9 `src/services/ai.ts` essay contracts, including full synthesis principles, section shape, language rules, reflective-question constraints, and hidden essay completion marker stripping.
+- Client and gateway load Recent Dream Field and period reflection prompt construction from `src/ai/reflectiveEssayPrompt.ts`. Current ids remain `oneiros-recent-dream-field-v2` / `oneiros-period-reflection-v2`, and the accepted prompt is frozen at `2.0.3-phase1`. Both runtime paths select metadata-heavy essay context version `1`, assembled by `buildMetadataFirstEssayContext`; artifact metadata records context version `1`. Narrative-first context version `2` and `src/ai/reflectiveEssayFieldMapSpike.ts` remain offline evaluation dependencies only and are not imported into client/gateway generation. The single Field Map spike failed its stop rule, so Phase 2 R&D is closed. Provider/model routing, temperatures, sections, length policy, and retry are unchanged.
 - The backend gateway persists:
   - reflection origin (`free_weekly` / `paid_cycle`)
   - follow-up reply counters
