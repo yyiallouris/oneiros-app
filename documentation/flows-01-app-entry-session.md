@@ -6,7 +6,7 @@
 2. Native splash is symbol-only on a warm paper background.
 3. In-app loading uses the same paper field with the droplet logo and `Oneiros` wordmark while session/bootstrap completes.
 4. `RootNavigator` mounts. In parallel:
-   - `StorageService.initialize()` runs (user change detection, local clear if user switched).
+   - `StorageService.initialize()` runs (user change detection, local clear if user switched). A signed-out cold start preserves the last owner ID as a cleanup fence rather than deleting it prematurely.
    - Cold-start auth deep links are polled (`Linking.getInitialURL` with retries) for `oneiros-dream-journal://` and processed via `processAuthDeepLink`.
 5. `supabase.auth.getSession()` sets initial session.
 6. If session exists: load local route-critical flags only (`PENDING_PASSWORD_RESET_KEY`, local biometric preference, onboarding/legal). The gate receives the known `session.user.id` directly, so it does not call `supabase.auth.getSession()` again while handling an auth event. Remote biometric sync runs in the background and must never block the route gate.
@@ -49,3 +49,5 @@
 - Background app with biometric on → foreground: lock screen appears.
 - After OAuth/session start, hanging remote biometric sync still shows branded `LoadingScreen` briefly then routes from local flags (never blank / never stuck).
 - During `SIGNED_IN`, the auth-state callback must return `undefined` immediately even if onboarding/legal reads are still pending.
+- Sign out user A, delay final sync, then sign in user B: auth-transition work remains serialized; A's owner-scoped voice cleanup finishes before B initializes and never deletes B's queue/audio. If the voice queue cannot be read, an audio delete fails, or post-delete absence cannot be verified, cleanup is incomplete; A's queue/inbox metadata and stored-owner fence remain for retry.
+- Cold start with stored owner A but no session, then sign in B: A's voice boundary and local account data clear before B's route state is resolved; the owner fence changes to B only after cleanup succeeds.

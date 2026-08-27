@@ -17,8 +17,16 @@ jest.mock('../../src/services/userService', () => ({
   UserService: {
     clearStoredUserId: jest.fn(),
     getCurrentUserId: jest.fn(),
+    getStoredUserId: jest.fn(),
     hasUserChanged: jest.fn(),
     storeUserId: jest.fn(),
+  },
+}));
+
+jest.mock('../../src/services/voiceTranscriptionQueueService', () => ({
+  voiceTranscriptionQueueService: {
+    discardAllForUser: jest.fn(),
+    migrateLegacyPendingClips: jest.fn(),
   },
 }));
 
@@ -38,6 +46,7 @@ jest.mock('../../src/utils/network', () => ({
 
 jest.mock('../../src/services/logger', () => ({
   logEvent: jest.fn(),
+  logError: jest.fn(),
 }));
 
 import type { Dream, Interpretation } from '../../src/types/dream';
@@ -46,11 +55,13 @@ import { UserService } from '../../src/services/userService';
 import { SyncService } from '../../src/services/syncService';
 import { isOnline } from '../../src/utils/network';
 import { StorageService } from '../../src/services/storageService';
+import { voiceTranscriptionQueueService } from '../../src/services/voiceTranscriptionQueueService';
 
 const mockLocalStorage = LocalStorage as jest.Mocked<typeof LocalStorage>;
 const mockUserService = UserService as jest.Mocked<typeof UserService>;
 const mockSyncService = SyncService as jest.Mocked<typeof SyncService>;
 const mockIsOnline = isOnline as jest.MockedFunction<typeof isOnline>;
+const mockVoiceQueue = voiceTranscriptionQueueService as jest.Mocked<typeof voiceTranscriptionQueueService>;
 
 const dream: Dream = {
   id: 'dream-1',
@@ -84,6 +95,7 @@ describe('StorageService flow', () => {
     mockSyncService.syncUnsyncedInterpretations.mockResolvedValue(undefined);
     mockSyncService.fetchAndMergeDreams.mockResolvedValue([dream]);
     mockSyncService.fetchAndMergeInterpretations.mockResolvedValue([interpretation]);
+    mockVoiceQueue.migrateLegacyPendingClips.mockResolvedValue(undefined);
   });
 
   it('saveDream always saves locally and queues immediately', async () => {
@@ -95,6 +107,88 @@ describe('StorageService flow', () => {
     expect(mockLocalStorage.saveDream).toHaveBeenCalledWith(dream);
     expect(mockLocalStorage.addUnsyncedDream).toHaveBeenCalledWith(dream);
     expect(mockSyncService.syncUnsyncedDreams).not.toHaveBeenCalled();
+  });
+
+  it('discards only the previous owner voice boundary on a cold-start account switch', async () => {
+    mockUserService.getStoredUserId.mockResolvedValue('user-1');
+    mockUserService.getCurrentUserId.mockResolvedValue('user-2');
+
+    await StorageService.initialize();
+
+    expect(mockVoiceQueue.discardAllForUser).toHaveBeenCalledWith('user-1');
+    expect(mockLocalStorage.clearAll).toHaveBeenCalledTimes(1);
+    expect(mockUserService.storeUserId).toHaveBeenCalledWith('user-2');
+  });
+
+  it('retains owner A across a signed-out cold start and cleans A before B initializes', async () => {
+    let currentUserId: string | null = null;
+    let storedUserId: string | null = 'user-1';
+    mockUserService.getCurrentUserId.mockImplementation(async () => currentUserId);
+    mockUserService.getStoredUserId.mockImplementation(async () => storedUserId);
+    mockUserService.storeUserId.mockImplementation(async (userId) => {
+      storedUserId = userId;
+    });
+
+    await StorageService.initialize();
+
+    expect(storedUserId).toBe('user-1');
+    expect(mockVoiceQueue.discardAllForUser).not.toHaveBeenCalled();
+    expect(mockLocalStorage.clearAll).not.toHaveBeenCalled();
+
+    currentUserId = 'user-2';
+    await StorageService.initialize();
+
+    expect(mockVoiceQueue.discardAllForUser).toHaveBeenCalledWith('user-1');
+    expect(mockLocalStorage.clearAll).toHaveBeenCalledTimes(1);
+    expect(storedUserId).toBe('user-2');
+  });
+
+  it('does not clear or replace the previous-owner fence when voice cleanup is incomplete', async () => {
+    mockUserService.getStoredUserId.mockResolvedValue('user-1');
+    mockUserService.getCurrentUserId.mockResolvedValue('user-2');
+    mockVoiceQueue.discardAllForUser.mockRejectedValueOnce(
+      Object.assign(new Error('queue unreadable'), { code: 'VOICE_OWNER_CLEANUP_INCOMPLETE' }),
+    );
+
+    await expect(StorageService.initialize()).rejects.toMatchObject({
+      code: 'VOICE_OWNER_CLEANUP_INCOMPLETE',
+    });
+
+    expect(mockLocalStorage.clearAll).not.toHaveBeenCalled();
+    expect(mockUserService.storeUserId).not.toHaveBeenCalledWith('user-2');
+    expect(mockUserService.clearStoredUserId).not.toHaveBeenCalled();
+  });
+
+  it('keeps the stored-owner fence when explicit logout cleanup cannot read the voice queue', async () => {
+    mockUserService.getStoredUserId.mockResolvedValue('user-1');
+    mockVoiceQueue.discardAllForUser.mockRejectedValueOnce(
+      Object.assign(new Error('queue unreadable'), { code: 'VOICE_OWNER_CLEANUP_INCOMPLETE' }),
+    );
+
+    await expect(StorageService.clearAll('user-1')).rejects.toMatchObject({
+      code: 'VOICE_OWNER_CLEANUP_INCOMPLETE',
+    });
+
+    expect(mockLocalStorage.clearAll).not.toHaveBeenCalled();
+    expect(mockUserService.clearStoredUserId).not.toHaveBeenCalled();
+  });
+
+  it('keeps the stored-owner fence when strict voice audio deletion fails', async () => {
+    mockUserService.getStoredUserId.mockResolvedValue('user-1');
+    mockVoiceQueue.discardAllForUser.mockRejectedValueOnce(
+      Object.assign(new Error('audio delete failed'), {
+        code: 'VOICE_OWNER_CLEANUP_INCOMPLETE',
+        reason: 'audio_delete_failed',
+      }),
+    );
+
+    await expect(StorageService.clearAll('user-1')).rejects.toMatchObject({
+      code: 'VOICE_OWNER_CLEANUP_INCOMPLETE',
+      reason: 'audio_delete_failed',
+    });
+
+    expect(mockLocalStorage.clearAll).not.toHaveBeenCalled();
+    expect(mockUserService.clearStoredUserId).not.toHaveBeenCalled();
   });
 
   it('saveDream triggers background sync when authenticated', async () => {

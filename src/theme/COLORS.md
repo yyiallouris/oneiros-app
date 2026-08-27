@@ -69,6 +69,7 @@ Styles: **`SubscriptionPlanCard.tsx`**. These tokens are a separate CTA category
 - Deeper default: `deeperBackground` (`rgba(255,255,255,0.10)`) + `deeperText` (`#F8F1FA`)
 - Deeper pressed: `deeperBackgroundPressed`
 - Deeper border/shadow: `deeperBorder` + `deeperShadow`
+- Store-price loading or unavailable: keep the selected plan variant's palette and reduce the CTA to `opacity: 0.58`; do not substitute a different disabled hue.
 
 ### Subscription cards
 

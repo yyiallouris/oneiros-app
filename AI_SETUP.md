@@ -22,6 +22,8 @@ Then restart Expo (`expo start -c`) so the config is rebuilt.
 ### Notes
 - `app.config.js` reads these env vars and injects them into `expo.extra`.
 - Static Expo config also lives in `app.config.js`; there is no separate `app.json`.
+- `OPENAI_API_KEY` is server-only and is never read into `expo.extra`. `EXPO_PUBLIC_OPENAI_API_KEY` exists only for explicit local-development direct calls; production AI and transcription must use Supabase functions.
+- Voice transcription uses server-owned `gpt-transcribe` strategy `voice-transcription-v3.0.0-language-neutral`: no English prose prompt is sent for unknown-language audio; detected `languages[]` may be used only in the single bounded recovery pass. Deploy `whisper-transcription` after changing this strategy.
 
 ### Option 3: Custom GPT Endpoint
 
@@ -68,6 +70,7 @@ The API will use GPT-4 with your custom instructions, giving you the same behavi
 
 - The `.env` file is already in `.gitignore`
 - For production apps, consider using secure key management services
+- Keep `OPENAI_API_KEY` only in Supabase Edge Function secrets. Never prefix the production server key with `EXPO_PUBLIC_` or place it in an EAS app-build environment.
 - Rotate your API keys regularly
 
 ## Testing
@@ -82,4 +85,3 @@ After configuring your API key:
 - **"API key not configured"**: Check that your key is set correctly in `.env` for local dev, or that production uses `EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT`.
 - **API errors**: Verify your API key is valid and has credits
 - **Custom endpoint not working**: Ensure the endpoint follows OpenAI's API format
-

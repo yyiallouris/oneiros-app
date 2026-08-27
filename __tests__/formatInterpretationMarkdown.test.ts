@@ -1,6 +1,21 @@
 import { formatInterpretationMarkdown } from '../src/utils/formatInterpretationMarkdown';
 
 describe('formatInterpretationMarkdown', () => {
+  it('treats one reflective question as a complete renderable section', () => {
+    const input = [
+      '## Reflective Questions',
+      '',
+      '- What changes when you remember that the sea lets you breathe?',
+    ].join('\n');
+
+    const formatted = formatInterpretationMarkdown(input);
+
+    expect(formatted).toBe(
+      'Reflective Questions\n• What changes when you remember that the sea lets you breathe?'
+    );
+    expect(formatted).not.toContain('• \n');
+  });
+
   it('keeps consecutive reflective questions as bullets', () => {
     const input = [
       '## Reflective Questions',

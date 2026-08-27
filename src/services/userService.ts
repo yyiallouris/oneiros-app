@@ -61,10 +61,10 @@ export class UserService {
       const storedUserId = await this.getStoredUserId();
 
       if (!currentUserId) {
-        // User logged out - clear stored user ID
-        if (storedUserId) {
-          await AsyncStorage.removeItem(CURRENT_USER_ID_KEY);
-        }
+        // Keep the last owner while signed out. StorageService needs it to
+        // perform owner-scoped cleanup if a different account signs in after a
+        // cold start. Explicit logout cleanup clears it only after that owner's
+        // local voice boundary has been discarded.
         return false;
       }
 

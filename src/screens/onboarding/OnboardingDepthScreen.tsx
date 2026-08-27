@@ -6,16 +6,11 @@ import { colors, spacing, typography, text, borderRadius } from '../../theme';
 import { PaperBackground, Card, Button, DesignExportForeground } from '../../components/ui';
 import { OnboardingProgress } from '../../components/onboarding/OnboardingProgress';
 import { setInterpretationDepth, type InterpretationDepth } from '../../services/userSettingsService';
+import { INTERPRETATION_DEPTH_OPTIONS } from '../../constants/interpretationDepthOptions';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import { AI_REFLECTION_NOTICE } from '../../constants/legal';
 
 type NavProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingDepth'>;
-
-const DEPTH_OPTIONS: { value: InterpretationDepth; label: string; hint: string }[] = [
-  { value: 'quick', label: 'Quick Glance', hint: '80–180 words, low cognitive load' },
-  { value: 'standard', label: 'Core Reflection', hint: '150–350 words, full post-Jungian' },
-  { value: 'advanced', label: 'Deeper Dive', hint: '400–700 words, extended & motif tracking' },
-];
 
 const OnboardingDepthScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
@@ -52,7 +47,7 @@ const OnboardingDepthScreen: React.FC = () => {
 
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Level of analysis</Text>
-          {DEPTH_OPTIONS.map((opt) => (
+          {INTERPRETATION_DEPTH_OPTIONS.map((opt) => (
             <TouchableOpacity
               key={opt.value}
               style={[styles.depthRow, interpretationDepth === opt.value && styles.depthRowActive]}

@@ -21,6 +21,8 @@ import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButto
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
+import { VoiceComposerService } from '../services/voiceComposerService';
+import { EditRevisionGuard } from '../utils/editRevisionGuard';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
@@ -226,12 +228,35 @@ const InterpretationChatScreen: React.FC = () => {
   const route = useRoute<ChatRouteProp>();
   const { dreamId } = route.params;
   const insets = useSafeAreaInsets();
-  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
+  const {
+    status: subscriptionStatus,
+    products,
+    storeProductsLoading,
+    purchasePlan,
+    purchasingPlanCode,
+  } = useSubscription();
 
   const [dream, setDream] = useState<Dream | null>(null);
   const [interpretation, setInterpretation] = useState<Interpretation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
+  const inputEditGuardRef = useRef(new EditRevisionGuard());
+  const chatVoiceTarget = useMemo(
+    () => ({ surface: 'interpretation-chat' as const, key: dreamId }),
+    [dreamId],
+  );
+
+  useEffect(() => {
+    let active = true;
+    const hydrationRevision = inputEditGuardRef.current.capture();
+    void VoiceComposerService.getSnapshot(chatVoiceTarget).then((snapshot) => {
+      if (active && snapshot != null && inputEditGuardRef.current.isCurrent(hydrationRevision)) {
+        setInputText(snapshot.text);
+        void VoiceComposerService.acknowledgeVisibleSnapshot(snapshot);
+      }
+    });
+    return () => { active = false; };
+  }, [chatVoiceTarget]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingDream, setIsLoadingDream] = useState(true);
   const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
@@ -435,6 +460,7 @@ const InterpretationChatScreen: React.FC = () => {
         await saveInterpretation(updatedInterpretation);
         setInterpretation(updatedInterpretation);
       }
+      await VoiceComposerService.clear(chatVoiceTarget);
 
       // Only auto-scroll if user hasn't manually scrolled up
       if (!isUserScrolledUp) {
@@ -464,7 +490,9 @@ const InterpretationChatScreen: React.FC = () => {
   };
 
   const handleQuickQuestion = (question: string) => {
+    inputEditGuardRef.current.markEdited();
     setInputText(question);
+    void VoiceComposerService.saveText(chatVoiceTarget, question);
   };
 
   if (isLoadingDream) {
@@ -617,7 +645,11 @@ const InterpretationChatScreen: React.FC = () => {
           placeholder="Ask about symbols, feelings, or patterns..."
           placeholderTextColor={colors.textMuted}
           value={inputText}
-          onChangeText={setInputText}
+          onChangeText={(text) => {
+            inputEditGuardRef.current.markEdited();
+            setInputText(text);
+            void VoiceComposerService.saveText(chatVoiceTarget, text);
+          }}
           multiline
           maxLength={3000}
           editable={!reflectionLimitReached && !premiumReflectionReadOnly}
@@ -626,9 +658,11 @@ const InterpretationChatScreen: React.FC = () => {
         <View style={styles.inputActions}>
           <VoiceRecordButton
             presentation="compact"
-            target={{ surface: 'interpretation-chat', key: dreamId }}
+            target={chatVoiceTarget}
+            getComposerText={() => inputText}
             onTranscriptionComplete={(text) => {
-              setInputText((prev) => (prev ? `${prev} ${text}` : text));
+              inputEditGuardRef.current.markEdited();
+              setInputText(text);
             }}
             disabled={isLoading || reflectionLimitReached || premiumReflectionReadOnly}
           />
@@ -667,6 +701,8 @@ const InterpretationChatScreen: React.FC = () => {
         billingInterval={billingInterval}
         premiumPlan={premiumPlan}
         deeperPlan={deeperPlan}
+        storeProducts={products}
+        storeProductsLoading={storeProductsLoading}
         displayMode="premium_only"
         currentPlanTier={currentPlanTier}
         upgradeTitle={{

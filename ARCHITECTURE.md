@@ -61,6 +61,7 @@ const dreams = await StorageService.getDreams();
 - Dreams: `getDreams()`, `saveDream()`, `deleteDream()`, etc.
 - Interpretations: `getInterpretations()`, `saveInterpretation()`, etc.
 - Unsynced queue: `getUnsyncedDreams()`, `addUnsyncedDream()`, etc.
+- Voice delivery is a separate owner-scoped reliability boundary: capture verifies backup-excluded `voice_pending/` and generation-fences async native start; dual-manifest failure still hands the live clip to UI enqueue; legacy Android root audio migrates with deterministic crash repair plus size/available-MD5 collision validation; and `voiceTranscriptionQueueService` exclusively owns queue/inbox cleanup. An unreadable queue or any unconfirmed owned-audio deletion makes cleanup incomplete, preserving queue/inbox metadata and the previous-owner fence until scoped deletion actually succeeds, before the next account's local routes render.
 
 ### 4. **SyncService** (`src/services/syncService.ts`)
 **Synchronization between local and remote**

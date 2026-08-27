@@ -23,14 +23,9 @@ import {
 import { deleteAccountAndData } from '../services/accountDeletion';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import { getReadOnlyLapseMessage } from '../services/subscriptionService';
+import { INTERPRETATION_DEPTH_OPTIONS } from '../constants/interpretationDepthOptions';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
-
-const DEPTH_OPTIONS: { value: InterpretationDepth; label: string; hint: string }[] = [
-  { value: 'quick', label: 'Quick Glance', hint: '80–180 words, low cognitive load' },
-  { value: 'standard', label: 'Core Reflection', hint: '150–350 words, full post-Jungian' },
-  { value: 'advanced', label: 'Deeper Dive', hint: 'Imaginal structure + Symbolic Forms; restrained mythic resonance when earned' },
-];
 
 const AccountScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
@@ -278,7 +273,7 @@ const AccountScreen: React.FC = () => {
         <Card style={styles.card}>
           <Text style={styles.sectionLabel}>Dream analysis</Text>
           <Text style={styles.fieldLabel}>Level of analysis (default: Core Reflection)</Text>
-          {DEPTH_OPTIONS.map((opt) => (
+          {INTERPRETATION_DEPTH_OPTIONS.map((opt) => (
             <TouchableOpacity
               key={opt.value}
               style={[styles.depthRow, interpretationDepth === opt.value && styles.depthRowActive]}

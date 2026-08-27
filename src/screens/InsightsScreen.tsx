@@ -112,7 +112,13 @@ function parseReflectionSections(raw: string): { title: string; body: string }[]
 const InsightsScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
-  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
+  const {
+    status: subscriptionStatus,
+    products,
+    storeProductsLoading,
+    purchasePlan,
+    purchasingPlanCode,
+  } = useSubscription();
   const [overview, setOverview] = useState<InsightsOverviewModel>(EMPTY_OVERVIEW);
   const [loading, setLoading] = useState(true);
   const [recentCount, setRecentCount] = useState<RecentDreamFieldCount>(3);
@@ -527,6 +533,8 @@ const InsightsScreen: React.FC = () => {
           billingInterval={billingInterval}
           premiumPlan={premiumPlan}
           deeperPlan={deeperPlan}
+          storeProducts={products}
+          storeProductsLoading={storeProductsLoading}
           displayMode="premium_only"
           currentPlanTier={currentPlanTier}
           upgradeTitle={{

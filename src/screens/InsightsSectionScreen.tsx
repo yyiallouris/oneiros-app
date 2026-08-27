@@ -205,7 +205,13 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const { embedded, overrideSectionId, overridePeriod, overridePeriodLabel } = props;
   const route = useRoute<Route>();
   const navigation = useNavigation<NavProp>();
-  const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
+  const {
+    status: subscriptionStatus,
+    products,
+    storeProductsLoading,
+    purchasePlan,
+    purchasingPlanCode,
+  } = useSubscription();
   const sectionId = (embedded && overrideSectionId != null) ? overrideSectionId : (route.params?.sectionId ?? 'recurring-symbols');
   const routePeriod: InsightsPeriod | undefined = (embedded && overridePeriod != null)
     ? overridePeriod
@@ -1328,6 +1334,8 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           billingInterval={billingInterval}
           premiumPlan={premiumPlan}
           deeperPlan={deeperPlan}
+          storeProducts={products}
+          storeProductsLoading={storeProductsLoading}
           displayMode="premium_only"
           currentPlanTier={currentPlanTier}
           upgradeTitle={{
