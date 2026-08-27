@@ -1,7 +1,7 @@
 # Reflective-question production identity
 
 **Date:** 2026-08-27  
-**Status:** recovered live v105 method is the production source of truth in git. Essay cardinality stays on the separate `2.0.3-phase1` contract.
+**Status:** recovered live v105 method is the production source of truth in git. Essay cardinality stays on the separate `2.0.3-phase1` contract. R&D is isolated and is not a runtime import.
 
 ## Recovered deployed source
 
@@ -17,7 +17,7 @@ Recovered from remote `ai-entitlements-gateway` **version 105** on 2026-08-27 wi
 | Method version | `1.4.0` |
 | Prompt SHA-256 | `4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d` |
 
-Canonical prompt text lives in `src/ai/reflectiveQuestionPrompt.ts`. The hold module re-exports that same body so the SHA cannot drift.
+Canonical prompt text lives in `src/ai/reflectiveQuestionPrompt.ts` and is imported by client and gateway runtime. The hold module re-exports that same body so the SHA cannot drift. Docs previously called this the “v1.5 bundle.” The exact deployed method id is **psychological-aliveness v1.4.0**, not `reflective-question-psychological-aliveness-v1.5.0` and not local Oneiros Reader v1.4.0.
 
 ## Surface contracts
 
@@ -37,7 +37,7 @@ Canonical prompt text lives in `src/ai/reflectiveQuestionPrompt.ts`. The hold mo
 | Prompt SHA-256 | `0ea4b9a2364681124bdf582822c683754e28ae52ca6d7e7e7427e39f528b08b7` |
 | Status | `DO NOT DEPLOY` |
 
-Candidate B SHA `08cd3eaf…` remains frozen research-only on the isolated R&D branch. It is not imported by runtime on this production line.
+Candidate B SHA `08cd3eaf…` remains frozen research-only. It is not imported by runtime.
 
 ## Deploy guard
 
@@ -58,3 +58,11 @@ REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVED=<methodId>:<sha256> npm run deplo
 ```
 
 Raw `supabase functions deploy ai-entitlements-gateway` is not the supported path.
+
+## R&D isolation
+
+Current R&D lives under `src/ai/rd/reflective-questions/`. Candidate B SHA `08cd3eaf…` is the only active research base (`active.ts`). Closed experiments and rejected local Reader v1.4.0 are archived in that tree. They are not runtime imports.
+
+Current runner: `npm run review:reflective-questions-active`. The 2300-line multiplexer is archived at `scripts/live/archive/reflective-questions/run-reflective-question-golden-set.ts` for historical replay only. Do not add new flags there.
+
+Map: `src/ai/rd/reflective-questions/README.md`.

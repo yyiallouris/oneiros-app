@@ -94,9 +94,13 @@ describe('reflective-question production surface contract', () => {
         assertReflectiveQuestionRuntimeHasNoRdImports(read(rel), rel)
       ).not.toThrow();
     }
-    expect(existsSync(path.join(repoRoot, 'src/ai/rd'))).toBe(false);
+    expect(existsSync(path.join(repoRoot, 'src/ai/rd/reflective-questions'))).toBe(
+      true
+    );
     expect(clientAi).not.toMatch(/candidate-b|Candidate B|08cd3eaf/);
     expect(billingAi).not.toMatch(/candidate-b|Candidate B|08cd3eaf/);
+    expect(clientAi).not.toMatch(/from ['"].*\/rd\//);
+    expect(billingAi).not.toMatch(/from ['"].*\/rd\//);
 
     const pkg = JSON.parse(read('package.json')) as { scripts: Record<string, string> };
     const gatewayReadme = read('supabase/functions/ai-entitlements-gateway/README.md');
@@ -106,7 +110,9 @@ describe('reflective-question production surface contract', () => {
     expect(pkg.scripts['deploy:ai-entitlements-gateway']).toContain(
       'guard:ai-entitlements-gateway-deploy'
     );
-    expect(pkg.scripts['review:reflective-questions-active']).toBeUndefined();
+    expect(pkg.scripts['review:reflective-questions-active']).toContain(
+      'scripts/live/rd/reflective-questions/run-active-candidate.ts'
+    );
     expect(gatewayReadme).toMatch(/npm run deploy:ai-entitlements-gateway/);
   });
 });

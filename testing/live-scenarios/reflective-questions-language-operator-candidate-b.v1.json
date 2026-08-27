@@ -1,0 +1,478 @@
+{
+  "version": "1.0.0",
+  "benchmark_id": "reflective-question-v1-3-language-operator-candidate-b-v1",
+  "method_id": "reflective-question-oneiros-v1-3-language-operator-candidate-b-rd-v0.1.0",
+  "source": "language-operator-development-stress-subset",
+  "prompt_sha256_required": "08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622",
+  "note": "Small 18-dream Candidate B development set. Copies freeze-validation dreams. Not freeze validation. Not a 120-run. If this set does not show a clear improvement, stop.",
+  "case_count": 18,
+  "repeats_required": 1,
+  "cases": [
+    {
+      "id": "closed-kiosk-at-noon",
+      "language": "el",
+      "title": "Το κλειστό περίπτερο",
+      "length_band": "ultra_short",
+      "categories": [
+        "ordinary_banal_low_affect"
+      ],
+      "narrative_features": [
+        "ultra_short"
+      ],
+      "validation_buckets": [
+        "ultra_short",
+        "banal_low_affect"
+      ],
+      "content": "Πέρασα μπροστά από ένα κλειστό περίπτερο το μεσημέρι και συνέχισα.",
+      "reviewer_focus": "A closed kiosk is not exclusion. Keep it modest.",
+      "forbidden_inventions": [
+        "Feeling shut out",
+        "A thwarted need"
+      ],
+      "probe_family": "abstract_wrapper",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "white-horse-empty-church",
+      "language": "el",
+      "title": "Το άλογο στην εκκλησία",
+      "length_band": "medium",
+      "categories": [
+        "numinous"
+      ],
+      "narrative_features": [
+        "scene_shift",
+        "irrelevant_detail",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "numinous"
+      ],
+      "content": "Μπήκα σε μια άδεια εκκλησία το πρωί και στη μέση του κλίτους στεκόταν ένα λευκό άλογο, ακίνητο, χωρίς καβαλάρη. Τα κεριά ήταν σβηστά. Το άλογο γύρισε το κεφάλι και με κοίταξε χωρίς φόβο. Πλησίασα μέχρι το πρώτο στασίδι και σταμάτησα. Άκουγα μόνο την αναπνοή του και ένα πουλί έξω στον τρούλο. Δεν το άγγιξα. Όταν γύρισα προς την πόρτα, το φως είχε γίνει πιο χρυσό. Δεν θυμάμαι αν έμεινε εκεί όταν έφυγα. Τα πατώματα έτριζαν όταν μετακίνησα το βάρος. Ένα στασίδι είχε σκαλισμένο σταυρό ξεθωριασμένο. Το άλογο χτύπησε μια φορά την οπλή στο μάρμαρο και ξανάγινε ακίνητο. Σκόνη χόρευε στο χρυσό φως. Έξω πέρασε ένα μηχανάκι και ο ήχος έσβησε. Δεν άνοιξα κανένα κερί. Η πόρτα πίσω μου έμεινε μισάνοιχτη. Κάθισα στο στασίδι με τα χέρια στους μηρούς. Το πουλί στον τρούλο μετακινήθηκε. Το άλογο ανέπνεε ορατά στον δροσερό αέρα. Δεν πλησίασα άλλο. Όταν σηκώθηκα, τα γόνατά μου είχαν σημάδι από το ξύλο.",
+      "reviewer_focus": "Stay with the encounter; do not invent a message from the horse.",
+      "forbidden_inventions": [
+        "A divine command",
+        "Death as the horse",
+        "You must leave your old life"
+      ],
+      "probe_family": "abstract_wrapper",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "skin-turns-glass-then-back",
+      "language": "el",
+      "title": "Το γυάλινο δέρμα",
+      "length_band": "short",
+      "categories": [
+        "transformation_body_change_metamorphosis"
+      ],
+      "narrative_features": [
+        "affect_shift"
+      ],
+      "validation_buckets": [
+        "transformation"
+      ],
+      "content": "Το δέρμα στα μπράτσα έγινε γυαλί και έβλεπα τις φλέβες σαν γραμμές. Κάποιος στο λεωφορείο με κοίταξε και μετά κοίταξε αλλού. Δεν ράγισε. Σε δύο στάσεις ξανάγινε δέρμα, λίγο πιο κρύο. Κράτησα την τσάντα στους μηρούς μέχρι να κατέβω. Το λεωφορείο σταμάτησε σε φανάρι. Είδα τις φλέβες σαν χάρτη και μετά δέρμα. Κράτησα την τσάντα πιο σφιχτά. Κανείς δεν ξανακοίταξε. Κατέβηκα στην ίδια στάση που κατεβαίνω πάντα.",
+      "reviewer_focus": "Glass then skin; do not invent exposure as character.",
+      "forbidden_inventions": [
+        "You have no boundaries",
+        "People can see your secrets",
+        "Paranoia"
+      ],
+      "probe_family": "abstract_wrapper",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "attic-clock-pineapple-passport",
+      "language": "el",
+      "title": "Η σοφίτα με τα άσχετα",
+      "length_band": "medium",
+      "categories": [
+        "ordinary_banal_low_affect",
+        "strange_surreal"
+      ],
+      "narrative_features": [
+        "many_unrelated_objects",
+        "irrelevant_detail",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "many_unrelated_objects"
+      ],
+      "content": "Στη σοφίτα υπήρχαν μαζί ένα ξυπνητήρι χωρίς δείκτες, ένας ολόκληρος ανανάς, ένα διαβατήριο ανοιχτό σε κενή σελίδα, ένα βιολί χωρίς δοξάρι και μια νάιλον σακούλα με καπάκια βάζων. Δεν τα άγγιξα όλα. Πήρα μόνο το καπάκι ενός βάζου και το ξαναέβαλα στη σακούλα. Το ρολόι δεν χτύπησε. Ο ανανάς μύριζε ελαφρά. Κάθισα στην άκρη μιας μπαούλας και κοίταξα τα πράγματα χωρίς να τα τακτοποιήσω. Από κάτω ακουγόταν τηλεόραση. Έφυγα από τη σκάλα κρατώντας τα χέρια άδεια. Η μπαούλα μύριζε ναφθαλίνη. Το βιολί είχε μια χορδή χαλαρή. Το διαβατήριο δεν είχε σφραγίδα στη σελίδα που έβλεπα. Άκουσα την τηλεόραση να αλλάζει κανάλι. Το ξυπνητήρι είχε σκόνη στα κουμπιά. Δεν το κούρδισα. Ο ανανάς άφησε μια μικρή υγρασία στο χαρτόνι από κάτω. Τα καπάκια χτύπησαν μεταξύ τους όταν ξαναέβαλα αυτό που είχα πιάσει. Κατέβηκα τη σκάλα κρατώντας το κάγκελο. Κάτω η κουζίνα ήταν σκοτεινή εκτός από το φως του απορροφητήρα. Δεν πήρα τίποτα μαζί μου.",
+      "reviewer_focus": "Many co-present objects, no staged relation among them. Do not build a secret system.",
+      "forbidden_inventions": [
+        "Each object is a life domain",
+        "You are disorganized as a person",
+        "Travel longing from the passport"
+      ],
+      "probe_family": "abstract_wrapper",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "smoke-stair-mother-calls",
+      "language": "el",
+      "title": "Ο καπνός στη σκάλα",
+      "length_band": "medium",
+      "categories": [
+        "emotionally_intense"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "scene_shift",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "dense_emotionally_intense"
+      ],
+      "content": "Κατέβαινα τη σκάλα της πολυκατοικίας όταν ο καπνός γέμισε τον όροφο τόσο γρήγορα που δεν έβλεπα τα σκαλιά. Άκουσα τη μητέρα μου να φωνάζει το όνομά μου από πάνω, κοφτά, δύο φορές. Προσπάθησα να γυρίσω αλλά το κάγκελο κάηκε στο χέρι μου και το τράβηξα πίσω. Κάποιος άνοιξε μια πόρτα στο πλατύσκαλο και ξανάκλεισε. Ο καπνός μπήκε στο στόμα μου και έβηχα μέχρι να γονατίσω. Η φωνή της σταμάτησε απότομα. Έμεινα εκεί με τα μάτια κλειστά, περιμένοντας να ξαναφωνάξει, και δεν ξαναφώναξε. Κάτω ακουγόταν ένα κουδούνι ανελκυστήρα που δεν ερχόταν. Ο σοβάς στον τοίχο ήταν ζεστός όταν τον άγγιξα με τον ώμο. Κάτω στο πλατύσκαλο ένα χαλάκι είχε μαζέψει στάχτη στις άκρες. Το κουδούνι του ανελκυστήρα χτύπησε άλλη μια φορά, πιο αδύναμα. Από κάποιο διαμέρισμα ακουγόταν νερό σε νιπτήρα που δεν έκλεισε. Το φως του κλιμακοστασίου τρεμόπαιξε και έμεινε κίτρινο. Δεν είδα φλόγα, μόνο τον καπνό να κατεβαίνει σαν ύφασμα. Τα παπούτσια μου γλίστρησαν στο πλακάκι. Κάθισα στα σκαλιά με την παλάμη ανοιχτή, ακόμα ζεστή από το κάγκελο. Κάποιος στον κάτω όροφο έκλεισε ένα παράθυρο. Ο καπνός μύριζε πλαστικό και μαγειρεμένο λάδι. Περίμενα να ακούσω ξανά το όνομά μου και άκουγα μόνο τον ανελκυστήρα να μην έρχεται.",
+      "reviewer_focus": "Dense danger plus a cut-off call; stay with the staged halt, do not invent why she stopped.",
+      "forbidden_inventions": [
+        "The mother is dying offstage",
+        "Guilt for not saving her",
+        "A waking fire trauma"
+      ],
+      "probe_family": "abstract_wrapper",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "exam-blood-on-paper",
+      "language": "el",
+      "title": "Το αίμα στο γραπτό",
+      "length_band": "short",
+      "categories": [
+        "emotionally_intense"
+      ],
+      "narrative_features": [
+        "affect_shift",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "dense_emotionally_intense"
+      ],
+      "content": "Καθόμουν σε μια εξέταση και το στυλό μου άφησε μια γραμμή αίματος πάνω στη σελίδα. Δεν είχα κοπεί πουθενά που να βλέπω. Η επιτηρήτρια πέρασε και δεν είπε τίποτα. Προσπάθησα να γράψω γύρω από τον λεκέ και ο λεκές μεγάλωσε. Τα χέρια μου έτρεμαν τόσο που δεν κρατούσα τη σειρά. Παρέδωσα το γραπτό έτσι. Έξω στον διάδρομο κάθισα στο πάτωμα χωρίς να κοιτάξω κανέναν.",
+      "reviewer_focus": "Bodily stain during a test; do not invent failure of the self.",
+      "forbidden_inventions": [
+        "You are failing life",
+        "Self-harm",
+        "Menstruation shame not in the dream"
+      ],
+      "probe_family": "motive_causality",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "stranger-matches-pace",
+      "language": "el",
+      "title": "Το ίδιο βήμα",
+      "length_band": "medium",
+      "categories": [
+        "relational_intimate_erotic_vital"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "staged_relation"
+      ],
+      "validation_buckets": [
+        "relational_staged"
+      ],
+      "content": "Ένας άγνωστος στον δρόμο προσαρμοζόταν στο βήμα μου. Όταν επιτάχυνα, επιτάχυνε. Όταν σταμάτησα μπροστά σε μια βιτρίνα, σταμάτησε κι εκείνος χωρίς να με κοιτάξει. Ξεκίνησα πάλι. Μετά από ένα τετράγωνο σταμάτησα απότομα και σταμάτησε μαζί μου. Τότε με κοίταξε για πρώτη φορά και χαμήλωσε το κεφάλι. Εγώ δεν μίλησα. Συνέχισα μόνη και δεν με ακολούθησε άλλο. Η βιτρίνα έδειχνε ρολόγια σταματημένα στην ίδια ώρα. Όταν σταμάτησα, εκείνος έδεσε τα κορδόνια χωρίς να τα χρειάζεται. Μετά το τετράγωνο ένα σκυλί γάβγισε πίσω από πόρτα. Συνέχισα μόνη και άκουσα μόνο τα δικά μου βήματα. Δεν γύρισα να δω αν έμεινε στη γωνία. Ο δρόμος είχε υγρά φύλλα στο πεζοδρόμιο. Πέρασα ένα κλειστό ταχυδρομείο. Ένα λεωφορείο σταμάτησε χωρίς να κατέβει κανείς. Συνέχισα δύο τετράγωνα ακόμα με σταθερό βήμα. Δεν άκουσα δεύτερο βήμα πίσω μου. Ένα παράθυρο άνοιξε πάνω και έκλεισε. Συνέχισα ίσια. Η σκιά μου ήταν μόνη στον τοίχο. Πέρασα μια στάση χωρίς να σταματήσω.",
+      "reviewer_focus": "Matched pace then release is staged; do not invent stalking as waking crime.",
+      "forbidden_inventions": [
+        "You are in danger",
+        "A secret admirer story",
+        "Street harassment as the meaning"
+      ],
+      "probe_family": "motive_causality",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "mouth-fills-with-seeds",
+      "language": "el",
+      "title": "Οι σπόροι στο στόμα",
+      "length_band": "medium",
+      "categories": [
+        "transformation_body_change_metamorphosis"
+      ],
+      "narrative_features": [
+        "affect_shift",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "transformation"
+      ],
+      "content": "Το στόμα μου γέμισε μικρούς σπόρους ενώ μιλούσα σε κάποιον που δεν έβλεπα καθαρά. Τους έφτυσα στην παλάμη και φύτρωναν αμέσως λεπτά πράσινα. Δεν πονούσα. Ένιωθα μόνο ότι δεν χωρούσαν λέξεις. Έβαλα τους βλαστούς στο περβάζι. Το στόμα άδειασε. Δοκίμασα να πω μια λέξη και βγήκε κανονικά. Οι βλαστοί συνέχισαν να στέκονται στο φως. Οι βλαστοί στο περβάζι ήταν λεπτοί σαν κλωστές. Το στόμα μύριζε χώμα γλυκό. Ο άλλος άνθρωπος έμεινε θολός, σαν πίσω από τζάμι. Κατάπια σάλιο χωρίς σπόρο. Δοκίμασα δεύτερη λέξη και βγήκε κι αυτή καθαρή. Το φως στο περβάζι δεν κουνήθηκε. Άφησα τα χέρια ανοιχτά πάνω στο τραπέζι. Δεν ξανάφτυσα. Οι βλαστοί έμειναν όρθιοι χωρίς γλάστρα, απλώς στο ξύλο. Δεν τους πότισα. Το τραπέζι είχε ένα ποτήρι νερό που δεν ήπια. Άκουγα πουλιά έξω. Ο θολός άνθρωπος δεν πλησίασε. Έμεινα να κοιτάζω τους βλαστούς μέχρι να μην μεγαλώνουν άλλο μπροστά μου. Ο ήχος του ρολογιού ήταν κανονικός.",
+      "reviewer_focus": "Seeds replacing speech then speech returns; do not invent silenced truth as diagnosis.",
+      "forbidden_inventions": [
+        "You cannot speak your truth",
+        "Fertility symbolism",
+        "Oral fixation"
+      ],
+      "probe_family": "motive_causality",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "child-falls-you-catch-air",
+      "language": "el",
+      "title": "Το παιδί στο μπαλκόνι",
+      "length_band": "medium",
+      "categories": [
+        "emotionally_intense"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "dense_emotionally_intense"
+      ],
+      "content": "Στεκόμουν στην αυλή όταν ένα μικρό παιδί γλίστρησε από το μπαλκόνι του πρώτου. Άπλωσα τα χέρια χωρίς να προλάβω να σκεφτώ και έπιασα μόνο αέρα. Το σώμα πέρασε δίπλα μου και χτύπησε μαλακά στα χόρτα, μετά σηκώθηκε και με κοίταξε σαν να μην είχε συμβεί. Εγώ δεν μπορούσα να κατεβάσω τα χέρια. Μια γυναίκα από πάνω έκλεισε την μπαλκονόπορτα χωρίς να μιλήσει. Το παιδί περπάτησε προς τη βρύση. Εγώ έμεινα με τα χέρια ανοιχτά μέχρι που άρχισαν να τρέμουν. Τα χόρτα είχαν δροσιά και κόλλησαν στα γόνατά μου όταν έσκυψα. Το παιδί άνοιξε τη βρύση και το νερό έπεφτε στο χώμα κάνοντας μικρό λάκκο. Η γυναίκα πίσω από το τζάμι κούνησε μια φορά την κουρτίνα και σταμάτησε. Ακουγόταν ένα ραδιόφωνο από άλλο μπαλκόνι. Τα χέρια μου έμειναν μπροστά σαν να κρατούσαν ακόμα αέρα. Ένας σκύλος γάβγισε πίσω από έναν φράχτη και σώπασε. Το παιδί έπλυνε τα χέρια του και τα σκούπισε στο παντελόνι. Εγώ κοίταξα το μπαλκόνι: το κάγκελο ήταν στη θέση του, ένα πλαστικό ποτήρι είχε μείνει στο πάτωμα. Ο ήλιος έπεφτε λοξά στον τοίχο. Τα χέρια συνέχιζαν να τρέμουν χωρίς να πέφτουν.",
+      "reviewer_focus": "The miss and the unchanged child are staged; do not invent death that did not happen.",
+      "forbidden_inventions": [
+        "The child dies",
+        "You are a bad parent",
+        "Waking accident guilt"
+      ],
+      "probe_family": "motive_causality",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "gold-dust-from-ordinary-cup",
+      "language": "el",
+      "title": "Η σκόνη από το φλιτζάνι",
+      "length_band": "short",
+      "categories": [
+        "numinous"
+      ],
+      "narrative_features": [
+        "irrelevant_detail"
+      ],
+      "validation_buckets": [
+        "numinous"
+      ],
+      "content": "Ήπια από ένα συνηθισμένο λευκό φλιτζάνι στο πάτωμα της κουζίνας και καθώς το άδειασα έπεσε από μέσα λεπτή χρυσή σκόνη στο ξύλο. Δεν έλαμπε σαν κόσμημα, πιο πολύ σαν γύρη. Την άγγιξα με το δάχτυλο και ήταν στεγνή. Το φλιτζάνι από μέσα ήταν πάλι άσπρο. Κάθισα και κοίταξα τη σκόνη χωρίς να την μαζέψω.",
+      "reviewer_focus": "Ordinary vessel, unusual residue; do not invent alchemy of the self.",
+      "forbidden_inventions": [
+        "You are being initiated",
+        "Wealth coming",
+        "Sacred feminine"
+      ],
+      "probe_family": "motive_causality",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "library-same-table-no-talk",
+      "language": "el",
+      "title": "Το κοινό τραπέζι",
+      "length_band": "short",
+      "categories": [
+        "relational_looking_unstaged"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "unstaged_cooccurrence",
+        "irrelevant_detail"
+      ],
+      "validation_buckets": [
+        "relational_looking_unstaged"
+      ],
+      "content": "Στη βιβλιοθήκη καθίσαμε στο ίδιο μακρύ τραπέζι με έναν άνθρωπο που δεν ήξερα. Τα βιβλία μας δεν ακουμπούσαν. Κάποια στιγμή έπεσε το μολύβι του προς το μέρος μου και το μάζεψε μόνος του πριν φτάσω. Συνέχισα να διαβάζω. Έφυγε πρώτος. Άφησε μια γόμες. Δεν την πήρα.",
+      "reviewer_focus": "Near-contact that does not complete; do not turn the pencil into a bond.",
+      "forbidden_inventions": [
+        "A missed romance",
+        "You are closed off",
+        "The eraser means wiping the past"
+      ],
+      "probe_family": "unstaged_relation",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "elevator-coworker-silence",
+      "language": "el",
+      "title": "Το ασανσέρ",
+      "length_band": "short",
+      "categories": [
+        "relational_looking_unstaged",
+        "ordinary_banal_low_affect"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "unstaged_cooccurrence"
+      ],
+      "validation_buckets": [
+        "relational_looking_unstaged"
+      ],
+      "content": "Μπήκα στο ασανσέρ με μια συνάδελφο. Κανείς δεν μίλησε. Και οι δύο κοιτάξαμε τον αριθμό των ορόφων. Εκείνη κατέβηκε στο τρία. Εγώ συνέχισα στο πέντε. Δεν ανταλλάξαμε ούτε νεύμα. Το ασανσέρ μύριζε μέταλλο και σαπούνι. Κάποιος όροφος είχε αυτοκόλλητο με αριθμό ξεφλουδισμένο. Οι πόρτες άνοιξαν στο τρία με έναν μικρό ήχο. Εγώ κοίταξα το ταβάνι μέχρι το πέντε.",
+      "reviewer_focus": "Shared cabin without gesture is not a relationship opening.",
+      "forbidden_inventions": [
+        "Workplace tension",
+        "Unspoken attraction",
+        "You are invisible"
+      ],
+      "probe_family": "unstaged_relation",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "ex-across-square-no-approach",
+      "language": "el",
+      "title": "Η πλατεία με τον πρώην",
+      "length_band": "medium",
+      "categories": [
+        "relational_looking_unstaged"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "unstaged_cooccurrence",
+        "incomplete_ending"
+      ],
+      "validation_buckets": [
+        "relational_looking_unstaged"
+      ],
+      "content": "Τον είδα στην απέναντι πλευρά της πλατείας. Κι οι δύο περιμέναμε πράσινο. Δεν πλησίασε. Δεν πλησίασα. Τα φώτα άλλαξαν. Περπάτησε ευθεία. Περπάτησα ευθεία στον άλλον δρόμο. Για μια στιγμή ήμασταν στο ίδιο πλάτος του σταυροδρομίου χωρίς να γυρίσουμε κεφάλι. Μετά χάθηκε πίσω από ένα λεωφορείο. Δεν έτρεξα. Η πλατεία είχε σκαλωσιές σε μια πρόσοψη. Το πράσινο κράτησε πολύ. Ένα μηχανάκι πέρασε ανάμεσα στις διαβάσεις. Το λεωφορείο που τον έκρυψε είχε διαφήμιση που δεν διάβασα. Περπάτησα μέχρι τη στάση χωρίς να σταματήσω. Δεν έβγαλα τηλέφωνο. Ο δρόμος μύριζε βρεγμένη άσφαλτο. Ένα παιδί έτρεχε μπροστά σε έναν ενήλικα. Εγώ συνέχισα ευθεία. Στη γωνία ένας άνθρωπος πουλούσε καστανά. Δεν σταμάτησα. Πέρασα το περίπτερο και ένα κλειστό βιβλιοπωλείο. Ο δικός μου δρόμος στένεψε. Δεν γύρισα κεφάλι προς την πλατεία. Ένα ρολόι στον τοίχο μιας τράπεζας έδειχνε μεσημέρι. Τα παπούτσια μου χτύπησαν στο πεζοδρόμιο με σταθερό ρυθμό. Ένα φύλλο κόλλησε στη σόλα και το έβγαλα. Συνέχισα.",
+      "reviewer_focus": "Recognition across space without approach; do not invent unfinished business as the question.",
+      "forbidden_inventions": [
+        "You still love him",
+        "You must get closure",
+        "Cowardice"
+      ],
+      "probe_family": "unstaged_relation",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "waiting-room-two-strangers",
+      "language": "el",
+      "title": "Η αίθουσα αναμονής",
+      "length_band": "short",
+      "categories": [
+        "relational_looking_unstaged",
+        "ordinary_banal_low_affect"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "unstaged_cooccurrence"
+      ],
+      "validation_buckets": [
+        "relational_looking_unstaged"
+      ],
+      "content": "Στην αίθουσα αναμονής καθόμασταν δύο άγνωστοι σε αντικριστές καρέκλες. Φύλλαξε ένα περιοδικό. Εγώ κοίταζα την οθόνη με τους αριθμούς. Μας φώναξαν με διαφορετικά ονόματα. Σηκωθήκαμε σχεδόν μαζί και μπήκαμε σε διαφορετικές πόρτες. Δεν μιλήσαμε. Η οθόνη άλλαξε αριθμό με έναν μπιπ. Το περιοδικό είχε σελίδα σκισμένη. Σηκωθήκαμε χωρίς να πούμε συγγνώμη που σχεδόν σκουντηθήκαμε. Οι πόρτες έκλεισαν χώρια.",
+      "reviewer_focus": "Parallel waiting is not a dyad.",
+      "forbidden_inventions": [
+        "Shared fate",
+        "You missed a connection",
+        "Hospital anxiety"
+      ],
+      "probe_family": "unstaged_relation",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "house-becomes-boat",
+      "language": "el",
+      "title": "Το σπίτι-βάρκα",
+      "length_band": "medium",
+      "categories": [
+        "transformation_body_change_metamorphosis",
+        "strange_surreal"
+      ],
+      "narrative_features": [
+        "scene_shift",
+        "changing_locations",
+        "irrelevant_detail"
+      ],
+      "validation_buckets": [
+        "transformation"
+      ],
+      "content": "Το σπίτι μου στη μέση του δρόμου άρχισε να γέρνει και έγινε βάρκα, με τα έπιπλα να γλιστρούν προς τον τοίχο της κουζίνας. Βγήκα στο μπαλκόνι που ήταν πια πλώρη. Ο δρόμος από κάτω είχε γίνει ρηχό νερό. Οι γείτονες στεκόντουσαν στα πεζοδρόμια και κοιτούσαν χωρίς να φωνάζουν. Έπιασα το κάγκελο. Ένα μαξιλάρι έπεσε στο νερό και έμεινε να επιπλέει. Το σπίτι κουνήθηκε μια φορά και σταθεροποιήθηκε. Δεν αρμένισα πουθενά. Στην κουζίνα ένα ποτήρι κύλησε ως το ντουλάπι και σταμάτησε. Το μαξιλάρι στο νερό του δρόμου γύρισε αργά. Οι γείτονες έβγαλαν τηλέφωνα και τα κατέβασαν χωρίς να βγάλουν φωτογραφία. Το κάγκελο έτριζε. Ένα ποδήλατο στο απέναντι πεζοδρόμιο έμεινε δεμένο. Το νερό δεν ανέβηκε στις μπότες κανενός. Η βάρκα-σπίτι έγειρε ελάχιστα προς τα δεξιά και ισορρόπησε. Κοίταξα το σαλόνι μέσα από το τζάμι: ο καναπές είχε μαζευτεί στον τοίχο. Δεν άνοιξα πόρτα προς το νερό. Κάθισα στην πλώρη με τα πόδια μέσα.",
+      "reviewer_focus": "House-to-boat without voyage; do not invent leaving home as life task.",
+      "forbidden_inventions": [
+        "You must emigrate",
+        "Unstable psyche",
+        "Family is sinking"
+      ],
+      "probe_family": "rich_pass_regression",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "chased-through-hospital",
+      "language": "el",
+      "title": "Το νοσοκομείο τη νύχτα",
+      "length_band": "long",
+      "categories": [
+        "emotionally_intense"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "changing_locations",
+        "incomplete_ending",
+        "irrelevant_detail"
+      ],
+      "validation_buckets": [
+        "dense_emotionally_intense"
+      ],
+      "content": "Με κυνηγούσαν σε έναν διάδρομο νοσοκομείου που μύριζε απολυμαντικό και πορτοκάλι. Δεν έβλεπα πρόσωπα, μόνο βήματα πίσω μου που επιτάχυναν όταν επιτάχυνα κι εγώ. Πέρασα από μια αίθουσα αναμονής όπου μια τηλεόραση έπαιζε χωρίς ήχο ένα δελτίο και τα καθίσματα ήταν όλα στραμμένα προς τον τοίχο. Άνοιξα μια πόρτα που έγραφε ακτινολογία και βρέθηκα σε σκάλα υπηρεσίας. Κάτω ακουγόταν ένα καρότσι. Ανέβηκα. Στο πλατύσκαλο ένα ποτήρι νερό ήταν γεμάτο ως επάνω και δεν το άγγιξα. Τα βήματα ήρθαν στη σκάλα. Βγήκα σε έναν όροφο με τζαμαρία όπου έξω ήταν νύχτα και φαίνονταν φώτα πόλης πολύ μακριά. Κάποιος είπε το όνομά μου ήσυχα από πίσω, μία φορά. Δεν γύρισα. Έτρεξα προς το ασανσέρ, πάτησα το κουμπί, οι πόρτες άνοιξαν σε ένα σκοτεινό φρεάτιο χωρίς καμπίνα. Στάθηκα στο χείλος με τα γόνατα μαλακά. Τα βήματα πλησίασαν στην άκρη του χαλιού. Ξύπνησα πριν πέσω ή πριν με πιάσουν. Ο διάδρομος είχε πράσινο λινέλαιο που έτριζε κάτω από τα παπούτσια. Σε έναν τοίχο κρεμόταν αφίσα για δωρεά αίματος με μια γωνία ξεκολλημένη. Πέρασα ένα καρότσι με σεντόνια και το σπρώξιμο έκανε μεταλλικό ήχο. Η σκάλα υπηρεσίας μύριζε σκόνη και πορτοκάλι ακόμα πιο έντονα. Το ποτήρι στο πλατύσκαλο είχε μια φυσαλίδα στην επιφάνεια που δεν έσπαγε. Στην τζαμαρία φάνηκε ένα λεωφορείο μακριά, με όλα τα φώτα αναμμένα, να στρίβει. Το χαλί μπροστά στο ασανσέρ είχε ένα μικρό κάψιμο σαν από τσιγάρο. Πάτησα ξανά το κουμπί από συνήθεια και άκουσα μόνο τον άδειο άξονα. Τα βήματα πίσω σταμάτησαν για ένα δευτερόλεπτο και ξανάρχισαν πιο αργά. Έβαλα το χέρι στο πλαίσιο της πόρτας. Το μέταλλο ήταν κρύο. Κάτω στον όροφο μια πόρτα έκλεισε μαλακά. Δεν γύρισα. Το φρεάτιο μύριζε λάδι μηχανής. Τα γόνατα λύγισαν λίγο ακόμα. Περίμενα είτε το άγγιγμα είτε την πτώση και δεν ήρθε κανένα πριν ξυπνήσω. Ένα ρολόι στον τοίχο έδειχνε μια ώρα που δεν πρόλαβα να διαβάσω. Ο διάδρομος πίσω μου έμεινε άδειος στο πλάι του ματιού.",
+      "reviewer_focus": "Pursuit through changing rooms is the charge; do not invent who the pursuers are.",
+      "forbidden_inventions": [
+        "A specific abuser",
+        "Hospital trauma from waking life",
+        "You deserve punishment"
+      ],
+      "probe_family": "rich_pass_regression",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "funeral-cannot-stop-laughing",
+      "language": "el",
+      "title": "Το γέλιο στην κηδεία",
+      "length_band": "short",
+      "categories": [
+        "contradictory_paradoxical"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift"
+      ],
+      "validation_buckets": [
+        "contradictory_affect"
+      ],
+      "content": "Ήμουν σε κηδεία και δεν μπορούσα να σταματήσω να γελάω, ήσυχα στην αρχή και μετά με λυγμούς. Οι άλλοι με κοιτούσαν χωρίς θυμό. Προσπάθησα να βάλω το χέρι στο στόμα και το γέλιο έβγαινε από τη μύτη. Το φέρετρο ήταν κλειστό. Έξω έβρεχε λίγο. Κάθισα στο πίσω στασίδι μέχρι να τελειώσει η ακολουθία, ακόμα γελώντας.",
+      "reviewer_focus": "Laughter against a funeral is staged contradiction; do not invent disrespect or relief that the dream does not name.",
+      "forbidden_inventions": [
+        "You are glad they died",
+        "Hysteria diagnosis",
+        "Hidden hatred"
+      ],
+      "probe_family": "rich_pass_regression",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    },
+    {
+      "id": "hug-that-hurts-and-comforts",
+      "language": "el",
+      "title": "Η αγκαλιά που πονά",
+      "length_band": "short",
+      "categories": [
+        "contradictory_paradoxical",
+        "relational_intimate_erotic_vital"
+      ],
+      "narrative_features": [
+        "multiple_characters",
+        "staged_relation",
+        "affect_shift"
+      ],
+      "validation_buckets": [
+        "contradictory_affect",
+        "relational_staged"
+      ],
+      "content": "Με αγκάλιασε σφιχτά μέχρι να πονέσουν τα πλευρά και ταυτόχρονα η αγκαλιά με ηρεμούσε. Δεν τραβήχτηκα. Άκουγα την αναπνοή του στον ώμο μου. Όταν με άφησε, το σημάδι έμεινε στο δέρμα. Μείναμε όρθιοι στο πλατύσκαλο χωρίς να μιλήσουμε. Το σακάκι του μύριζε βροχή. Άκουγα μια πόρτα στον κάτω όροφο να κλείνει. Το σημάδι στα πλευρά ζεσταινόταν σιγά. Δεν άλλαξα στάση. Το φως του κλιμακοστασίου έμεινε το ίδιο.",
+      "reviewer_focus": "Pain and comfort are co-staged in one contact; do not invent abuse.",
+      "forbidden_inventions": [
+        "This is an abusive partner",
+        "You cannot leave",
+        "Masochism"
+      ],
+      "probe_family": "rich_pass_regression",
+      "source_fixture": "testing/live-scenarios/reflective-questions-v131-freeze-validation.v1.json"
+    }
+  ]
+}

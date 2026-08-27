@@ -1,0 +1,102 @@
+{
+  "version": "1.5.0",
+  "method_id": "reflective-question-psychological-aliveness-v1.5.0",
+  "cases": [
+    {
+      "id": "conflict-injured-cat",
+      "category": "conflict",
+      "language": "el",
+      "title": "Η τραυματισμένη γάτα",
+      "content": "Περπατούσα σε έναν ήσυχο δρόμο δίπλα σε μια τραυματισμένη γάτα. Δεν την εγκατέλειπα, αλλά αρνιόμουν να γυρίσω και να την κοιτάξω. Συνέχιζε να βαδίζει ακριβώς δίπλα μου.",
+      "expected_anchors": ["γάτα", "δίπλα", "κοιτάξω"],
+      "forbidden_assumptions": ["τραύμα του ονειρευόμενου", "καταπιεσμένη ζωτικότητα"],
+      "irreducible_structure": "The dreamer keeps exact proximity to the injured cat while actively refusing to turn and look at it.",
+      "must_not_drift_to": "A poetic abstraction about keeping the companionship alive that displaces the refusal of gaze.",
+      "reviewer_focus": "Use the genuine proximity-versus-gaze tension without turning the cat into a fixed interpretation."
+    },
+    {
+      "id": "peaceful-underwater-breathing",
+      "category": "peaceful",
+      "language": "el",
+      "title": "Αναπνοή κάτω από το νερό",
+      "content": "Βρισκόμουν βαθιά κάτω από τη θάλασσα. Το νερό ήταν εντελώς ήρεμο και κατάλαβα ότι μπορούσα να αναπνέω κανονικά. Ένιωθα γαλήνη και δεν ήθελα να ανέβω ακόμη στην επιφάνεια.",
+      "expected_anchors": ["θάλασσα", "αναπνέω", "γαλήνη"],
+      "forbidden_assumptions": ["κρυμμένος φόβος", "καταπίεση", "κίνδυνος"],
+      "irreducible_structure": "Breathing normally and peacefully deep underwater while wanting to remain below rather than surface yet.",
+      "must_not_drift_to": "A hidden danger, repression, or generic request to describe calmness already stated.",
+      "reviewer_focus": "Deepen calm and underwater capacity without manufacturing hidden danger or repression."
+    },
+    {
+      "id": "numinous-white-bird",
+      "category": "numinous",
+      "language": "el",
+      "title": "Το λευκό πουλί",
+      "content": "Ένα τεράστιο λευκό πουλί κατέβηκε αργά και στάθηκε δίπλα μου. Ήξερα ότι δεν το είχα ξαναδεί, αλλά ένιωθα πως το γνώριζα από πάντα. Δεν μίλησε και δεν φοβήθηκα.",
+      "expected_anchors": ["λευκό πουλί", "δίπλα", "γνώριζα"],
+      "forbidden_assumptions": ["έλλειψη", "σωτήρας", "μήνυμα από το υπερπέραν"],
+      "irreducible_structure": "A never-before-seen silent bird is experienced as known forever, without fear.",
+      "must_not_drift_to": "A generic question about the quality of presence or a doctrine about the bird's message.",
+      "reviewer_focus": "Stay with strange familiarity and presence instead of translating the bird into deficiency or doctrine."
+    },
+    {
+      "id": "erotic-vital-river",
+      "category": "erotic_vital",
+      "language": "el",
+      "title": "Χορός στο ποτάμι",
+      "content": "Χόρευα γυμνή μέσα σε ένα ρηχό, ζεστό ποτάμι με μια γυναίκα που δεν γνώριζα. Γελούσαμε και το νερό έλαμπε πάνω στο δέρμα μας. Ένιωθα επιθυμία, δύναμη και απόλυτη ελευθερία.",
+      "expected_anchors": ["χορεύ", "ποτάμι", "επιθυμία", "ελευθερία"],
+      "forbidden_assumptions": ["ντροπή", "εξάρτηση", "κρυφή απειλή", "έλλειψη ορίων"],
+      "irreducible_structure": "Nudity, laughter, desire, strength, and freedom coexist in a warm river dance with an unknown woman.",
+      "must_not_drift_to": "A reusable question about the quality of the relationship that leaves the singular conjunction unopened.",
+      "reviewer_focus": "Let erotic vitality, play, and freedom remain meaningful without pathologizing them."
+    },
+    {
+      "id": "strange-neutral-museum-phone",
+      "category": "strange_neutral",
+      "language": "el",
+      "title": "Το τηλέφωνο στο μουσείο",
+      "content": "Ήμουν μόνη σε ένα άδειο μουσείο. Στη μέση μιας αίθουσας υπήρχε ένα πράσινο τηλέφωνο που χτυπούσε, ενώ όλα τα εκθέματα ήταν σκεπασμένα με λευκά πανιά. Δεν ένιωθα φόβο ή περιέργεια· απλώς στεκόμουν και άκουγα τον ήχο.",
+      "expected_anchors": ["πράσινο τηλέφωνο", "μουσείο", "χτυπούσε", "άκουγα"],
+      "forbidden_assumptions": ["φοβάσαι να απαντήσεις", "αποφεύγεις", "καταπιεσμένο μήνυμα"],
+      "irreducible_structure": "A phone rings among covered exhibits while the affectively neutral dreamer simply stands and listens without answering.",
+      "must_not_drift_to": "A generic question about the quality of listening or an invented fear of answering.",
+      "reviewer_focus": "Follow vivid strangeness and neutral listening without inventing avoidance or urgency."
+    },
+    {
+      "id": "transformation-hands-wings",
+      "category": "transformation",
+      "language": "el",
+      "title": "Χέρια και φτερά",
+      "content": "Άνοιξα τα χέρια μου και είδα ότι είχαν γίνει μεγάλα γκρίζα φτερά. Τα κινούσα αργά και ένιωθα τον αέρα να περνά ανάμεσα στα πούπουλα. Δεν είχα ακόμη δοκιμάσει να πετάξω.",
+      "expected_anchors": ["χέρια", "φτερά", "αέρα", "πετάξω"],
+      "forbidden_assumptions": ["θέλεις να δραπετεύσεις", "φυγή", "φόβος δέσμευσης", "σε κρατούσε"],
+      "irreducible_structure": "Hands are already wings moving slowly enough to feel air through feathers; flight has simply not been attempted yet.",
+      "must_not_drift_to": "A generic inner-state question or any framing that makes not-yet-flying into hesitation, need, or blockage.",
+      "reviewer_focus": "Follow transformation and new capacity without automatically searching for escape."
+    },
+    {
+      "id": "explicit-affect-mother-relief",
+      "category": "explicit_affect",
+      "language": "el",
+      "title": "Η μητέρα και η ανακούφιση",
+      "content": "Είδα τη μητέρα μου νεκρή στο παλιό μας σπίτι. Όλοι μιλούσαν ψιθυριστά, αλλά εγώ ένιωθα τεράστια ανακούφιση. Άνοιξα όλα τα παράθυρα και το σπίτι γέμισε αέρα.",
+      "expected_anchors": ["μητέρα", "ανακούφιση", "παράθυρα", "αέρα"],
+      "forbidden_assumptions": ["κάτι μπορούσε να τελειώσει μόνο", "ήθελες τον θάνατό της", "ενοχή"],
+      "irreducible_structure": "Explicit relief accompanies the mother's dream-death, then opening every window fills the old house with air.",
+      "must_not_drift_to": "Re-asking what relief feels like or assuming why the mother had to die.",
+      "reviewer_focus": "Do not ask for the already-stated affect or assume what ended; open the changed dream world."
+    },
+    {
+      "id": "ordinary-blue-cups",
+      "category": "low_obvious_meaning",
+      "language": "el",
+      "title": "Τα μπλε φλιτζάνια",
+      "content": "Στην κουζίνα στοίβαζα τρία μικρά μπλε φλιτζάνια το ένα πάνω στο άλλο. Το πάνω φλιτζάνι γλιστρούσε λίγο και το ίσιωνα με το δάχτυλό μου. Μετά ξύπνησα χωρίς ιδιαίτερο συναίσθημα.",
+      "expected_anchors": ["μπλε φλιτζάνια", "στοίβαζα", "ίσιωνα"],
+      "forbidden_assumptions": ["ανάγκη ελέγχου", "εύθραυστη ισορροπία της ζωής", "κρυφό άγχος"],
+      "irreducible_structure": "A tiny slip of the top blue cup is answered by one exact finger correction, with almost no affect.",
+      "must_not_drift_to": "A two-lane image-or-feeling prompt, generic emotional inquiry, or inflated control/anxiety interpretation.",
+      "reviewer_focus": "Find a modest image-near opening without inflating ordinary material into a hidden problem."
+    }
+  ]
+}

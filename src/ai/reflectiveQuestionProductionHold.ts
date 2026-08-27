@@ -56,6 +56,8 @@ export const DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES = [
 export const FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256 =
   '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622';
 
+export const REFLECTIVE_QUESTION_RD_ROOT = 'src/ai/rd/reflective-questions';
+
 export const REFLECTIVE_QUESTION_RUNTIME_FILES = [
   'src/services/ai.ts',
   'supabase/functions/_shared/billing-ai.ts',

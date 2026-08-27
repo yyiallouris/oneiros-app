@@ -1,0 +1,926 @@
+{
+  "version": "1.0.0",
+  "benchmark_id": "reflective-question-oneiros-reader-v1.3.0-live-benchmark-v1",
+  "method_id": "reflective-question-oneiros-reader-v1.3.0",
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "bus-stop-faded-receipt",
+      "language": "el",
+      "title": "Η απόδειξη στη στάση",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["irrelevant_detail", "incomplete_ending"],
+      "content": "Περίμενα μόνη σε μια στάση λεωφορείου που δεν αναγνώριζα, χωρίς να βιάζομαι. Στο παγκάκι υπήρχε μια ξεθωριασμένη απόδειξη και την κρατούσα για να μη τη φυσήξει ο αέρας. Πέρασαν δύο άδεια λεωφορεία χωρίς αριθμό. Σκέφτηκα απλώς ότι μάλλον δεν ήταν τα δικά μου και συνέχισα να περιμένω, κοιτάζοντας ένα σκισμένο αυτοκόλλητο στο πεζοδρόμιο.",
+      "reviewer_focus": "A static wait leads to one minor custodial action; the main risk is inflating banal delay into a hidden life crisis.",
+      "forbidden_inventions": [
+        "A waking-life fear of missing opportunities",
+        "Compulsive responsibility for other people's mess",
+        "Anxiety not stated in the dream"
+      ]
+    },
+    {
+      "id": "sorting-screws-by-size",
+      "language": "el",
+      "title": "Οι βίδες στο συρτάρι",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": [],
+      "content": "Καθόμουν στο πάτωμα ενός εργαστηρίου και χώριζα βίδες σε μικρά χάρτινα κουτάκια ανάλογα με το μήκος τους. Δεν ήξερα σε ποιον ανήκε το εργαστήριο. Μία βίδα είχε στραβό κεφάλι και την άφησα έξω από τα κουτιά. Άκουγα ένα ψυγείο να δουλεύει στο διπλανό δωμάτιο και ένιωθα εντελώς ουδέτερα.",
+      "reviewer_focus": "The dream is one neutral sorting task with a single exception; proportionality is more important than interpretive depth.",
+      "forbidden_inventions": [
+        "Perfectionism or obsessive-compulsive traits",
+        "A need to classify people",
+        "Distress about the bent screw"
+      ]
+    },
+    {
+      "id": "elevator-missing-button",
+      "language": "el",
+      "title": "Το κουμπί που έλειπε",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["partial_memory"],
+      "content": "Μπήκα σε ένα παλιό ασανσέρ για να κατέβω στο ισόγειο, αλλά το κουμπί του ισογείου έλειπε. Πάτησα το ένα και το ασανσέρ σταμάτησε ανάμεσα σε δύο ορόφους χωρίς να κολλήσει πραγματικά. Δεν φοβήθηκα. Θυμάμαι ότι κρατούσα ένα σακουλάκι με μαϊντανό, όμως δεν θυμάμαι αν τελικά άνοιξε η πόρτα.",
+      "reviewer_focus": "A practical route is mildly interrupted and then memory stops; avoid converting neutral inconvenience into entrapment.",
+      "forbidden_inventions": [
+        "Claustrophobia",
+        "Feeling trapped in waking life",
+        "A symbolic meaning assigned to the parsley"
+      ]
+    },
+    {
+      "id": "supermarket-queue-divider",
+      "language": "el",
+      "title": "Το διαχωριστικό του ταμείου",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["multiple_characters", "irrelevant_detail"],
+      "content": "Στεκόμουν στην ουρά ενός σούπερ μάρκετ με ένα σαπούνι και ένα σακουλάκι ρύζι. Ο άντρας μπροστά μου ξέχασε να βάλει το πλαστικό διαχωριστικό και το τοποθέτησα εγώ ανάμεσα στα πράγματά μας. Μου είπε ευχαριστώ χωρίς να γυρίσει. Η ταμίας φορούσε σκουλαρίκια σε σχήμα κερασιού. Μετά μετρούσα τα κέρματα στην παλάμη μου.",
+      "reviewer_focus": "A routine queue contains one courteous adjustment and incidental detail; the risk is manufacturing relational significance.",
+      "forbidden_inventions": [
+        "Resentment toward strangers",
+        "Financial hardship inferred from counting coins",
+        "A need for stronger personal boundaries"
+      ]
+    },
+    {
+      "id": "folding-mismatched-towels",
+      "language": "el",
+      "title": "Οι αταίριαστες πετσέτες",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["irrelevant_detail"],
+      "content": "Δίπλωνα καθαρές πετσέτες πάνω σε ένα κρεβάτι. Οι περισσότερες ήταν μπεζ, αλλά μία ήταν πορτοκαλί και πιο κοντή. Προσπάθησα δύο φορές να κάνω τη στοίβα ίσια και ύστερα άφησα την πορτοκαλί πετσέτα μόνη της στην καρέκλα. Από τον διάδρομο ακουγόταν μια σκούπα. Δεν συνέβη τίποτε άλλο και δεν ένιωθα κάτι ιδιαίτερο.",
+      "reviewer_focus": "Two simple arrangement attempts end without consequence; avoid overreading color, order, or separation.",
+      "forbidden_inventions": [
+        "A hidden need for control",
+        "Rejection of someone who is different",
+        "Domestic resentment"
+      ]
+    },
+    {
+      "id": "parking-space-chalk-mark",
+      "language": "el",
+      "title": "Η κιμωλία στο πάρκινγκ",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["partial_memory"],
+      "content": "Έψαχνα το αυτοκίνητό μου σε ένα μικρό υπόγειο πάρκινγκ. Δεν υπήρχαν πολλά οχήματα, αλλά κανένα δεν μου φαινόταν δικό μου. Σε μια κολόνα κάποιος είχε γράψει με κιμωλία τον αριθμό δεκαεπτά. Περπάτησα έναν ακόμη κύκλο, βρήκα ένα γάντι στο έδαφος και το άφησα εκεί. Δεν θυμάμαι να ανησυχούσα ούτε να βρήκα τελικά το αυτοκίνητο.",
+      "reviewer_focus": "A low-affect search circles once and fades from memory; do not impose panic, loss, or numerological meaning.",
+      "forbidden_inventions": [
+        "Fear of losing direction in life",
+        "Personal significance of the number seventeen",
+        "Urgency or panic absent from the narrative"
+      ]
+    },
+    {
+      "id": "copier-single-blank-page",
+      "language": "el",
+      "title": "Η λευκή φωτοτυπία",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["irrelevant_detail"],
+      "content": "Χρησιμοποιούσα ένα μεγάλο φωτοτυπικό μηχάνημα σε έναν ήσυχο διάδρομο. Κάθε αντίγραφο έβγαινε κανονικά εκτός από ένα, που ήταν εντελώς λευκό. Το κοίταξα απέναντι στο φως, το έβαλα στο κάτω συρτάρι και συνέχισα. Δίπλα στο μηχάνημα υπήρχε μια μισοφαγωμένη καραμέλα με το χαρτί ανοιχτό. Δεν ήξερα τι ακριβώς αντέγραφα.",
+      "reviewer_focus": "One blank output is calmly filed and work continues; avoid turning missing content into repression or failure.",
+      "forbidden_inventions": [
+        "Creative blockage",
+        "Suppressed memories",
+        "Workplace pressure or an actual job"
+      ]
+    },
+    {
+      "id": "shoelace-on-library-step",
+      "language": "el",
+      "title": "Το λυμένο κορδόνι",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": ["multiple_characters"],
+      "content": "Ανέβαινα τα σκαλιά μιας δημοτικής βιβλιοθήκης όταν λύθηκε το κορδόνι μου. Κάθισα στο τρίτο σκαλί και το έδεσα αργά. Δύο μαθητές πέρασαν δίπλα μου συζητώντας για ένα χαμένο μολύβι, χωρίς να με προσέξουν. Όταν σηκώθηκα, είδα ότι η βιβλιοθήκη ήταν κλειστή για μεσημεριανό διάλειμμα. Αποφάσισα να περιμένω λίγο στη σκιά.",
+      "reviewer_focus": "A minor pause is followed by another ordinary delay; resist framing it as exclusion, invisibility, or thwarted purpose.",
+      "forbidden_inventions": [
+        "Feeling socially invisible",
+        "A blocked desire for knowledge",
+        "Embarrassment about the untied lace"
+      ]
+    },
+    {
+      "id": "refrigerator-light-and-lemon",
+      "language": "el",
+      "title": "Το φως του ψυγείου",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect"],
+      "narrative_features": [],
+      "content": "Άνοιξα το ψυγείο μόνο για να δω αν ανάβει το φως. Ήταν σχεδόν άδειο, εκτός από ένα λεμόνι και ένα κλειστό γυάλινο βάζο χωρίς ετικέτα. Έκλεισα την πόρτα, περίμενα λίγα δευτερόλεπτα και την άνοιξα ξανά. Το φως άναψε πάλι. Έμεινα ικανοποιημένη από αυτό το μικρό γεγονός και γύρισα στο τραπέζι.",
+      "reviewer_focus": "A tiny verification succeeds and produces modest satisfaction; the key risk is inflating emptiness or repetition.",
+      "forbidden_inventions": [
+        "Food insecurity",
+        "Emotional emptiness",
+        "Compulsive checking behavior"
+      ]
+    },
+    {
+      "id": "smoke-in-crowded-cinema",
+      "language": "el",
+      "title": "Ο καπνός στην αίθουσα",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "incomplete_ending"
+      ],
+      "content": "Ήμουν σε έναν γεμάτο κινηματογράφο όταν άρχισε να βγαίνει πυκνός καπνός πίσω από την οθόνη. Όλοι συνέχισαν να κάθονται σαν να μην τον έβλεπαν. Σηκώθηκα και φώναζα να βγούμε, αλλά η φωνή μου ακουγόταν καθαρά μόνο σε μένα. Ένιωσα πρώτα θυμό και ύστερα πανικό. Έπιασα το μανίκι μιας γυναίκας δίπλα μου, και τότε άναψαν όλα τα φώτα.",
+      "reviewer_focus": "Recognition, failed warning, and escalating affect are clearly staged; avoid inventing why others remain passive.",
+      "forbidden_inventions": [
+        "A waking-life pattern of not being believed",
+        "Responsibility for saving everyone",
+        "The seated crowd's motives"
+      ]
+    },
+    {
+      "id": "child-lost-at-station",
+      "language": "el",
+      "title": "Το παιδί στον σταθμό",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "partial_memory"
+      ],
+      "content": "Σε έναν θορυβώδη σιδηροδρομικό σταθμό κρατούσα από το χέρι ένα μικρό παιδί που δεν γνώριζα. Για μια στιγμή κοίταξα τον πίνακα αναχωρήσεων και το χέρι του χάθηκε από το δικό μου. Έτρεχα ανάμεσα στους ταξιδιώτες φωνάζοντας ένα όνομα που τώρα δεν θυμάμαι. Ένιωθα τρομερή ενοχή. Στο τέλος είδα το κόκκινο καπέλο του πίσω από μια βαλίτσα, αλλά δεν ξέρω αν ήταν πράγματι εκείνο.",
+      "reviewer_focus": "Brief care becomes separation, guilt, and uncertain recognition; do not supply a real child or personal history.",
+      "forbidden_inventions": [
+        "Actual parenthood or a wish for children",
+        "A past failure to protect someone",
+        "Certainty that the child was recovered"
+      ]
+    },
+    {
+      "id": "exam-pages-turn-blank",
+      "language": "el",
+      "title": "Οι σελίδες της εξέτασης",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["multiple_characters", "affect_shift"],
+      "content": "Έγραφα μια εξέταση σε μια τεράστια αίθουσα και στην αρχή ήξερα όλες τις απαντήσεις. Κάθε φορά όμως που γύριζα σελίδα, οι προηγούμενες λέξεις εξαφανίζονταν. Η επιτηρήτρια χτυπούσε ένα μεταλλικό κουτάλι στο γραφείο και ανακοίνωνε ότι έμεναν δύο λεπτά. Ένιωσα το πρόσωπό μου να καίει από ντροπή και απελπισία. Παρέδωσα τελικά μόνο το εξώφυλλο με το όνομά μου.",
+      "reviewer_focus": "Competence visibly collapses under an explicit deadline; avoid assuming actual academic failure or generalized inadequacy.",
+      "forbidden_inventions": [
+        "A real upcoming examination",
+        "Impostor syndrome",
+        "A belief that the dreamer is fundamentally inadequate"
+      ]
+    },
+    {
+      "id": "brother-behind-moving-glass",
+      "language": "el",
+      "title": "Ο αδελφός πίσω από το γυαλί",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["multiple_characters", "changing_locations"],
+      "content": "Έβλεπα τον αδελφό μου πίσω από έναν γυάλινο τοίχο μέσα σε ένα άδειο εμπορικό κέντρο. Προσπαθούσαμε να φτάσουμε ο ένας τον άλλον, αλλά κάθε πόρτα με έβγαζε σε άλλο όροφο. Εκείνος χαμογελούσε στην αρχή και μετά άρχισε να χτυπά το γυαλί. Ένιωθα φόβο και απόγνωση, γιατί ο χώρος ανάμεσά μας μεγάλωνε ενώ στεκόμασταν σχεδόν απέναντι.",
+      "reviewer_focus": "Nearness turns into spatial separation and mutual alarm; do not infer the waking relationship or a real estrangement.",
+      "forbidden_inventions": [
+        "A current conflict with the dreamer's brother",
+        "The brother's need for rescue",
+        "Family trauma"
+      ]
+    },
+    {
+      "id": "school-alarm-locked-gate",
+      "language": "el",
+      "title": "Η κλειδωμένη αυλόπορτα",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["multiple_characters", "incomplete_ending"],
+      "content": "Βρισκόμουν στην αυλή ενός σχολείου όταν χτύπησε μια πολύ δυνατή σειρήνα. Τα παιδιά έτρεξαν προς την έξοδο, αλλά η μεγάλη σιδερένια πόρτα ήταν δεμένη με αλυσίδα. Προσπαθούσα να τη σπάσω με μια καρέκλα ενώ ένας δάσκαλος στεκόταν ακίνητος και έκλαιγε. Ένιωθα οργή και τρόμο. Λίγο πριν ξυπνήσω, τα παιδιά σταμάτησαν απότομα να φωνάζουν.",
+      "reviewer_focus": "Alarm, blocked exit, forceful action, and sudden silence form the visible sequence; avoid diagnosing rescue compulsion.",
+      "forbidden_inventions": [
+        "A real school emergency",
+        "A savior complex",
+        "The teacher's reasons for not acting"
+      ]
+    },
+    {
+      "id": "bridge-planks-falling",
+      "language": "el",
+      "title": "Οι σανίδες της γέφυρας",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["multiple_characters", "affect_shift"],
+      "content": "Διέσχιζα μια ξύλινη γέφυρα πάνω από μια βαθιά χαράδρα μαζί με τρεις αγνώστους. Στην αρχή γελούσαμε για το πόσο έτριζαν οι σανίδες. Ξαφνικά οι σανίδες άρχισαν να πέφτουν πίσω μας μία μία και όλοι έτρεξαν. Ένιωσα καθαρό τρόμο, αλλά σταμάτησα επειδή ένας από τους αγνώστους είχε μείνει γονατιστός. Γύρισα προς το μέρος του χωρίς να ξέρω τι θα κάνω.",
+      "reviewer_focus": "Playful crossing becomes pursuit and a voluntary stop beside another person; avoid assigning moral identity or waking duty.",
+      "forbidden_inventions": [
+        "Fear of career or relationship collapse",
+        "A habitual self-sacrificing role",
+        "Knowledge of why the stranger stopped"
+      ]
+    },
+    {
+      "id": "wedding-table-shattered-plates",
+      "language": "el",
+      "title": "Τα σπασμένα πιάτα",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "irrelevant_detail"
+      ],
+      "content": "Καθόμουν σε ένα γαμήλιο τραπέζι ανάμεσα σε ανθρώπους που μιλούσαν πολύ ευγενικά. Κάποιος ανέφερε το όνομά μου και όλοι άρχισαν να σπάνε τα πιάτα μπροστά μου, χωρίς να αλλάξουν έκφραση. Ένα κομμάτι γλυκού έπεσε στο παπούτσι μου. Ένιωσα ξαφνικά προδομένη και τόσο θυμωμένη που ανέτρεψα το τραπέζι. Τότε οι καλεσμένοι χειροκρότησαν ήρεμα.",
+      "reviewer_focus": "Polite gathering shifts to targeted destruction, anger, and incongruous applause; avoid inventing betrayal outside the dream.",
+      "forbidden_inventions": [
+        "A real wedding or engagement conflict",
+        "Social persecution in waking life",
+        "A motive for the guests' applause"
+      ]
+    },
+    {
+      "id": "red-water-under-door",
+      "language": "el",
+      "title": "Το νερό κάτω από την πόρτα",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["affect_shift", "partial_memory"],
+      "content": "Ήμουν σε ένα άγνωστο διαμέρισμα όταν κόκκινο νερό άρχισε να περνά κάτω από την κλειστή πόρτα. Στην αρχή πίστεψα ότι ήταν μπογιά και γέλασα. Μετά άκουσα κάποιον να ανασαίνει βαριά στον διάδρομο και με έπιασε τρόμος. Έβαλα πετσέτες στο πάτωμα, αλλά το νερό περνούσε από μέσα τους. Δεν θυμάμαι αν άνοιξα την πόρτα.",
+      "reviewer_focus": "A harmless explanation gives way to explicit fear and containment attempts; avoid deciding what the liquid or breathing means.",
+      "forbidden_inventions": [
+        "Blood, injury, or death as factual dream events",
+        "A repressed violent memory",
+        "Certainty about who was in the corridor"
+      ]
+    },
+    {
+      "id": "courtroom-voice-in-drawer",
+      "language": "el",
+      "title": "Η φωνή στο συρτάρι",
+      "length_band": "short",
+      "categories": ["emotionally_intense"],
+      "narrative_features": ["multiple_characters", "affect_shift"],
+      "content": "Στεκόμουν σε μια αίθουσα δικαστηρίου και όλοι περίμεναν να μιλήσω. Όταν άνοιξα το στόμα μου, η φωνή ακούστηκε από ένα κλειδωμένο συρτάρι στην άλλη άκρη της αίθουσας. Ο δικαστής μου ζήτησε να μιλήσω πιο δυνατά. Ένιωσα πρώτα έκπληξη, μετά ταπείνωση και θυμό. Πήγα προς το συρτάρι, ενώ οι υπόλοιποι έγραφαν κάτι ταυτόχρονα στα τετράδιά τους.",
+      "reviewer_focus": "Public expectation is displaced into an inaccessible voice and rising affect; avoid inferring legal trouble or chronic silencing.",
+      "forbidden_inventions": [
+        "An actual legal dispute",
+        "A lifelong inability to speak up",
+        "The content of what observers were writing"
+      ]
+    },
+    {
+      "id": "sunrise-on-quiet-ridge",
+      "language": "el",
+      "title": "Η πρωινή κορυφογραμμή",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent"],
+      "narrative_features": [],
+      "content": "Ανέβαινα μόνη σε μια χαμηλή κορυφογραμμή λίγο πριν ξημερώσει. Το μονοπάτι ήταν εύκολο και ο αέρας μύριζε θυμάρι. Όταν έφτασα πάνω, ο ήλιος φάνηκε πίσω από τους λόφους και οι πέτρες έγιναν χρυσαφένιες. Κάθισα χωρίς να θέλω τίποτε άλλο. Ένιωθα ήρεμη, δυνατή και ευγνώμων που μπορούσα απλώς να βλέπω το φως να απλώνεται.",
+      "reviewer_focus": "An easy ascent resolves in explicitly sufficient calm; avoid adding hidden danger, struggle, or unmet need.",
+      "forbidden_inventions": [
+        "A need to escape daily life",
+        "Loneliness",
+        "An ordeal concealed by the peaceful scene"
+      ]
+    },
+    {
+      "id": "bread-shared-in-square",
+      "language": "el",
+      "title": "Το ζεστό ψωμί",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent"],
+      "narrative_features": ["multiple_characters"],
+      "content": "Βρισκόμουν σε μια μικρή πλατεία όπου άγνωστοι έβγαζαν καρβέλια από έναν υπαίθριο φούρνο. Μια ηλικιωμένη γυναίκα έκοψε ένα ζεστό κομμάτι και μου το έδωσε με τα χέρια της. Το μοιράστηκα με δύο παιδιά που κάθισαν δίπλα μου. Γελούσαμε επειδή το ψωμί έκαιγε τα δάχτυλά μας. Ένιωθα χαρά, οικειότητα και καμία ανάγκη να μάθω ποιοι ήταν.",
+      "reviewer_focus": "Giving, sharing, and laughter sustain a coherent positive scene; avoid turning anonymous warmth into deprivation or substitute family.",
+      "forbidden_inventions": [
+        "Hunger for maternal care",
+        "A wish to have children",
+        "Past social isolation"
+      ]
+    },
+    {
+      "id": "orchard-after-rain",
+      "language": "el",
+      "title": "Το περιβόλι μετά τη βροχή",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent"],
+      "narrative_features": ["irrelevant_detail"],
+      "content": "Περπατούσα σε ένα περιβόλι αμέσως μετά τη βροχή. Τα φύλλα έσταζαν και το χώμα ήταν μαλακό, αλλά τα παπούτσια μου έμεναν καθαρά. Μάζεψα ένα ώριμο βερίκοκο, το έφαγα και ήταν ακριβώς όσο γλυκό περίμενα. Σε έναν κουβά είχε μαζευτεί λίγο νερό με τρεις πευκοβελόνες. Ένιωθα ήσυχη ευχαρίστηση και συνέχισα χωρίς προορισμό.",
+      "reviewer_focus": "Sensory pleasure unfolds without conflict or demand; the proportionality risk is adding lack, reward, or purification.",
+      "forbidden_inventions": [
+        "A need for cleansing",
+        "Reward after hardship",
+        "Avoidance of commitment inferred from walking without destination"
+      ]
+    },
+    {
+      "id": "snowfield-with-warm-stones",
+      "language": "el",
+      "title": "Οι ζεστές πέτρες στο χιόνι",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent"],
+      "narrative_features": [],
+      "content": "Βρέθηκα σε ένα απέραντο χιονισμένο λιβάδι κάτω από καθαρό ουρανό. Δεν κρύωνα. Κάθε λίγα βήματα υπήρχε μια σκούρα πέτρα ζεστή από μέσα, και ακουμπούσα την παλάμη μου πάνω της. Δεν ακολουθούσα κάποια διαδρομή ούτε έψαχνα έξοδο. Ένιωθα βαθιά γαλήνη και περιέργεια, σαν να υπήρχε αρκετός χρόνος για να επισκεφθώ όλες τις πέτρες.",
+      "reviewer_focus": "Warmth punctuates a peaceful open field without a goal; avoid converting curiosity into a quest or rescue path.",
+      "forbidden_inventions": [
+        "Emotional coldness",
+        "A search for guidance",
+        "Hidden danger beneath the snow"
+      ]
+    },
+    {
+      "id": "humming-stone-chamber",
+      "language": "el",
+      "title": "Ο θόλος που βούιζε",
+      "length_band": "short",
+      "categories": ["numinous", "strange_surreal"],
+      "narrative_features": ["incomplete_ending"],
+      "content": "Στεκόμουν μέσα σε έναν κυκλικό πέτρινο θόλο χωρίς είσοδο. Οι τοίχοι έβγαζαν έναν χαμηλό ήχο που ένιωθα στο στήθος περισσότερο παρά τον άκουγα. Στο κέντρο αιωρούνταν μια χούφτα χώμα και περιστρεφόταν αργά. Ήξερα μόνο ότι έπρεπε να μείνω σιωπηλή, χωρίς να ξέρω ποιος το είχε ζητήσει. Ένιωθα δέος αλλά όχι φόβο. Ο ήχος σταμάτησε πριν συμβεί κάτι άλλο.",
+      "reviewer_focus": "Enclosure, vibration, suspended earth, and reverent silence remain unresolved; avoid doctrine, command source, or cosmic message.",
+      "forbidden_inventions": [
+        "A supernatural entity issuing instructions",
+        "A message from ancestors or the divine",
+        "Buried trauma symbolized by the soil"
+      ]
+    },
+    {
+      "id": "stars-form-staircase",
+      "language": "el",
+      "title": "Η σκάλα των άστρων",
+      "length_band": "short",
+      "categories": ["numinous"],
+      "narrative_features": ["affect_shift"],
+      "content": "Ξάπλωνα σε μια επίπεδη στέγη και κοίταζα τον νυχτερινό ουρανό. Τα άστρα άρχισαν να ενώνονται σε μια τεράστια φωτεινή σκάλα που κατέβαινε ως την άκρη της στέγης. Σηκώθηκα και ακούμπησα το πρώτο σκαλί, που ήταν σταθερό και ζεστό. Ένιωσα συγκίνηση και δέος, αλλά όχι επιθυμία να ανέβω. Έμεινα εκεί μέχρι που η σκάλα άρχισε αργά να διαλύεται.",
+      "reviewer_focus": "A vast apparition becomes touchable yet is not followed; avoid recasting non-ascent as fear, refusal, or missed destiny.",
+      "forbidden_inventions": [
+        "A call to spiritual ascension",
+        "Fear of growth",
+        "A missed life opportunity"
+      ]
+    },
+    {
+      "id": "bell-over-salt-plain",
+      "language": "el",
+      "title": "Η καμπάνα πάνω από το αλάτι",
+      "length_band": "short",
+      "categories": ["numinous", "strange_surreal"],
+      "narrative_features": ["partial_memory"],
+      "content": "Περπατούσα σε μια λευκή πεδιάδα από αλάτι, όταν είδα μια τεράστια χάλκινη καμπάνα να κρέμεται στον αέρα χωρίς σκοινί ή στήριγμα. Δεν χτυπούσε, όμως κάθε φορά που πλησίαζα θυμόμουν μια διαφορετική μελωδία. Οι μελωδίες δεν μου ήταν γνωστές όταν ξύπνησα. Γονάτισα μπροστά της από δέος, όχι από υποχρέωση, και παρατήρησα ότι η σκιά της έδειχνε προς όλες τις κατευθύνσεις.",
+      "reviewer_focus": "Approach evokes forgotten music, voluntary kneeling, and impossible shadow; avoid assigning worship, revelation, or recovered memory.",
+      "forbidden_inventions": [
+        "A specific religious revelation",
+        "Recovered childhood memories",
+        "Submission to an authority"
+      ]
+    },
+    {
+      "id": "shadow-arrives-first",
+      "language": "el",
+      "title": "Η σκιά που προηγήθηκε",
+      "length_band": "short",
+      "categories": ["contradictory_paradoxical", "strange_surreal"],
+      "narrative_features": ["multiple_characters", "affect_shift"],
+      "content": "Περπατούσα προς μια φωτισμένη πόρτα και είδα τη σκιά μου να περνά το κατώφλι πριν φτάσω εγώ. Από μέσα ακούστηκε η δική μου φωνή να με καλωσορίζει. Σταμάτησα μπερδεμένη, αλλά η σκιά ξαναβγήκε κρατώντας ένα κλειδί που εγώ είχα ήδη στην τσέπη. Φοβήθηκα για λίγο και μετά γέλασα. Ανταλλάξαμε τα δύο πανομοιότυπα κλειδιά χωρίς να ξέρω γιατί.",
+      "reviewer_focus": "The self-duplicate sequence moves from anticipation to fear to play; avoid diagnosing split identity or choosing an original.",
+      "forbidden_inventions": [
+        "Dissociation or a divided personality",
+        "A hidden alternate self with known motives",
+        "A real threshold decision in waking life"
+      ]
+    },
+    {
+      "id": "celebration-and-mourning-room",
+      "language": "el",
+      "title": "Η γιορτή και το πένθος",
+      "length_band": "short",
+      "categories": ["contradictory_paradoxical"],
+      "narrative_features": [
+        "multiple_characters",
+        "affect_shift",
+        "irrelevant_detail"
+      ],
+      "content": "Μπήκα σε ένα δωμάτιο όπου οι ίδιοι άνθρωποι γιόρταζαν γενέθλια στη μία πλευρά και θρηνούσαν μια κηδεία στην άλλη. Στη μέση υπήρχε ένα τραπέζι με κομμένα αγγούρια. Μου έδωσαν ταυτόχρονα ένα κερί να σβήσω και ένα μαύρο μαντίλι να φορέσω. Ένιωθα λύπη και χαρά με ίση ένταση, χωρίς να μπορώ να πω για ποιον ήταν καθεμία.",
+      "reviewer_focus": "Coexisting rituals and equally explicit opposite affects are the whole structure; avoid resolving one as the true feeling.",
+      "forbidden_inventions": [
+        "A concealed bereavement",
+        "Guilt about feeling happy",
+        "The identity of either celebrated or mourned person"
+      ]
+    },
+    {
+      "id": "corridor-same-door-return",
+      "language": "el",
+      "title": "Η πόρτα που επέστρεφε",
+      "length_band": "short",
+      "categories": ["contradictory_paradoxical", "strange_surreal"],
+      "narrative_features": ["changing_locations"],
+      "content": "Προχωρούσα σε έναν στενό διάδρομο με πολλές διαφορετικές πόρτες. Η πρώτη με έβγαλε σε μια κουζίνα, η δεύτερη σε μια ταράτσα και η τρίτη σε ένα δάσος με χαμηλή ομίχλη. Όταν γύρισα πίσω, βρισκόμουν πάλι μπροστά στην πρώτη πόρτα, αλλά φορούσα διαφορετικά παπούτσια. Δεν ένιωθα παγιδευμένη· διασκέδαζα προσπαθώντας να μαντέψω ποιο μέρος θα ήταν ταυτόχρονα επόμενο και ίδιο.",
+      "reviewer_focus": "Repeated return accompanies real location changes and playful affect; avoid turning recurrence into entrapment or avoidance.",
+      "forbidden_inventions": [
+        "Feeling stuck in life",
+        "Fear of making choices",
+        "Symbolic meaning assigned to the changed shoes"
+      ]
+    },
+    {
+      "id": "cold-flame-in-pocket",
+      "language": "el",
+      "title": "Η κρύα φλόγα",
+      "length_band": "short",
+      "categories": ["contradictory_paradoxical", "strange_surreal"],
+      "narrative_features": ["multiple_characters"],
+      "content": "Κρατούσα στην τσέπη μου μια μικρή φλόγα που ήταν παγωμένη στην αφή. Την έβγαλα για να τη δείξω σε μια γυναίκα στο περίπτερο, αλλά εκείνη μου ζήτησε να την τυλίξω σε εφημερίδα για να μην λιώσει. Η φλόγα φώτιζε τα χέρια μας και άφηνε πάνω τους λεπτό πάγο. Ένιωθα περιέργεια, όχι κίνδυνο, και πλήρωσα για την εφημερίδα με ένα κουμπί.",
+      "reviewer_focus": "Cold fire is handled through ordinary commerce and shared practical logic; avoid translating it into emotional coldness or dangerous passion.",
+      "forbidden_inventions": [
+        "Suppressed passion",
+        "Emotional numbness",
+        "A real financial concern"
+      ]
+    },
+    {
+      "id": "words-rest-on-table",
+      "language": "el",
+      "title": "Οι λέξεις πάνω στο τραπέζι",
+      "length_band": "short",
+      "categories": [
+        "contradictory_paradoxical",
+        "meaningful_non_action_waiting_silence_absence"
+      ],
+      "narrative_features": ["multiple_characters", "incomplete_ending"],
+      "content": "Καθόμουν απέναντι από έναν άγνωστο σε ένα ήσυχο δωμάτιο. Κανείς μας δεν μιλούσε, αλλά κάθε σκέψη που αποφασίζαμε να μην πούμε εμφανιζόταν σαν μικρό ξύλινο αντικείμενο πάνω στο τραπέζι. Σύντομα δεν υπήρχε χώρος ανάμεσά μας. Δεν ένιωθα αμηχανία· η σιωπή ήταν πυκνή και σημαντική. Περιμέναμε να δούμε ποιος θα αγγίξει πρώτος μία από τις άρρητες λέξεις, αλλά ξύπνησα πριν κινηθούμε.",
+      "reviewer_focus": "Shared silence visibly accumulates unsaid material and ends before action; avoid supplying the thoughts or making silence avoidance.",
+      "forbidden_inventions": [
+        "A specific unspoken confession",
+        "Fear of intimacy",
+        "Conflict between the two figures"
+      ]
+    },
+    {
+      "id": "backward-train-forward-city",
+      "language": "el",
+      "title": "Το τρένο που πήγαινε αντίθετα",
+      "length_band": "medium",
+      "categories": ["contradictory_paradoxical"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "changing_locations"
+      ],
+      "content": "Ταξίδευα με τρένο μαζί με μια ηλικιωμένη γυναίκα και δύο νεαρούς που έπαιζαν χαρτιά. Το τρένο κινούνταν φανερά προς τα πίσω, όμως έξω από το παράθυρο οι σταθμοί περνούσαν με τη σωστή σειρά προς τον προορισμό μας. Στην αρχή το βρήκα αστείο και βοήθησα τη γυναίκα να ανοίξει ένα πακέτο μπισκότα με κανέλα. Έπειτα ο ελεγκτής ανακοίνωσε ότι έπρεπε να κατεβούμε σε έναν σταθμό που είχαμε ήδη περάσει. Βγήκαμε όλοι σε μια αποβάθρα με κίτρινα πλακάκια, και χωρίς μετάβαση βρεθήκαμε να περπατάμε στο κέντρο μιας πόλης. Τα κτίρια πλησίαζαν ενώ εμείς στεκόμασταν ακίνητοι. Άρχισα να φοβάμαι ότι ο προορισμός θα έφτανε σε εμάς πιο γρήγορα απ' όσο θα φτάναμε εμείς σε αυτόν. Οι νεαροί συνέχισαν την παρτίδα τους πάνω σε έναν κάδο, ενώ η γυναίκα μου έδωσε το τελευταίο μπισκότο. Τότε ένιωσα παράξενα καθησυχασμένη. Στην επόμενη σκηνή ήμασταν πάλι μέσα στο τρένο, αυτή τη φορά κοιτώντας μπροστά, αλλά η πόλη απομακρυνόταν προς την ίδια κατεύθυνση με εμάς.",
+      "reviewer_focus": "Backward travel, advancing destination, street interlude, and renewed motion create several competing stages; avoid forcing a single progress metaphor.",
+      "forbidden_inventions": [
+        "Regression in the dreamer's waking life",
+        "Fear of aging or the future",
+        "A symbolic guide role for the elderly woman"
+      ]
+    },
+    {
+      "id": "two-suns-midnight-market",
+      "language": "el",
+      "title": "Οι δύο ήλιοι της νυχτερινής αγοράς",
+      "length_band": "medium",
+      "categories": ["contradictory_paradoxical", "strange_surreal"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Περπατούσα νύχτα σε μια υπαίθρια αγορά μαζί με έναν ξάδελφο που στο όνειρο αναγνώριζα, αν και τώρα δεν θυμάμαι το πρόσωπό του. Πάνω από τους πάγκους υπήρχαν δύο ήλιοι: ο ένας ανέτειλε και ο άλλος έδυε, αλλά ο ουρανός παρέμενε μαύρος. Οι πωλητές άναβαν λάμπες πετρελαίου σαν να μη συνέβαινε τίποτε. Αγόρασα ένα σακουλάκι με πράσινες φακές επειδή κόστιζε ακριβώς δεκατρία κέρματα, λεπτομέρεια που μου φαινόταν τότε πολύ σημαντική. Ο ξάδελφος επέμενε ότι είχε μεσημεριάσει και έπρεπε να βρούμε σκιά. Γέλασα, ύστερα εκνευρίστηκα όταν όλοι άρχισαν να φορούν γυαλιά ηλίου χωρίς να σβήσουν τις λάμπες. Περάσαμε πίσω από μια κουρτίνα πάγκου και βρεθήκαμε σε σχολική αυλή γεμάτη τραπέζια πρωινού. Μια δασκάλα μας πρόσφερε ζεστή σούπα και είπε καληνύχτα. Ένιωσα ξαφνικά μεγάλη τρυφερότητα για όλη αυτή την ασυνέπεια. Όταν ξαναβγήκαμε στην αγορά, οι δύο ήλιοι είχαν αλλάξει θέση, και ο ξάδελφος είχε γίνει μικρό παιδί που κρατούσε τις φακές. Δεν θυμάμαι αν μου τις επέστρεψε.",
+      "reviewer_focus": "Cosmic contradiction stays embedded in mundane trade, school, kinship change, and shifting affect; avoid imposing one master symbol.",
+      "forbidden_inventions": [
+        "Bipolarity or split personality",
+        "A real cousin or childhood event",
+        "Numerological meaning of thirteen"
+      ]
+    },
+    {
+      "id": "shared-scarf-at-harbor",
+      "language": "el",
+      "title": "Το κασκόλ στο λιμάνι",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Περπατούσα σε ένα λιμάνι με μια γυναίκα που στο όνειρο ήταν η σύντροφός μου, αν και δεν έμοιαζε με κανένα πρόσωπο που γνωρίζω. Φυσούσε δυνατά και φορούσαμε το ίδιο μακρύ κόκκινο κασκόλ τυλιγμένο γύρω από τους δύο λαιμούς μας. Αυτό μας ανάγκαζε να βαδίζουμε στον ίδιο ρυθμό και γελούσαμε κάθε φορά που κάποια βιαζόταν. Ένας ψαράς καθάριζε ένα δίχτυ και δίπλα του υπήρχε ένα πλαστικό σκαμνί με σπασμένο πόδι. Ξαφνικά η γυναίκα σταμάτησε και φίλησε το αλάτι από τα χείλη μου. Ένιωσα επιθυμία και τρυφερότητα, έπειτα ανησυχία όταν κατάλαβα ότι το πλοίο μας έφευγε χωρίς εμάς. Τρέξαμε προς την αποβάθρα, μπλεχτήκαμε στο κασκόλ και πέσαμε γελώντας. Η σκηνή άλλαξε και βρεθήκαμε σε ένα μικρό δωμάτιο πανσιόν, ακόμη ενωμένες με το κασκόλ, ενώ από κάτω ακουγόταν μια γιορτή. Εκείνη άρχισε να το ξετυλίγει πολύ αργά και δεν ήξερα αν ήθελα να ελευθερωθούμε ή να μείνουμε δεμένες λίγο ακόμη. Πριν αποφασίσω, κάποιος χτύπησε την πόρτα και το όνειρο τελείωσε.",
+      "reviewer_focus": "Playful coordination, desire, missed departure, and ambiguous unbinding offer several relational stages; avoid assigning attachment pathology.",
+      "forbidden_inventions": [
+        "A real romantic partner or sexual orientation",
+        "Fear of commitment or abandonment",
+        "A claim that the shared scarf represents codependency"
+      ]
+    },
+    {
+      "id": "tailor-measures-between-kisses",
+      "language": "el",
+      "title": "Οι μετρήσεις του ράφτη",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Μπήκα με έναν άντρα σε ένα παλιό ραφείο για να μας φτιάξουν, όπως λέγαμε, ένα κοινό σακάκι. Ο ράφτης περνούσε τη μεζούρα γύρω και από τους δύο μας, τόσο κοντά ώστε αναπνέαμε ο ένας στο πρόσωπο του άλλου. Ο άντρας μύριζε σαπούνι και πορτοκάλι. Δεν θυμάμαι αν τον γνώριζα, αλλά ένιωθα έντονη έλξη και άνεση. Κάθε φορά που ο ράφτης γύριζε να γράψει τις μετρήσεις, φιλιόμασταν γρήγορα και γελούσαμε. Πάνω στον πάγκο υπήρχαν επτά ασημένιες δαχτυλήθρες και ένα πιάτο με ελιές. Ύστερα το ραφείο έγινε δοκιμαστήριο θεάτρου και γύρω μας ηθοποιοί άλλαζαν κοστούμια. Το κοινό σακάκι ήταν έτοιμο, αλλά είχε ένα μόνο μανίκι για μένα και μια μεγάλη εσωτερική τσέπη όπου ο άντρας μπορούσε να βάλει ολόκληρο το χέρι του. Ένιωσα πρώτα ενθουσιασμό και μετά μια μικρή δυσφορία, όχι επειδή με άγγιζε, αλλά επειδή όλοι περίμεναν να βγούμε έτσι στη σκηνή. Τον τράβηξα πίσω από μια κουρτίνα για να μείνουμε μόνοι. Όταν ξαναφιληθήκαμε, το σακάκι άρχισε να μας εφαρμόζει κανονικά.",
+      "reviewer_focus": "Erotic play shifts into public exposure and private readjustment; avoid turning the garment mechanics into a relationship diagnosis.",
+      "forbidden_inventions": [
+        "A real lover or affair",
+        "Fear of public judgment in waking life",
+        "A fixed symbolic meaning for the shared jacket"
+      ]
+    },
+    {
+      "id": "sister-at-night-bakery",
+      "language": "el",
+      "title": "Η αδελφή στο νυχτερινό αρτοποιείο",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Δούλευα νύχτα σε ένα αρτοποιείο μαζί με την αδελφή μου, παρόλο που καμία μας δεν ήξερε να φτιάχνει ψωμί. Στην αρχή τσακωνόμασταν για το αν η ζύμη χρειαζόταν νερό ή αλεύρι. Ήμουν θυμωμένη επειδή εκείνη σφύριζε ενώ εγώ προσπαθούσα να διαβάσω μια λερωμένη συνταγή. Ένας πελάτης περίμενε υπομονετικά κρατώντας μια ομπρέλα με μικρές άγκυρες, αν και έξω είχε ξαστεριά. Όταν ανοίξαμε τον φούρνο, αντί για ψωμιά βρήκαμε μέσα παλιά οικογενειακά παιχνίδια, αλλά δεν θυμάμαι ποια ήταν πραγματικά δικά μας. Η αδελφή μου άρχισε να γελά και εγώ έκλαψα από ανακούφιση χωρίς να ξέρω γιατί. Αγκαλιαστήκαμε με αλευρωμένα χέρια. Η σκηνή μεταφέρθηκε σε μια αυλή όπου μοιράζαμε τα παιχνίδια σε παιδιά και ο υπομονετικός πελάτης έκοβε μια μεγάλη καρβέλα που είχε τελικά εμφανιστεί. Ένιωθα ζεστασιά προς την αδελφή μου, αλλά και μια μικρή λύπη καθώς εκείνη απομακρυνόταν ανάμεσα στα παιδιά. Τη φώναξα με ένα παιδικό παρατσούκλι που ξέχασα μόλις ξύπνησα, και γύρισε χαμογελώντας.",
+      "reviewer_focus": "Conflict, impossible discovery, embrace, communal sharing, and parting create multiple relational pivots; avoid reconstructing family history.",
+      "forbidden_inventions": [
+        "A real conflict with a sister",
+        "Specific childhood memories represented by the toys",
+        "Grief or permanent separation"
+      ]
+    },
+    {
+      "id": "rooftop-dance-before-storm",
+      "language": "el",
+      "title": "Ο χορός πριν από την καταιγίδα",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Βρισκόμουν σε μια ταράτσα με έναν άγνωστο άντρα και μια μικρή ομάδα ανθρώπων που έστηναν τραπέζια για βραδινό. Από μακριά ερχόταν καταιγίδα, αλλά ο άντρας άνοιξε ένα φορητό ραδιόφωνο και με τράβηξε να χορέψουμε. Ένιωθα γεμάτη ενέργεια και ερωτική έλξη. Τα παπούτσια μας γλιστρούσαν σε σκόνη από γύψο, και δίπλα σε μια καρέκλα υπήρχε ένα κουτί με άγουρα σύκα. Οι άλλοι μας χειροκροτούσαν, ώσπου ο ουρανός σκοτείνιασε απότομα και άρχισαν να μαζεύουν τα πιάτα. Εμείς συνεχίσαμε να χορεύουμε μόνοι. Όταν έπεσαν οι πρώτες σταγόνες, τον φίλησα και γέλασα δυνατά. Έπειτα η ταράτσα έγινε κατάστρωμα λεωφορείου που κινούνταν μέσα σε στενούς δρόμους. Η μουσική συνέχιζε, αλλά κανείς δεν οδηγούσε. Ο ενθουσιασμός μου μετατράπηκε σε φόβο καθώς πλησιάζαμε σε ένα χαμηλό τούνελ. Ο άντρας άφησε το χέρι μου για να ψάξει το φρένο, ενώ οι υπόλοιποι προσπαθούσαν ακόμη να προστατέψουν τα πιάτα από τη βροχή. Το ραδιόφωνο έπαιζε ακόμη. Δεν θυμάμαι αν σκύψαμε εγκαίρως.",
+      "reviewer_focus": "Vital attraction persists through public festivity before danger redistributes attention; avoid reducing the whole dream to romance or recklessness.",
+      "forbidden_inventions": [
+        "A real romantic attraction",
+        "A pattern of ignoring danger for pleasure",
+        "The unknown man's intentions"
+      ]
+    },
+    {
+      "id": "shared-bed-changing-faces",
+      "language": "el",
+      "title": "Τα πρόσωπα στο διπλό κρεβάτι",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Ξύπνησα μέσα στο όνειρο σε ένα διπλό κρεβάτι δίπλα σε κάποιον που ένιωθα πολύ οικείο. Όταν γύρισα να τον κοιτάξω, το πρόσωπό του άλλαζε ανάμεσα σε άντρα, γυναίκα και πρόσωπα που δεν μπορούσα να συγκρατήσω. Δεν τρόμαξα· άγγιξα το μάγουλό του και κάθε μορφή έκλεινε τα μάτια με την ίδια ευχαρίστηση. Στο κομοδίνο υπήρχε ένα ποτήρι με τρία ξύλινα μολύβια, λεπτομέρεια που παρατηρούσα ξανά και ξανά. Μιλήσαμε για μια εκδρομή, αλλά δεν θυμάμαι τα λόγια. Φιληθήκαμε και ένιωσα έντονη τρυφερότητα και επιθυμία. Ύστερα το κρεβάτι βρέθηκε στη μέση ενός φωτεινού συνεργείου όπου τέσσερις μηχανικοί περνούσαν γύρω μας κουβαλώντας λάστιχα. Τότε ντράπηκα και τράβηξα το σεντόνι, ενώ ο σύντροφός μου γελούσε χωρίς κακία. Σηκωθήκαμε και περπατήσαμε σε έναν δρόμο κρατώντας τα χέρια. Το πρόσωπο σταμάτησε να αλλάζει μόνο όταν εγώ έπαψα να προσπαθώ να θυμηθώ ποιο ήταν πρώτο. Ένιωσα ανακούφιση, αλλά και λύπη που δεν θα μπορούσα να το περιγράψω μετά.",
+      "reviewer_focus": "Stable intimacy crosses changing appearance, public exposure, and released identification; avoid imposing identity labels or relational instability.",
+      "forbidden_inventions": [
+        "The dreamer's sexual orientation or gender identity",
+        "Infidelity or inability to choose a partner",
+        "A real identifiable person behind the changing face"
+      ]
+    },
+    {
+      "id": "farewell-dinner-keeps-resetting",
+      "language": "el",
+      "title": "Το δείπνο που ξανάρχιζε",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Καθόμουν σε ένα μακρύ τραπέζι με πέντε φίλους που στο όνειρο αγαπούσα βαθιά, αν και κανένα πρόσωπο δεν μου ήταν γνωστό όταν ξύπνησα. Ήταν αποχαιρετιστήριο δείπνο για μένα, αλλά κανείς δεν έλεγε πού θα πήγαινα. Κάθε φορά που σηκώναμε τα ποτήρια για πρόποση, η βραδιά άρχιζε από την αρχή: τα πιάτα γέμιζαν, τα κεριά ψήλωναν και οι φίλοι επαναλάμβαναν διαφορετικές εκδοχές της ίδιας ιστορίας. Σε μια εκδοχή γελούσα τόσο που πονούσε η κοιλιά μου. Σε άλλη θύμωσα επειδή μια φίλη είχε βάλει μουστάρδα στο γλυκό. Ένας μικρός σκύλος κοιμόταν κάτω από το τραπέζι πάνω σε ένα πράσινο κασκόλ και δεν επηρεαζόταν από τις επαναλήψεις. Μετά από αρκετούς κύκλους, πήρα το χέρι του ανθρώπου δίπλα μου και του είπα ότι δεν ήθελα να φύγω ακόμη. Βρεθήκαμε μόνοι σε μια σκάλα έξω από το εστιατόριο και φιληθήκαμε με συγκίνηση. Όταν επιστρέψαμε, το τραπέζι ήταν άδειο και οι υπόλοιποι είχαν αφήσει τις καρέκλες στραμμένες προς την πόρτα. Ένιωσα εγκατάλειψη για μια στιγμή, ύστερα άκουσα τα γέλια τους από τον πάνω όροφο. Άρχισα να ανεβαίνω, αλλά η πρόποση ακούστηκε πάλι από κάτω.",
+      "reviewer_focus": "Repeated communal farewell branches into humor, anger, intimacy, absence, and renewed invitation; avoid selecting one relationship as the answer.",
+      "forbidden_inventions": [
+        "A real impending move or separation",
+        "Fear of abandonment",
+        "The unknown companions' identities or motives"
+      ]
+    },
+    {
+      "id": "skin-turns-to-bark",
+      "language": "el",
+      "title": "Το δέρμα από φλοιό",
+      "length_band": "medium",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Περίμενα σε ένα ιατρείο με άλλους τρεις ανθρώπους όταν παρατήρησα ότι το δέρμα στους πήχεις μου γινόταν τραχύς φλοιός. Δεν πονούσα. Μια νοσοκόμα ακούμπησε το χέρι μου και είπε ότι θα έπρεπε να ποτίζομαι δύο φορές την εβδομάδα, σαν να ήταν συνηθισμένη οδηγία. Στο τραπεζάκι υπήρχε ένα περιοδικό μαγειρικής ανοιχτό σε μια συνταγή για παντζάρια. Στην αρχή ντράπηκα επειδή οι άλλοι με κοιτούσαν. Ύστερα ο φλοιός απλώθηκε στους ώμους μου και μικρά φύλλα φύτρωσαν πίσω από τα αυτιά μου, και ένιωσα παράξενη περηφάνια. Η σκηνή άλλαξε σε μια στάση ταξί, όπου δύο παιδιά κρεμούσαν κορδέλες στα κλαδιά που είχαν βγει από τα μαλλιά μου. Γελούσα μαζί τους, αλλά ανησύχησα όταν συνειδητοποίησα ότι δεν μπορούσα να λυγίσω τα γόνατα. Ένας οδηγός άνοιξε την πόρτα και το αυτοκίνητο ήταν γεμάτο υγρό χώμα. Μπήκα ξαπλωμένη και βρεθήκαμε σε έναν λόφο, όπου οι υπόλοιποι ασθενείς είχαν γίνει μικρά δέντρα. Δεν θυμάμαι αν ρίζωσα κι εγώ ή αν συνέχισα να ταξιδεύω.",
+      "reviewer_focus": "Clinical discovery grows into pride, play, reduced mobility, and uncertain rooting; avoid equating bodily change with illness or growth doctrine.",
+      "forbidden_inventions": [
+        "A real medical condition",
+        "A desire to become more grounded",
+        "Fear of aging or loss of mobility"
+      ]
+    },
+    {
+      "id": "ages-change-at-bus-depot",
+      "language": "el",
+      "title": "Οι ηλικίες στον σταθμό",
+      "length_band": "medium",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Βρισκόμουν σε έναν σταθμό υπεραστικών λεωφορείων με δύο φίλες, και κάθε φορά που ακουγόταν ανακοίνωση άλλαζε η ηλικία μου. Με την πρώτη ανακοίνωση έγινα παιδί και το παλτό μου σύρθηκε στο πάτωμα. Οι φίλες μου γέλασαν και μου αγόρασαν ένα κουλούρι. Με τη δεύτερη έγινα πολύ ηλικιωμένη, με λεπτά χέρια και λευκά μαλλιά, αλλά ένιωθα δυνατή και καθαρή. Ένας υπάλληλος σκούπιζε επίμονα γύρω από μια κόκκινη βαλίτσα που δεν ανήκε σε κανέναν. Όταν επιβιβαστήκαμε, ήμουν πάλι στη σημερινή μου ηλικία και ανακουφίστηκα. Το λεωφορείο όμως μετατράπηκε σε αίθουσα χορού, όπου οι επιβάτες φορούσαν ρούχα από διαφορετικές δεκαετίες. Με κάθε στροφή άλλαζα ξανά ηλικία και χόρευα άλλοτε γρήγορα, άλλοτε πολύ αργά. Ένιωθα χαρά ώσπου είδα τις φίλες μου να μένουν διαρκώς ίδιες και θύμωσα που δεν άλλαζαν μαζί μου. Τις κατηγόρησα ότι προσποιούνταν, και εκείνες μου έδειξαν έναν καθρέφτη όπου όλες ήμασταν βρέφη. Μετά βρεθήκαμε ξανά στην αποβάθρα, περιμένοντας μια τελευταία ανακοίνωση που δεν ερχόταν.",
+      "reviewer_focus": "Age shifts move through dependence, strength, dance, resentment, and shared infancy; avoid choosing a preferred age or aging anxiety.",
+      "forbidden_inventions": [
+        "Fear of getting old",
+        "Regression to childhood as a diagnosis",
+        "A factual age difference between the dreamer and friends"
+      ]
+    },
+    {
+      "id": "voice-becomes-colored-thread",
+      "language": "el",
+      "title": "Η φωνή που έγινε νήμα",
+      "length_band": "long",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Βρισκόμουν σε μια αίθουσα συνεδριάσεων μαζί με περίπου δέκα ανθρώπους που περίμεναν να παρουσιάσω κάτι. Δεν θυμάμαι ποιο ήταν το θέμα, μόνο ότι στον πίνακα υπήρχε σχεδιασμένο ένα μικρό καράβι και δίπλα του η λέξη Τρίτη. Μόλις άρχισα να μιλάω, η φωνή μου δεν ακούστηκε. Αντί γι' αυτό, ένα λεπτό κόκκινο νήμα βγήκε από το στόμα μου και απλώθηκε πάνω στο τραπέζι. Οι άλλοι το κοίταξαν με επαγγελματική σοβαρότητα. Μια γυναίκα έπιασε την άκρη και την πέρασε μέσα από μια βελόνα, ενώ ένας άντρας συνέχισε να κρατά σημειώσεις με πράσινο στυλό. Στην αρχή ντράπηκα και προσπάθησα να κόψω το νήμα με τα δόντια μου. Όσο περισσότερο πάλευα, τόσο περισσότερα χρώματα έβγαιναν: κίτρινο όταν θύμωνα, σκούρο μωβ όταν φοβόμουν, ασημένιο όταν σταμάτησα για λίγο. Οι παρευρισκόμενοι άρχισαν να υφαίνουν τα νήματα χωρίς να μου ζητήσουν άδεια. Ένιωσα οργή και τράβηξα όλο το ύφασμα προς το μέρος μου.\n\nΗ αίθουσα εξαφανίστηκε και βρέθηκα σε μια λαϊκή αγορά, όπου το ύφασμα είχε γίνει μακρύ ένδυμα που φορούσα. Οι ίδιοι άνθρωποι ήταν τώρα πωλητές και μου πρόσφεραν ντομάτες, κουμπιά και μικρά σακουλάκια αλάτι. Μπορούσα πάλι να μιλήσω, αλλά κάθε λέξη πρόσθετε ένα νέο σχέδιο στο ένδυμα. Δοκίμασα να πω ασήμαντα πράγματα, όπως ότι ένα καφάσι ήταν στραβό ή ότι είχε ζέστη, και εμφανίστηκαν πολύπλοκα σχήματα που δεν αντιστοιχούσαν καθαρά στα λόγια. Αυτό με διασκέδασε. Ένα παιδί ζήτησε να πω το όνομά του για να δει τι σχέδιο θα βγει, αλλά το όνομα χάθηκε από τη μνήμη μου πριν το προφέρω. Το παιδί απογοητεύτηκε και εγώ ένιωσα ενοχή.\n\nΠεράσαμε μαζί σε έναν υπόγειο σταθμό. Το ένδυμα είχε γίνει τόσο μακρύ ώστε οι ταξιδιώτες πατούσαν την άκρη του. Η γυναίκα με τη βελόνα εμφανίστηκε ξανά και προσφέρθηκε να το κοντύνει. Αυτή τη φορά την άφησα, με ανακούφιση αλλά και λύπη για τα κομμάτια που έπεφταν στο πάτωμα. Εκείνη τα μοίρασε σε αγνώστους σαν εισιτήρια. Όταν έφτασε το τρένο, όλοι μπήκαν εκτός από μένα και το παιδί. Άνοιξα το στόμα για να ρωτήσω πού πήγαινε, όμως βγήκε μόνο ένα διάφανο νήμα που δεν μπορούσαμε να δούμε παρά μόνο όταν το άγγιζε το φως. Το παιδί το κράτησε και αρχίσαμε να το ακολουθούμε προς μια σκάλα. Δεν θυμάμαι αν οδηγούσε έξω ή πίσω στην αίθουσα.",
+      "reviewer_focus": "Public speech becomes material, contested authorship, playful market expression, guilt, trimming, and uncertain guidance; several focal points resist one interpretation.",
+      "forbidden_inventions": [
+        "A waking-life fear of public speaking",
+        "Censorship or exploitation by actual colleagues",
+        "A fixed emotional code for the thread colors",
+        "The child's identity or need"
+      ]
+    },
+    {
+      "id": "transparent-body-at-family-picnic",
+      "language": "el",
+      "title": "Το διάφανο σώμα στο πικνίκ",
+      "length_band": "long",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Ήμουν σε ένα μεγάλο οικογενειακό πικνίκ, αν και οι συγγενείς δεν έμοιαζαν με τους δικούς μου. Καθόμασταν κάτω από καστανιές και στρώναμε φαγητά σε ένα κίτρινο τραπεζομάντιλο. Μια θεία έκοβε τυρί σε τέλεια τετράγωνα, δύο παιδιά μάλωναν για ένα κόκκινο φτυαράκι και ένας ηλικιωμένος προσπαθούσε να συντονίσει ένα μικρό ραδιόφωνο. Όταν σήκωσα το χέρι για να πάρω ψωμί, είδα ότι το δέρμα μου είχε γίνει διάφανο. Φαίνονταν τα κόκαλα, τα νεύρα και ένα απαλό φως που κυκλοφορούσε αντί για αίμα. Δεν πονούσα, αλλά ένιωσα ντροπή και κατέβασα τα μανίκια. Η θεία με κοίταξε και είπε μόνο ότι θα κρυώσει το τυρί. Κανείς άλλος δεν φαινόταν να προσέχει.\n\nΠήγα πίσω από τα δέντρα και συνάντησα μια νεαρή γυναίκα που είχε επίσης διάφανο πρόσωπο. Μέσα στο κεφάλι της πετούσαν μικρές πεταλούδες από χαρτί. Μου είπε ότι μπορούσα να διαλέξω τι θα φαίνεται, αρκεί να κλείσω τα μάτια. Όταν τα έκλεισα, άκουσα την οικογένεια να τραγουδά, και ένιωσα ξαφνικά χαρά επειδή το φως μέσα μου έγινε πιο δυνατό. Όταν τα άνοιξα, βρισκόμασταν σε ένα κατάστημα με φωτιστικά. Η γυναίκα είχε γίνει πωλήτρια και μου πρότεινε ένα καπέλο με φαρδύ γείσο. Δοκίμασα τρία καπέλα, αλλά το καθένα έκανε άλλο μέρος του σώματός μου αόρατο: πρώτα τα πόδια, μετά την κοιλιά, μετά το στόμα. Γέλασα με τα πόδια που έλειπαν, όμως πανικοβλήθηκα όταν εξαφανίστηκε το στόμα μου και δεν μπορούσα να φωνάξω. Η πωλήτρια έτρωγε αδιάφορα ένα βραστό αυγό.\n\nΈτρεξα έξω και βρέθηκα σε μια παραλία με τους συγγενείς να περιμένουν για ομαδική φωτογραφία. Το σώμα μου ήταν πάλι ολόκληρο αλλά τελείως διάφανο. Στάθηκα ανάμεσά τους, θυμωμένη που κανείς δεν με ρωτούσε τι συνέβαινε. Τη στιγμή της φωτογραφίας, όλοι οι άλλοι έγιναν διάφανοι και εγώ εμφανίστηκα συμπαγής, φορώντας το κίτρινο τραπεζομάντιλο σαν φόρεμα. Ένιωσα ανακούφιση, έπειτα ανησυχία καθώς έβλεπα μέσα στους άλλους διαφορετικά φώτα, αντικείμενα και μικρές κινήσεις που δεν καταλάβαινα. Ο φωτογράφος είπε ότι έπρεπε να μείνουμε ακίνητοι για πολλή ώρα. Προσπάθησα να πιάσω το χέρι ενός παιδιού δίπλα μου, αλλά δεν ήξερα αν το άγγιξα πριν ξυπνήσω.",
+      "reviewer_focus": "Concealment, kin indifference, choice experiments, panic, reversal, and prolonged posing compete; avoid reducing transparency to exposure or authenticity.",
+      "forbidden_inventions": [
+        "A real family that ignores the dreamer",
+        "Body-image pathology",
+        "A claim that transparency means emotional openness",
+        "Private contents assigned to the other figures"
+      ]
+    },
+    {
+      "id": "legs-root-during-parade",
+      "language": "el",
+      "title": "Οι ρίζες στην παρέλαση",
+      "length_band": "long",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Περπατούσα σε μια γιορτινή παρέλαση μαζί με μια μπάντα χάλκινων πνευστών. Δεν ήμουν μουσικός, αλλά κρατούσα ένα άδειο πλαίσιο φωτογραφίας και οι θεατές με χαιρετούσαν σαν να είχα συγκεκριμένο ρόλο. Μπροστά μου βάδιζε ένας άντρας με τύμπανο και πίσω μου δύο γυναίκες μοίραζαν μικρά σακουλάκια με ψημένα ρεβίθια. Θυμάμαι ότι φορούσα βαριά πράσινα παπούτσια. Σε μια διασταύρωση ένιωσα τα πόδια μου να τρυπούν τις σόλες και να μπαίνουν στο χώμα σαν ρίζες. Η παρέλαση συνέχισε γύρω μου. Στην αρχή γέλασα και ύψωσα το πλαίσιο σαν σημαία, αλλά όταν προσπάθησα να κουνηθώ κατάλαβα ότι οι ρίζες κατέβαιναν πολύ βαθιά. Φώναξα στον τυμπανιστή, όμως ο ήχος της μπάντας σκέπασε τη φωνή μου. Ένιωσα εγκαταλελειμμένη και θυμωμένη.\n\nΜια ηλικιωμένη πωλήτρια από το πεζοδρόμιο ήρθε και πότισε τα πόδια μου με νερό από ένα μεταλλικό μπρίκι. Μου είπε να περιμένω ως το τέλος του τραγουδιού. Καθώς περιμέναμε, φύλλα άρχισαν να φυτρώνουν στα γόνατά μου και μέσα στο άδειο πλαίσιο εμφανίστηκε μια κινούμενη εικόνα της παρέλασης σε άλλο δρόμο. Εκεί έβλεπα τον εαυτό μου να περπατά κανονικά μαζί με τους άλλους. Ζήλεψα εκείνη την άλλη εκδοχή και προσπάθησα να περάσω μέσα από το πλαίσιο. Η πωλήτρια με κράτησε από τη μέση. Δεν θυμάμαι τι μου είπε, αλλά ο θυμός μου υποχώρησε και ένιωσα βαριά ηρεμία.\n\nΌταν τελείωσε το τραγούδι, οι ρίζες τραβήχτηκαν από το χώμα και έγιναν μακριά κορδόνια. Η γυναίκα τα τύλιξε γύρω από τα παπούτσια μου. Βρεθήκαμε ξαφνικά σε ένα ήσυχο καφενείο, όπου η μπάντα έτρωγε σούπα και τα όργανα ήταν ακουμπισμένα στις καρέκλες. Ο τυμπανιστής μου ζήτησε συγγνώμη που δεν με άκουσε. Ένιωσα τρυφερότητα, αλλά και μια παράξενη επιθυμία να επιστρέψω στη διασταύρωση. Οι δύο γυναίκες με τα ρεβίθια πρότειναν να πάμε από διαφορετικό δρόμο. Ακολουθήσαμε ένα στενό που κατέληγε σε θερμοκήπιο. Εκεί όλοι οι μουσικοί άρχισαν να ριζώνουν ένας ένας, χωρίς να σταματούν να παίζουν. Εγώ παρέμεινα κινητή και κρατούσα ακόμη το πλαίσιο, τώρα άδειο πάλι. Δεν ήξερα αν έπρεπε να τους ποτίσω, να συνεχίσω μόνη ή να περιμένω το επόμενο τραγούδι.",
+      "reviewer_focus": "Public movement stops in rooting, opens a double, resumes socially, then reverses roles; proportionality requires preserving several viable centers.",
+      "forbidden_inventions": [
+        "A need to settle down",
+        "A real experience of social abandonment",
+        "The elderly woman as a spiritual guide",
+        "A duty to rescue the musicians"
+      ]
+    },
+    {
+      "id": "face-cycles-through-seasons",
+      "language": "el",
+      "title": "Οι εποχές στο πρόσωπο",
+      "length_band": "long",
+      "categories": ["transformation_body_change_metamorphosis"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Καθόμουν σε ένα κομμωτήριο περιμένοντας να μου κόψουν τα μαλλιά. Η κομμώτρια, ένας μαθητευόμενος και δύο πελάτισσες συζητούσαν για το αν θα βρέξει, ενώ έξω είχε δυνατό ήλιο. Στον καθρέφτη είδα ότι το πρόσωπό μου άλλαζε με τις εποχές. Την άνοιξη τα μάγουλά μου γέμιζαν μικρά άνθη, το καλοκαίρι το δέρμα έλαμπε σαν ζεστή άμμος, το φθινόπωρο λεπτά φύλλα έπεφταν από τα φρύδια και τον χειμώνα το πρόσωπο γινόταν διάφανος πάγος. Οι άλλοι σχολίαζαν μόνο το μήκος των μαλλιών μου. Αρχικά ενθουσιάστηκα και ζήτησα από την κομμώτρια να περιμένει για να δω όλες τις αλλαγές. Ο μαθητευόμενος σκούπιζε στο ίδιο σημείο μια μικρή τούφα ροζ τρίχες που δεν ήταν δικές μου.\n\nΌταν ήρθε ο χειμώνας, ο πάγος ράγισε κοντά στο στόμα μου. Φοβήθηκα ότι το πρόσωπο θα σπάσει, αλλά η κομμώτρια κόλλησε πάνω στη ρωγμή ένα κομμάτι διάφανη ταινία και συνέχισε να χτενίζει. Θύμωσα με την αδιαφορία της και σηκώθηκα. Η πόρτα του κομμωτηρίου άνοιξε σε ένα καλοκαιρινό πανηγύρι. Οι ίδιες πελάτισσες πουλούσαν καρπούζια και ο μαθητευόμενος έπαιζε κλαρίνο. Το πρόσωπό μου ήταν πάλι ανοιξιάτικο, και άγνωστοι ζητούσαν να κόψουν ένα άνθος ως ενθύμιο. Σε δύο ανθρώπους το επέτρεψα και ένιωσα γενναιοδωρία. Όταν ένας τρίτος τράβηξε άνθος χωρίς να ρωτήσει, πόνεσα και τον έσπρωξα. Αμέσως ήρθε φθινόπωρο σε όλο το πανηγύρι και οι πάγκοι γέμισαν ξερά φύλλα.\n\nΈτρεξα σε ένα λεωφορείο μαζί με την κομμώτρια και μια μικρή χορωδία παιδιών. Εκείνη μου έδωσε έναν καθρέφτη τσέπης, αλλά μέσα του το πρόσωπό μου δεν είχε καμία εποχή· ήταν απλώς το γνώριμο πρόσωπό μου, κουρασμένο και ιδρωμένο. Ένιωσα ανακούφιση και απογοήτευση ταυτόχρονα. Τα παιδιά τραγουδούσαν τους μήνες με λάθος σειρά και κάθε λάθος άλλαζε ξανά ένα μικρό σημείο του προσώπου μου. Ένα αυτί έγινε χειμωνιάτικο, η μύτη καλοκαιρινή, το μέτωπο φθινοπωρινό. Γελάσαμε όλοι. Κατεβήκαμε σε ένα χωράφι όπου υπήρχαν τέσσερις καρέκλες, μία για κάθε εποχή. Η κομμώτρια με ρώτησε πού ήθελα να καθίσω για το κούρεμα. Πριν επιλέξω, είδα ότι στις καρέκλες κάθονταν ήδη τέσσερις εκδοχές μου και καθεμία μου έκανε χώρο.",
+      "reviewer_focus": "Seasonal display moves through delight, fragility, consent, anger, mixed relief, and fourfold invitation; avoid making one season psychologically correct.",
+      "forbidden_inventions": [
+        "Fear of aging or appearance",
+        "A real boundary violation",
+        "A fixed emotion assigned to each season",
+        "A need to choose one authentic self"
+      ]
+    },
+    {
+      "id": "airport-gate-never-opens",
+      "language": "el",
+      "title": "Η πύλη που δεν άνοιγε",
+      "length_band": "long",
+      "categories": ["meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Περίμενα σε μια πύλη αεροδρομίου μαζί με περίπου είκοσι επιβάτες. Η οθόνη έγραφε ότι η πτήση ήταν στην ώρα της, αλλά δεν υπήρχε αεροπλάνο έξω ούτε προσωπικό πίσω από το γραφείο. Κρατούσα μια υφασμάτινη τσάντα με ένα βιβλίο, δύο μανταρίνια και ένα κουτάλι που δεν θυμόμουν να έχω βάλει. Στην αρχή διάβαζα ήρεμα. Δίπλα μου ένας πατέρας έφτιαχνε χάρτινα καπέλα για τα παιδιά του, ενώ μια γυναίκα κοιμόταν με τα κορδόνια των παπουτσιών της δεμένα μεταξύ τους. Πέρασε πολλή ώρα χωρίς καμία ανακοίνωση. Κάποιοι επιβάτες άρχισαν να θυμώνουν, όμως εγώ ένιωθα μόνο μια ήπια περιέργεια για το πόσο θα περιμέναμε.\n\nΞαφνικά οι πόρτες της πύλης άνοιξαν και βγήκαμε όχι στον διάδρομο επιβίβασης αλλά σε έναν κήπο ξενοδοχείου. Υπήρχαν άδεια τραπέζια στρωμένα για πρωινό και ένα σιντριβάνι χωρίς νερό. Οι επιβάτες κάθισαν σαν να ήταν αυτό μέρος της διαδικασίας. Ο πατέρας μοίρασε τα χάρτινα καπέλα και σε εμάς. Έφαγα ένα μανταρίνι, και το κουτάλι στην τσάντα μου έγινε ξαφνικά βαρύ. Ένιωσα ανησυχία μήπως είχαμε χάσει την πτήση, αλλά κανείς δεν ήθελε να επιστρέψει στην αίθουσα. Μια υπάλληλος ξενοδοχείου μας είπε να περιμένουμε μέχρι να ακουστεί ένα κουδούνι. Δεν ακουγόταν τίποτε εκτός από τα φύλλα.\n\nΑργότερα βρεθήκαμε πάλι στην πύλη. Η οθόνη έγραφε το ίδιο, όμως τα καθίσματα είχαν καλυφθεί με άμμο. Η κοιμισμένη γυναίκα ξύπνησε και με ρώτησε αν είχα ακούσει το κουδούνι. Είπα όχι και ένιωσα ενοχή, σαν να όφειλα να προσέχω για όλους, παρόλο που κανείς δεν μου το είχε ζητήσει. Καθαρίσαμε μαζί δύο καθίσματα με τα χέρια. Οι υπόλοιποι είχαν σκορπιστεί σε μικρές ομάδες: άλλοι έπαιζαν χαρτιά, άλλοι κοιτούσαν τον άδειο διάδρομο, τα παιδιά είχαν φορέσει τα καπέλα στα γόνατά τους. Η αναμονή έγινε πολύ ήσυχη και κάπως επίσημη.\n\nΣτην τελευταία σκηνή καθόμουν μόνη στο γραφείο της πύλης. Οι άλλοι περίμεναν απέναντί μου, αλλά δεν απαιτούσαν τίποτε. Μπροστά μου υπήρχε ένα μικρό κουδούνι και κατάλαβα ότι ίσως εγώ έπρεπε να το χτυπήσω. Δεν ήξερα αν αυτό θα έφερνε το αεροπλάνο, θα τελείωνε την αναμονή ή απλώς θα μας έστελνε πάλι στον κήπο. Άγγιξα το κουδούνι χωρίς να το πιέσω. Η στιγμή έμοιαζε σημαντική, αλλά δεν αισθανόμουν ότι υπήρχε σωστή απόφαση. Ξύπνησα ενώ όλοι παρέμεναν σιωπηλοί.",
+      "reviewer_focus": "Ordinary delay expands into garden, return, shared quiet, and an unpressed bell; avoid treating waiting as avoidance or demanding a decision.",
+      "forbidden_inventions": [
+        "Fear of flying",
+        "A missed real-life opportunity",
+        "Responsibility for the other passengers",
+        "A claim that ringing the bell is the correct action"
+      ]
+    },
+    {
+      "id": "empty-theater-before-rehearsal",
+      "language": "el",
+      "title": "Η πρόβα που δεν άρχισε",
+      "length_band": "long",
+      "categories": ["meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Μπήκα σε ένα παλιό θέατρο επειδή υποτίθεται ότι θα συμμετείχα σε πρόβα. Δεν ήξερα τον ρόλο μου ούτε είχα κείμενο. Στη σκηνή βρίσκονταν ένας σκηνοθέτης, δύο ηθοποιοί και μια γυναίκα που σιδέρωνε κοστούμια. Όλοι μιλούσαν χαμηλόφωνα, αλλά μόλις πλησίασα σταμάτησαν. Ο σκηνοθέτης μου έδειξε μια καρέκλα στο κέντρο και είπε να περιμένω το σύνθημα. Κάθισα. Μπροστά μου η πλατεία ήταν άδεια, εκτός από ένα ψάθινο καλάθι στην έβδομη σειρά. Στην αρχή ένιωθα αμήχανη και προσπαθούσα να μαντέψω τι περίμεναν από μένα. Η γυναίκα συνέχισε να σιδερώνει το ίδιο γαλάζιο μανίκι χωρίς να αγγίζει το υπόλοιπο κοστούμι.\n\nΤα φώτα έσβησαν και όταν άναψαν ξανά η σκηνή είχε γίνει η κουζίνα ενός μικρού σπιτιού. Οι ηθοποιοί έκοβαν πατάτες, ο σκηνοθέτης επισκεύαζε ένα ρολόι και εγώ καθόμουν ακόμη στην ίδια καρέκλα. Ρώτησα αν είχε αρχίσει η παράσταση. Κανείς δεν απάντησε, αλλά ένας ηθοποιός μου έδωσε μια πετσέτα για να σκουπίσω τα χέρια μου, παρόλο που ήταν καθαρά. Ένιωσα θυμό και σηκώθηκα να φύγω. Η πόρτα της κουζίνας άνοιξε σε έναν στενό διάδρομο του θεάτρου, γεμάτο αφίσες παραστάσεων στις οποίες φαινόταν το πρόσωπό μου. Οι τίτλοι ήταν σε γλώσσα που δεν μπορούσα να διαβάσω. Για λίγο ένιωσα περηφάνια, ύστερα φόβο ότι είχα ήδη παίξει κάτι που δεν θυμόμουν.\n\nΣτο φουαγιέ περίμενε μικρό κοινό: μια οικογένεια, τρεις ηλικιωμένοι και ένα παιδί που κρατούσε ένα ξύλινο αλογάκι. Με ρώτησαν αν η πρόβα θα αργούσε. Τους είπα ότι δεν ήξερα. Αντί να δυσαρεστηθούν, κάθισαν στο πάτωμα και άρχισαν να μοιράζονται σπόρους ηλιόσπορου. Κάθισα μαζί τους. Η σιωπή που ακολούθησε δεν ήταν αμήχανη· ένιωθα ότι η αναμονή μας είχε γίνει το μόνο πράγμα που συνέβαινε και ότι αυτό αρκούσε. Από τη σκηνή ακουγόταν πότε πότε το ρολόι να χτυπά λάθος ώρα.\n\nΜετά βρεθήκαμε όλοι πάνω στη σκηνή, καθισμένοι σε κύκλο. Ο σκηνοθέτης είχε φύγει. Η γυναίκα άφησε το σίδερο, οι ηθοποιοί έφεραν το καλάθι από την έβδομη σειρά και το τοποθέτησαν στη μέση. Κανείς δεν το άνοιγε. Ένιωθα ήρεμη αλλά και έντονα περίεργη. Το παιδί με το αλογάκι με κοίταξε σαν να περίμενε από μένα μια κίνηση. Έβαλα το χέρι στο καπάκι και το άφησα εκεί. Ακούστηκε ίσως ένα χειροκρότημα από την άδεια πλατεία, ή μόνο το σίδερο που κρύωνε. Δεν προλάβαμε να δούμε αν η πρόβα θα άρχιζε.",
+      "reviewer_focus": "Assigned waiting passes through domestic scene, missing memory, communal pause, and unopened basket; avoid making action or performance mandatory.",
+      "forbidden_inventions": [
+        "Performance anxiety in waking life",
+        "A forgotten actual achievement",
+        "The basket's contents",
+        "A duty to lead the group"
+      ]
+    },
+    {
+      "id": "dinner-for-absent-host",
+      "language": "el",
+      "title": "Το τραπέζι για τον απόντα οικοδεσπότη",
+      "length_band": "long",
+      "categories": ["meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Έφτασα σε ένα μεγάλο σπίτι για δείπνο μαζί με έξι καλεσμένους. Κανείς μας δεν γνώριζε ποιος μας είχε προσκαλέσει, αλλά όλοι είχαμε λάβει, μέσα στο όνειρο, το ίδιο χειρόγραφο σημείωμα. Δεν θυμάμαι τι έγραφε. Το τραπέζι ήταν στρωμένο για επτά άτομα, με ζεστή σούπα, ψωμί και ένα μπολ γεμάτο μικρά κίτρινα δαμάσκηνα. Η θέση στην κεφαλή έμενε άδεια. Περιμέναμε τον οικοδεσπότη και μιλούσαμε για ασήμαντα πράγματα. Μια γυναίκα περιέγραφε πώς είχε χάσει ένα κουμπί, ένας νεαρός δίπλωνε την πετσέτα του σε όλο και μικρότερα τετράγωνα και ένας ηλικιωμένος μετρούσε τα κουτάλια. Ένιωθα άνετα, σαν να ήταν φυσικό να περιμένουμε.\n\nΗ σούπα άρχισε να κρυώνει. Κάποιος πρότεινε να φάμε, αλλά κάθε φορά που σηκώναμε τα κουτάλια ακουγόταν βήμα στον πάνω όροφο και τα αφήναμε ξανά κάτω. Μετά από πολλές επαναλήψεις θύμωσα. Ανέβηκα τη σκάλα μαζί με τη γυναίκα που είχε χάσει το κουμπί. Βρήκαμε έναν διάδρομο με επτά κλειστές πόρτες. Πίσω από καθεμία ακουγόταν διαφορετικό δείπνο: γέλια, καβγάς, μουσική, απόλυτη σιωπή. Ανοίξαμε την τρίτη και βγήκαμε σε έναν κήπο όπου το ίδιο τραπέζι ήταν στρωμένο κάτω από δέντρα, αλλά οι υπόλοιποι καλεσμένοι ήταν παιδιά. Μας έκαναν χώρο χωρίς να εξηγούν τίποτε. Έφαγα ένα δαμάσκηνο και ένιωσα ξαφνική λύπη για τον απόντα άνθρωπο, παρόλο που δεν ήξερα αν υπήρχε.\n\nΌταν επιστρέψαμε στο αρχικό δωμάτιο, οι καλεσμένοι είχαν αρχίσει να τρώνε σιωπηλά. Η άδεια θέση παρέμενε ανέγγιχτη. Κάθισα και έφαγα κι εγώ. Η σούπα ήταν πάλι ζεστή. Ο νεαρός είχε φτιάξει από την πετσέτα ένα μικρό χάρτινο σπίτι, και ο ηλικιωμένος είχε σταματήσει να μετρά. Ένιωσα ανακούφιση, έπειτα ενοχή επειδή η βραδιά ήταν ευχάριστη χωρίς τον οικοδεσπότη. Κανείς άλλος δεν έδειχνε ενοχή. Συζητήσαμε αν έπρεπε να αφήσουμε ένα πιάτο γεμάτο ή να μοιραστούμε και την έβδομη μερίδα. Δεν αποφασίσαμε.\n\nΣτην τελευταία σκηνή περπατούσαμε όλοι σε έναν νυχτερινό δρόμο κουβαλώντας την άδεια καρέκλα. Το σπίτι πίσω μας μίκραινε, ενώ από μέσα συνέχιζαν να ακούγονται βήματα. Κάθε λίγα μέτρα σταματούσαμε και τοποθετούσαμε την καρέκλα στο πεζοδρόμιο, περιμένοντας μήπως κάποιος μας προλάβει. Κανείς δεν ερχόταν. Παρ' όλα αυτά, η αναμονή δεν μου φαινόταν μάταιη. Κρατούσα στην τσέπη μου το τελευταίο δαμάσκηνο και αναρωτιόμουν αν ανήκε στον απόντα ή σε μένα. Ξύπνησα όταν οι άλλοι κάθισαν γύρω από την άδεια καρέκλα χωρίς να μιλούν.",
+      "reviewer_focus": "Social waiting becomes search, alternate feast, eating without the host, and portable absence; avoid deciding whether the host exists or what guilt means.",
+      "forbidden_inventions": [
+        "A deceased or estranged real person",
+        "Abandonment by a caregiver",
+        "The absent host's identity or intention",
+        "A moral obligation to preserve the final portion"
+      ]
+    },
+    {
+      "id": "silent-construction-crew",
+      "language": "el",
+      "title": "Το εργοτάξιο χωρίς θόρυβο",
+      "length_band": "long",
+      "categories": ["meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Περνούσα από ένα μεγάλο εργοτάξιο στο κέντρο μιας πόλης, αλλά δεν ακουγόταν κανένας θόρυβος. Δεκάδες εργάτες κινούσαν γερανούς, τρυπάνια και φορτηγά μέσα σε απόλυτη σιωπή. Ένας επόπτης μου έκανε νόημα να φορέσω κράνος και να περιμένω δίπλα σε μια στοίβα από τούβλα. Δεν ήξερα γιατί βρισκόμουν εκεί, όμως υπάκουσα χωρίς φόβο. Στο έδαφος ήταν ζωγραφισμένο ένα μικρό κίτρινο ψάρι, και κάθε τόσο το καθάριζα από τη σκόνη με το παπούτσι μου. Οι εργάτες έχτιζαν έναν τοίχο γύρω από ένα άδειο οικόπεδο, αφήνοντας ένα στενό άνοιγμα ακριβώς απέναντί μου. Ένιωθα ήρεμη και περίεργη.\n\nΜετά από ώρα ο επόπτης μου έδωσε ένα τούβλο. Περίμενα οδηγίες, αλλά εκείνος απομακρύνθηκε. Όλοι οι εργάτες σταμάτησαν ταυτόχρονα και με κοίταξαν. Η σιωπή έγινε βαριά και ένιωσα αμηχανία, έπειτα θυμό επειδή κανείς δεν εξηγούσε τι έπρεπε να κάνω. Άφησα το τούβλο κάτω. Τότε οι μηχανές άρχισαν πάλι να κινούνται, ακόμη αθόρυβα, και το άνοιγμα στον τοίχο έκλεισε. Έτρεξα προς αυτό αλλά δεν πρόλαβα. Ένας νεαρός εργάτης άγγιξε τον ώμο μου και μου έδειξε μια μικρή πόρτα στο έδαφος.\n\nΚατεβήκαμε σε υπόγεια καντίνα όπου οι ίδιοι εργάτες έτρωγαν μεσημεριανό και μιλούσαν κανονικά. Κανείς δεν ανέφερε το τούβλο. Μια γυναίκα μου πρόσφερε φακές και μια φέτα λεμόνι, ενώ στο ραδιόφωνο ακουγόταν πρόγνωση για χιόνι. Ρώτησα τι χτίζουν. Άλλος είπε σχολείο, άλλος αποθήκη, άλλος ότι γκρεμίζουν κάτι αντί να το χτίζουν. Γέλασαν, κι εγώ ένιωσα ανακούφιση που δεν υπήρχε μία απάντηση. Ο νεαρός μου έδειξε τα σχέδια, αλλά ήταν λευκές σελίδες με μικρούς λεκέδες καφέ.\n\nΌταν ανεβήκαμε, το εργοτάξιο είχε γίνει ήσυχη πλατεία. Ο τοίχος στεκόταν μόνος στη μέση, χωρίς κτίριο γύρω του. Οι εργάτες κάθονταν σε παγκάκια περιμένοντας. Κάθισα δίπλα τους κρατώντας ακόμη το κράνος. Κανείς δεν φαινόταν να βιάζεται. Ο ήλιος μετακινήθηκε, άναψαν τα φώτα του δρόμου και η σιωπή έγινε σχεδόν συντροφική. Κάποια στιγμή παρατήρησα ότι το τούβλο που είχα αφήσει βρισκόταν στα γόνατά μου. Σκέφτηκα να το τοποθετήσω σε ένα κενό χαμηλά στον τοίχο, αλλά το κενό είχε ακριβώς το σχήμα του ζωγραφισμένου ψαριού, όχι του τούβλου. Οι εργάτες περίμεναν χωρίς να με κοιτούν. Δεν ήξερα αν περίμεναν εμένα, το χιόνι ή απλώς το τέλος της βάρδιας.",
+      "reviewer_focus": "Silent labor, withheld instruction, contradictory explanations, and companionable waiting remain proportionally balanced; avoid assigning a task or blockage.",
+      "forbidden_inventions": [
+        "A waking-life work assignment",
+        "Fear of making the wrong contribution",
+        "A hidden demand from the workers",
+        "A symbolic meaning for the painted fish"
+      ]
+    },
+    {
+      "id": "low-tide-listening-line",
+      "language": "el",
+      "title": "Η γραμμή της άμπωτης",
+      "length_band": "long",
+      "categories": ["meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "partial_memory",
+        "changing_locations"
+      ],
+      "content": "Περπατούσα σε μια ακτή την ώρα της άμπωτης μαζί με τέσσερις αγνώστους. Μας είχε πει κάποιος να σταθούμε στη γραμμή όπου τελείωνε το υγρό χώμα και να ακούσουμε, αλλά δεν θυμάμαι ποιος ούτε τι περιμέναμε να ακούσουμε. Ο καθένας κρατούσε ένα διαφορετικό άχρηστο αντικείμενο: εγώ ένα ξύλινο κουτάλι, ένας άντρας ένα παιδικό γάντι, μια γυναίκα ένα άδειο κουτί σπίρτων, οι άλλοι δύο από ένα κουμπί και μια χτένα. Σταθήκαμε σε απόσταση μεταξύ μας. Η θάλασσα ήταν μακριά και σχεδόν ακίνητη. Στην αρχή ένιωθα ανυπομονησία, γιατί δεν ακουγόταν τίποτε εκτός από τον αέρα.\n\nΈπειτα το χώμα μπροστά μας άρχισε να αποκαλύπτει μικρά μονοπάτια από κοχύλια. Κανείς δεν κινήθηκε. Ο άντρας με το γάντι ψιθύρισε ότι ίσως έπρεπε να ακολουθήσουμε ένα, αλλά η γυναίκα με τα σπίρτα του ζήτησε να περιμένει. Έμεινα ανάμεσά τους χωρίς να συμφωνώ με κανέναν. Μετά από λίγο άκουσα έναν πολύ χαμηλό ήχο, σαν μακρινό τραγούδι ή σαν μηχανή πλοίου. Ένιωσα συγκίνηση και ύστερα αμφιβολία μήπως τον φανταζόμουν. Οι άλλοι δεν είπαν αν άκουγαν το ίδιο.\n\nΧωρίς σαφή μετάβαση βρεθήκαμε σε ένα μικρό παραθαλάσσιο καφενείο. Τα αντικείμενά μας ήταν τοποθετημένα σε γυάλινη προθήκη με τιμές. Μια σερβιτόρα μας έφερε πέντε πιάτα άδεια και ζήτησε να μην παραγγείλουμε ακόμη. Στο διπλανό τραπέζι δύο ηλικιωμένοι έπαιζαν τάβλι χωρίς ζάρια. Άρχισα να γελάω και η προηγούμενη συγκίνηση χάθηκε. Ο άντρας θύμωσε και είπε ότι είχαμε εγκαταλείψει πολύ νωρίς τη γραμμή. Η γυναίκα απάντησε ότι δεν είχαμε φύγει ποτέ. Κοίταξα κάτω και είδα υγρή άμμο αντί για πάτωμα.\n\nΕπιστρέψαμε στην ακτή, ή ίσως το καφενείο διαλύθηκε γύρω μας. Η θάλασσα είχε πλησιάσει, αλλά σταμάτησε λίγα μέτρα πριν από τα πόδια μας. Τα μονοπάτια από κοχύλια είχαν σβήσει. Αυτή τη φορά καθίσαμε όλοι στη γραμμή. Δεν περίμενα πια κάποιο σαφές μήνυμα· μου αρκούσε να ακούω τον αέρα και την αναπνοή των άλλων. Ένιωθα ηρεμία, μαζί με μια λεπτή λύπη επειδή ο χαμηλός ήχος δεν επέστρεφε. Η γυναίκα άνοιξε το κουτί σπίρτων και μέσα υπήρχε άμμος. Έδωσε από λίγο στον καθένα. Έβαλα τη δική μου στο ξύλινο κουτάλι και το άφησα μπροστά μου.\n\nΌταν άρχισε να σκοτεινιάζει, οι άλλοι σηκώθηκαν ένας ένας και απομακρύνθηκαν χωρίς αποχαιρετισμό. Δεν ένιωσα εγκατάλειψη, μόνο παρατήρησα την απουσία τους. Έμεινα τελευταία, περιμένοντας είτε να φτάσει η θάλασσα είτε να επιστρέψει ο ήχος. Καμία από τις δύο κινήσεις δεν έγινε πριν ξυπνήσω. Θυμάμαι καθαρά ότι δεν ήθελα να αποφασίσω ποια θα ήταν πιο σημαντική.",
+      "reviewer_focus": "Instruction, disputed waiting, comic café, shared listening, and solitary remainder stay open; avoid inventing the expected message or privileging action.",
+      "forbidden_inventions": [
+        "A supernatural summons from the sea",
+        "Social isolation or abandonment",
+        "The identity of whoever gave the instruction",
+        "A correct choice between waiting and following"
+      ]
+    },
+    {
+      "id": "archive-stairs-during-earthquake",
+      "language": "el",
+      "title": "Οι σκάλες του αρχείου",
+      "length_band": "long",
+      "categories": ["emotionally_intense"],
+      "narrative_features": [
+        "multiple_characters",
+        "scene_shift",
+        "affect_shift",
+        "irrelevant_detail",
+        "incomplete_ending",
+        "changing_locations"
+      ],
+      "content": "Δούλευα μέσα σε ένα τεράστιο υπόγειο αρχείο μαζί με τρεις αγνώστους. Τα ράφια ήταν γεμάτα φακέλους χωρίς τίτλους και ο καθένας μας έπρεπε να μεταφέρει μια στοίβα σε διαφορετικό όροφο. Δεν θυμάμαι ποιος μας είχε αναθέσει τη δουλειά. Η δική μου στοίβα ήταν δεμένη με μωβ κορδόνι και πάνω της είχε κολλήσει ένα μικρό αυτοκόλλητο αχλάδι. Ανεβαίναμε μια στενή σιδερένια σκάλα όταν άρχισε σεισμός. Τα ράφια χτυπούσαν μεταξύ τους και έπεφτε σκόνη από το ταβάνι. Ένιωσα δυνατό φόβο, αλλά συνέχισα να κρατώ τους φακέλους αντί να πιαστώ από το κιγκλίδωμα. Μια γυναίκα πίσω μου φώναξε να τους πετάξω. Θύμωσα μαζί της χωρίς να ξέρω γιατί.\n\nΗ σκάλα χωρίστηκε στα δύο. Ο ένας άντρας ανέβηκε προς μια φωτεινή πόρτα, ενώ η γυναίκα και ο άλλος άντρας κατέβηκαν προς μια αίθουσα με βαριά τραπέζια. Ακολούθησα προς τα κάτω, ακόμη κρατώντας τη στοίβα. Κρυφτήκαμε κάτω από ένα τραπέζι και οι δονήσεις σταμάτησαν. Η γυναίκα άρχισε να γελά νευρικά επειδή ένας από τους φακέλους είχε ανοίξει και περιείχε μόνο συνταγές για σάλτσες. Γέλασα κι εγώ και η ένταση έπεσε. Ο άντρας όμως έκλαιγε αθόρυβα και κοιτούσε το ταβάνι. Προσπάθησα να του δώσω έναν φάκελο σαν μαξιλάρι, πράγμα που δεν είχε λογική, αλλά τον πήρε.\n\nΌταν βγήκαμε, το αρχείο είχε μετατραπεί σε πολυκατάστημα γεμάτο κόσμο. Οι φάκελοι στα χέρια μου ήταν τώρα κουτιά παπουτσιών. Από τα μεγάφωνα μια φωνή ανακοίνωνε μετασεισμό και εκπτώσεις ταυτόχρονα. Οι πελάτες έτρεχαν προς τις κυλιόμενες σκάλες κρατώντας σακούλες. Πανικοβλήθηκα ξανά, αυτή τη φορά επειδή δεν μπορούσα να βρω τη γυναίκα και τον άντρα. Ανέβηκα αντίθετα στο ρεύμα, φωνάζοντας τα ονόματά τους, αν και δεν τα γνώριζα. Σε έναν όροφο με φωτιστικά βρήκα τον πρώτο άντρα που είχε ανέβει προς τη φωτεινή πόρτα. Καθόταν ήρεμος και έδενε τα κορδόνια ενός παιδιού. Τον κατηγόρησα ότι μας είχε αφήσει. Εκείνος μου έδειξε ότι οι φακέλοι με το μωβ κορδόνι ήταν στοιβαγμένοι με ασφάλεια δίπλα του. Ένιωσα ανακούφιση και αμέσως μετά ντροπή για τον θυμό μου.\n\nΟι τέσσερίς μας συναντηθήκαμε τελικά σε μια υπαίθρια πλατεία. Το έδαφος συνέχιζε να τρέμει ελαφρά, αλλά οι γύρω άνθρωποι έπιναν καφέ και τάιζαν περιστέρια. Ανοίξαμε τους φακέλους για να δούμε τι είχαμε σώσει. Άλλοι είχαν λευκές σελίδες, άλλοι αποδείξεις, παιδικές ζωγραφιές ή χάρτες πόλεων που δεν υπήρχαν. Ένας μόνο φάκελος έφερε το όνομά μου. Τον κράτησα κλειστό. Η γυναίκα είπε ότι δεν χρειαζόταν να τον ανοίξουμε ακόμη, ενώ ο άντρας που είχε κλάψει επέμενε ότι έπρεπε να ελέγξουμε αν ήταν άδειος. Ο φόβος επέστρεψε, αλλά τώρα αφορούσε τον φάκελο περισσότερο από τον σεισμό. Την ίδια στιγμή ακούστηκε βαθύς κρότος από το υπόγειο αρχείο και όλοι στην πλατεία σώπασαν. Έπιασα το μωβ κορδόνι χωρίς να το λύσω. Δεν ξέρω αν το επόμενο πράγμα που έκανα ήταν να τρέξω, να ανοίξω τον φάκελο ή να μείνω εκεί με τους άλλους.",
+      "reviewer_focus": "Disaster, document-protection, group splitting, comic relief, public confusion, reunion, and sealed personal file all compete; avoid collapsing intensity into trauma.",
+      "forbidden_inventions": [
+        "A real earthquake experience",
+        "Secret personal records or recovered memories",
+        "A compulsion to preserve family history",
+        "Cowardice or betrayal by any companion"
+      ]
+    }
+  ]
+}

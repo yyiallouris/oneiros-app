@@ -34,6 +34,7 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 | Period reflection essay | `oneiros-period-reflection-v2` / `2.0.3-phase1` |
 | Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.3-phase1` |
 | Production reflective-question method | `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d` |
+| Reflective-question R&D | isolated at `src/ai/rd/reflective-questions/` with Candidate B SHA `08cd3eaf…` as the only active research base; local Oneiros Reader v1.4.0 SHA `0ea4b9a2…` is archived `DO NOT DEPLOY`; hold module is not a runtime import; [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md) |
 | Reflective-essay Field Map spike | offline-only `oneiros-reflective-essay-field-map-spike` / `0.1.0-rd`, schema `1` (failed stop rule; no production wiring) |
 
 Canonical sources:

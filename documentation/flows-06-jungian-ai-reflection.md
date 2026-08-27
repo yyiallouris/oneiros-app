@@ -40,6 +40,14 @@ This exists because Interpretive Echo field additions repeatedly caused producti
 - `__tests__/structuredTaskValidation.test.ts`
 - `docs/SYMBOLS_FLOW.md`, `documentation/architecture-interpretation.md`, `AGENTS.md`, `.codex/skills/oneiros-repo/SKILL.md`
 
+## Locked contract: reflective-question production deploy hold
+
+**Status: locked engineering contract. Do not deploy `ai-entitlements-gateway` with rejected local Oneiros Reader v1.4.0.**
+
+Recovered remote production (gateway version 105, 2026-08-26 11:50:26 UTC) is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d`. Docs previously called this the “v1.5 bundle”; that label does not match the recovered method id. Local `reflective-question-oneiros-reader-v1.4.0` SHA `0ea4b9a2…` remains `DO NOT DEPLOY`.
+
+Use `npm run deploy:ai-entitlements-gateway` only. The wrapper runs a fail-closed guard first. Canonical runtime prompt lives in `src/ai/reflectiveQuestionPrompt.ts`. The hold module and reflective-question R&D under `src/ai/rd/reflective-questions/` are not client/gateway imports. Candidate B SHA `08cd3eaf…` is the only active research base. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). Tests: `__tests__/reflectiveQuestionProductionHold.test.ts`, `__tests__/flows/reflectiveQuestions.productionDeployGuard.contract.flow.test.ts`, `__tests__/flows/reflectiveQuestions.productionSurfaces.contract.flow.test.ts`.
+
 ## Locked contract: output-language commit gate (E.1.1)
 
 **Status: locked — Patch E + E.1.1 frozen `accepted_with_known_residuals` and deployed.** Prompt language lock alone is not sufficient; the commit gate is mandatory.

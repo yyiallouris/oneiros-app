@@ -25,6 +25,7 @@
     "review:reflective-essays-phase2-anti-coherence": "REFLECTIVE_ESSAY_CONTEXT_EXPERIMENT=phase2 REFLECTIVE_ESSAY_FIXTURE=testing/live-scenarios/reflective-essays-anti-coherence-stress-set.v1.json node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-phase1-regression.ts",
     "review:reflective-essays-field-map": "node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-field-map-spike.ts",
     "review:reflective-essays-field-map-anti-coherence": "REFLECTIVE_ESSAY_FIXTURE=testing/live-scenarios/reflective-essays-anti-coherence-stress-set.v1.json node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-field-map-spike.ts",
+    "review:reflective-questions-active": "node -r ./scripts/register-typescript.cjs scripts/live/rd/reflective-questions/run-active-candidate.ts",
     "test:live-production-baseline": "bash scripts/live/run-production-baseline.sh",
     "site:preview": "python3 -m http.server 4173 -d site",
     "typecheck": "tsc --noEmit",
