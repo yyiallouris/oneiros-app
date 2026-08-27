@@ -2,6 +2,7 @@ import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
   DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES,
   FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256,
+  REFLECTIVE_QUESTION_RD_ROOT,
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_METHOD_ID,
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT,
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT_SHA256,
@@ -9,6 +10,7 @@ import {
   REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION,
   ReflectiveQuestionGatewayDeployBlockedError,
   assertReflectiveQuestionGatewayDeployAllowed,
+  assertReflectiveQuestionRuntimeHasNoRdImports,
   hashReflectiveQuestionPrompt,
 } from '../src/ai/reflectiveQuestionProductionHold';
 
@@ -31,6 +33,7 @@ describe('reflective question production hold', () => {
     expect(FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256).toBe(
       '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622'
     );
+    expect(REFLECTIVE_QUESTION_RD_ROOT).toBe('src/ai/rd/reflective-questions');
   });
 
   it('blocks the denied Oneiros Reader v1.4 candidate even with an approval token', () => {
@@ -78,5 +81,14 @@ describe('reflective question production hold', () => {
           'some-future-method:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       })
     ).toThrow(/not explicitly approved/);
+  });
+
+  it('rejects runtime imports of R&D or the hold snapshot', () => {
+    expect(() =>
+      assertReflectiveQuestionRuntimeHasNoRdImports(
+        "import { x } from '../ai/rd/reflective-questions/active';",
+        'src/services/ai.ts'
+      )
+    ).toThrow(/not runtime/);
   });
 });

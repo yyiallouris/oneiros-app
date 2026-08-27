@@ -1,7 +1,7 @@
 # Reflective-question production hold
 
 **Date:** 2026-08-27  
-**Status:** safety record + deploy gate. No runtime prompt change.
+**Status:** safety record + deploy gate + R&D isolation. No runtime prompt change.
 
 Remote production and the local repo candidate are different identities. This file records the recovered deployed source and the fail-closed deploy guard. Candidate B SHA `08cd3eaf…` stays frozen research-only.
 
@@ -49,10 +49,14 @@ REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVED=<methodId>:<sha256> npm run deplo
 
 Raw `supabase functions deploy ai-entitlements-gateway` is not the supported path.
 
-## Frozen R&D runner
+## R&D isolation
 
-`scripts/live/run-reflective-question-golden-set.ts` is legacy/frozen. Do not add new experiment flags or candidates there. No generation in this hold.
+Current R&D lives under `src/ai/rd/reflective-questions/`. Candidate B SHA `08cd3eaf…` is the only active research base (`active.ts`). Closed experiments and rejected local Reader v1.4.0 are archived in that tree. They are not runtime imports.
+
+Current runner: `npm run review:reflective-questions-active`. The 2300-line multiplexer is archived at `scripts/live/archive/reflective-questions/run-reflective-question-golden-set.ts` for historical replay only. Do not add new flags there. This pass does not generate.
+
+Map: `src/ai/rd/reflective-questions/README.md`.
 
 ## Runtime
 
-Client, gateway request path, `openai-proxy`, and Candidate B are unchanged by this hold.
+Client, gateway request path, and `openai-proxy` are unchanged. The recovered production snapshot and all R&D modules stay out of those imports.

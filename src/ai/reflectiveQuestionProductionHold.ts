@@ -137,6 +137,13 @@ export const DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES = [
 export const FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256 =
   '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622';
 
+export const REFLECTIVE_QUESTION_RD_ROOT = 'src/ai/rd/reflective-questions';
+export const REFLECTIVE_QUESTION_RUNTIME_FILES = [
+  'src/services/ai.ts',
+  'supabase/functions/_shared/billing-ai.ts',
+  'supabase/functions/ai-entitlements-gateway/index.ts',
+] as const;
+
 export class ReflectiveQuestionGatewayDeployBlockedError extends Error {
   constructor(message: string) {
     super(message);
@@ -210,6 +217,23 @@ export function assertReflectiveQuestionGatewayDeployAllowed(input: {
           ? `Override came from ${REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV}.`
           : `Set ${REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV}=<methodId>:<sha256> only for a non-denied identity that matches the local bundle.`,
       ].join('\n')
+    );
+  }
+}
+
+const RUNTIME_RD_IMPORT =
+  /from\s+['"][^'"]*(?:\/rd\/reflective-questions|reflectiveQuestion(?:Prompt|LanguageOperator|Minimalism|Witnessed|Surgical|Relation|Selection))/;
+
+export function assertReflectiveQuestionRuntimeHasNoRdImports(
+  source: string,
+  label: string
+): void {
+  if (
+    RUNTIME_RD_IMPORT.test(source) ||
+    source.includes('reflectiveQuestionProductionHold')
+  ) {
+    throw new ReflectiveQuestionGatewayDeployBlockedError(
+      `Blocked: ${label} imports reflective-question R&D or the production-hold snapshot. Those modules are not runtime.`
     );
   }
 }

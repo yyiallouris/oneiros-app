@@ -142,7 +142,8 @@ Remote `ai-entitlements-gateway` currently serves recovered `reflective-question
 1. Use `npm run deploy:ai-entitlements-gateway` only. Do not run raw `supabase functions deploy ai-entitlements-gateway`.
 2. The wrapper fails closed unless the bundled reflective-question method ID + prompt SHA are explicitly approved.
 3. Denied candidates cannot be approved with an env override.
-4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` into client or gateway runtime.
+4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` or `src/ai/rd/` into client or gateway runtime.
+5. Candidate B SHA `08cd3eaf…` is the only active reflective-question R&D base. Closed experiments stay archived. Do not add flags to the archived mega-runner.
 
 Canonical docs:
 

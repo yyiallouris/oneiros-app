@@ -46,7 +46,7 @@ This exists because Interpretive Echo field additions repeatedly caused producti
 
 Recovered remote production (gateway version 105, 2026-08-26 11:50:26 UTC) is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d`. Docs previously called this the “v1.5 bundle”; that label does not match the recovered method id. Local `reflective-question-oneiros-reader-v1.4.0` SHA `0ea4b9a2…` remains `DO NOT DEPLOY`.
 
-Use `npm run deploy:ai-entitlements-gateway` only. The wrapper runs a fail-closed guard first. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). Tests: `__tests__/reflectiveQuestionProductionHold.test.ts`, `__tests__/flows/reflectiveQuestions.productionDeployGuard.contract.flow.test.ts`. Candidate B SHA `08cd3eaf…` stays frozen research-only. No prompt, runtime, or generation change in this hold.
+Use `npm run deploy:ai-entitlements-gateway` only. The wrapper runs a fail-closed guard first. Reflective-question R&D lives under `src/ai/rd/reflective-questions/` and is not a client/gateway import. Candidate B SHA `08cd3eaf…` is the only active research base. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). Tests: `__tests__/reflectiveQuestionProductionHold.test.ts`, `__tests__/flows/reflectiveQuestions.productionDeployGuard.contract.flow.test.ts`. No prompt, runtime, or generation change in this cleanup.
 
 ## Locked contract: output-language commit gate (E.1.1)
 
