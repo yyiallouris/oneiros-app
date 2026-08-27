@@ -27,6 +27,7 @@ const SubscriptionScreen: React.FC = () => {
   const {
     status: subscriptionStatus,
     products,
+    storeProductsLoading,
     purchasingPlanCode,
     purchasePlan,
     restorePurchases,
@@ -41,17 +42,22 @@ const SubscriptionScreen: React.FC = () => {
     () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
-  const premiumPricing = useMemo(() => getPaidPlanCardPricing(premiumPlan), [premiumPlan]);
-  const deeperPricing = useMemo(() => getPaidPlanCardPricing(deeperPlan), [deeperPlan]);
+  const premiumPricing = useMemo(
+    () => getPaidPlanCardPricing(premiumPlan, { loading: storeProductsLoading }),
+    [premiumPlan, storeProductsLoading]
+  );
+  const deeperPricing = useMemo(
+    () => getPaidPlanCardPricing(deeperPlan, { loading: storeProductsLoading }),
+    [deeperPlan, storeProductsLoading]
+  );
   const yearlySavingsBadge = useMemo(
     () =>
       getYearlySavingsBadgeForVisibleCard({
         activeCardIndex,
-        premiumPlan,
-        deeperPlan,
+        products,
         includesFreeCard: true,
       }),
-    [activeCardIndex, deeperPlan, premiumPlan]
+    [activeCardIndex, products]
   );
   const freePlan = getFreePlanCardModel();
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
@@ -140,7 +146,9 @@ const SubscriptionScreen: React.FC = () => {
                     ? 'Current plan'
                     : purchasingPlanCode === premiumPlan.planCode
                       ? 'Opening store…'
-                      : 'Choose Premium'
+                      : !premiumPlan.storePriceAvailable
+                        ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+                        : 'Choose Premium'
                 }
                 onPress={() => {
                   if (currentPlanTier === 'premium') return;
@@ -149,7 +157,12 @@ const SubscriptionScreen: React.FC = () => {
                 selected
                 current={currentPlanTier === 'premium'}
                 note={premiumNote}
-                disabled={currentPlanTier === 'premium' || purchasingPlanCode !== null}
+                disabled={
+                  currentPlanTier === 'premium' ||
+                  purchasingPlanCode !== null ||
+                  !iapRuntimeAvailable ||
+                  !premiumPlan.storePriceAvailable
+                }
                 variant="premium"
               />
 
@@ -168,7 +181,9 @@ const SubscriptionScreen: React.FC = () => {
                     ? 'Current plan'
                     : purchasingPlanCode === deeperPlan.planCode
                       ? 'Opening store…'
-                      : 'Choose Deeper'
+                      : !deeperPlan.storePriceAvailable
+                        ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+                        : 'Choose Deeper'
                 }
                 onPress={() => {
                   if (currentPlanTier === 'deeper') return;
@@ -176,7 +191,12 @@ const SubscriptionScreen: React.FC = () => {
                 }}
                 current={currentPlanTier === 'deeper'}
                 note={deeperNote}
-                disabled={currentPlanTier === 'deeper' || purchasingPlanCode !== null}
+                disabled={
+                  currentPlanTier === 'deeper' ||
+                  purchasingPlanCode !== null ||
+                  !iapRuntimeAvailable ||
+                  !deeperPlan.storePriceAvailable
+                }
                 variant="deeper"
               />
             </SubscriptionPlanCarousel>

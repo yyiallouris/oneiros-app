@@ -2,6 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PremiumUpsellModal } from '../src/components/subscription/PremiumUpsellModal';
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+}));
+
 jest.mock('../src/components/subscription/SubscriptionBillingSwitch', () => ({
   SubscriptionBillingSwitch: ({ value }: any) => {
     const React = require('react');
@@ -28,13 +32,15 @@ jest.mock('../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
     const React = require('react');
-    const { Text, View } = require('react-native');
+    const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <Text>{actionTitle}</Text>
+        <TouchableOpacity onPress={onPress} disabled={disabled}>
+          <Text>{actionTitle}</Text>
+        </TouchableOpacity>
       </View>
     );
   },
@@ -45,6 +51,9 @@ const premiumPlan = {
   planTier: 'premium' as const,
   billingInterval: 'monthly' as const,
   productId: 'monthly',
+  storePriceAvailable: true,
+  priceAmount: 4.99,
+  currencyCode: 'EUR',
   displayPrice: '€4.99 / month',
   totalPriceLabel: 'Billed monthly',
   compareAtPriceLabel: null,
@@ -59,6 +68,9 @@ const deeperPlan = {
   planTier: 'deeper' as const,
   billingInterval: 'monthly' as const,
   productId: 'deeper-monthly',
+  storePriceAvailable: true,
+  priceAmount: 8.99,
+  currencyCode: 'EUR',
   displayPrice: '€8.99 / month',
   totalPriceLabel: 'Billed monthly',
   compareAtPriceLabel: null,
@@ -130,5 +142,32 @@ describe('PremiumUpsellModal', () => {
     expect(screen.getByText('Interval:monthly')).toBeTruthy();
     fireEvent.press(screen.getByText('Show free card'));
     expect(screen.queryByText('Interval:monthly')).toBeNull();
+  });
+
+  it('does not allow an upgrade when the selected store price is unavailable', () => {
+    const onUpgrade = jest.fn();
+    const unavailablePremium = {
+      ...premiumPlan,
+      storePriceAvailable: false,
+      priceAmount: null,
+      currencyCode: null,
+      displayPrice: 'Price unavailable',
+    };
+    const screen = render(
+      <PremiumUpsellModal
+        visible
+        source="followup"
+        billingInterval="monthly"
+        premiumPlan={unavailablePremium}
+        deeperPlan={deeperPlan}
+        displayMode="premium_only"
+        onClose={jest.fn()}
+        onIntervalChange={jest.fn()}
+        onUpgrade={onUpgrade}
+      />
+    );
+
+    fireEvent.press(screen.getByText('Price unavailable'));
+    expect(onUpgrade).not.toHaveBeenCalled();
   });
 });

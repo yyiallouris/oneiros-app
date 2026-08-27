@@ -19,10 +19,12 @@ type Props = {
   billingInterval: BillingInterval;
   premiumPlan: StoreSubscriptionPlan;
   deeperPlan: StoreSubscriptionPlan;
+  storeProducts?: StoreSubscriptionPlan[];
   displayMode?: 'compare' | 'premium_only';
   currentPlanTier?: PlanTier;
   upgradeTitle?: Partial<Record<Exclude<PlanTier, 'free'>, string>>;
   upgradeDisabled?: boolean;
+  storeProductsLoading?: boolean;
   onClose: () => void;
   onIntervalChange: (value: BillingInterval) => void;
   onUpgrade: (planTier: Exclude<PlanTier, 'free'>) => void;
@@ -34,10 +36,12 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   billingInterval,
   premiumPlan,
   deeperPlan,
+  storeProducts,
   displayMode = 'compare',
   currentPlanTier = 'free',
   upgradeTitle,
   upgradeDisabled = false,
+  storeProductsLoading = false,
   onClose,
   onIntervalChange,
   onUpgrade,
@@ -45,19 +49,22 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   const insets = useSafeAreaInsets();
   const copy = getPremiumSourceCopy(source);
   const freePlan = getFreePlanCardModel();
-  const premiumPricing = getPaidPlanCardPricing(premiumPlan);
-  const deeperPricing = getPaidPlanCardPricing(deeperPlan);
+  const premiumPricing = getPaidPlanCardPricing(premiumPlan, { loading: storeProductsLoading });
+  const deeperPricing = getPaidPlanCardPricing(deeperPlan, { loading: storeProductsLoading });
   const isPremiumOnly = displayMode === 'premium_only';
   const [activeCardIndex, setActiveCardIndex] = useState(isPremiumOnly ? 0 : 1);
   const showPricingSwitch = isPremiumOnly || activeCardIndex !== 0;
   const yearlySavingsBadge = getYearlySavingsBadgeForVisibleCard({
     activeCardIndex,
-    premiumPlan,
-    deeperPlan,
+    products: storeProducts ?? [premiumPlan, deeperPlan],
     includesFreeCard: !isPremiumOnly,
   });
-  const premiumTitle = upgradeTitle?.premium ?? 'Choose Premium';
-  const deeperTitle = upgradeTitle?.deeper ?? 'Choose Deeper';
+  const premiumTitle = !premiumPlan.storePriceAvailable
+    ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+    : upgradeTitle?.premium ?? 'Choose Premium';
+  const deeperTitle = !deeperPlan.storePriceAvailable
+    ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+    : upgradeTitle?.deeper ?? 'Choose Deeper';
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -130,7 +137,11 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 selected
                 variant="premium"
                 current={currentPlanTier === 'premium'}
-                disabled={upgradeDisabled || currentPlanTier === 'premium'}
+                disabled={
+                  upgradeDisabled ||
+                  currentPlanTier === 'premium' ||
+                  !premiumPlan.storePriceAvailable
+                }
                 note="A balanced rhythm for regular dream work."
               />
 
@@ -148,7 +159,11 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 onPress={() => onUpgrade('deeper')}
                 variant="deeper"
                 current={currentPlanTier === 'deeper'}
-                disabled={upgradeDisabled || currentPlanTier === 'deeper'}
+                disabled={
+                  upgradeDisabled ||
+                  currentPlanTier === 'deeper' ||
+                  !deeperPlan.storePriceAvailable
+                }
                 note="More room for a deeper ongoing practice."
               />
             </SubscriptionPlanCarousel>

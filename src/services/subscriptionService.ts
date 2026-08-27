@@ -74,40 +74,8 @@ type FallbackPlanCopy = Pick<
   | 'trialLabel'
 >;
 
-const DEFAULT_TRIAL_LABEL = '7-day free trial';
-const PREMIUM_MONTHLY_PRICE = 4.99;
-const DEEPER_MONTHLY_PRICE = 8.99;
-/** Premium yearly monthly equivalent = monthly × this ratio (4.99 → 3.99). */
-const PREMIUM_ANNUAL_DISCOUNT_RATIO = 0.8;
-/** Deeper yearly is priced to a fixed monthly equivalent, not the Premium ratio. */
-const DEEPER_YEARLY_MONTHLY_EQUIVALENT = 6.49;
-
-function formatMoney(value: number): string {
-  return `€${value.toFixed(2)}`;
-}
-
-function buildYearlyCopy(
-  monthlyPrice: number,
-  monthlyEquivalentOverride?: number
-): Pick<
-  FallbackPlanCopy,
-  'displayPrice' | 'totalPriceLabel' | 'compareAtPriceLabel' | 'monthlyEquivalentLabel' | 'savingsLabel'
-> {
-  const monthlyEquivalent =
-    typeof monthlyEquivalentOverride === 'number'
-      ? Math.round(monthlyEquivalentOverride * 100) / 100
-      : Math.round(monthlyPrice * PREMIUM_ANNUAL_DISCOUNT_RATIO * 100) / 100;
-  const yearlyPrice = Math.round(monthlyEquivalent * 12 * 100) / 100;
-  const yearlySavings = Math.round((monthlyPrice * 12 - yearlyPrice) * 100) / 100;
-
-  return {
-    displayPrice: `${formatMoney(yearlyPrice)} / year`,
-    totalPriceLabel: `${formatMoney(yearlyPrice)} billed yearly`,
-    compareAtPriceLabel: `${formatMoney(monthlyPrice)} / month`,
-    monthlyEquivalentLabel: `${formatMoney(monthlyEquivalent)} / month`,
-    savingsLabel: `Save ${formatMoney(yearlySavings)} / year`,
-  };
-}
+const GENERIC_TRIAL_LABEL = 'Free trial for eligible subscribers';
+const PRICE_UNAVAILABLE_LABEL = 'Price unavailable';
 
 export const subscriptionConfig: SubscriptionConfig = {
   applePremiumMonthlyProductId: String(extras.appleSubscriptionMonthlyProductId ?? 'oneiros_premium_monthly'),
@@ -137,31 +105,39 @@ const FALLBACK_PLAN_COPY: Record<PlanCode, FallbackPlanCopy> = {
   },
   paid_monthly: {
     billingInterval: 'monthly',
-    displayPrice: `${formatMoney(PREMIUM_MONTHLY_PRICE)} / month`,
-    totalPriceLabel: 'Billed monthly',
+    displayPrice: PRICE_UNAVAILABLE_LABEL,
+    totalPriceLabel: 'Current store price unavailable',
     compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
-    trialLabel: DEFAULT_TRIAL_LABEL,
+    trialLabel: null,
   },
   paid_yearly: {
     billingInterval: 'yearly',
-    ...buildYearlyCopy(PREMIUM_MONTHLY_PRICE),
-    trialLabel: DEFAULT_TRIAL_LABEL,
-  },
-  deeper_monthly: {
-    billingInterval: 'monthly',
-    displayPrice: `${formatMoney(DEEPER_MONTHLY_PRICE)} / month`,
-    totalPriceLabel: 'Billed monthly',
+    displayPrice: PRICE_UNAVAILABLE_LABEL,
+    totalPriceLabel: 'Current store price unavailable',
     compareAtPriceLabel: null,
     monthlyEquivalentLabel: null,
     savingsLabel: null,
-    trialLabel: DEFAULT_TRIAL_LABEL,
+    trialLabel: null,
+  },
+  deeper_monthly: {
+    billingInterval: 'monthly',
+    displayPrice: PRICE_UNAVAILABLE_LABEL,
+    totalPriceLabel: 'Current store price unavailable',
+    compareAtPriceLabel: null,
+    monthlyEquivalentLabel: null,
+    savingsLabel: null,
+    trialLabel: null,
   },
   deeper_yearly: {
     billingInterval: 'yearly',
-    ...buildYearlyCopy(DEEPER_MONTHLY_PRICE, DEEPER_YEARLY_MONTHLY_EQUIVALENT),
-    trialLabel: DEFAULT_TRIAL_LABEL,
+    displayPrice: PRICE_UNAVAILABLE_LABEL,
+    totalPriceLabel: 'Current store price unavailable',
+    compareAtPriceLabel: null,
+    monthlyEquivalentLabel: null,
+    savingsLabel: null,
+    trialLabel: null,
   },
 };
 
@@ -180,7 +156,7 @@ export const PREMIUM_PLAN_FEATURES: SubscriptionFeatureRow[] = [
   { label: '10 Recent Dream Field reports each month', included: true },
   { label: '1 monthly essay', included: true },
   { label: '5 follow-up replies per reflected dream', included: true },
-  { label: '7-day free trial', included: true },
+  { label: '7-day free trial when eligible', included: true },
 ];
 
 export const DEEPER_PLAN_FEATURES: SubscriptionFeatureRow[] = [
@@ -189,7 +165,7 @@ export const DEEPER_PLAN_FEATURES: SubscriptionFeatureRow[] = [
   { label: 'Unlimited Recent Dream Field reports', included: true },
   { label: 'Weekly essays', included: true },
   { label: '5 follow-up replies per reflected dream', included: true },
-  { label: '7-day free trial', included: true },
+  { label: '7-day free trial when eligible', included: true },
 ];
 
 export function getPlanFeatures(planTier: PlanTier): SubscriptionFeatureRow[] {
@@ -381,37 +357,191 @@ export function normalizeSubscriptionStatus(raw?: RawSubscriptionStatus | null):
   };
 }
 
-function buildStorePlan(planCode: PaidPlanCode, productId: string, displayPrice?: string | null, offerTokenAndroid?: string | null): StoreSubscriptionPlan {
+type StorePriceInput = {
+  displayPrice: string;
+  priceAmount: number | null;
+  currencyCode: string | null;
+  trialLabel?: string | null;
+  offerTokenAndroid?: string | null;
+};
+
+function isPositiveFinitePrice(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function normalizeCurrencyCode(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(normalized) ? normalized : null;
+}
+
+function formatFreeTrialLabel(
+  period: { unit: string; value: number } | null | undefined,
+  periodCount = 1
+): string {
+  if (
+    !period ||
+    !Number.isInteger(period.value) ||
+    period.value <= 0 ||
+    !Number.isInteger(periodCount) ||
+    periodCount <= 0
+  ) {
+    return GENERIC_TRIAL_LABEL;
+  }
+
+  const totalUnits = period.value * periodCount;
+  if (period.unit === 'week' && totalUnits === 1) {
+    return '7-day free trial for eligible subscribers';
+  }
+  if (!['day', 'week', 'month', 'year'].includes(period.unit)) {
+    return GENERIC_TRIAL_LABEL;
+  }
+
+  return `${totalUnits}-${period.unit} free trial for eligible subscribers`;
+}
+
+function parseAndroidBillingPeriod(period: string | null | undefined): {
+  unit: string;
+  value: number;
+} | null {
+  const match = /^P(\d+)([DWMY])$/.exec(period ?? '');
+  if (!match) return null;
+  const unitBySymbol: Record<string, string> = {
+    D: 'day',
+    W: 'week',
+    M: 'month',
+    Y: 'year',
+  };
+  return {
+    value: Number(match[1]),
+    unit: unitBySymbol[match[2]],
+  };
+}
+
+/**
+ * Format arithmetic-only price breakdowns. Store-provided displayPrice remains
+ * the source of truth for the actual amount charged.
+ */
+function formatDerivedCurrencyAmount(value: number, currencyCode: string): string | null {
+  if (!Number.isFinite(value) || value < 0) return null;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currencyCode,
+    }).format(value);
+  } catch {
+    return null;
+  }
+}
+
+function buildStorePlan(
+  planCode: PaidPlanCode,
+  productId: string,
+  storePrice?: StorePriceInput | null
+): StoreSubscriptionPlan {
   const fallback = FALLBACK_PLAN_COPY[planCode];
+  const displayPrice = storePrice?.displayPrice?.trim();
+  const storePriceAvailable = Boolean(displayPrice);
   return {
     title: getPlanTitle(planCode),
     productId,
     planCode,
     planTier: getPlanTierForPaidCode(planCode),
     billingInterval: fallback.billingInterval,
+    storePriceAvailable,
+    priceAmount: isPositiveFinitePrice(storePrice?.priceAmount) ? storePrice.priceAmount : null,
+    currencyCode: normalizeCurrencyCode(storePrice?.currencyCode),
     displayPrice: displayPrice || fallback.displayPrice,
-    totalPriceLabel: fallback.totalPriceLabel,
+    totalPriceLabel: storePriceAvailable
+      ? fallback.billingInterval === 'yearly'
+        ? 'Billed once a year'
+        : 'Billed monthly'
+      : fallback.totalPriceLabel,
     compareAtPriceLabel: fallback.compareAtPriceLabel,
     monthlyEquivalentLabel: fallback.monthlyEquivalentLabel,
     savingsLabel: fallback.savingsLabel,
-    trialLabel: fallback.trialLabel,
-    offerTokenAndroid: offerTokenAndroid ?? null,
+    trialLabel: storePriceAvailable ? storePrice?.trialLabel ?? null : null,
+    offerTokenAndroid: storePrice?.offerTokenAndroid ?? null,
   };
 }
 
-/** Card pricing presentation: yearly shows strikethrough list price + discounted monthly + savings. */
-export function getPaidPlanCardPricing(plan: StoreSubscriptionPlan): {
+function addLocalizedYearlyBreakdowns(plans: StoreSubscriptionPlan[]): StoreSubscriptionPlan[] {
+  const pairings: Array<{
+    monthlyCode: PaidPlanCode;
+    yearlyCode: PaidPlanCode;
+  }> = [
+    { monthlyCode: 'paid_monthly', yearlyCode: 'paid_yearly' },
+    { monthlyCode: 'deeper_monthly', yearlyCode: 'deeper_yearly' },
+  ];
+  const updatedByCode = new Map(plans.map((plan) => [plan.planCode, plan]));
+
+  for (const { monthlyCode, yearlyCode } of pairings) {
+    const monthly = updatedByCode.get(monthlyCode);
+    const yearly = updatedByCode.get(yearlyCode);
+    if (
+      !monthly?.storePriceAvailable ||
+      !yearly?.storePriceAvailable ||
+      !isPositiveFinitePrice(monthly.priceAmount) ||
+      !isPositiveFinitePrice(yearly.priceAmount) ||
+      !monthly.currencyCode ||
+      monthly.currencyCode !== yearly.currencyCode
+    ) {
+      continue;
+    }
+
+    const monthlyEquivalent = formatDerivedCurrencyAmount(
+      yearly.priceAmount / 12,
+      yearly.currencyCode
+    );
+    const yearlySavingsAmount = monthly.priceAmount * 12 - yearly.priceAmount;
+    const savings =
+      yearlySavingsAmount > 0
+        ? formatDerivedCurrencyAmount(yearlySavingsAmount, yearly.currencyCode)
+        : null;
+
+    updatedByCode.set(yearlyCode, {
+      ...yearly,
+      compareAtPriceLabel: monthly.displayPrice,
+      monthlyEquivalentLabel: monthlyEquivalent
+        ? `Equivalent to ${monthlyEquivalent} / month`
+        : null,
+      savingsLabel: savings ? `Save ${savings} / year` : null,
+    });
+  }
+
+  return plans.map((plan) => updatedByCode.get(plan.planCode) ?? plan);
+}
+
+/** Card pricing presentation: the exact store billing total remains the primary price. */
+export function getPaidPlanCardPricing(
+  plan: StoreSubscriptionPlan,
+  options?: { loading?: boolean }
+): {
   price: string;
   compareAtPrice: string | null;
   priceDetail: string;
   secondaryPriceDetail: string | null;
 } {
-  if (plan.billingInterval === 'yearly' && plan.monthlyEquivalentLabel) {
+  if (!plan.storePriceAvailable) {
     return {
-      price: plan.monthlyEquivalentLabel,
-      compareAtPrice: plan.compareAtPriceLabel,
+      price: options?.loading ? 'Checking price…' : PRICE_UNAVAILABLE_LABEL,
+      compareAtPrice: null,
+      priceDetail: options?.loading
+        ? 'Connecting to the store'
+        : 'Try again when the store is available',
+      secondaryPriceDetail: null,
+    };
+  }
+
+  if (plan.billingInterval === 'yearly') {
+    return {
+      // Apple requires the full amount charged to be the most prominent price.
+      price: plan.displayPrice,
+      compareAtPrice: null,
       priceDetail: plan.totalPriceLabel,
-      secondaryPriceDetail: plan.savingsLabel,
+      secondaryPriceDetail: [plan.monthlyEquivalentLabel, plan.savingsLabel]
+        .filter((label): label is string => Boolean(label))
+        .join(' · ') || null,
     };
   }
 
@@ -423,7 +553,7 @@ export function getPaidPlanCardPricing(plan: StoreSubscriptionPlan): {
   };
 }
 
-/** Compact Yearly switch badge: "Save €12.00 / year" → "Save €12". */
+/** Compact Yearly switch badge: "Save $12.00 / year" → "Save $12". */
 export function getCompactYearlySavingsBadge(savingsLabel: string | null | undefined): string | null {
   if (!savingsLabel) return null;
   return savingsLabel.replace(/\s*\/\s*year$/i, '').replace(/(\d+)\.00\b/g, '$1');
@@ -436,35 +566,44 @@ export function getCompactYearlySavingsBadge(savingsLabel: string | null | undef
  */
 export function getYearlySavingsBadgeForVisibleCard(params: {
   activeCardIndex: number;
-  premiumPlan: StoreSubscriptionPlan;
-  deeperPlan: StoreSubscriptionPlan;
+  products: StoreSubscriptionPlan[];
   includesFreeCard?: boolean;
 }): string | null {
   const includesFreeCard = params.includesFreeCard !== false;
   const paidIndex = includesFreeCard ? params.activeCardIndex - 1 : params.activeCardIndex;
-  const plan = paidIndex >= 1 ? params.deeperPlan : params.premiumPlan;
-  // Prefer yearly savings even when the switch is currently on monthly (teaser on Yearly tab).
-  const yearlySavings =
-    plan.billingInterval === 'yearly'
-      ? plan.savingsLabel
-      : plan.planTier === 'deeper'
-        ? FALLBACK_PLAN_COPY.deeper_yearly.savingsLabel
-        : FALLBACK_PLAN_COPY.paid_yearly.savingsLabel;
-  return getCompactYearlySavingsBadge(yearlySavings);
+  const yearlyCode: PaidPlanCode = paidIndex >= 1 ? 'deeper_yearly' : 'paid_yearly';
+  const yearlyPlan = params.products.find((plan) => plan.planCode === yearlyCode);
+  return getCompactYearlySavingsBadge(yearlyPlan?.savingsLabel);
 }
 
 function formatPlanFromIos(product: ProductSubscription): StoreSubscriptionPlan | null {
+  const freeIntroductoryOffer = (product.subscriptionOffers ?? []).find(
+    (offer) =>
+      offer.type === 'introductory' &&
+      (offer.paymentMode === 'free-trial' || offer.price === 0)
+  );
+  const storePrice: StorePriceInput = {
+    displayPrice: product.displayPrice,
+    priceAmount: product.price ?? null,
+    currencyCode: product.currency,
+    trialLabel: freeIntroductoryOffer
+      ? formatFreeTrialLabel(
+          freeIntroductoryOffer.period,
+          freeIntroductoryOffer.periodCount ?? 1
+        )
+      : null,
+  };
   if (product.id === subscriptionConfig.applePremiumMonthlyProductId) {
-    return buildStorePlan('paid_monthly', product.id, product.displayPrice);
+    return buildStorePlan('paid_monthly', product.id, storePrice);
   }
   if (product.id === subscriptionConfig.applePremiumYearlyProductId) {
-    return buildStorePlan('paid_yearly', product.id, product.displayPrice);
+    return buildStorePlan('paid_yearly', product.id, storePrice);
   }
   if (product.id === subscriptionConfig.appleDeeperMonthlyProductId) {
-    return buildStorePlan('deeper_monthly', product.id, product.displayPrice);
+    return buildStorePlan('deeper_monthly', product.id, storePrice);
   }
   if (product.id === subscriptionConfig.appleDeeperYearlyProductId) {
-    return buildStorePlan('deeper_yearly', product.id, product.displayPrice);
+    return buildStorePlan('deeper_yearly', product.id, storePrice);
   }
 
   return null;
@@ -476,21 +615,41 @@ function formatPlansFromAndroid(product: ProductSubscription): StoreSubscription
   const isDeeperProduct = product.id === subscriptionConfig.googleDeeperSubscriptionProductId;
 
   const plans: Array<StoreSubscriptionPlan | null> = offers.map((offer) => {
+    const phases = offer.pricingPhasesAndroid?.pricingPhaseList ?? [];
+    const freeTrialPhase = phases.find((phase) => Number(phase.priceAmountMicros) === 0);
+    const recurringPhase =
+      [...phases].reverse().find((phase) => phase.recurrenceMode === 1) ?? phases.at(-1);
+    const recurringMicros = recurringPhase
+      ? Number(recurringPhase.priceAmountMicros) / 1_000_000
+      : null;
+    const storePrice: StorePriceInput = {
+      // Never advertise a zero-cost trial phase as the renewal price.
+      displayPrice: recurringPhase?.formattedPrice || offer.displayPrice,
+      priceAmount: isPositiveFinitePrice(recurringMicros) ? recurringMicros : offer.price,
+      currencyCode: recurringPhase?.priceCurrencyCode || offer.currency || product.currency,
+      trialLabel: freeTrialPhase
+        ? formatFreeTrialLabel(
+            parseAndroidBillingPeriod(freeTrialPhase.billingPeriod),
+            freeTrialPhase.billingCycleCount || 1
+          )
+        : null,
+      offerTokenAndroid: offer.offerTokenAndroid,
+    };
     if (offer.basePlanIdAndroid === subscriptionConfig.googleMonthlyBasePlanId) {
       if (isPremiumProduct) {
-        return buildStorePlan('paid_monthly', product.id, offer.displayPrice, offer.offerTokenAndroid);
+        return buildStorePlan('paid_monthly', product.id, storePrice);
       }
       if (isDeeperProduct) {
-        return buildStorePlan('deeper_monthly', product.id, offer.displayPrice, offer.offerTokenAndroid);
+        return buildStorePlan('deeper_monthly', product.id, storePrice);
       }
     }
 
     if (offer.basePlanIdAndroid === subscriptionConfig.googleYearlyBasePlanId) {
       if (isPremiumProduct) {
-        return buildStorePlan('paid_yearly', product.id, offer.displayPrice, offer.offerTokenAndroid);
+        return buildStorePlan('paid_yearly', product.id, storePrice);
       }
       if (isDeeperProduct) {
-        return buildStorePlan('deeper_yearly', product.id, offer.displayPrice, offer.offerTokenAndroid);
+        return buildStorePlan('deeper_yearly', product.id, storePrice);
       }
     }
 
@@ -511,9 +670,12 @@ function sortStorePlans(plans: StoreSubscriptionPlan[]): StoreSubscriptionPlan[]
   return [...plans].sort((left, right) => order[left.planCode] - order[right.planCode]);
 }
 
-export function getStorePlanOptions(products: ProductSubscription[]): StoreSubscriptionPlan[] {
+export function getStorePlanOptions(
+  products: ProductSubscription[],
+  platform: 'ios' | 'android' = Platform.OS === 'ios' ? 'ios' : 'android'
+): StoreSubscriptionPlan[] {
   const storePlans =
-    Platform.OS === 'ios'
+    platform === 'ios'
       ? products
           .map((product) => formatPlanFromIos(product))
           .filter((plan): plan is StoreSubscriptionPlan => !!plan)
@@ -523,14 +685,26 @@ export function getStorePlanOptions(products: ProductSubscription[]): StoreSubsc
           )
           .flatMap((product) => formatPlansFromAndroid(product));
 
-  if (storePlans.length > 0) return sortStorePlans(storePlans);
-
-  return sortStorePlans([
+  const unavailablePlans = [
     getFallbackPlan('paid_monthly'),
     getFallbackPlan('paid_yearly'),
     getFallbackPlan('deeper_monthly'),
     getFallbackPlan('deeper_yearly'),
-  ]);
+  ];
+  const storePlanByCode = new Map<string, StoreSubscriptionPlan>();
+  for (const plan of storePlans) {
+    // Preserve the first eligible offer token for a base plan while avoiding
+    // duplicate cards when Google returns multiple offers for the same plan.
+    const existing = storePlanByCode.get(plan.planCode);
+    if (!existing || (!existing.trialLabel && plan.trialLabel)) {
+      storePlanByCode.set(plan.planCode, plan);
+    }
+  }
+
+  const completePlans = unavailablePlans.map(
+    (fallback) => storePlanByCode.get(fallback.planCode) ?? fallback
+  );
+  return sortStorePlans(addLocalizedYearlyBreakdowns(completePlans));
 }
 
 export function getPaidPlanOptionsForInterval(
@@ -729,7 +903,13 @@ export function getFallbackPlan(planCode: PaidPlanCode): StoreSubscriptionPlan {
         : subscriptionConfig.googleDeeperSubscriptionProductId,
   };
 
-  return buildStorePlan(planCode, productIdByPlan[planCode]);
+  return buildStorePlan(planCode, productIdByPlan[planCode], null);
+}
+
+export function isStorePlanPurchasable(
+  plan: StoreSubscriptionPlan | null | undefined
+): plan is StoreSubscriptionPlan {
+  return Boolean(plan?.storePriceAvailable && plan.productId && plan.productId !== 'free');
 }
 
 export function getPurchaseRequest(plan: StoreSubscriptionPlan, accountIdentifiers: SubscriptionStatus) {

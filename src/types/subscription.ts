@@ -45,9 +45,15 @@ export type StoreSubscriptionPlan = {
   planTier: Exclude<PlanTier, 'free'>;
   billingInterval: BillingInterval;
   productId: string;
+  /** True only when the current store returned this exact product and price. */
+  storePriceAvailable: boolean;
+  /** Numeric price in the current storefront currency, when supplied by the store. */
+  priceAmount: number | null;
+  /** ISO 4217 storefront currency code, when supplied by the store. */
+  currencyCode: string | null;
   displayPrice: string;
   totalPriceLabel: string;
-  /** Full monthly list price shown with strikethrough on yearly cards. */
+  /** Matching monthly store price retained for optional yearly comparison copy. */
   compareAtPriceLabel: string | null;
   monthlyEquivalentLabel: string | null;
   savingsLabel: string | null;

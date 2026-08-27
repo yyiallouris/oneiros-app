@@ -29,7 +29,15 @@ type NavProp = StackNavigationProp<OnboardingStackParamList, 'OnboardingSubscrip
 
 const OnboardingSubscriptionScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
-  const { status, loading, products, purchasingPlanCode, purchasePlan } = useSubscription();
+  const {
+    status,
+    loading,
+    products,
+    storeProductsLoading,
+    iapRuntimeAvailable,
+    purchasingPlanCode,
+    purchasePlan,
+  } = useSubscription();
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
   const [activeCardIndex, setActiveCardIndex] = useState(1);
 
@@ -37,17 +45,22 @@ const OnboardingSubscriptionScreen: React.FC = () => {
     () => getPaidPlanOptionsForInterval(products, billingInterval),
     [billingInterval, products]
   );
-  const premiumPricing = useMemo(() => getPaidPlanCardPricing(premiumPlan), [premiumPlan]);
-  const deeperPricing = useMemo(() => getPaidPlanCardPricing(deeperPlan), [deeperPlan]);
+  const premiumPricing = useMemo(
+    () => getPaidPlanCardPricing(premiumPlan, { loading: storeProductsLoading }),
+    [premiumPlan, storeProductsLoading]
+  );
+  const deeperPricing = useMemo(
+    () => getPaidPlanCardPricing(deeperPlan, { loading: storeProductsLoading }),
+    [deeperPlan, storeProductsLoading]
+  );
   const yearlySavingsBadge = useMemo(
     () =>
       getYearlySavingsBadgeForVisibleCard({
         activeCardIndex,
-        premiumPlan,
-        deeperPlan,
+        products,
         includesFreeCard: true,
       }),
-    [activeCardIndex, deeperPlan, premiumPlan]
+    [activeCardIndex, products]
   );
   const freePlan = getFreePlanCardModel();
 
@@ -120,14 +133,24 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               trialLabel={premiumPlan.trialLabel}
               features={PREMIUM_PLAN_FEATURES}
               imageSource={PREMIUM_IMAGE}
-              actionTitle={purchasingPlanCode === premiumPlan.planCode ? 'Opening store…' : 'Choose Premium'}
+              actionTitle={
+                purchasingPlanCode === premiumPlan.planCode
+                  ? 'Opening store…'
+                  : !premiumPlan.storePriceAvailable
+                    ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+                    : 'Choose Premium'
+              }
               onPress={() => {
                 void handlePremiumPress('premium');
               }}
               selected
-              note="7 days free, then the selected plan begins if the store says the user is eligible."
+              note="Eligible subscribers can begin with 7 days free. The store confirms the offer before purchase."
               variant="premium"
-              disabled={purchasingPlanCode !== null}
+              disabled={
+                purchasingPlanCode !== null ||
+                !iapRuntimeAvailable ||
+                !premiumPlan.storePriceAvailable
+              }
             />
 
             <SubscriptionPlanCard
@@ -140,13 +163,23 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               trialLabel={deeperPlan.trialLabel}
               features={DEEPER_PLAN_FEATURES}
               imageSource={DEEPER_IMAGE}
-              actionTitle={purchasingPlanCode === deeperPlan.planCode ? 'Opening store…' : 'Choose Deeper'}
+              actionTitle={
+                purchasingPlanCode === deeperPlan.planCode
+                  ? 'Opening store…'
+                  : !deeperPlan.storePriceAvailable
+                    ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
+                    : 'Choose Deeper'
+              }
               onPress={() => {
                 void handlePremiumPress('deeper');
               }}
               note="More monthly room, weekly essays, and unlimited recent dream field reports."
               variant="deeper"
-              disabled={purchasingPlanCode !== null}
+              disabled={
+                purchasingPlanCode !== null ||
+                !iapRuntimeAvailable ||
+                !deeperPlan.storePriceAvailable
+              }
             />
           </SubscriptionPlanCarousel>
 

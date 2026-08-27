@@ -8,6 +8,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockPurchasePlan = jest.fn();
 let mockHasPaidAccess = false;
+let mockStorePriceAvailable = true;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -58,13 +59,13 @@ jest.mock('../../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle, onPress }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
     const React = require('react');
     const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity onPress={onPress} disabled={disabled}>
           <Text>{actionTitle}</Text>
         </TouchableOpacity>
       </View>
@@ -76,12 +77,17 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
   useSubscription: () => ({
     status: mockHasPaidAccess ? { hasPaidAccess: true, planTier: 'premium' } : { hasPaidAccess: false, planTier: 'free' },
     loading: false,
+    storeProductsLoading: false,
+    iapRuntimeAvailable: true,
     products: [
       {
         planCode: 'paid_monthly',
         planTier: 'premium',
         billingInterval: 'monthly',
         productId: 'monthly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 4.99,
+        currencyCode: 'EUR',
         displayPrice: '€4.99 / month',
         totalPriceLabel: 'Billed monthly',
         compareAtPriceLabel: null,
@@ -95,6 +101,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'premium',
         billingInterval: 'yearly',
         productId: 'yearly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 47.88,
+        currencyCode: 'EUR',
         displayPrice: '€47.88 / year',
         totalPriceLabel: '€47.88 billed yearly',
         compareAtPriceLabel: '€4.99 / month',
@@ -108,6 +117,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'deeper',
         billingInterval: 'monthly',
         productId: 'deeper-monthly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 8.99,
+        currencyCode: 'EUR',
         displayPrice: '€8.99 / month',
         totalPriceLabel: 'Billed monthly',
         compareAtPriceLabel: null,
@@ -121,6 +133,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'deeper',
         billingInterval: 'yearly',
         productId: 'deeper-yearly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 77.88,
+        currencyCode: 'EUR',
         displayPrice: '€77.88 / year',
         totalPriceLabel: '€77.88 billed yearly',
         compareAtPriceLabel: '€8.99 / month',
@@ -141,6 +156,7 @@ describe('Onboarding subscription flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasPaidAccess = false;
+    mockStorePriceAvailable = true;
   });
 
   it('lets the user continue with Free into the secure step', async () => {
@@ -174,6 +190,14 @@ describe('Onboarding subscription flow', () => {
     await waitFor(() => {
       expect(mockPurchasePlan).toHaveBeenCalledWith('premium', 'monthly', 'onboarding');
     });
+  });
+
+  it('keeps paid choices disabled until the store returns a real price', async () => {
+    mockStorePriceAvailable = false;
+    const screen = render(<OnboardingSubscriptionScreen />);
+
+    fireEvent.press(screen.getAllByText('Price unavailable')[0]);
+    expect(mockPurchasePlan).not.toHaveBeenCalled();
   });
 
   it('skips the screen when paid access is already active', async () => {

@@ -6,7 +6,7 @@ import type { BillingInterval } from '../../types/subscription';
 type Props = {
   value: BillingInterval;
   onChange: (value: BillingInterval) => void;
-  /** Compact savings teaser for the currently visible paid plan, e.g. "Save €12". */
+  /** Compact savings teaser derived from current store prices, e.g. "Save $12". */
   yearlySavingsBadge?: string | null;
 };
 
