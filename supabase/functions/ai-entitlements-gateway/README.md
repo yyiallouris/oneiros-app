@@ -27,7 +27,7 @@ Behavior:
 - before starting the background worker, the gateway sets `result_context.async_background_started`; a later reserve with the same stable idempotency key returns `pending` without starting a second Edge worker (client rejoins via `dream_reflection_status`)
 - while async reflection is pending, the gateway streams model chunks into `quota_events.result_context.partial_reflection`; status polling can return this partial text for progressive display, but quota still commits only after the final reflection row is saved
 - `dream_reflection_status` reads the quota event and returns the committed interpretation payload once available, or `pending` / `released` / `denied` status while preserving quota semantics
-- dream reflection prompts mirror the canonical initial interpretation contract in `src/services/ai.ts` for structure, depth, same-language body/questions, and Standard/Advanced two-question endings; Advanced keeps the 550–800 word target with a looser token headroom (2800) so completions are less likely to truncate mid-response; the hidden completion marker is stripped before persistence/response
+- dream reflection prompts mirror the canonical initial interpretation contract in `src/services/ai.ts` for structure, depth, same-language body/questions, and recovered production reflective-question method `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…` (Quick: exactly one; Standard/Advanced: 1–2 default 1; Chat non-final: exactly one; Chat final: none). Essays stay on frozen `2.0.3-phase1` exactly one and do not inject that method. Advanced keeps the 550–800 word target with a looser token headroom (2800) so completions are less likely to truncate mid-response; the hidden completion marker is stripped before persistence/response
 - Recent Dream Field and period reflection keep shared prompt ids `oneiros-recent-dream-field-v2` / `oneiros-period-reflection-v2` frozen at `2.0.3-phase1`. `_shared/billing-ai.ts` now selects the accepted metadata-heavy builder and persists context version `1`. Provider/model routing, temperatures, sections, length handling, and one-shot compact retry remain unchanged. Narrative-first context version `2` and the Field Map pre-pass are evaluation-only and are not imported into gateway generation. The Phase 2 regression scored `7 PASS / 2 FAIL`; its one permitted Field Map spike failed the stop rule at manual `2 PASS / 7 FAIL`. Phase 2 R&D is closed. Deploying this gateway would ship the Phase 1 baseline, not Phase 2.
 - incomplete or initially over-limit essays receive one compact full rewrite; the retry has a small measured tolerance and is never string-truncated. Sanitized telemetry may include word counts and thresholds but never dream content, prompts, messages, or essay output
 - gateway-to-proxy reflection timeouts release the quota reservation before the client sees an error
@@ -59,8 +59,12 @@ Required env:
 
 Deploy:
 
+The local reflective-question identity must match recovered production before this function can ship. Do not run raw `supabase functions deploy ai-entitlements-gateway`. Use the fail-closed wrapper:
+
 ```bash
-supabase functions deploy ai-entitlements-gateway
+npm run deploy:ai-entitlements-gateway
 ```
+
+That runs `npm run guard:ai-entitlements-gateway-deploy` first. The guard fails unless the bundled `REFLECTIVE_QUESTION_METHOD_ID` + prompt SHA match recovered production `reflective-question-psychological-aliveness-v1.4.0` / `4885e351…`. Rejected local Oneiros Reader v1.4.0 cannot be approved with an env override. Missing `src/ai/reflectiveQuestionPrompt.ts` is a hard fail. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../../../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
 
 `openai-proxy` must also be deployed and reachable; gateway AI calls fail with `Unauthorized` if the proxy receives a non-user Bearer token.

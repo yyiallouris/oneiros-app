@@ -198,6 +198,7 @@ Before Google Play review, complete these manual steps:
 - Deploy changed AI functions before production builds:
   ```bash
   supabase functions deploy openai-proxy
+  npm run deploy:ai-entitlements-gateway
   supabase functions deploy whisper-transcription
   ```
 - Deploy changed billing/subscription functions before production builds when billing or entitlement behavior changed:
@@ -252,6 +253,7 @@ Before TestFlight/App Review, complete these manual steps:
 - Changed AI functions are deployed before production builds:
   ```bash
   supabase functions deploy openai-proxy
+  npm run deploy:ai-entitlements-gateway
   supabase functions deploy whisper-transcription
   ```
 - Deploy changed billing/subscription functions before production builds when billing or entitlement behavior changed:

@@ -364,6 +364,11 @@ describe('ai service', () => {
     expect(systemText).not.toMatch(/## Key Symbols/);
     expect(systemText).not.toMatch(/## Possible Psychological Meaning/);
     expect(systemText).not.toMatch(/## Mythic Resonance/);
+    expect(systemText).toMatch(/psychological aliveness v1\.4\.0/);
+    expect(systemText).toMatch(/Output 1–2 questions, maximum 2/);
+    expect(systemText).toMatch(/Default to one question/);
+    expect(systemText).toMatch(/Do not follow a fixed somatic-first\/symbolic-second sequence/);
+    expect(systemText).not.toMatch(/Exactly 2 questions/);
   });
 
   it('uses the image-near quick prompt', async () => {
@@ -405,6 +410,8 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Do not summarize the whole dream before entering it/);
     expect(systemText).toMatch(/Do not list symbols/);
     expect(systemText).toMatch(/Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing/);
+    expect(systemText).toMatch(/psychological aliveness v1\.4\.0/);
+    expect(systemText).toMatch(/End with exactly one reflective question selected through the reflective-question method/);
   });
 
   it('uses the hidden-structure advanced prompt', async () => {
@@ -478,7 +485,10 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Let unresolvedness appear only if the dream itself leaves something suspended/);
     expect(systemText).toMatch(/Somatic questions should refer to the remembered dream-body or bodily tone/);
     expect(systemText).toMatch(/Length: aim for 550–800 words/);
-    expect(systemText).toMatch(/Finish the full response, including both reflective questions/);
+    expect(systemText).toMatch(/Finish the full response, including the complete reflective-question section/);
+    expect(systemText).toMatch(/psychological aliveness v1\.4\.0/);
+    expect(systemText).toMatch(/Output 1–2 questions, maximum 2/);
+    expect(systemText).toMatch(/Default to one question/);
     expect(systemText).toMatch(/Do not stop mid-sentence or mid-question/);
     const userMsg = interpretationBody.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
     expect(userMsg).toMatch(/Return to the dream sequence and charged images first/);

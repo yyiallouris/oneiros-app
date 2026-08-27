@@ -22,6 +22,10 @@ import {
 } from '../ai/mythicEchoes';
 import { buildDreamExtractionResponseFormat } from '../ai/dreamExtractionResponseFormat';
 import {
+  REFLECTIVE_QUESTION_METHOD_PROMPT,
+  REFLECTIVE_QUESTION_RETRY_REMINDER,
+} from '../ai/reflectiveQuestionPrompt';
+import {
   normalizeMainTensionAgainstCentralConflicts,
   validateStructuredTaskContent,
 } from '../ai/structuredTaskValidation';
@@ -637,8 +641,10 @@ Keep only one living psychological movement.
 Do not summarize the whole dream or list symbols.
 Do not use report-like language or framework labels.
 Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
-End with exactly one observational reflective question.
+End with exactly one reflective question selected through the reflective-question method.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -659,8 +665,12 @@ Use the Standard mode, but with hidden structure:
 - If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
 - Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
 
-End with exactly 2 reflective questions.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -684,8 +694,12 @@ Allow brief mythic resonance only when it is unmistakably earned by the dream im
 Prefer one precise mythic echo over extended amplification.
 Do not create a Mythic Resonance section or lecture on mythology.
 
-End with exactly 2 reflective questions.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -844,7 +858,7 @@ BRIEF mode (Quick Glance):
   2. render the atmosphere briefly
   3. follow one central psychological movement
   4. include one felt-sense sentence only if bodily tone is clearly present
-- End with exactly one observational reflective question.
+- End with exactly one reflective question selected through the reflective-question method.
 - Keep it close to the dream image unless another movement is clearly supported.
 - Do not manufacture a problem when the dream is calm, joyful, beautiful, vital, cohesive, transformative, or numinous.
 - Do not use archetype labels, amplifications, or extra framework language.
@@ -911,10 +925,14 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First question: somatic-observational when possible.
-- Second question: symbolic, relational, or imaginal.
-- Questions should deepen the central movement, not open a new analytic thread.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive unexplored point determine the first question.
+- If a second question is warranted, deepen the same living material from another angle or open the next genuinely connected element.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Questions should deepen the dream's living material, not open an unrelated analytic thread.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
@@ -988,15 +1006,20 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First: somatic-observational when possible.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive image, affect, relation, atmosphere, transformation, absence, movement, or ego-position determine the first question.
 - Somatic questions should refer to the remembered dream-body or bodily tone, not instruct the user to perform an exercise.
-- Second: symbolic, relational, or imaginal.
+- If a second question is warranted, keep it inside the image or move toward symbolic, relational, somatic, imaginal, or personal meaning only when the dream supports that movement.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Never manufacture tension, pathology, compensation, hidden fear, or avoidance to demonstrate advanced reasoning.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
 Length: aim for 550–800 words. Prefer density and continuity over coverage.
-Finish the full response, including both reflective questions and the end marker. Do not stop mid-sentence or mid-question.
+Finish the full response, including the complete reflective-question section and the end marker. One question is valid and complete; do not retry or add filler because a second is absent. Do not stop mid-sentence or mid-question.
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -1093,6 +1116,7 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
     messages: [
       { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
       { role: 'system', content: INTERPRETATION_ROLE_PROMPT },
+      { role: 'system', content: REFLECTIVE_QUESTION_METHOD_PROMPT },
       { role: 'system', content: formatPrompt },
       { role: 'user', content: userPrompt },
     ],
@@ -1370,11 +1394,17 @@ Content: ${dreamExcerpt}`;
 
   const finalResponseInstruction = isFinalResponse
     ? `Important: No more follow-ups. This is your final response. Conclude the reflection without inviting further questions. Do not end with a question or prompts like "Do you have any questions?" or "What would you like to explore?". Wrap up with a closing insight or affirmation instead.`
-    : null;
+    : `End with exactly ONE reflective question selected through the reflective-question method. Never ask two questions in chat.
+Base it on what remains most psychologically alive and generative across the dream and latest exchange.
+Do not ask the user to repeat something already stated in the dream, initial reading, or conversation.
+Do not mechanically transfer the dream into waking life or turn peaceful, joyful, beautiful, vital, or coherent material into a hidden problem.`;
 
   const messages: ApiMessage[] = [
     { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
     { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
+    ...(!isFinalResponse
+      ? [{ role: 'system' as const, content: REFLECTIVE_QUESTION_METHOD_PROMPT }]
+      : []),
     ...(finalResponseInstruction ? [{ role: 'system' as const, content: finalResponseInstruction }] : []),
     { role: 'system', content: dreamContext },
     { role: 'system', content: INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE },

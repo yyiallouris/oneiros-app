@@ -23,6 +23,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `dreamDetail.reflectionResume.flow.test.tsx` | flows-06 (DreamDetail focus resumes pending reflection loading / remote attach without Reflect again) |
 | `gatewayReflectionResume.flow.test.ts` | flows-06 (gateway async_background_started prevents second Edge worker on idempotency replay) |
 | `edgeReflectionPrompt.flow.test.ts` | flows-06 (Edge reflection prompt language, reflective questions, and depth routing contract) |
+| `reflectiveQuestions.productionSurfaces.contract.flow.test.ts` | flows-06 **production RQ identity** (recovered v105 method SHA `4885e351…` on Quick/Standard/Advanced/Chat; essays stay `2.0.3-phase1` exactly one; fail-closed deploy guard; no Candidate B import) |
 | `edgeExtractionPrompt.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (Edge dream metadata extraction prompt parity via shared canonical module) |
 | `archetypeTwoPassIntegration.contract.flow.test.ts` | flows-06 / architecture-interpretation / SYMBOLS_FLOW (dedicated recognition→adjudication production archetype persistence; no monolithic fallback; retry-once failure contract) |
 | `interpretiveEchoesV31.ranking.flow.test.ts` | flows-06 / SYMBOLS_FLOW (Interpretive Echoes v4.1.6-D.1 Hero gate + frozen C.1.1 myth) |
