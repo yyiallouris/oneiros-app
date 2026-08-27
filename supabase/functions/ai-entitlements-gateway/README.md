@@ -58,8 +58,12 @@ Required env:
 
 Deploy:
 
+The local reflective-question source is **not** the recovered production identity unless the fail-closed guard says so. Do not run raw `supabase functions deploy ai-entitlements-gateway`. Use:
+
 ```bash
-supabase functions deploy ai-entitlements-gateway
+npm run deploy:ai-entitlements-gateway
 ```
+
+That runs `npm run guard:ai-entitlements-gateway-deploy` first. The guard fails unless the bundled `REFLECTIVE_QUESTION_METHOD_ID` + prompt SHA match recovered production `reflective-question-psychological-aliveness-v1.4.0` / `4885e351…`. Rejected local Oneiros Reader v1.4.0 cannot be approved with an env override. Missing `src/ai/reflectiveQuestionPrompt.ts` is a hard fail. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../../../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
 
 `openai-proxy` must also be deployed and reachable; gateway AI calls fail with `Unauthorized` if the proxy receives a non-user Bearer token.

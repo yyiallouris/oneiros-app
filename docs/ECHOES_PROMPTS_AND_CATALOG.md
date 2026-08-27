@@ -4,6 +4,7 @@ Canonical sources:
 - Prompt: `src/ai/dreamExtractionPrompt.ts` (`prompt_version` `4.1.10-M2.2`)
 - Prompt id: `dream-field-map-interpretive-v4.1.10-M2.2` / schema `13`
 - Current production notes: `documentation/architecture-interpretation.md`, `documentation/flows-06-jungian-ai-reflection.md`, `docs/SYMBOLS_FLOW.md`
+> **2026-08-27 reflective-question production hold:** recovered remote `ai-entitlements-gateway` v105 is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`, not a verified `v1.5.0` method id. Deploy only through `npm run deploy:ai-entitlements-gateway`. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). No Echo prompt, extraction, catalog, or runtime question prompt changed.
 - Mythic closed-catalog brief: `docs/ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md`
 - Full catalog JSON: `src/ai/catalogs/mythic_narrative_catalog.v1.json` (build-time; version `1.2.0`, 128 entries)
 - Compact prompt index: `src/ai/catalogs/generated/mythicPromptIndex.v1.ts` (`npm run build:mythic-prompt-index`)

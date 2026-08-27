@@ -17,6 +17,8 @@
     "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
     "test:live-ai": "RUN_LIVE_AI_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
     "test:live-ai-quality": "RUN_LIVE_AI_TESTS=1 RUN_LIVE_AI_QUALITY_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
+    "guard:ai-entitlements-gateway-deploy": "node -r ./scripts/register-typescript.cjs scripts/guards/assert-reflective-question-gateway-deploy.ts",
+    "deploy:ai-entitlements-gateway": "npm run guard:ai-entitlements-gateway-deploy && supabase functions deploy ai-entitlements-gateway",
     "test:live-production-baseline": "bash scripts/live/run-production-baseline.sh",
     "site:preview": "python3 -m http.server 4173 -d site",
     "typecheck": "tsc --noEmit",
