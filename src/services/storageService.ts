@@ -2,8 +2,10 @@ import { LocalStorage } from './localStorage';
 import { UserService } from './userService';
 import { SyncService } from './syncService';
 import { Dream, Interpretation, DreamDraft } from '../types/dream';
-import { logEvent } from './logger';
+import { logError, logEvent } from './logger';
 import { isOnline } from '../utils/network';
+import { voiceTranscriptionQueueService } from './voiceTranscriptionQueueService';
+import { VoiceComposerService } from './voiceComposerService';
 
 /**
  * Storage Service - Main interface for all storage operations
@@ -21,18 +23,37 @@ export class StorageService {
    * Should be called on app startup
    */
   static async initialize(): Promise<void> {
-    const userChanged = await UserService.hasUserChanged();
+    const previousUserId = await UserService.getStoredUserId();
+    const currentUserId = await UserService.getCurrentUserId();
+    try {
+      await voiceTranscriptionQueueService.migrateLegacyPendingClips();
+    } catch (error) {
+      // Do not make ordinary startup unavailable for the current account. Every
+      // queue read retries migration. Account-switch cleanup below remains hard
+      // failing, so its owner fence is never cleared while the queue is unreadable.
+      logError('voice_transcription_legacy_migration_deferred', error as Error);
+    }
+    const userChanged = Boolean(
+      previousUserId
+      && currentUserId
+      && previousUserId !== currentUserId,
+    );
     if (userChanged) {
       // User changed - clear all local data to prevent cross-user contamination
-      await LocalStorage.clearAll();
-      const currentUserId = await UserService.getCurrentUserId();
-      if (currentUserId) {
-        await UserService.storeUserId(currentUserId);
-      }
+      await VoiceComposerService.runOwnerCleanup(async () => {
+        if (previousUserId) {
+          await voiceTranscriptionQueueService.discardAllForUser(previousUserId);
+        }
+        await LocalStorage.clearAll();
+        if (currentUserId) {
+          await UserService.storeUserId(currentUserId);
+        }
+      });
       logEvent('storage_initialized_user_changed');
     } else {
-      // Same user - ensure user ID is stored
-      const currentUserId = await UserService.getCurrentUserId();
+      // Same user/first login: store it. With no session, intentionally retain
+      // the previous owner until explicit logout cleanup or a later account
+      // switch has completed owner-scoped deletion.
       if (currentUserId) {
         await UserService.storeUserId(currentUserId);
       }
@@ -247,12 +268,22 @@ export class StorageService {
   }
 
   /**
-   * Clear all local storage
+   * Clear account-scoped local storage. Voice queue/inbox data is intentionally
+   * excluded here and must be removed through owner-scoped queue cleanup.
    * Called when user logs out
    */
-  static async clearAll(): Promise<void> {
-    await LocalStorage.clearAll();
-    await UserService.clearStoredUserId();
+  static async clearAll(expectedOwnerId?: string): Promise<void> {
+    const storedOwnerId = await UserService.getStoredUserId();
+    const ownerId = expectedOwnerId ?? storedOwnerId;
+    await VoiceComposerService.runOwnerCleanup(async () => {
+      if (ownerId) {
+        // Centralize the invariant for logout and account deletion: the fence is
+        // cleared only after the owner's voice queue/audio cleanup succeeds.
+        await voiceTranscriptionQueueService.discardAllForUser(ownerId);
+      }
+      await LocalStorage.clearAll();
+      await UserService.clearStoredUserId();
+    });
     logEvent('storage_cleared');
   }
 

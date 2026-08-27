@@ -1,10 +1,19 @@
 # Archetypal / Mythic Echo prompts & catalog (v4.1.10-M2.2)
 
+> **2026-08-27 reflective-question production identity:** recovered remote `ai-entitlements-gateway` v105 is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`. Quick / Standard / Advanced / Chat use that method from `src/ai/reflectiveQuestionPrompt.ts`. Essays remain `2.0.3-phase1` exactly one and do not inject it. R&D is isolated under `src/ai/rd/reflective-questions/`. Deploy only through `npm run deploy:ai-entitlements-gateway`. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). No Echo prompt, extraction, catalog, or validation change.
+
+> **2026-08-26 transcription note:** voice transcription uses server-owned, language-neutral strategy `voice-transcription-v3.0.0-language-neutral` and `gpt-transcribe` (no primary prose prompt; detected-language hints only on bounded recovery). This is an independent pre-dream-input path; no Echo prompt, extraction id/version, schema, catalog, evidence, or validation behavior changed.
+
+> **2026-08-26 reflective-essay Phase 2 final note:** Period Reflection and Recent Dream Field keep the frozen prompt ids `oneiros-period-reflection-v2` / `oneiros-recent-dream-field-v2` at `2.0.3-phase1`. Production returns to metadata-heavy context version `1`, which includes bounded Archetypal and Mythic Echo summaries. Narrative-first context version `2` and the Field Map pre-pass are offline research artifacts only. Echo extraction, catalog, validation, persistence, Insights aggregation, and Dream Detail behavior are unchanged.
+
+> Phase 2 scored `7 PASS / 2 FAIL`; the one permitted Field Map spike then failed its stop rule at manual `2 PASS / 7 FAIL`. Phase 2 R&D is closed and neither context-v2 nor Field Map is approved for deployment. No Echo extraction, catalog, schema, persistence, or UI change is authorized.
+
+> **2026-08-26 reflective-essay topology-first calibration:** essay prompt version `2.0.3-phase1` chooses one supported field, parallel/local clusters, or a loose field before interpretation and must preserve that topology through every section and question. Generic interpretive qualities and prior interpretation language cannot serve as the sole bridge; quoting one anchor per dream is still insufficient when distinct actions become similar only through an umbrella paraphrase. That prompt is frozen for the Phase 2 context-only evaluation. No Echo prompt, extraction id/version, schema, catalog, validator, persistence, or Dream Detail behavior changed.
+
 Canonical sources:
 - Prompt: `src/ai/dreamExtractionPrompt.ts` (`prompt_version` `4.1.10-M2.2`)
 - Prompt id: `dream-field-map-interpretive-v4.1.10-M2.2` / schema `13`
 - Current production notes: `documentation/architecture-interpretation.md`, `documentation/flows-06-jungian-ai-reflection.md`, `docs/SYMBOLS_FLOW.md`
-> **2026-08-27 reflective-question production hold:** recovered remote `ai-entitlements-gateway` v105 is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`, not a verified `v1.5.0` method id. Deploy only through `npm run deploy:ai-entitlements-gateway`. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). No Echo prompt, extraction, catalog, or runtime question prompt changed.
 - Mythic closed-catalog brief: `docs/ONEIROS_CLOSED_MYTH_CATALOG_INTEGRATION_BRIEF.md`
 - Full catalog JSON: `src/ai/catalogs/mythic_narrative_catalog.v1.json` (build-time; version `1.2.0`, 128 entries)
 - Compact prompt index: `src/ai/catalogs/generated/mythicPromptIndex.v1.ts` (`npm run build:mythic-prompt-index`)

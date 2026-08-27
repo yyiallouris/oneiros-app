@@ -109,6 +109,10 @@ describe('account profile save flow', () => {
     await waitFor(() => expect(screen.getByDisplayValue('Yiannis')).toBeTruthy());
     expect(renderLatestHeaderRight()).toBeNull();
     expect(screen.getByText('Other Account choices save as soon as you tap them.')).toBeTruthy();
+    expect(screen.getByText('A short reflection on one clear thread.')).toBeTruthy();
+    expect(screen.getByText('Core Reflection (recommended)')).toBeTruthy();
+    expect(screen.getByText('A fuller reading of the dream’s images and inner movement.')).toBeTruthy();
+    expect(screen.getByText('An extended reflection when you want to explore the dream further.')).toBeTruthy();
 
     fireEvent.press(screen.getByText('Quick Glance'));
     expect(mockSetInterpretationDepth).toHaveBeenCalledWith('quick');

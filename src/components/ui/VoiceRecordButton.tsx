@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   Image,
   Linking,
   StyleSheet,
@@ -10,13 +11,15 @@ import {
   View,
 } from 'react-native';
 import { colors, spacing, typography } from '../../theme';
-import { logEvent } from '../../services/logger';
+import { logError, logEvent } from '../../services/logger';
 import {
   cleanupRecording,
   getRecordingStatus,
+  isInsufficientStorageFailure,
   startRecording,
   stopRecording,
   VoiceErrorCode,
+  type PendingVoiceClip,
 } from '../../utils/voiceRecording';
 import { voiceTranscriptionQueueService } from '../../services/voiceTranscriptionQueueService';
 import { PendingVoiceTranscription, VoiceTranscriptionTarget } from '../../types/dream';
@@ -28,6 +31,7 @@ const MAX_RECORDING_MS = 5 * 60 * 1000;
 const LONG_RECORDING_NOTICE_MS = 4.5 * 60 * 1000;
 interface VoiceRecordButtonProps {
   onTranscriptionComplete: (text: string) => void;
+  getComposerText?: () => string;
   disabled?: boolean;
   surface?: 'plain' | 'field';
   target: VoiceTranscriptionTarget;
@@ -42,6 +46,11 @@ const messageForError = (code: VoiceErrorCode): { title: string; message: string
       return { title: 'Microphone access needed', message: 'Allow microphone access in Settings to record a dream note.' };
     case 'recording_in_progress':
       return { title: 'Recording already active', message: 'Finish the current recording before starting another one.' };
+    case 'insufficient_storage':
+      return {
+        title: 'Not enough storage',
+        message: 'Free up some space and try again. You can still write your dream.',
+      };
     case 'audio_too_large':
       return { title: 'Recording is too large', message: 'Keep each voice note under five minutes, then try again.' };
     case 'unauthenticated':
@@ -55,6 +64,11 @@ const messageForError = (code: VoiceErrorCode): { title: string; message: string
     case 'invalid_audio':
     case 'audio_unavailable':
       return { title: 'Recording could not be prepared', message: 'The audio file was not available. Please record it again.' };
+    case 'low_confidence_transcript':
+      return {
+        title: 'We couldn’t hear this clearly',
+        message: 'Your voice note is still saved. You can retry it or record it again.',
+      };
     case 'misconfigured':
       return { title: 'Voice transcription unavailable', message: 'Voice transcription is temporarily unavailable. You can still type your dream.' };
     case 'recording_failed':
@@ -84,6 +98,7 @@ const getQueueStatusMessage = (item: PendingVoiceTranscription): string | null =
 
 export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   onTranscriptionComplete,
+  getComposerText = () => '',
   disabled = false,
   surface = 'plain',
   target,
@@ -92,20 +107,28 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const mountedRef = useRef(true);
+  const isRecordingRef = useRef(false);
+  const unqueuedClipRef = useRef<PendingVoiceClip | null>(null);
   const stopInProgressRef = useRef(false);
+  const startInProgressRef = useRef(false);
   const longRecordingNoticeShownRef = useRef(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingItem, setPendingItem] = useState<PendingVoiceTranscription | null>(null);
+  const pendingItemRef = useRef<PendingVoiceTranscription | null>(null);
   const [retrySeconds, setRetrySeconds] = useState<number | null>(null);
   const completionCallbackRef = useRef(onTranscriptionComplete);
   completionCallbackRef.current = onTranscriptionComplete;
+  const composerTextRef = useRef(getComposerText);
+  composerTextRef.current = getComposerText;
 
   const safelySetState = (callback: () => void) => {
     if (mountedRef.current) callback();
   };
 
-  const showFailure = (code: VoiceErrorCode, retryable: boolean) => {
+  const showFailure = (code: VoiceErrorCode) => {
     const copy = messageForError(code);
     if (code === 'permission_denied') {
       Alert.alert(copy.title, copy.message, [
@@ -115,29 +138,63 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       return;
     }
 
-    Alert.alert(copy.title, retryable
-      ? `${copy.message} Your saved voice note will keep trying automatically.`
-      : copy.message);
+    Alert.alert(copy.title, copy.message);
+  };
+
+  const showStorageRecovery = () => {
+    Alert.alert(
+      'Not enough storage',
+      'Your voice note is still on this device and may be recoverable after you free up some space. You can still write your dream.',
+    );
   };
 
   const stopAndQueue = async () => {
     if (stopInProgressRef.current) return;
     stopInProgressRef.current = true;
-    safelySetState(() => setIsRecording(false));
+    isRecordingRef.current = false;
+    safelySetState(() => {
+      setIsRecording(false);
+      setIsFinalizing(true);
+    });
     try {
-      const result = await stopRecording();
+      const result = await stopRecording(target);
       if (!result.ok) {
-        showFailure(result.code, result.retryable);
+        showFailure(result.code);
         return;
       }
-      const queued = await voiceTranscriptionQueueService.enqueue(result.value, target);
-      setPendingItem(queued);
+      let queued: PendingVoiceTranscription;
+      try {
+        queued = await voiceTranscriptionQueueService.enqueue(result.value, target);
+        unqueuedClipRef.current = null;
+      } catch (error) {
+        unqueuedClipRef.current = result.value;
+        logError('voice_transcription_enqueue_error', error, {
+          sizeBytes: result.value.sizeBytes,
+          durationMs: result.value.durationMs,
+        });
+        if (await isInsufficientStorageFailure(error)) {
+          showStorageRecovery();
+        } else {
+          Alert.alert(
+            'Voice note needs attention',
+            'The recording is still on this device, but it could not be prepared for transcription. Tap the microphone to retry before leaving this screen.',
+          );
+        }
+        return;
+      }
+      pendingItemRef.current = queued;
+      safelySetState(() => setPendingItem(queued));
       const online = await isOnline();
       safelySetState(() => {
+        const current = pendingItemRef.current;
+        setIsTranscribing(online
+          && current?.id === queued.id
+          && ['queued', 'transcribing'].includes(current.status));
         setStatusMessage(online ? 'Turning your voice note into text…' : 'Saved offline. We’ll keep trying.');
         setDuration(0);
       });
     } finally {
+      safelySetState(() => setIsFinalizing(false));
       stopInProgressRef.current = false;
     }
   };
@@ -148,8 +205,16 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
     const interval = setInterval(async () => {
       const status = await getRecordingStatus();
       if (!mountedRef.current) return;
+      if (status.hasError) {
+        logEvent('voice_recording_native_error_detected', {
+          hasRecoverableUri: Boolean(status.uri),
+          durationMs: status.duration,
+        });
+        void stopAndQueue();
+        return;
+      }
       if (!status.isRecording) {
-        setIsRecording(false);
+        void stopAndQueue();
         return;
       }
       setDuration(status.duration);
@@ -167,10 +232,18 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   }, [isRecording]);
 
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active' && isRecordingRef.current) void stopAndQueue();
+    });
+    return () => subscription.remove();
+  }, [target.surface, target.key]);
+
+  useEffect(() => {
     let claimInFlight = false;
     let deliverRequested = false;
 
     const applyStatus = (item: PendingVoiceTranscription | null) => {
+      pendingItemRef.current = item;
       if (!item) {
         setPendingItem(null);
         setIsTranscribing(false);
@@ -188,7 +261,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       setStatusMessage(getQueueStatusMessage(item));
     };
 
-    // Sole append path: claimCompleted removes the row, so concurrent calls cannot double-append.
+    // Delivery is committed durably with clip-id dedupe before queue/audio ack.
     const deliverCompleted = async () => {
       if (!mountedRef.current) return;
       if (claimInFlight) {
@@ -199,13 +272,48 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       try {
         do {
           deliverRequested = false;
-          const transcripts = await voiceTranscriptionQueueService.claimCompleted(target);
+          const transcripts = await voiceTranscriptionQueueService.peekCompleted(target);
+          for (const transcript of transcripts) {
+            const committed = await voiceTranscriptionQueueService.commitCompleted(
+              target,
+              transcript,
+              composerTextRef.current(),
+            );
+            // Durable composer commit is the delivery boundary. Reflect it in
+            // the current input immediately; filesystem cleanup is independent
+            // and must never hide text that is already safely committed.
+            if (mountedRef.current) {
+              completionCallbackRef.current(committed.text);
+              try {
+                await voiceTranscriptionQueueService.acknowledgeComposerIntegration(
+                  target,
+                  transcript.id,
+                  committed.composerRevision,
+                );
+              } catch (error) {
+                // Leave the explicit pending-delivery ledger intact. Hydration
+                // can acknowledge it later without substring inference.
+                logError('voice_transcription_composer_integration_deferred', error);
+              }
+            }
+            try {
+              await voiceTranscriptionQueueService.acknowledge(transcript.id);
+            } catch (error) {
+              // removeItemUnlocked already persisted deletion_pending before
+              // destructive work; retry cleanup without withholding the text.
+              logError('voice_transcription_cleanup_deferred', error);
+            }
+          }
           if (!mountedRef.current || transcripts.length === 0) continue;
-          transcripts.forEach((transcript) => completionCallbackRef.current(transcript));
+          pendingItemRef.current = null;
           setPendingItem(null);
           setIsTranscribing(false);
           setStatusMessage(null);
         } while (deliverRequested && mountedRef.current);
+      } catch (error) {
+        // The completed queue row remains durable unless acknowledge succeeded;
+        // a later foreground/subscription event can safely resume delivery.
+        logError('voice_transcription_delivery_deferred', error);
       } finally {
         claimInFlight = false;
         if (deliverRequested && mountedRef.current) {
@@ -226,16 +334,18 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
       if (!mountedRef.current) return;
       applyStatus(items.at(-1) ?? null);
       return deliverCompleted();
+    }).catch((error) => {
+      // A storage bridge failure must not become an unhandled rejection that
+      // destabilizes the Write surface. File-backed recovery remains available
+      // on the next foreground/read attempt.
+      logError('voice_transcription_target_restore_error', error);
     });
 
     return unsubscribe;
   }, [target.surface, target.key]);
 
   useEffect(() => {
-    if (pendingItem?.status !== 'retrying') {
-      setRetrySeconds(null);
-      return undefined;
-    }
+    if (pendingItem?.status !== 'retrying') return undefined;
     const updateCountdown = () => {
       setRetrySeconds(Math.max(0, Math.ceil((Date.parse(pendingItem.nextAttemptAt) - Date.now()) / 1000)));
     };
@@ -245,28 +355,80 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
   }, [pendingItem?.id, pendingItem?.status, pendingItem?.nextAttemptAt]);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
-      void cleanupRecording();
+      if (isRecordingRef.current && !stopInProgressRef.current) {
+        stopInProgressRef.current = true;
+        isRecordingRef.current = false;
+        void stopRecording(target)
+          .then((result) => result.ok
+            ? voiceTranscriptionQueueService.enqueue(result.value, target)
+            : undefined)
+          .catch((error) => logError('voice_recording_unmount_finalize_error', error))
+          .finally(() => {
+            stopInProgressRef.current = false;
+          });
+      } else {
+        if (unqueuedClipRef.current) {
+          void voiceTranscriptionQueueService.enqueue(unqueuedClipRef.current, target)
+            .catch((error) => logError('voice_transcription_unmount_enqueue_error', error));
+          unqueuedClipRef.current = null;
+        }
+        void cleanupRecording();
+      }
     };
-  }, []);
+  }, [target.surface, target.key]);
 
   const handlePress = async () => {
+    if (unqueuedClipRef.current) {
+      try {
+        const queued = await voiceTranscriptionQueueService.enqueue(unqueuedClipRef.current, target);
+        unqueuedClipRef.current = null;
+        pendingItemRef.current = queued;
+        setPendingItem(queued);
+        setStatusMessage('Turning your voice note into text…');
+      } catch (error) {
+        logError('voice_transcription_enqueue_retry_error', error);
+        if (await isInsufficientStorageFailure(error)) {
+          showStorageRecovery();
+        } else {
+          Alert.alert('Voice note still needs attention', 'We still couldn’t prepare it. Please keep this screen open and try once more.');
+        }
+      }
+      return;
+    }
     if (isRecording) {
       await stopAndQueue();
       return;
     }
-    const result = await startRecording();
-    if (!result.ok) {
-      showFailure(result.code, result.retryable);
-      return;
+    if (startInProgressRef.current) return;
+    startInProgressRef.current = true;
+    safelySetState(() => setIsStarting(true));
+    try {
+      const result = await startRecording();
+      if (!mountedRef.current) {
+        // Module-level generation cancellation is authoritative. This second
+        // cleanup is a defensive handoff for older/mocked implementations that
+        // may still resolve success after unmount.
+        if (result.ok) void cleanupRecording();
+        return;
+      }
+      if (!result.ok) {
+        showFailure(result.code);
+        return;
+      }
+      isRecordingRef.current = true;
+      safelySetState(() => {
+        setDuration(0);
+        setStatusMessage(null);
+        longRecordingNoticeShownRef.current = false;
+        setIsRecording(true);
+      });
+    } finally {
+      startInProgressRef.current = false;
+      safelySetState(() => setIsStarting(false));
     }
-    safelySetState(() => {
-      setDuration(0);
-      setStatusMessage(null);
-      longRecordingNoticeShownRef.current = false;
-      setIsRecording(true);
-    });
   };
 
   const formatDuration = (ms: number): string => {
@@ -293,6 +455,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
           onPress: async () => {
             await voiceTranscriptionQueueService.discard(pendingItem.id);
             if (!mountedRef.current) return;
+            pendingItemRef.current = null;
             setPendingItem(null);
             setStatusMessage(null);
           },
@@ -311,7 +474,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         </View>
       )}
       {presentation === 'full' && statusMessage && <Text accessibilityLiveRegion="polite" style={styles.statusText}>{statusMessage}</Text>}
-      {presentation === 'full' && retrySeconds != null && (
+      {presentation === 'full' && pendingItem?.status === 'retrying' && retrySeconds != null && (
         <Text accessibilityLiveRegion="polite" style={styles.retryCountdown}>
           {retrySeconds > 0 ? `Automatic retry in ${retrySeconds}s` : 'Automatic retry starting…'}
         </Text>
@@ -334,15 +497,21 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
           styles.recordButton,
           surface === 'field' && styles.fieldRecordButton,
           isRecording && styles.recordButtonActive,
-          (disabled || isTranscribing) && styles.recordButtonDisabled,
+          (disabled || isStarting || isFinalizing || isTranscribing) && styles.recordButtonDisabled,
         ]}
         onPress={handlePress}
-        disabled={disabled || isTranscribing}
+        disabled={disabled || isStarting || isFinalizing || isTranscribing}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         testID="voice-record-button"
       >
-        {isTranscribing ? (
-          <ActivityIndicator accessibilityLabel="Transcribing voice recording" size="small" color={colors.buttonPrimary} />
+        {isStarting || isFinalizing || isTranscribing ? (
+          <ActivityIndicator
+            accessibilityLabel={isStarting || isFinalizing
+              ? 'Preparing voice recording'
+              : 'Transcribing voice recording'}
+            size="small"
+            color={colors.buttonPrimary}
+          />
         ) : isRecording ? (
           <Image source={micStopIcon} style={styles.stopIconImage} resizeMode="contain" testID="voice-record-stop-icon" />
         ) : (

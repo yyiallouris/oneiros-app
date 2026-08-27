@@ -26,7 +26,7 @@ const mockIsBiometricEnabled = jest.fn();
 const mockHasCompletedOnboarding = jest.fn();
 const mockHasAcceptedLegalConsent = jest.fn();
 const mockDrainVoiceQueue = jest.fn();
-const mockDiscardAllVoice = jest.fn();
+const mockDiscardAllVoiceForUser = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const React = require('react');
@@ -130,7 +130,7 @@ jest.mock('../../src/services/localStorage', () => ({
 jest.mock('../../src/services/voiceTranscriptionQueueService', () => ({
   voiceTranscriptionQueueService: {
     drain: (...args: unknown[]) => mockDrainVoiceQueue(...args),
-    discardAll: (...args: unknown[]) => mockDiscardAllVoice(...args),
+    discardAllForUser: (...args: unknown[]) => mockDiscardAllVoiceForUser(...args),
   },
 }));
 
@@ -243,6 +243,7 @@ describe('RootNavigator offline flow', () => {
     mockIsBiometricEnabled.mockResolvedValue(false);
     mockHasCompletedOnboarding.mockResolvedValue(true);
     mockHasAcceptedLegalConsent.mockResolvedValue(true);
+    mockDiscardAllVoiceForUser.mockResolvedValue(undefined);
   });
 
   afterEach(async () => {
@@ -328,6 +329,41 @@ describe('RootNavigator offline flow', () => {
     expect(mockSyncUnsyncedDreams.mock.invocationCallOrder[0]).toBeLessThan(
       mockStorageClearAll.mock.invocationCallOrder[0]
     );
+    expect(mockStorageClearAll).toHaveBeenCalledWith('user-1');
+  });
+
+  it('serializes delayed logout cleanup before a new account can initialize', async () => {
+    const finalSync = deferred<void>();
+    const sessionTwo = { user: { id: 'user-2' } };
+    mockGetUnsyncedDreams.mockResolvedValue([dream]);
+    mockSyncUnsyncedDreams.mockReturnValueOnce(finalSync.promise);
+
+    await renderNavigator();
+    const initialInitializeCount = mockStorageInitialize.mock.calls.length;
+
+    await act(async () => {
+      authStateChangeHandler?.('SIGNED_OUT', null);
+      await flushMicrotasks();
+    });
+    await waitFor(() => expect(mockSyncUnsyncedDreams).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      authStateChangeHandler?.('SIGNED_IN', sessionTwo);
+      await flushMicrotasks();
+    });
+    expect(mockStorageInitialize).toHaveBeenCalledTimes(initialInitializeCount);
+
+    await act(async () => {
+      finalSync.resolve();
+      await flushMicrotasks();
+    });
+    await drainAsyncWork();
+
+    await waitFor(() => {
+      expect(mockStorageClearAll).toHaveBeenCalledWith('user-1');
+      expect(mockStorageInitialize.mock.calls.length).toBeGreaterThan(initialInitializeCount);
+    });
+    expect(mockStorageClearAll).not.toHaveBeenCalledWith('user-2');
   });
 
   it('does not flash legal consent while login route state is still loading', async () => {
@@ -358,6 +394,40 @@ describe('RootNavigator offline flow', () => {
       expect(view.queryByText('screen:LegalConsent')).toBeNull();
       expect(view.getByText('screen:MainTabs')).toBeTruthy();
     });
+    expect(mockHasCompletedOnboarding).toHaveBeenCalledWith('user-1');
+    expect(mockHasAcceptedLegalConsent).toHaveBeenCalledWith('user-1');
+  });
+
+  it('waits for signed-out cold-start owner cleanup before resolving the new account routes', async () => {
+    const ownerCleanup = deferred<void>();
+    mockGetSession.mockResolvedValue({ data: { session: null } });
+
+    const view = render(<RootNavigator />);
+    unmountCurrent = view.unmount;
+    await drainAsyncWork();
+
+    expect(view.queryByText('screen:Auth')).toBeTruthy();
+    mockHasCompletedOnboarding.mockClear();
+    mockHasAcceptedLegalConsent.mockClear();
+    mockStorageInitialize.mockImplementationOnce(() => ownerCleanup.promise);
+
+    await act(async () => {
+      const callbackResult = authStateChangeHandler?.('SIGNED_IN', session);
+      expect(callbackResult).toBeUndefined();
+      await flushMicrotasks();
+    });
+
+    expect(mockHasCompletedOnboarding).not.toHaveBeenCalled();
+    expect(mockHasAcceptedLegalConsent).not.toHaveBeenCalled();
+    expect(view.queryByText('screen:MainTabs')).toBeNull();
+
+    await act(async () => {
+      ownerCleanup.resolve();
+      await flushMicrotasks();
+    });
+    await drainAsyncWork();
+
+    await waitFor(() => expect(view.getByText('screen:MainTabs')).toBeTruthy());
     expect(mockHasCompletedOnboarding).toHaveBeenCalledWith('user-1');
     expect(mockHasAcceptedLegalConsent).toHaveBeenCalledWith('user-1');
   });

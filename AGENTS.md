@@ -135,20 +135,21 @@ Canonical docs:
 
 ## Reflective-question production must not drift
 
-Remote `ai-entitlements-gateway` currently serves recovered `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`. Local Oneiros Reader v1.4.0 SHA `0ea4b9a2…` is `DO NOT DEPLOY`.
+Remote `ai-entitlements-gateway` currently serves recovered `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`. Canonical runtime prompt is `src/ai/reflectiveQuestionPrompt.ts`. Local Oneiros Reader v1.4.0 SHA `0ea4b9a2…` is `DO NOT DEPLOY`.
 
 **Whenever you deploy** `ai-entitlements-gateway`:
 
 1. Use `npm run deploy:ai-entitlements-gateway` only. Do not run raw `supabase functions deploy ai-entitlements-gateway`.
 2. The wrapper fails closed unless the bundled reflective-question method ID + prompt SHA are explicitly approved.
 3. Denied candidates cannot be approved with an env override.
-4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` into client or gateway runtime.
+4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` or `src/ai/rd/` into client or gateway runtime.
+5. Candidate B SHA `08cd3eaf…` is the only active reflective-question R&D base. Closed experiments stay archived. Do not add flags to the archived mega-runner.
 
 Canonical docs:
 
-- `documentation/flows-06-jungian-ai-reflection.md` → **Locked contract: reflective-question production deploy hold**
+- `documentation/flows-06-jungian-ai-reflection.md` → **Locked contract: production reflective-question identity** and **Locked contract: reflective-question production deploy hold**
 - `docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`
-- Contract tests: `__tests__/reflectiveQuestionProductionHold.test.ts`, `__tests__/flows/reflectiveQuestions.productionDeployGuard.contract.flow.test.ts`
+- Contract tests: `__tests__/reflectiveQuestionProductionHold.test.ts`, `__tests__/flows/reflectiveQuestions.productionSurfaces.contract.flow.test.ts`, `__tests__/flows/reflectiveQuestions.productionDeployGuard.contract.flow.test.ts`
 
 ## Completion Checklist
 

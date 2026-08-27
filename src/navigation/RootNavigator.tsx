@@ -456,6 +456,35 @@ export const RootNavigator: React.FC = () => {
 
     init();
 
+    let authTransitionChain: Promise<void> = Promise.resolve();
+
+    const cleanupLoggedOutAccount = async (loggedOutUserId: string) => {
+      try {
+        // A later auth event is serialized behind this cleanup, so a newly
+        // signed-in user's local data cannot be erased by an older logout task.
+        const unsyncedDreams = await LocalStorage.getUnsyncedDreams();
+        if (unsyncedDreams.length > 0) {
+          console.log(`[RootNavigator] Found ${unsyncedDreams.length} unsynced dream(s) before logout, attempting final sync...`);
+          try {
+            await SyncService.syncUnsyncedDreams();
+            console.log(`✅ ${unsyncedDreams.length} dream(s) synced before logout`);
+          } catch (error) {
+            console.error('❌ Failed to sync before logout:', error);
+          }
+        }
+        await StorageService.clearAll(loggedOutUserId);
+        await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
+      } catch (error) {
+        console.error('[RootNavigator] Error during logout cleanup:', error);
+        try {
+          await StorageService.clearAll(loggedOutUserId);
+          await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
+        } catch (clearError) {
+          console.error('[RootNavigator] Failed to clear storage:', clearError);
+        }
+      }
+    };
+
     const handleAuthStateChange = async (event: string, newSession: Session | null) => {
       const previousSession = previousSessionRef.current;
       const userChanged = !!previousSession && !!newSession && previousSession.user.id !== newSession.user.id;
@@ -473,6 +502,14 @@ export const RootNavigator: React.FC = () => {
       }
 
       previousSessionRef.current = newSession;
+
+      if (userChanged || sessionStarted) {
+        console.log('[RootNavigator] Session started or user changed, initializing owner-scoped storage');
+        // On signed-out cold start, StorageService may still hold the previous
+        // owner ID. Finish that owner's cleanup before resolving/rendering the
+        // new account's local routes.
+        await StorageService.initialize();
+      }
 
       // CRITICAL: Update UI state immediately so user sees correct screen (SetPassword/MainTabs)
       // after local route-critical flags are known. Remote biometric sync runs in background
@@ -509,47 +546,15 @@ export const RootNavigator: React.FC = () => {
         console.log('[RootNavigator] User logged out, clearing local storage');
         setPendingPasswordReset(false);
 
-        // Clear storage in background (non-blocking)
-        // Don't await - let logout complete immediately
-        (async () => {
-          try {
-            // CRITICAL: Before clearing, try to sync any unsynced dreams one last time
-            // This ensures dreams are saved to database before logout
-            const unsyncedDreams = await LocalStorage.getUnsyncedDreams();
-            if (unsyncedDreams.length > 0) {
-              console.log(`[RootNavigator] Found ${unsyncedDreams.length} unsynced dream(s) before logout, attempting final sync...`);
-              try {
-                await SyncService.syncUnsyncedDreams();
-                console.log(`✅ ${unsyncedDreams.length} dream(s) synced before logout`);
-              } catch (error) {
-                console.error('❌ Failed to sync before logout:', error);
-                // Continue with clearing anyway
-              }
-            }
-            await voiceTranscriptionQueueService.discardAll();
-            await StorageService.clearAll();
-            await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
-            // Do not clear biometric preference on logout: it is stored per-user in Supabase.
-            // On next login we sync from remote (syncBiometricFromRemote) and restore the toggle.
-          } catch (error) {
-            console.error('[RootNavigator] Error during logout cleanup:', error);
-            // Try to clear anyway
-            try {
-              await voiceTranscriptionQueueService.discardAll();
-              await StorageService.clearAll();
-              await AsyncStorage.removeItem(PENDING_PASSWORD_RESET_KEY);
-            } catch (clearError) {
-              console.error('[RootNavigator] Failed to clear storage:', clearError);
-            }
-          }
-        })();
+        await cleanupLoggedOutAccount(previousSession.user.id);
+        // Do not clear biometric preference on logout: it is stored per-user in Supabase.
+        // On next login we sync from remote (syncBiometricFromRemote) and restore the toggle.
       }
 
       // If user logged in (new session), initialize storage and fetch from database (in background)
       if (!previousSession && newSession) {
         console.log('[RootNavigator] User logged in, initializing storage and fetching data...');
         (async () => {
-          await StorageService.initialize();
           // CRITICAL: Fetch dreams from database when logging in
         // This ensures dreams saved on other devices or previously synced are loaded
         SyncService.fetchAndMergeDreams()
@@ -577,18 +582,6 @@ export const RootNavigator: React.FC = () => {
         })().catch((err) => console.error('[RootNavigator] Login init failed:', err));
       }
 
-      // If session changed (user might have changed), re-initialize
-      if (previousSession && newSession && previousSession.user.id !== newSession.user.id) {
-        console.log('[RootNavigator] User changed, discarding voice queue and re-initializing storage');
-        (async () => {
-          try {
-            await voiceTranscriptionQueueService.discardAll();
-            await StorageService.initialize();
-          } catch (err) {
-            console.error('[RootNavigator] Re-init failed:', err);
-          }
-        })();
-      }
     };
 
     const {
@@ -596,10 +589,12 @@ export const RootNavigator: React.FC = () => {
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       // Supabase invokes subscribers while holding its exclusive auth lock. Returning
       // this async work would deadlock PKCE exchange when route checks touch auth state.
-      void handleAuthStateChange(event, newSession).catch((error) => {
-        console.error('[RootNavigator] Auth state handling failed:', error);
-        if (mounted) setIsLoading(false);
-      });
+      authTransitionChain = authTransitionChain
+        .then(() => handleAuthStateChange(event, newSession))
+        .catch((error) => {
+          console.error('[RootNavigator] Auth state handling failed:', error);
+          if (mounted) setIsLoading(false);
+        });
     });
 
     return () => {

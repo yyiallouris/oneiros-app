@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 import type { ProductSubscription, Purchase } from 'expo-iap';
-import { deepLinkToSubscriptions, getTransactionJwsIOS, showManageSubscriptionsIOS, useIAP } from 'expo-iap';
+import {
+  deepLinkToSubscriptions,
+  fetchProducts as fetchStoreProductsNative,
+  getTransactionJwsIOS,
+  showManageSubscriptionsIOS,
+  useIAP,
+} from 'expo-iap';
 import { supabase } from '../services/supabaseClient';
 import {
   fetchSubscriptionStatus,
@@ -11,6 +17,7 @@ import {
   getPurchaseRequest,
   getTargetPlanForTierInterval,
   isMissingNativeIapError,
+  isStorePlanPurchasable,
   getStorePlanOptions,
   registerApplePurchase,
   registerGooglePurchase,
@@ -34,6 +41,7 @@ type SubscriptionContextValue = {
   iapUnavailableReason: IapUnavailableReason | null;
   purchasingPlanCode: StoreSubscriptionPlan['planCode'] | null;
   products: StoreSubscriptionPlan[];
+  storeProductsLoading: boolean;
   refreshStatus: () => Promise<void>;
   purchasePlan: (planTier: Exclude<PlanTier, 'free'>, interval: BillingInterval, source: PremiumGateSource) => Promise<boolean>;
   restorePurchases: () => Promise<void>;
@@ -55,6 +63,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [products, setProducts] = useState<StoreSubscriptionPlan[]>(initialFallbackProducts);
+  const [storeProductsLoading, setStoreProductsLoading] = useState(initialIapRuntime.available);
   const [iapRuntimeAvailable, setIapRuntimeAvailable] = useState(initialIapRuntime.available);
   const [iapUnavailableReason, setIapUnavailableReason] = useState<IapUnavailableReason | null>(
     initialIapRuntime.reason
@@ -62,10 +71,13 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [purchasingPlanCode, setPurchasingPlanCode] = useState<StoreSubscriptionPlan['planCode'] | null>(null);
   const purchaseSourceRef = useRef<PremiumGateSource>('account');
   const iapRuntimeLoggedRef = useRef(false);
+  const storeFetchGenerationRef = useRef(0);
 
   const markIapRuntimeUnavailable = (reason: IapUnavailableReason) => {
     setIapRuntimeAvailable(false);
     setIapUnavailableReason(reason);
+    setStoreProductsLoading(false);
+    setProducts(initialFallbackProducts);
   };
 
   const logAndMarkMissingIapModule = (error: unknown) => {
@@ -146,6 +158,43 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     },
   });
 
+  const storeSkus = Platform.OS === 'ios'
+    ? [
+        subscriptionConfig.applePremiumMonthlyProductId,
+        subscriptionConfig.applePremiumYearlyProductId,
+        subscriptionConfig.appleDeeperMonthlyProductId,
+        subscriptionConfig.appleDeeperYearlyProductId,
+      ]
+    : [
+        subscriptionConfig.googlePremiumSubscriptionProductId,
+        subscriptionConfig.googleDeeperSubscriptionProductId,
+      ];
+
+  const refreshStoreProducts = useCallback(async () => {
+    if (!iap.connected || !iapRuntimeAvailable) return;
+
+    const generation = ++storeFetchGenerationRef.current;
+    setStoreProductsLoading(true);
+    // Never keep displaying a price from an earlier storefront while a fresh
+    // lookup is in progress or after that lookup fails.
+    setProducts(initialFallbackProducts);
+
+    try {
+      const fetched = await fetchStoreProductsNative({ skus: storeSkus, type: 'subs' });
+      if (generation !== storeFetchGenerationRef.current) return;
+      setProducts(getStorePlanOptions((fetched ?? []) as ProductSubscription[]));
+    } catch (error) {
+      if (generation !== storeFetchGenerationRef.current) return;
+      logError('subscription_fetch_products_failed', error);
+      if (maybeHandleMissingIapModuleError(error)) return;
+      setProducts(initialFallbackProducts);
+    } finally {
+      if (generation === storeFetchGenerationRef.current) {
+        setStoreProductsLoading(false);
+      }
+    }
+  }, [iap.connected, iapRuntimeAvailable]);
+
   useEffect(() => {
     refreshStatus().catch(() => undefined);
     let authRefreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -159,44 +208,24 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }, 0);
     });
 
-    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') {
-        refreshStatus().catch(() => undefined);
-      }
-    });
-
     return () => {
       if (authRefreshTimer) clearTimeout(authRefreshTimer);
       subscription.subscription.unsubscribe();
-      appStateSubscription.remove();
     };
   }, []);
 
   useEffect(() => {
-    if (!iap.connected || !iapRuntimeAvailable) return;
-
-    const skus =
-      Platform.OS === 'ios'
-        ? [
-            subscriptionConfig.applePremiumMonthlyProductId,
-            subscriptionConfig.applePremiumYearlyProductId,
-            subscriptionConfig.appleDeeperMonthlyProductId,
-            subscriptionConfig.appleDeeperYearlyProductId,
-          ]
-        : [
-            subscriptionConfig.googlePremiumSubscriptionProductId,
-            subscriptionConfig.googleDeeperSubscriptionProductId,
-          ];
-
-    iap.fetchProducts({ skus, type: 'subs' }).catch((error) => {
-      logError('subscription_fetch_products_failed', error);
-    });
-  }, [iap.connected, iapRuntimeAvailable]);
+    void refreshStoreProducts();
+  }, [refreshStoreProducts]);
 
   useEffect(() => {
-    const normalizedProducts = getStorePlanOptions(iap.subscriptions as ProductSubscription[]);
-    setProducts(normalizedProducts);
-  }, [iap.subscriptions]);
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') return;
+      refreshStatus().catch(() => undefined);
+      void refreshStoreProducts();
+    });
+    return () => appStateSubscription.remove();
+  }, [refreshStoreProducts]);
 
   const purchasePlan = async (
     planTier: Exclude<PlanTier, 'free'>,
@@ -216,9 +245,16 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return false;
     }
 
-    const effectiveStatus = status ?? (await fetchSubscriptionStatus());
     const planCode = getTargetPlanForTierInterval(planTier, interval);
-    const plan = products.find((item) => item.planCode === planCode) ?? getFallbackPlan(planCode);
+    const plan = products.find((item) => item.planCode === planCode);
+
+    if (!isStorePlanPurchasable(plan)) {
+      Alert.alert(
+        'Price unavailable',
+        'We could not load the current store price. Check your connection and try again.'
+      );
+      return false;
+    }
 
     if (Platform.OS === 'android' && !plan.offerTokenAndroid) {
       Alert.alert(
@@ -232,6 +268,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
     purchaseSourceRef.current = source;
 
     try {
+      const effectiveStatus = status ?? (await fetchSubscriptionStatus());
       await iap.requestPurchase(getPurchaseRequest(plan, effectiveStatus));
       return true;
     } catch (error) {
@@ -300,6 +337,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         iapUnavailableReason,
         purchasingPlanCode,
         products,
+        storeProductsLoading,
         refreshStatus,
         purchasePlan,
         restorePurchases,

@@ -86,7 +86,7 @@ export async function getPatternInsightEntries(
     StorageService.getInterpretations(),
   ]);
 
-  const dreamIdToDate = new Map(dreams.map((d) => [d.id, d.date]));
+  const dreamIdToDate = new Map(dreams.map((dream) => [dream.id, dream.date]));
 
   const entries: PatternInsightDreamEntry[] = [];
 

@@ -9,15 +9,15 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - 1 dream reflection every rolling 7 days.
   - That free reflection keeps its own 5 follow-up assistant replies.
 - **Premium monthly (`paid_monthly`)**
-  - Price target: **EUR 4.99 / month** through store subscriptions.
+  - Base EUR price target: **EUR 4.99 / month**; the customer-facing amount comes from the active App Store / Play storefront.
 - **Premium yearly (`paid_yearly`)**
-  - Monthly equivalent target: **EUR 3.99 / month** (20% under monthly), billed as **EUR 47.88 / year**.
-  - Yearly cards show the monthly list price with strikethrough above the discounted monthly equivalent, plus a clear yearly savings line (**Save EUR 12.00 / year**).
+  - Base EUR target: **EUR 47.88 / year** (EUR 3.99 monthly equivalent).
+  - Yearly cards make the exact localized annual store price the primary amount. Monthly equivalent and savings are subordinate and are calculated only from the matching monthly/yearly numeric store prices in the same currency.
 - **Deeper monthly (`deeper_monthly`)**
-  - Price target: **EUR 8.99 / month** through store subscriptions.
+  - Base EUR price target: **EUR 8.99 / month**; the customer-facing amount comes from the active storefront.
 - **Deeper yearly (`deeper_yearly`)**
-  - Monthly equivalent target: **EUR 6.49 / month**, billed as **EUR 77.88 / year**.
-  - Same yearly card treatment as Premium: strikethrough list price (**EUR 8.99 / month**), discounted monthly equivalent, and savings (**Save EUR 30.00 / year** vs paying monthly).
+  - Base EUR target: **EUR 77.88 / year** (EUR 6.49 monthly equivalent).
+  - Uses the same store-localized annual-total treatment as Premium.
 - **Premium**
   - 35 dream reflections per paid billing cycle.
   - 5 follow-up assistant replies per reflected dream.
@@ -39,10 +39,10 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Onboarding**
   - Plan selection now sits between interpretation depth and security.
   - Free, Premium, and Deeper cards are shown in a reusable horizontal carousel with Premium as the default visible card.
-  - Yearly Premium/Deeper cards show the prior monthly price with a strikethrough, the discounted monthly equivalent beneath it, the yearly billed total, and the yearly savings amount.
+  - Yearly Premium/Deeper cards show the exact localized annual amount most prominently, followed by the calculated monthly equivalent and yearly savings when both matching store products provide compatible numeric prices.
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly switch is hidden whenever the free card is the active visible card.
-  - The Yearly switch badge shows the compact savings for the currently visible paid card (`Save €12` on Premium, `Save €30` on Deeper), including when Monthly is still selected.
+  - The Yearly switch badge shows the current storefront savings for the visible paid card, including when Monthly is selected; it stays hidden when a safe calculation is unavailable.
   - User can continue with Free or start native purchase directly from the Premium or Deeper card.
 - **Subscription**
   - Permanent manage-subscription destination.
@@ -62,6 +62,17 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Native runtime requirement**
   - Restore / manage subscription actions require a development build or store build.
   - Expo Go / unsupported runtimes show explanatory helper copy instead of broken native IAP actions.
+
+## Storefront pricing contract
+
+- iOS pricing follows the App Store storefront attached to the customer's Apple Account; Android follows the active Play storefront. The app does not infer billing currency from GPS, SIM, IP address, device region, or UI language.
+- Paid cards are populated from a fresh native product lookup at store connection and whenever the app returns to the foreground, so an in-session storefront change cannot keep an earlier currency on screen.
+- Store-provided `displayPrice` is the source of truth for the amount charged. Numeric `price` + ISO currency are used only for optional monthly-equivalent and savings arithmetic; localized display strings are never parsed.
+- Product loading is fail-closed. Missing, partial, malformed, mismatched-currency, offline, or unsupported-runtime responses never fall back to a hardcoded purchasable EUR price.
+- A paid CTA is enabled only for the exact product returned by the current store. Missing SKUs show a checking/unavailable state; other successfully returned plans remain usable.
+- For annual plans, the exact annual billing total is the primary price. Equivalent monthly cost and savings are subordinate and disappear safely if either paired price is missing, non-numeric, non-positive, or in another currency.
+- Google trial offers display the recurring renewal phase rather than a zero-cost introductory phase as the plan price.
+- Free-trial copy is shown only when the current store payload contains a free introductory phase; its duration comes from that offer metadata and remains qualified with eligibility. The native store sheet is authoritative for the offer and final charge.
 
 ## Source of truth
 
@@ -165,7 +176,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Free users get 1 rolling-7-day bucket.
 - Premium users get a 35-use billing-cycle bucket by default.
 - Deeper users get an 80-use billing-cycle bucket by default.
-- Manual/test overrides may raise that cycle limit via `subscription_entitlements.raw.dream_reflection_limit`.
+- Manual/test overrides may raise that cycle limit via `subscription_entitlements.raw.dream_reflection_limit`; use `scripts/sql/grant-test-user-200-dreams.sql` for the documented test grant.
 - A new initial reflection or a full regenerate/update consumes 1 dream-reflection slot.
 - Follow-up assistant replies do **not** consume the paid dream-reflection bucket.
 - First paid exhaustion attempts the one-time server-side grace bundle before denial.

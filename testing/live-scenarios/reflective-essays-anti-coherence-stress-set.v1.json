@@ -1,0 +1,281 @@
+{
+  "version": "anti-coherence-1.0.0",
+  "description": "Anti-coherence stress set with raw dream narratives for comparing the frozen Phase 1 context-v1 baseline with Phase 2 narrative-first context-v2.",
+  "cases": [
+    {
+      "id": "recent-truly-unrelated-en",
+      "surface": "recent",
+      "scope": "recent",
+      "language": "en",
+      "field_group": "anti-coherence-unrelated",
+      "reviewer_focus": "Three dreams with unrelated imagery, registers, affects, and actions must not become one elegant current pulse.",
+      "anti_coherence_expectation": "State that the sequence is too loose for one supported pattern. At most name weak local affinities without presenting them as a shared movement.",
+      "evidence_anchors": ["vending machine", "underwater choir", "slipper"],
+      "forbidden_claims": ["single movement", "underlying unity", "journey toward", "the psyche wants", "trust in movement"],
+      "entries": [
+        {
+          "date": "2026-08-19",
+          "dream_narrative": "At an airport vending machine, I inserted a bent coin and pressed the button twice. Nothing came out. I left the coin in the return slot, asked a cleaner for directions, and walked toward my gate mildly impatient.",
+          "core_mode": "Ordinary Interruption",
+          "affects": ["mild impatience"],
+          "symbols": ["airport vending machine", "bent coin"],
+          "symbol_stances": ["vending machine: presses the button twice and walks away", "bent coin: leaves it in the return slot"],
+          "landscapes": ["bright airport concourse"],
+          "motifs": ["small failed purchase"],
+          "relational_dynamics": ["briefly asks a cleaner for directions"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "A minor inconvenience remains minor; the scene does not carry a larger crisis."
+        },
+        {
+          "date": "2026-08-22",
+          "dream_narrative": "I was in a deep blue underwater hall where an unknown choir was singing. Silver bubbles rose from their mouths. I listened without joining and watched the bubbles move toward the surface in complete stillness.",
+          "core_mode": "Numinous Witnessing",
+          "affects": ["awe", "stillness"],
+          "symbols": ["underwater choir", "silver bubbles"],
+          "symbol_stances": ["underwater choir: listens without joining", "silver bubbles: watches them rise"],
+          "landscapes": ["deep blue underwater hall"],
+          "motifs": ["impossible music"],
+          "relational_dynamics": ["witness among unknown singers"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": ["Self (numinous plurality) — many voices remain distinct"],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "The dream holds wonder without demanding an explanatory destination."
+        },
+        {
+          "date": "2026-08-25",
+          "dream_narrative": "In my messy living room I found a chewed slipper beside the sleeping dog. I threw the slipper away, then laughed. I did not wake the dog and went to make coffee.",
+          "core_mode": "Domestic Annoyance",
+          "affects": ["annoyance", "amusement"],
+          "symbols": ["chewed slipper", "sleeping dog"],
+          "symbol_stances": ["chewed slipper: throws it away", "sleeping dog: laughs and does not wake it"],
+          "landscapes": ["messy living room"],
+          "motifs": ["pet mischief"],
+          "relational_dynamics": ["fond irritation toward the dog"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "The scene ends in ordinary fondness rather than symbolic resolution."
+        }
+      ]
+    },
+    {
+      "id": "period-contradictory-affects-no-motif-el",
+      "surface": "period",
+      "scope": "monthly",
+      "language": "el",
+      "field_group": "anti-coherence-affect-without-motif",
+      "reviewer_focus": "Strong but contradictory affects are not enough to justify a shared motif or developmental arc.",
+      "anti_coherence_expectation": "Name the affective discontinuity itself. Do not reinterpret delight, dread, and relief as stages of one hidden process.",
+      "evidence_anchors": ["τραπέζι", "διακομιστές", "χιόνι"],
+      "forbidden_claims": ["ενιαία πορεία", "βαθύτερη κίνηση", "από τη χαρά στον φόβο και τελικά", "η ψυχή σου θέλει", "κύκλος μεταμόρφωσης"],
+      "entries": [
+        {
+          "date": "2026-06-04",
+          "dream_narrative": "Καθόμουν στο κέντρο ενός μεγάλου τραπεζιού στην αυλή ενός καλοκαιρινού σπιτιού. Γύρω μου ήταν φίλοι και μοίραζα πορτοκάλια. Η σκηνή ήταν ζεστή και χαρούμενη, χωρίς κάτι να λείπει.",
+          "core_mode": "Celebration",
+          "affects": ["χαρά", "ζεστασιά"],
+          "symbols": ["μεγάλο τραπέζι", "πορτοκάλια"],
+          "symbol_stances": ["τραπέζι: κάθεται στο κέντρο", "πορτοκάλια: τα μοιράζει στους άλλους"],
+          "landscapes": ["αυλή καλοκαιρινού σπιτιού"],
+          "motifs": ["αυθόρμητη γιορτή"],
+          "relational_dynamics": ["αμοιβαίο μοίρασμα με φίλους"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Η σκηνή είναι πλήρης μέσα στη χαρά της και δεν δηλώνει έλλειψη."
+        },
+        {
+          "date": "2026-06-15",
+          "dream_narrative": "Ήμουν μόνος σε ένα υπόγειο data center. Κόκκινα φώτα αναβόσβηναν στους διακομιστές και μια οθόνη ήταν σπασμένη. Έψαχνα τρομαγμένος ποιο μηχάνημα υπερθερμαινόταν, ενώ η έξοδος κινδύνου ήταν κλειδωμένη.",
+          "core_mode": "Alarm",
+          "affects": ["τρόμος", "σύγχυση"],
+          "symbols": ["κόκκινα φώτα διακομιστών", "σπασμένη οθόνη"],
+          "symbol_stances": ["διακομιστές: ψάχνει ποιος υπερθερμαίνεται", "οθόνη: δεν την αγγίζει"],
+          "landscapes": ["υπόγειο data center"],
+          "motifs": ["τεχνικός συναγερμός"],
+          "relational_dynamics": ["μόνος ανάμεσα σε μηχανές"],
+          "thresholds": ["κλειδωμένη έξοδος κινδύνου"],
+          "central_conflicts": ["επείγον πρόβλημα χωρίς σαφή αιτία"],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Ο φόβος ανήκει στην άμεση αδυναμία ελέγχου της τεχνικής βλάβης."
+        },
+        {
+          "date": "2026-06-27",
+          "dream_narrative": "Περπατούσα αργά μέσα σε παχύ χιόνι χωρίς προορισμό. Βρήκα ένα πράσινο παγκάκι, κάθισα και έμεινα μέχρι να νυχτώσει. Ένιωθα ανακούφιση και μοναχικότητα μαζί.",
+          "core_mode": "Quiet Relief",
+          "affects": ["ανακούφιση", "μοναχικότητα"],
+          "symbols": ["παχύ χιόνι", "πράσινο παγκάκι"],
+          "symbol_stances": ["χιόνι: περπατά αργά χωρίς προορισμό", "παγκάκι: κάθεται μέχρι να νυχτώσει"],
+          "landscapes": ["άδειο χιονισμένο πάρκο"],
+          "motifs": ["παύση μετά από χιονόπτωση"],
+          "relational_dynamics": ["κανείς άλλος δεν εμφανίζεται"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Η ησυχία μπορεί να παραμένει απλώς μια ανεξάρτητη ανάπαυλα."
+        }
+      ]
+    },
+    {
+      "id": "recent-same-symbol-opposed-stances-en",
+      "surface": "recent",
+      "scope": "recent",
+      "language": "en",
+      "field_group": "anti-coherence-opposed-stances",
+      "reviewer_focus": "A repeated bridge is real evidence, but opposite stances must not be converted into progress toward crossing.",
+      "anti_coherence_expectation": "Recognize the repeated bridge while preserving three incompatible relations to it. Do not order them as avoidance, preparation, then integration.",
+      "evidence_anchors": ["stone bridge", "rope bridge", "railway bridge"],
+      "forbidden_claims": ["learning to cross", "readiness is growing", "movement toward integration", "journey from avoidance", "the psyche is preparing"],
+      "entries": [
+        {
+          "date": "2026-08-17",
+          "dream_narrative": "I raced a red bicycle across a stone bridge without looking down. Near the middle I pedaled harder and felt exhilarated as the river flashed below me.",
+          "core_mode": "Joyful Crossing",
+          "affects": ["exhilaration"],
+          "symbols": ["stone bridge", "red bicycle"],
+          "symbol_stances": ["stone bridge: races across without looking down", "red bicycle: pedals harder near the middle"],
+          "landscapes": ["sunlit river valley"],
+          "motifs": ["fast crossing"],
+          "relational_dynamics": ["waves to people on the bank"],
+          "thresholds": ["bridge crossed easily"],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "This bridge is met with uncomplicated momentum."
+        },
+        {
+          "date": "2026-08-21",
+          "dream_narrative": "A rope bridge disappeared into fog. I felt afraid but certain that I would not cross it. I refused to step onto the first plank and backed away until the fog cleared.",
+          "core_mode": "Refusal",
+          "affects": ["fear", "certainty"],
+          "symbols": ["rope bridge", "fog"],
+          "symbol_stances": ["rope bridge: refuses to step onto it", "fog: backs away until it clears"],
+          "landscapes": ["steep ravine"],
+          "motifs": ["deliberate non-crossing"],
+          "relational_dynamics": ["guide waits without persuading"],
+          "thresholds": ["bridge deliberately not crossed"],
+          "central_conflicts": ["possible passage vs firm refusal"],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "The refusal feels clear rather than deficient."
+        },
+        {
+          "date": "2026-08-24",
+          "dream_narrative": "I stood below a railway bridge where a repair crew was working. I watched with interest, took notes, and waited patiently, but I did not climb up or offer to help.",
+          "core_mode": "Observation",
+          "affects": ["interest", "patience"],
+          "symbols": ["railway bridge", "repair crew"],
+          "symbol_stances": ["railway bridge: watches from below", "repair crew: takes notes but does not help"],
+          "landscapes": ["industrial canal"],
+          "motifs": ["witnessing maintenance"],
+          "relational_dynamics": ["observer outside the working group"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "The bridge is an object of attention, not a demand to cross."
+        }
+      ]
+    },
+    {
+      "id": "recent-mixed-numinous-banal-distressing-el",
+      "surface": "recent",
+      "scope": "recent",
+      "language": "el",
+      "field_group": "anti-coherence-mixed-registers",
+      "reviewer_focus": "Numinous, banal, and distressing dreams should retain their different weights rather than becoming one poetic sequence.",
+      "anti_coherence_expectation": "Keep the whale, supermarket, and alarm in distinct registers. Any relation should be framed as tentative and insufficient for a unified current movement.",
+      "evidence_anchors": ["φάλαινα", "αυγά", "συναγερμός"],
+      "forbidden_claims": ["από το θαύμα στην καθημερινότητα και στον φόβο", "ενιαία κίνηση", "πορεία ενσάρκωσης", "βαθύτερη συνοχή", "η ψυχή σου ζητά"],
+      "entries": [
+        {
+          "date": "2026-08-18",
+          "dream_narrative": "Μια φωτεινή φάλαινα πέρασε αργά πάνω από εμένα μέσα στον νυχτερινό ουρανό. Σήκωσα τα χέρια και έμεινα ακίνητος να την κοιτάζω, γεμάτος δέος και συγκίνηση.",
+          "core_mode": "Numinous Encounter",
+          "affects": ["δέος", "συγκίνηση"],
+          "symbols": ["φωτεινή φάλαινα", "νυχτερινός ουρανός"],
+          "symbol_stances": ["φάλαινα: σηκώνει τα χέρια καθώς περνά από πάνω", "ουρανός: μένει ακίνητος και κοιτά"],
+          "landscapes": ["στέγη πάνω από σκοτεινή πόλη"],
+          "motifs": ["αδύνατη ουράνια εμφάνιση"],
+          "relational_dynamics": ["μοναχικός μάρτυρας"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": ["Self (numinous visitation) — an immense image exceeds explanation"],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Η εικόνα μπορεί να παραμείνει μεγάλη χωρίς να μετατραπεί σε μήνυμα."
+        },
+        {
+          "date": "2026-08-20",
+          "dream_narrative": "Στεκόμουν σε ένα φωτεινό σούπερ μάρκετ και σύγκρινα καρτέλες τιμών από δύο μάρκες. Έλεγξα μια χάρτινη θήκη με αυγά για να δω αν ήταν σπασμένα και ένιωσα μικρή ικανοποίηση όταν ήταν όλα εντάξει.",
+          "core_mode": "Routine Choice",
+          "affects": ["ανία", "μικρή ικανοποίηση"],
+          "symbols": ["καρτέλες τιμών", "χάρτινη θήκη με αυγά"],
+          "symbol_stances": ["καρτέλες τιμών: συγκρίνει δύο μάρκες", "αυγά: ελέγχει αν είναι σπασμένα"],
+          "landscapes": ["φωτισμένο σούπερ μάρκετ"],
+          "motifs": ["καθημερινή αγορά"],
+          "relational_dynamics": ["ρωτά έναν υπάλληλο για την τιμή"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Η σκηνή δεν χρειάζεται να γίνει σύμβολο μεταμόρφωσης."
+        },
+        {
+          "date": "2026-08-23",
+          "dream_narrative": "Ένας νοσοκομειακός συναγερμός ούρλιαζε και μαύρος καπνός γέμιζε τον διάδρομο. Κάλυψα τα αυτιά μου αλλά συνέχισα πανικόβλητος να ψάχνω έξοδο, σκύβοντας χαμηλά για να αναπνεύσω.",
+          "core_mode": "Acute Danger",
+          "affects": ["πανικός", "αποπροσανατολισμός"],
+          "symbols": ["νοσοκομειακός συναγερμός", "μαύρος καπνός"],
+          "symbol_stances": ["συναγερμός: καλύπτει τα αυτιά αλλά συνεχίζει να ψάχνει έξοδο", "καπνός: σκύβει χαμηλά για να αναπνεύσει"],
+          "landscapes": ["άγνωστος νοσοκομειακός διάδρομος"],
+          "motifs": ["επείγουσα διαφυγή"],
+          "relational_dynamics": ["φωνές ακούγονται πίσω από κλειστές πόρτες"],
+          "thresholds": ["έξοδος κρυμμένη από τον καπνό"],
+          "central_conflicts": ["ανάγκη διαφυγής vs αποπροσανατολισμός"],
+          "archetypal_echoes": [],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Το distress ανήκει στην άμεση επικινδυνότητα της σκηνής και δεν εξηγεί τα άλλα δύο όνειρα."
+        }
+      ]
+    },
+    {
+      "id": "period-two-parallel-clusters-six-dreams-en",
+      "surface": "period",
+      "scope": "monthly",
+      "language": "en",
+      "field_group": "anti-coherence-two-clusters",
+      "reviewer_focus": "Six dreams form two equally dense clusters with no supported bridge; the essay should not crown either one or merge them into a master thesis.",
+      "anti_coherence_expectation": "Explicitly describe two parallel clusters: water/navigation and rooms/access. State that the material does not yet show whether they belong to one movement.",
+      "evidence_anchors": ["boat", "shore", "key", "window"],
+      "forbidden_claims": ["single underlying movement", "one coherent journey", "the water leads into the house", "two sides of the same process", "the psyche is integrating"],
+      "entries": [
+        {
+          "date": "2026-05-02", "dream_narrative": "I steered a small boat carefully across choppy water while protecting a paper map from the spray. I kept checking the shoreline and adjusted the rudder with focused attention.", "core_mode": "Navigation", "affects": ["focus"], "symbols": ["small boat", "paper map"], "symbol_stances": ["boat: steers carefully", "paper map: protects it from spray"], "landscapes": ["grey coastal water"], "motifs": ["coastal navigation"], "relational_dynamics": ["alone at the tiller"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "A practical act of navigation remains close to the water scene."
+        },
+        {
+          "date": "2026-05-06", "dream_narrative": "In a quiet house I tested a brass key in three different locks. It opened a blue room. I knocked before entering and looked around with curiosity.", "core_mode": "Access", "affects": ["curiosity"], "symbols": ["brass key", "blue room"], "symbol_stances": ["brass key: tests it in three locks", "blue room: enters only after knocking"], "landscapes": ["old apartment"], "motifs": ["careful entry"], "relational_dynamics": ["unseen resident grants permission"], "thresholds": ["locked interior doors"], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The emphasis is on permission and interior access."
+        },
+        {
+          "date": "2026-05-11", "dream_narrative": "A distant shore was visible beyond exposed rocks at low tide. I studied the rocks and waited patiently for the water to change before bringing the boat closer.", "core_mode": "Waiting", "affects": ["patience"], "symbols": ["distant shore", "low tide"], "symbol_stances": ["shore: waits for the tide before approaching", "low tide: studies exposed rocks"], "landscapes": ["wide tidal flat"], "motifs": ["timed approach by water"], "relational_dynamics": ["fisherman signals to wait"], "thresholds": ["mudflat not yet crossed"], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The shore cluster emphasizes timing rather than emotional blockage."
+        },
+        {
+          "date": "2026-05-16", "dream_narrative": "I entered an empty room with a sealed window. Uneasy but interested, I traced the window frame with my finger and then remained at the doorway.", "core_mode": "Observation", "affects": ["unease", "interest"], "symbols": ["sealed window", "empty room"], "symbol_stances": ["sealed window: traces the frame", "empty room: remains at the doorway"], "landscapes": ["vacant office"], "motifs": ["interior observed but not occupied"], "relational_dynamics": ["security guard watches silently"], "thresholds": ["room entered only halfway"], "central_conflicts": ["access granted vs occupancy withheld"], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "This belongs to the rooms/access cluster without requiring a relation to water."
+        },
+        {
+          "date": "2026-05-21", "dream_narrative": "I reached a wooden jetty, tied the small boat securely, and stepped onto land with relief. Before leaving, I coiled the rope neatly beside the post.", "core_mode": "Return", "affects": ["relief"], "symbols": ["wooden jetty", "coiled rope"], "symbol_stances": ["jetty: ties the boat and steps onto land", "rope: coils it neatly"], "landscapes": ["quiet harbour"], "motifs": ["completed docking"], "relational_dynamics": ["harbour worker nods once"], "thresholds": ["boat to shore"], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The water sequence reaches a local practical ending."
+        },
+        {
+          "date": "2026-05-28", "dream_narrative": "A stack of keys lay on a table in a house with many rooms. I labelled each key by room, absorbed in the task. When rain began, I closed an open window.", "core_mode": "Rearrangement", "affects": ["absorption"], "symbols": ["stack of keys", "open window"], "symbol_stances": ["stack of keys: labels them by room", "open window: closes it when rain begins"], "landscapes": ["large unfamiliar house"], "motifs": ["organizing interior access"], "relational_dynamics": ["voices in other rooms remain indistinct"], "thresholds": ["many rooms available"], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The rooms cluster continues through organization, not through a demonstrated link to the harbour."
+        }
+      ]
+    }
+  ]
+}

@@ -22,6 +22,10 @@ import {
 } from '../ai/mythicEchoes';
 import { buildDreamExtractionResponseFormat } from '../ai/dreamExtractionResponseFormat';
 import {
+  REFLECTIVE_QUESTION_METHOD_PROMPT,
+  REFLECTIVE_QUESTION_RETRY_REMINDER,
+} from '../ai/reflectiveQuestionPrompt';
+import {
   normalizeMainTensionAgainstCentralConflicts,
   validateStructuredTaskContent,
 } from '../ai/structuredTaskValidation';
@@ -52,6 +56,24 @@ import type { ArchetypeName } from '../constants/archetypes';
 import { ARCHETYPE_WHITELIST, normalizeArchetypeList } from '../constants/archetypes';
 import { MAX_AI_RESPONSES } from '../constants/interpretation';
 import { estimateSimpleTokenCost, USD_TO_EUR_ESTIMATE } from '../billing/aiPricing';
+import {
+  buildEssayCompressionRetryPrompt,
+  buildPeriodReflectionSystemPrompt,
+  buildPeriodReflectionUserPrompt,
+  buildRecentDreamFieldUserPrompt,
+  countRenderedEssayWords,
+  END_MARKER_DREAM_ESSAY,
+  essayExceedsHardMaximum,
+  essayExceedsRetryTolerance,
+  ESSAY_COMPRESSION_RETRY_TEMPERATURE,
+  getPeriodEssayLengthPolicy,
+  PERIOD_REFLECTION_TEMPERATURE,
+  RECENT_DREAM_FIELD_LENGTH_POLICY,
+  RECENT_DREAM_FIELD_SYSTEM_PROMPT,
+  RECENT_DREAM_FIELD_TEMPERATURE,
+  type EssayLengthPolicy,
+} from '../ai/reflectiveEssayPrompt';
+import { buildMetadataFirstEssayContext } from '../ai/reflectiveEssayContext';
 
 type ModelCapabilities = {
   supportsResponseFormat: boolean;
@@ -579,7 +601,6 @@ const extractApiResponseContent = (data: any, options?: ExtractApiResponseOption
 };
 
 const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
-const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
 
 const isTruncatedResponse = (data: any): boolean => {
   const finishReason = data.choices?.[0]?.finish_reason;
@@ -620,8 +641,10 @@ Keep only one living psychological movement.
 Do not summarize the whole dream or list symbols.
 Do not use report-like language or framework labels.
 Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
-End with exactly one observational reflective question.
+End with exactly one reflective question selected through the reflective-question method.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -642,8 +665,12 @@ Use the Standard mode, but with hidden structure:
 - If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
 - Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
 
-End with exactly 2 reflective questions.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -667,22 +694,16 @@ Allow brief mythic resonance only when it is unmistakably earned by the dream im
 Prefer one precise mythic echo over extended amplification.
 Do not create a Mythic Resonance section or lecture on mythology.
 
-End with exactly 2 reflective questions.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
+
+${REFLECTIVE_QUESTION_RETRY_REMINDER}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
 ${END_MARKER_DREAM_READING}`;
-
-const COMPRESSION_RETRY_ESSAY_SYSTEM_PROMPT = `Your previous essay was too long and was cut off.
-Rewrite the entire essay from scratch in a compact complete form.
-Do not continue the previous response.
-Compress each section; keep synthesis; drop repetition.
-Stay near the lower end of the word range appropriate for the number of dreams in the prompt.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_ESSAY}`;
 
 const extractFirstJsonObject = (s: string): string | null => {
   const start = s.indexOf('{');
@@ -799,7 +820,8 @@ You offer a symbolic psychological reading that illuminates how the psyche organ
 
 Prioritize:
 - Emotional atmosphere and bodily affect
-- Inner tensions, ambivalences, or flows the dream actually stages
+- Whatever is most psychologically alive: tension when genuinely present, but also flow, beauty, calm, vitality, intimacy, transformation, strangeness, numinosity, or coherence
+- Inner tensions, ambivalences, or flows only as the dream actually stages them
 - How the ego relates to what appears (what it approaches, avoids, or cannot yet metabolize)
 - Where the ego belongs, withdraws, watches, hides, approaches, refuses, or imagines exit
 - What each image does to the dreamer’s attention, body, or stance
@@ -836,7 +858,9 @@ BRIEF mode (Quick Glance):
   2. render the atmosphere briefly
   3. follow one central psychological movement
   4. include one felt-sense sentence only if bodily tone is clearly present
-- End with exactly one observational reflective question.
+- End with exactly one reflective question selected through the reflective-question method.
+- Keep it close to the dream image unless another movement is clearly supported.
+- Do not manufacture a problem when the dream is calm, joyful, beautiful, vital, cohesive, transformative, or numinous.
 - Do not use archetype labels, amplifications, or extra framework language.
 - Do not summarize the whole dream before entering it.
 - Do not list symbols.
@@ -901,10 +925,14 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First question: somatic-observational when possible.
-- Second question: symbolic, relational, or imaginal.
-- Questions should deepen the central movement, not open a new analytic thread.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive unexplored point determine the first question.
+- If a second question is warranted, deepen the same living material from another angle or open the next genuinely connected element.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Questions should deepen the dream's living material, not open an unrelated analytic thread.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
@@ -978,15 +1006,20 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Exactly 2 questions.
-- First: somatic-observational when possible.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive image, affect, relation, atmosphere, transformation, absence, movement, or ego-position determine the first question.
 - Somatic questions should refer to the remembered dream-body or bodily tone, not instruct the user to perform an exercise.
-- Second: symbolic, relational, or imaginal.
+- If a second question is warranted, keep it inside the image or move toward symbolic, relational, somatic, imaginal, or personal meaning only when the dream supports that movement.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Never manufacture tension, pathology, compensation, hidden fear, or avoidance to demonstrate advanced reasoning.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
 Length: aim for 550–800 words. Prefer density and continuity over coverage.
-Finish the full response, including both reflective questions and the end marker. Do not stop mid-sentence or mid-question.
+Finish the full response, including the complete reflective-question section and the end marker. One question is valid and complete; do not retry or add filler because a second is absent. Do not stop mid-sentence or mid-question.
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -1083,6 +1116,7 @@ Do not give conclusions. Offer symbolic perspectives and reflective questions.${
     messages: [
       { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
       { role: 'system', content: INTERPRETATION_ROLE_PROMPT },
+      { role: 'system', content: REFLECTIVE_QUESTION_METHOD_PROMPT },
       { role: 'system', content: formatPrompt },
       { role: 'user', content: userPrompt },
     ],
@@ -1166,12 +1200,13 @@ const retryCompressedPatternEssay = async (params: {
   requestId: string;
   tokenLimit: number;
   timeout: number;
+  lengthPolicy: EssayLengthPolicy;
 }): Promise<string> => {
-  const { apiUrl, apiKey, model, originalMessages, requestId, tokenLimit, timeout } = params;
+  const { apiUrl, apiKey, model, originalMessages, requestId, tokenLimit, timeout, lengthPolicy } = params;
   const retryPayload: any = {
     model,
-    messages: [...originalMessages, { role: 'system', content: COMPRESSION_RETRY_ESSAY_SYSTEM_PROMPT }],
-    temperature: 0.35,
+    messages: [...originalMessages, { role: 'system', content: buildEssayCompressionRetryPrompt(lengthPolicy) }],
+    temperature: ESSAY_COMPRESSION_RETRY_TEMPERATURE,
   };
   attachProxyTask(retryPayload, apiUrl, 'pattern_insights_retry_compact');
   setTokenLimit(retryPayload, apiUrl, tokenLimit, model);
@@ -1332,7 +1367,6 @@ Chat mode:
 - Be concise, but do not become casual, flattened, or generic.
 - Prefer one precise development over a quick summary of many points.
 - Target 90–220 words. Rarely up to 260 if the user's question genuinely requires it. At most 2–3 short paragraphs or 1–2 sections; no mini-essays.
-- End with exactly ONE reflective question (observational, somatic or symbolic). Never two questions in chat.
 - Summarize connections to the dream or user context (e.g. therapy, relationships) without redoing a full analysis. No repetition of what was already said in the initial interpretation.
 - Focus on one or two key insights; avoid listing many points. Fewer, sharper observations.
 `;
@@ -1360,11 +1394,17 @@ Content: ${dreamExcerpt}`;
 
   const finalResponseInstruction = isFinalResponse
     ? `Important: No more follow-ups. This is your final response. Conclude the reflection without inviting further questions. Do not end with a question or prompts like "Do you have any questions?" or "What would you like to explore?". Wrap up with a closing insight or affirmation instead.`
-    : null;
+    : `End with exactly ONE reflective question selected through the reflective-question method. Never ask two questions in chat.
+Base it on what remains most psychologically alive and generative across the dream and latest exchange.
+Do not ask the user to repeat something already stated in the dream, initial reading, or conversation.
+Do not mechanically transfer the dream into waking life or turn peaceful, joyful, beautiful, vital, or coherent material into a hidden problem.`;
 
   const messages: ApiMessage[] = [
     { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
     { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
+    ...(!isFinalResponse
+      ? [{ role: 'system' as const, content: REFLECTIVE_QUESTION_METHOD_PROMPT }]
+      : []),
     ...(finalResponseInstruction ? [{ role: 'system' as const, content: finalResponseInstruction }] : []),
     { role: 'system', content: dreamContext },
     { role: 'system', content: INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE },
@@ -2462,134 +2502,11 @@ Bare {} is invalid.`;
    PATTERN INSIGHTS (MONTHLY / QUARTERLY)
    ============================ */
 
-const MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT = `
-You are Dream Weaver, a post-Jungian dream essayist reviewing a month of dreams.
-
-Your role is to synthesize the month's dream material into a reflective symbolic essay.
-You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
-You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
-
-Core principles:
-- Read the dreams as a field, not as isolated events.
-- Track recurring images, affects, symbol stances, relational dynamics, thresholds, and central conflicts.
-- Do not write as if explaining metadata fields.
-- Use extracted fields only to see the dream-field more clearly.
-- The essay should feel synthesized from images and movements, not generated from tags.
-- Use thresholds and central conflicts as high-value synthesis material only when the data clearly stages crossings or opposing pressures.
-- Notice whether the month shows movement, repetition, intensification, retreat, partial integration, contradiction, or unresolved suspension.
-- Do not force progress. If the month is cyclical, stalled, fragmented, or contradictory, say so plainly.
-- Do not flatten everything into generic themes like "change", "growth", or "anxiety".
-- Every major claim must be grounded in at least one concrete recurrence or contrast from the dream data.
-- If there are too few dreams to support a strong pattern, say so and offer a lighter reading.
-- Treat interpretation excerpts as supporting material, but do not simply repeat them.
-- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
-- Shadow means unintegrated charge, intensity, vitality, fear, anger, or instinct — not moral negativity.
-- Self should appear only if the month shows a credible organizing center or movement toward coherence.
-
-Style:
-- Write like a psychologically precise essay, not a bullet-point analytics report.
-- Use vivid, grounded, image-near language.
-- Prefer synthesis over listing.
-- Avoid generic coaching language.
-- Avoid advice.
-- Avoid conclusions that sound final.
-- Keep markdown section headings exactly as specified in English for UI consistency.
-- Write body text and reflective questions in the user's requested language.
-
-Essay shape:
-## The Month's Dream Field
-A short opening that names the dominant atmosphere or organizing movement of the month.
-
-## Recurring Images and Pressures
-Synthesize the main repeated symbols, affects, landscapes, and symbol stances. Focus on what the images are doing.
-
-## Thresholds and Conflicts
-Optional. Include this section only when crossings, transitions, or conflict pairs are concrete and structurally important. Otherwise weave those pressures into Recurring Images and Pressures or Movement Across the Month.
-Stay image-near and tied to the excerpts; avoid generic "X vs Y" psychology templates unless the month's images support each side.
-
-## Movement Across the Month
-Describe whether the dreams move toward coherence, intensification, retreat, partial repair, contradiction, or unresolved suspension. Do not force an evolution.
-
-## What Remains Open
-Name the unresolved question or psychic pressure the month seems to leave behind.
-
-## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
-
-Length:
-- If 1 dream: 250–400 words.
-- If 2–4 dreams: 450–700 words.
-- If 5+ dreams: 650–800 words.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_ESSAY}
-`;
-
-const RECENT_DREAM_FIELD_SYSTEM_PROMPT = `
-You are Dream Weaver, a post-Jungian dream essayist reviewing the user's latest reflected dreams as a short recent sequence.
-
-Your role is to synthesize what feels currently active in the latest dreams the user has explored.
-You do not diagnose, advise, prescribe, reassure, or make factual claims about the dreamer.
-You write hypothetically, but you are allowed to offer a clear symbolic landing when the data supports it.
-
-Core principles:
-- Read the dreams as a recent sequence, not as a completed calendar period.
-- Look for what is currently active, repeating, intensifying, shifting, or unresolved.
-- Do not force a monthly narrative or archive-style conclusion.
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Use extracted fields only to see the recent dream-field more clearly.
-- The reflection should feel synthesized from images and movements, not generated from metadata.
-- Stay close to concrete images, affects, symbol stances, thresholds, and tensions.
-- Every major claim must be grounded in at least one concrete recurrence, contrast, or sequence detail.
-- If the recent sequence is light or only loosely connected, say so plainly and offer a lighter reading.
-- Archetypal language is optional. Use it only when it deepens a repeated image or field dynamic.
-
-Style:
-- Write like a psychologically precise reflection, not a report.
-- Use vivid, grounded, image-near language.
-- Prefer synthesis over listing.
-- Avoid generic coaching language.
-- Avoid advice.
-- Avoid conclusions that sound final.
-- Keep markdown section headings exactly as specified in English for UI consistency.
-- Write body text and reflective questions in the user's requested language.
-
-Essay shape:
-## Recent Dream Field
-A short opening that names the dominant atmosphere or immediate movement of the latest dream sequence.
-
-## What Keeps Returning
-Synthesize repeated or echoing images, affects, places, pressures, or stances. Focus on what they are doing.
-
-## Current Movement
-Describe what seems active now: repetition, intensification, hesitation, crossing, partial repair, contradiction, or unresolved suspension.
-
-## What Remains Open
-Name the unresolved question or psychic pressure the recent sequence leaves behind.
-
-## Reflective Questions
-Exactly 2 questions. They must be observational, symbolic, or somatic. No advice verbs like try, practice, breathe, relax, focus, or work on.
-
-Length:
-- 350–550 words.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_ESSAY}
-`;
-
 export type PatternInsightDreamEntry = {
   dreamId: string;
   date: string;
   extracted: DreamExtraction;
   interpretation: string;
-};
-
-const trimEssayContextText = (text: string, max = 700): string => {
-  const clean = text.replace(/\s+/g, ' ').trim();
-  return clean.length > max ? clean.slice(0, max) + '...' : clean;
 };
 
 export const generatePatternInsights = async (
@@ -2604,27 +2521,24 @@ export const generatePatternInsights = async (
     return 'No interpreted dreams in this period. Interpret 1–2 dreams to generate a meaningful dream essay.';
   }
 
-  const context = dreamAnalyses
-    .map((d, index) => {
-      const stances = (d.extracted.symbol_stances ?? []).map((s) => `${s.symbol}: ${s.stance}`).join('; ');
-      return `
-Dream ${index + 1}
-Date: ${d.date}
-Core Mode: ${d.extracted.core_mode || '(not set)'}
-Affects: ${(d.extracted.affects ?? []).join(', ') || '(none)'}
-Symbols: ${(d.extracted.symbols ?? []).slice(0, 5).join(', ') || '(none)'}
-Symbol stances: ${stances || '(none)'}
-Landscapes: ${(d.extracted.landscapes ?? []).slice(0, 3).join(', ') || '(none)'}
-Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
-Relational dynamics: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
-Thresholds: ${(d.extracted.thresholds ?? []).join('; ') || '(none)'}
-Central conflicts: ${(d.extracted.central_conflicts ?? []).join('; ') || '(none)'}
-Archetypal Echoes: ${formatArchetypesForEssay(d.extracted.archetypes)}
-Mythic Echoes: ${formatAmplificationsForEssay(d.extracted.amplifications)}
-Interpretation excerpt: ${d.interpretation ? trimEssayContextText(d.interpretation, 650) : '(none)'}
-`;
-    })
-    .join('\n');
+  const context = buildMetadataFirstEssayContext(
+    dreamAnalyses.map((d) => ({
+      date: d.date,
+      coreMode: d.extracted.core_mode ?? '',
+      affects: d.extracted.affects ?? [],
+      symbols: d.extracted.symbols ?? [],
+      symbolStances: (d.extracted.symbol_stances ?? []).map((stance) => `${stance.symbol}: ${stance.stance}`),
+      landscapes: d.extracted.landscapes ?? [],
+      motifs: d.extracted.motifs ?? [],
+      relationalDynamics: d.extracted.relational_dynamics ?? [],
+      thresholds: d.extracted.thresholds ?? [],
+      centralConflicts: d.extracted.central_conflicts ?? [],
+      archetypalEchoes: formatArchetypesForEssay(d.extracted.archetypes),
+      mythicEchoes: formatAmplificationsForEssay(d.extracted.amplifications),
+      interpretation: d.interpretation,
+    })),
+    'period'
+  );
 
   const langNames: Record<string, string> = {
     el: 'Greek (Ελληνικά)', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
@@ -2640,28 +2554,15 @@ Write all paragraph text, bullets, and reflective questions in ${langNames[langu
 Do not translate section headings.
 Preserve extracted symbols in English only if needed, but explain them in the requested language.`;
 
-  const userPrompt = `You are writing a ${period} dream essay.
-
-Period: ${period}
-Number of interpreted dreams: ${dreamAnalyses.length}
-
-Dream data:
-${context}
-
-Write a symbolic monthly/quarterly essay that synthesizes the dream field as a whole.
-
-Important:
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Do not write as if explaining metadata fields.
-- Use extracted fields only to see the dream-field more clearly.
-- The essay should feel synthesized from images and movements, not generated from tags.
-- Find the field-level pattern: recurring images, pressures, thresholds, conflicts, and movements.
-- Use thresholds and conflicts as major synthesis anchors only when they are concrete and recurring or structurally important.
-- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
-- Keep all claims hypothetical and grounded in the data.
-- No advice, no diagnosis, no prescriptions, no reassurance.
-${langInstruction}`;
+  const lengthPolicy = getPeriodEssayLengthPolicy(dreamAnalyses.length);
+  const userPrompt = buildPeriodReflectionUserPrompt({
+    scope: period,
+    startDate: dreamAnalyses[0]?.date,
+    endDate: dreamAnalyses[dreamAnalyses.length - 1]?.date,
+    dreamCount: dreamAnalyses.length,
+    context,
+    languageInstruction: langInstruction,
+  });
 
   const { requestId, model } = startRequest();
 
@@ -2681,11 +2582,11 @@ ${langInstruction}`;
     }
 
     const messages: ApiMessage[] = [
-      { role: 'system', content: MONTHLY_DREAM_ESSAY_SYSTEM_PROMPT },
+      { role: 'system', content: buildPeriodReflectionSystemPrompt(period, dreamAnalyses.length) },
       { role: 'user', content: userPrompt },
     ];
 
-    const payload: any = { model, messages, temperature: 0.48 };
+    const payload: any = { model, messages, temperature: PERIOD_REFLECTION_TEMPERATURE };
     attachProxyTask(payload, apiUrl, 'pattern_insights');
 
     let tokenLimit: number | undefined;
@@ -2717,7 +2618,10 @@ ${langInstruction}`;
 
     let content = extractApiResponseContent(data, { allowTruncated: true });
 
-    if (isTruncatedResponse(data) || !content.trim() || !hasEndMarker(content, END_MARKER_DREAM_ESSAY)) {
+    const initialIncomplete =
+      isTruncatedResponse(data) || !content.trim() || !hasEndMarker(content, END_MARKER_DREAM_ESSAY);
+    const initialTooLong = essayExceedsHardMaximum(content, lengthPolicy, language);
+    if (initialIncomplete || initialTooLong) {
       const retryTokenLimit = dreamAnalyses.length >= 5 ? 1700 : dreamAnalyses.length >= 2 ? 1300 : 850;
       content = await retryCompressedPatternEssay({
         apiUrl,
@@ -2727,6 +2631,16 @@ ${langInstruction}`;
         requestId,
         tokenLimit: retryTokenLimit,
         timeout: capabilities.defaultTimeout,
+        lengthPolicy,
+      });
+      const retryWordCount = countRenderedEssayWords(content, language);
+      logInfo('ai_pattern_essay_compact_retry_result', {
+        essayKind: 'period',
+        retryReason: initialIncomplete ? 'incomplete' : 'length_overflow',
+        wordCount: retryWordCount,
+        hardMaximum: lengthPolicy.hardMaximum,
+        retryToleranceCeiling: lengthPolicy.retryToleranceCeiling,
+        beyondTolerance: essayExceedsRetryTolerance(content, lengthPolicy, language),
       });
     }
 
@@ -2748,27 +2662,24 @@ export const generateRecentDreamFieldReflection = async (
     return 'No interpreted dreams are available for a recent reflection. Reflect on at least 2 dreams first.';
   }
 
-  const context = dreamAnalyses
-    .map((d, index) => {
-      const stances = (d.extracted.symbol_stances ?? []).map((s) => `${s.symbol}: ${s.stance}`).join('; ');
-      return `
-Dream ${index + 1}
-Date: ${d.date}
-Core Mode: ${d.extracted.core_mode || '(not set)'}
-Affects: ${(d.extracted.affects ?? []).join(', ') || '(none)'}
-Symbols: ${(d.extracted.symbols ?? []).slice(0, 5).join(', ') || '(none)'}
-Symbol stances: ${stances || '(none)'}
-Landscapes: ${(d.extracted.landscapes ?? []).slice(0, 3).join(', ') || '(none)'}
-Motifs: ${(d.extracted.motifs ?? []).join('; ') || '(none)'}
-Relational dynamics: ${(d.extracted.relational_dynamics ?? []).join('; ') || '(none)'}
-Thresholds: ${(d.extracted.thresholds ?? []).join('; ') || '(none)'}
-Central conflicts: ${(d.extracted.central_conflicts ?? []).join('; ') || '(none)'}
-Archetypal Echoes: ${formatArchetypesForEssay(d.extracted.archetypes)}
-Mythic Echoes: ${formatAmplificationsForEssay(d.extracted.amplifications)}
-Interpretation excerpt: ${d.interpretation ? trimEssayContextText(d.interpretation, 520) : '(none)'}
-`;
-    })
-    .join('\n');
+  const context = buildMetadataFirstEssayContext(
+    dreamAnalyses.map((d) => ({
+      date: d.date,
+      coreMode: d.extracted.core_mode ?? '',
+      affects: d.extracted.affects ?? [],
+      symbols: d.extracted.symbols ?? [],
+      symbolStances: (d.extracted.symbol_stances ?? []).map((stance) => `${stance.symbol}: ${stance.stance}`),
+      landscapes: d.extracted.landscapes ?? [],
+      motifs: d.extracted.motifs ?? [],
+      relationalDynamics: d.extracted.relational_dynamics ?? [],
+      thresholds: d.extracted.thresholds ?? [],
+      centralConflicts: d.extracted.central_conflicts ?? [],
+      archetypalEchoes: formatArchetypesForEssay(d.extracted.archetypes),
+      mythicEchoes: formatAmplificationsForEssay(d.extracted.amplifications),
+      interpretation: d.interpretation,
+    })),
+    'recent'
+  );
 
   const langNames: Record<string, string> = {
     el: 'Greek (Ελληνικά)', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
@@ -2784,26 +2695,11 @@ Write all paragraph text, bullets, and reflective questions in ${langNames[langu
 Do not translate section headings.
 Preserve extracted symbols in English only if needed, but explain them in the requested language.`;
 
-  const userPrompt = `You are writing a Recent Dream Field reflection.
-
-Scope: latest reflected dreams
-Number of interpreted dreams: ${dreamAnalyses.length}
-
-Dream data:
-${context}
-
-Write a symbolic reflection that synthesizes this recent dream sequence.
-
-Important:
-- Treat these as the latest dreams the user has explored, not as a month or completed calendar period.
-- Look for what is active now: what repeats, intensifies, shifts, hesitates, or remains unresolved.
-- Do not summarize each dream one by one.
-- Do not simply list recurring tags.
-- Use extracted fields only to see the recent dream-field more clearly.
-- Use interpretation excerpts only to deepen the synthesis, not to repeat the original readings.
-- Keep all claims hypothetical and grounded in the data.
-- No advice, no diagnosis, no prescriptions, no reassurance.
-${langInstruction}`;
+  const userPrompt = buildRecentDreamFieldUserPrompt({
+    dreamCount: dreamAnalyses.length,
+    context,
+    languageInstruction: langInstruction,
+  });
 
   const { requestId, model } = startRequest();
 
@@ -2827,7 +2723,7 @@ ${langInstruction}`;
       { role: 'user', content: userPrompt },
     ];
 
-    const payload: any = { model, messages, temperature: 0.46 };
+    const payload: any = { model, messages, temperature: RECENT_DREAM_FIELD_TEMPERATURE };
     attachProxyTask(payload, apiUrl, 'pattern_insights');
 
     let tokenLimit: number | undefined;
@@ -2859,7 +2755,14 @@ ${langInstruction}`;
 
     let content = extractApiResponseContent(data, { allowTruncated: true });
 
-    if (isTruncatedResponse(data) || !content.trim() || !hasEndMarker(content, END_MARKER_DREAM_ESSAY)) {
+    const initialIncomplete =
+      isTruncatedResponse(data) || !content.trim() || !hasEndMarker(content, END_MARKER_DREAM_ESSAY);
+    const initialTooLong = essayExceedsHardMaximum(
+      content,
+      RECENT_DREAM_FIELD_LENGTH_POLICY,
+      language
+    );
+    if (initialIncomplete || initialTooLong) {
       content = await retryCompressedPatternEssay({
         apiUrl,
         apiKey,
@@ -2868,6 +2771,20 @@ ${langInstruction}`;
         requestId,
         tokenLimit: 1100,
         timeout: capabilities.defaultTimeout,
+        lengthPolicy: RECENT_DREAM_FIELD_LENGTH_POLICY,
+      });
+      const retryWordCount = countRenderedEssayWords(content, language);
+      logInfo('ai_pattern_essay_compact_retry_result', {
+        essayKind: 'recent',
+        retryReason: initialIncomplete ? 'incomplete' : 'length_overflow',
+        wordCount: retryWordCount,
+        hardMaximum: RECENT_DREAM_FIELD_LENGTH_POLICY.hardMaximum,
+        retryToleranceCeiling: RECENT_DREAM_FIELD_LENGTH_POLICY.retryToleranceCeiling,
+        beyondTolerance: essayExceedsRetryTolerance(
+          content,
+          RECENT_DREAM_FIELD_LENGTH_POLICY,
+          language
+        ),
       });
     }
 

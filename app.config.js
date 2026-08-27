@@ -35,6 +35,7 @@ const baseExpoConfig = {
     favicon: './assets/favicon.png',
   },
   plugins: [
+    'expo-asset',
     'expo-font',
     'expo-web-browser',
     [
@@ -55,15 +56,19 @@ const baseExpoConfig = {
       'expo-secure-store',
       {
         faceIDPermission: 'Allow Oneiros to use Face ID to sign in.',
+        // Oneiros supplies a combined rule set that excludes both SecureStore
+        // and pending raw voice audio from backup/device transfer.
+        configureAndroidBackup: false,
       },
     ],
     [
-      'expo-av',
+      'expo-audio',
       {
         microphonePermission:
           'Allow Oneiros to use your microphone for optional dream voice journaling and transcription.',
       },
     ],
+    './plugins/withVoicePendingStoragePrivacy',
     'expo-iap',
   ],
   extra: {},
@@ -88,7 +93,8 @@ const getEnv = (keys, fallback = '') => {
 const scheme = getEnv(['APP_SCHEME'], baseExpoConfig.scheme || 'oneiros-dream-journal');
 
 const extraFromEnv = {
-  openaiApiKey: getEnv(['EXPO_PUBLIC_OPENAI_API_KEY', 'OPENAI_API_KEY'], ''),
+  // Development-only direct API access. Never copy the server OPENAI_API_KEY into app extras.
+  openaiApiKey: getEnv(['EXPO_PUBLIC_OPENAI_API_KEY'], ''),
   customGptEndpoint: getEnv(
     ['EXPO_PUBLIC_CUSTOM_GPT_ENDPOINT', 'CUSTOM_GPT_ENDPOINT'],
     null

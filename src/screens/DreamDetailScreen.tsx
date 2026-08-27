@@ -21,6 +21,8 @@ import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExpor
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
+import { VoiceComposerService } from '../services/voiceComposerService';
+import { EditRevisionGuard } from '../utils/editRevisionGuard';
 import { Dream, Interpretation, ChatMessage } from '../types/dream';
 import { getDreamById, getInterpretationByDreamId, saveInterpretation, deleteInterpretation, saveDream } from '../utils/storage';
 import { formatDateShort, generateId } from '../utils/date';
@@ -453,12 +455,35 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     const route = useRoute<DetailRouteProp>();
     const { dreamId } = route.params;
     const insets = useSafeAreaInsets();
-    const { status: subscriptionStatus, products, purchasePlan, purchasingPlanCode } = useSubscription();
+    const {
+      status: subscriptionStatus,
+      products,
+      storeProductsLoading,
+      purchasePlan,
+      purchasingPlanCode,
+    } = useSubscription();
 
     const [dream, setDream] = useState<Dream | null>(null);
     const [interpretation, setInterpretation] = useState<Interpretation | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
+    const inputEditGuardRef = useRef(new EditRevisionGuard());
+    const chatVoiceTarget = useMemo(
+      () => ({ surface: 'dream-chat' as const, key: dreamId }),
+      [dreamId],
+    );
+
+    useEffect(() => {
+      let active = true;
+      const hydrationRevision = inputEditGuardRef.current.capture();
+      void VoiceComposerService.getSnapshot(chatVoiceTarget).then((snapshot) => {
+        if (active && snapshot != null && inputEditGuardRef.current.isCurrent(hydrationRevision)) {
+          setInputText(snapshot.text);
+          void VoiceComposerService.acknowledgeVisibleSnapshot(snapshot);
+        }
+      });
+      return () => { active = false; };
+    }, [chatVoiceTarget]);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingInitial, setIsLoadingInitial] = useState(true);
     const [isGeneratingInitial, setIsGeneratingInitial] = useState(false);
@@ -1117,6 +1142,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
           await saveInterpretation(updatedInterpretation);
           setInterpretation(updatedInterpretation);
         }
+        await VoiceComposerService.clear(chatVoiceTarget);
       } catch (error: any) {
         console.error('[DreamDetail] Error sending message:', error);
         // Remove the user message that failed
@@ -1522,7 +1548,11 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                   placeholder="Ask about an image, feeling, or pattern..."
                   placeholderTextColor={colors.textMuted}
                   value={inputText}
-                  onChangeText={setInputText}
+          onChangeText={(text) => {
+            inputEditGuardRef.current.markEdited();
+            setInputText(text);
+            void VoiceComposerService.saveText(chatVoiceTarget, text);
+          }}
                   multiline
                   maxLength={3000}
                   editable={!isGeneratingInitial && !reflectionLimitReached && !premiumReflectionReadOnly}
@@ -1538,9 +1568,11 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                 <View style={styles.inputActionSpacer}>
                   <VoiceRecordButton
                     presentation="compact"
-                    target={{ surface: 'dream-chat', key: dreamId }}
+                    target={chatVoiceTarget}
+                    getComposerText={() => inputText}
                     onTranscriptionComplete={(text) => {
-                      setInputText((prev) => (prev ? `${prev} ${text}` : text));
+                      inputEditGuardRef.current.markEdited();
+                      setInputText(text);
                     }}
                     disabled={isGeneratingInitial || isLoading || reflectionLimitReached || premiumReflectionReadOnly}
                   />
@@ -1580,6 +1612,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
             billingInterval={billingInterval}
             premiumPlan={premiumPlan}
             deeperPlan={deeperPlan}
+            storeProducts={products}
+            storeProductsLoading={storeProductsLoading}
             displayMode="premium_only"
             currentPlanTier={currentPlanTier}
             upgradeTitle={{

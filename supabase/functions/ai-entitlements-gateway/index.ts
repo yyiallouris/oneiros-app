@@ -9,6 +9,13 @@ import {
   needsDreamExtractionVersionRefresh,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
 import {
+  ESSAY_CONTEXT_VERSION,
+  PERIOD_REFLECTION_PROMPT_ID,
+  PERIOD_REFLECTION_PROMPT_VERSION,
+  RECENT_DREAM_FIELD_PROMPT_ID,
+  RECENT_DREAM_FIELD_PROMPT_VERSION,
+} from '../../../src/ai/reflectiveEssayPrompt.ts';
+import {
   buildMonthScope,
   buildRecentScope,
   type AiCallCost,
@@ -1186,7 +1193,12 @@ serve(async (req: Request) => {
             dreamIds: entries.map((entry) => entry.dreamId),
             dreamCount: entries.length,
             content: generated.content,
-            metadata: { count },
+            metadata: {
+              count,
+              prompt_id: RECENT_DREAM_FIELD_PROMPT_ID,
+              prompt_version: RECENT_DREAM_FIELD_PROMPT_VERSION,
+              context_version: ESSAY_CONTEXT_VERSION,
+            },
           });
 
           return {
@@ -1261,7 +1273,17 @@ serve(async (req: Request) => {
         work: async (reservation) => {
           const quotaEvent = await getQuotaEvent(admin, reservation.quotaEventId!);
           const aiStartedAt = measureStart();
-          const generated = await generatePeriodReflection(authHeader, entries, monthKey, language);
+          const generated = await generatePeriodReflection(
+            authHeader,
+            entries,
+            {
+              kind: scope.kind,
+              scopeKey: scope.scopeKey,
+              startDate: scope.startDate,
+              endDate: scope.endDate,
+            },
+            language
+          );
           const aiMs = measureSince(aiStartedAt);
           console.log('[ai-entitlements-gateway] period reflection ai done', {
             action: body.action,
@@ -1287,7 +1309,13 @@ serve(async (req: Request) => {
             dreamCount: entries.length,
             monthKey,
             content: generated.content,
-            metadata: { is_current_month: scope.isCurrentMonth },
+            metadata: {
+              is_current_month: scope.isCurrentMonth,
+              period_kind: scope.kind,
+              prompt_id: PERIOD_REFLECTION_PROMPT_ID,
+              prompt_version: PERIOD_REFLECTION_PROMPT_VERSION,
+              context_version: ESSAY_CONTEXT_VERSION,
+            },
           });
           await mirrorPatternReport(admin, userId, scope.scopeKey, generated.content);
 

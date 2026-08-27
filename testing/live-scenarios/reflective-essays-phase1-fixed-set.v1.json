@@ -1,0 +1,133 @@
+{
+  "version": "1.0.0",
+  "description": "Fixed reflective essay set with raw dream narratives for Phase 1 context-v1 versus Phase 2 narrative-first context-v2 comparison.",
+  "cases": [
+    {
+      "id": "period-coherent-positive-el",
+      "surface": "period",
+      "scope": "monthly",
+      "language": "el",
+      "field_group": "arrival-field-el",
+      "reviewer_focus": "A coherent, peaceful field must not be converted into hidden pathology or padded with invented conflict.",
+      "anti_coherence_expectation": "This field is deliberately coherent. Reward a clear, evidence-earned sea to guided path to shared garden relation; penalize only hidden pathology, unsupported developmental certainty, or poetic closure beyond the images.",
+      "evidence_anchors": ["θάλασσα", "κορίτσι", "κήπος"],
+      "forbidden_claims": ["κρυμμένο τραύμα", "φόβος οικειότητας", "η ψυχή σου θέλει"],
+      "entries": [
+        {
+          "date": "2026-07-03",
+          "dream_narrative": "Βρισκόμουν μέσα σε μια ήρεμη θάλασσα και ανέπνεα κανονικά κάτω από το νερό, χωρίς φόβο. Ένα λευκό πουλί κατέβηκε χαμηλά προς την επιφάνεια. Έμεινα ακίνητη και το παρατηρούσα να πλησιάζει.",
+          "core_mode": "Coherence",
+          "affects": ["ηρεμία", "θαυμασμός"],
+          "symbols": ["ήρεμη θάλασσα", "λευκό πουλί"],
+          "symbol_stances": ["ήρεμη θάλασσα: αναπνέει μέσα της χωρίς φόβο", "λευκό πουλί: το παρατηρεί να πλησιάζει"],
+          "landscapes": ["ανοιχτή θάλασσα"],
+          "motifs": ["ήρεμη άφιξη"],
+          "relational_dynamics": ["ήσυχη συνύπαρξη"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": ["Self (quiet coherence) — a calm organizing center"],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Η γαλήνη μπορεί να διαβαστεί ως μια στιγμή συνοχής που δεν χρειάζεται να λυθεί."
+        },
+        {
+          "date": "2026-07-14",
+          "dream_narrative": "Ένα μικρό κορίτσι με περίμενε στην αρχή ενός φωτεινού μονοπατιού. Μου έδωσε μια κόκκινη κλωστή και άρχισε να περπατά. Την ακολούθησα πρόθυμα, κρατώντας την κλωστή απαλά.",
+          "core_mode": "Arrival",
+          "affects": ["τρυφερότητα", "εμπιστοσύνη"],
+          "symbols": ["κορίτσι", "κόκκινη κλωστή"],
+          "symbol_stances": ["κορίτσι: την ακολουθεί πρόθυμα", "κόκκινη κλωστή: την κρατά απαλά"],
+          "landscapes": ["φωτεινό μονοπάτι"],
+          "motifs": ["καθοδήγηση χωρίς πίεση"],
+          "relational_dynamics": ["δεκτική συντροφικότητα"],
+          "thresholds": ["άνοιγμα στο μονοπάτι"],
+          "central_conflicts": [],
+          "archetypal_echoes": ["Divine Child (gentle guide) — orientation carried through trust"],
+          "mythic_echoes": ["Ariadne (Greek) — a thread offers orientation without coercion"],
+          "interpretation_excerpt": "Η καθοδήγηση εμφανίζεται ως σχέση εμπιστοσύνης και όχι ως δοκιμασία."
+        },
+        {
+          "date": "2026-07-26",
+          "dream_narrative": "Μπήκα σε έναν περιφραγμένο κήπο γεμάτο ώριμα σύκα. Κάθισα κάτω από ένα δέντρο με μια φίλη και μοιραστήκαμε ένα σύκο. Δεν βιαζόμασταν να φύγουμε.",
+          "core_mode": "Belonging",
+          "affects": ["χαρά", "οικειότητα"],
+          "symbols": ["κήπος", "ώριμα σύκα"],
+          "symbol_stances": ["κήπος: κάθεται και παραμένει", "ώριμα σύκα: μοιράζεται ένα με φίλη"],
+          "landscapes": ["περιφραγμένος κήπος"],
+          "motifs": ["μοίρασμα αφθονίας"],
+          "relational_dynamics": ["αμοιβαία παρουσία"],
+          "thresholds": [],
+          "central_conflicts": [],
+          "archetypal_echoes": ["Lover (warm mutuality) — intimacy held without urgency"],
+          "mythic_echoes": [],
+          "interpretation_excerpt": "Το όνειρο κρατά μια απλή εμπειρία αφθονίας και συντροφικότητας."
+        }
+      ]
+    },
+    {
+      "id": "recent-coherent-positive-el",
+      "surface": "recent",
+      "scope": "recent",
+      "language": "el",
+      "field_group": "arrival-field-el",
+      "reviewer_focus": "The Recent response should feel immediate and lighter than the paired monthly response.",
+      "anti_coherence_expectation": "This field is deliberately coherent. Reward the grounded sea, guide/thread, and garden relation while requiring a current pulse rather than a developmental monthly arc.",
+      "evidence_anchors": ["θάλασσα", "κορίτσι", "κήπος"],
+      "forbidden_claims": ["κρυμμένο τραύμα", "φόβος οικειότητας", "η ψυχή σου θέλει"],
+      "entries": [
+        {
+          "date": "2026-07-03", "dream_narrative": "Βρισκόμουν μέσα σε μια ήρεμη θάλασσα και ανέπνεα κανονικά κάτω από το νερό, χωρίς φόβο. Ένα λευκό πουλί κατέβηκε χαμηλά προς την επιφάνεια και το παρατηρούσα να πλησιάζει.", "core_mode": "Coherence", "affects": ["ηρεμία", "θαυμασμός"], "symbols": ["ήρεμη θάλασσα", "λευκό πουλί"], "symbol_stances": ["ήρεμη θάλασσα: αναπνέει μέσα της χωρίς φόβο", "λευκό πουλί: το παρατηρεί να πλησιάζει"], "landscapes": ["ανοιχτή θάλασσα"], "motifs": ["ήρεμη άφιξη"], "relational_dynamics": ["ήσυχη συνύπαρξη"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": ["Self (quiet coherence) — a calm organizing center"], "mythic_echoes": [], "interpretation_excerpt": "Η γαλήνη μπορεί να διαβαστεί ως μια στιγμή συνοχής που δεν χρειάζεται να λυθεί."
+        },
+        {
+          "date": "2026-07-14", "dream_narrative": "Ένα μικρό κορίτσι με περίμενε στην αρχή ενός φωτεινού μονοπατιού. Μου έδωσε μια κόκκινη κλωστή και την ακολούθησα πρόθυμα, κρατώντας την απαλά.", "core_mode": "Arrival", "affects": ["τρυφερότητα", "εμπιστοσύνη"], "symbols": ["κορίτσι", "κόκκινη κλωστή"], "symbol_stances": ["κορίτσι: την ακολουθεί πρόθυμα", "κόκκινη κλωστή: την κρατά απαλά"], "landscapes": ["φωτεινό μονοπάτι"], "motifs": ["καθοδήγηση χωρίς πίεση"], "relational_dynamics": ["δεκτική συντροφικότητα"], "thresholds": ["άνοιγμα στο μονοπάτι"], "central_conflicts": [], "archetypal_echoes": ["Divine Child (gentle guide) — orientation carried through trust"], "mythic_echoes": ["Ariadne (Greek) — a thread offers orientation without coercion"], "interpretation_excerpt": "Η καθοδήγηση εμφανίζεται ως σχέση εμπιστοσύνης και όχι ως δοκιμασία."
+        },
+        {
+          "date": "2026-07-26", "dream_narrative": "Μπήκα σε έναν περιφραγμένο κήπο γεμάτο ώριμα σύκα. Κάθισα με μια φίλη και μοιραστήκαμε ένα σύκο, χωρίς να βιαζόμαστε να φύγουμε.", "core_mode": "Belonging", "affects": ["χαρά", "οικειότητα"], "symbols": ["κήπος", "ώριμα σύκα"], "symbol_stances": ["κήπος: κάθεται και παραμένει", "ώριμα σύκα: μοιράζεται ένα με φίλη"], "landscapes": ["περιφραγμένος κήπος"], "motifs": ["μοίρασμα αφθονίας"], "relational_dynamics": ["αμοιβαία παρουσία"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": ["Lover (warm mutuality) — intimacy held without urgency"], "mythic_echoes": [], "interpretation_excerpt": "Το όνειρο κρατά μια απλή εμπειρία αφθονίας και συντροφικότητας."
+        }
+      ]
+    },
+    {
+      "id": "period-contradictory-en",
+      "surface": "period",
+      "scope": "monthly",
+      "language": "en",
+      "field_group": "contradictory-field-en",
+      "reviewer_focus": "Preserve contradiction and avoid inventing linear progress or a single solved thesis.",
+      "anti_coherence_expectation": "The door, train, and altered house support a concrete shared access/passage field, but their different stances do not support healing, resolution, or linear progress.",
+      "evidence_anchors": ["door", "train", "house"],
+      "forbidden_claims": ["you are healing", "the psyche wants", "attachment pattern"],
+      "entries": [
+        {
+          "date": "2026-08-02", "dream_narrative": "I stood in a narrow corridor before a locked red door. Warm light showed beneath it. I pushed twice, then stopped and listened, wanting to approach whatever was on the other side.", "core_mode": "Threshold", "affects": ["urgency", "curiosity"], "symbols": ["locked red door", "warm light"], "symbol_stances": ["door: pushes twice, then listens", "light: wants to approach"], "landscapes": ["narrow corridor"], "motifs": ["entry withheld"], "relational_dynamics": ["alone at a boundary"], "thresholds": ["closed doorway"], "central_conflicts": ["entry vs blockage"], "archetypal_echoes": ["Shadow (charged barrier) — withheld access"], "mythic_echoes": [], "interpretation_excerpt": "The closed door may stage a guarded transition."
+        },
+        {
+          "date": "2026-08-11", "dream_narrative": "I was riding a fast train through open countryside. I had not chosen the route, but an open window let in strong wind. I leaned into it with relief as the station passed without stopping.", "core_mode": "Flight", "affects": ["excitement", "relief"], "symbols": ["fast train", "open window"], "symbol_stances": ["train: rides without choosing the route", "window: leans into the wind"], "landscapes": ["moving countryside"], "motifs": ["movement without control"], "relational_dynamics": ["carried among strangers"], "thresholds": ["station passed without stopping"], "central_conflicts": ["freedom vs agency"], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "Movement arrives, though direction remains externally set."
+        },
+        {
+          "date": "2026-08-23", "dream_narrative": "I entered my childhood house willingly and heard family voices in rooms I could not see. The staircase to the upper floor was missing. I felt comfort and unease together and waited instead of jumping.", "core_mode": "Return", "affects": ["comfort", "unease"], "symbols": ["childhood house", "missing staircase"], "symbol_stances": ["house: enters willingly", "missing staircase: waits rather than jumping"], "landscapes": ["familiar house with altered rooms"], "motifs": ["return without restoration"], "relational_dynamics": ["family voices heard but unseen"], "thresholds": ["upper floor inaccessible"], "central_conflicts": ["belonging vs estrangement"], "archetypal_echoes": ["Mother (ambivalent holding) — shelter and unfamiliarity coexist"], "mythic_echoes": [], "interpretation_excerpt": "The return does not resolve whether the house is refuge or displacement."
+        }
+      ]
+    },
+    {
+      "id": "recent-loose-en",
+      "surface": "recent",
+      "scope": "recent",
+      "language": "en",
+      "field_group": "loose-field-en",
+      "reviewer_focus": "A loose sequence should remain light and should not be forced into a grand unifying pattern.",
+      "anti_coherence_expectation": "This sequence is intentionally loose. It may name weak local affinities, but it should state that library, horse, and kitchen do not yet form one sufficiently dense field.",
+      "evidence_anchors": ["library", "horse", "kitchen"],
+      "forbidden_claims": ["the psyche wants", "deep fear of", "trauma", "attachment"],
+      "entries": [
+        {
+          "date": "2026-08-18", "dream_narrative": "I entered a quiet library and checked the name on my library card twice. A librarian pointed toward a blue shelf. I browsed there without urgency and without looking for a particular book.", "core_mode": "Search", "affects": ["mild curiosity"], "symbols": ["library card", "blue shelf"], "symbol_stances": ["library card: checks the name twice", "blue shelf: browses without urgency"], "landscapes": ["quiet library"], "motifs": ["looking without a target"], "relational_dynamics": ["brief exchange with librarian"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The scene may simply hold unhurried curiosity."
+        },
+        {
+          "date": "2026-08-21", "dream_narrative": "I rode a chestnut horse confidently across a windy field. A yellow scarf slipped from my neck and flew away. I was surprised, then laughed and kept riding.", "core_mode": "Vitality", "affects": ["joy", "surprise"], "symbols": ["chestnut horse", "yellow scarf"], "symbol_stances": ["horse: rides confidently", "yellow scarf: lets it fly away"], "landscapes": ["windy field"], "motifs": ["brief exhilaration"], "relational_dynamics": ["alone but not lonely"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "The dream is carried by uncomplicated motion and pleasure."
+        },
+        {
+          "date": "2026-08-25", "dream_narrative": "A tap was leaking into the small kitchen sink. A neighbor lent me a tool, and I tightened the tap until it stopped. I placed a green cup under the last drops and felt satisfied.", "core_mode": "Ordinary Repair", "affects": ["annoyance", "satisfaction"], "symbols": ["leaking tap", "green cup"], "symbol_stances": ["tap: tightens it successfully", "green cup: places it under the last drops"], "landscapes": ["small kitchen"], "motifs": ["practical repair"], "relational_dynamics": ["neighbor lends a tool"], "thresholds": [], "central_conflicts": [], "archetypal_echoes": [], "mythic_echoes": [], "interpretation_excerpt": "A small obstacle is resolved without deeper conflict."
+        }
+      ]
+    }
+  ]
+}

@@ -98,7 +98,14 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
           {!!compareAtPrice && (
             <Text style={[styles.compareAtPrice, cardTextSecondary]}>{compareAtPrice}</Text>
           )}
-          <Text style={[styles.price, cardTextPrimary]}>{price}</Text>
+          <Text
+            style={[styles.price, cardTextPrimary]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+          >
+            {price}
+          </Text>
           {!!priceDetail && <Text style={[styles.priceDetail, cardTextSecondary]}>{priceDetail}</Text>}
           {!!secondaryPriceDetail && <Text style={[styles.secondaryDetail, cardTextSecondary]}>{secondaryPriceDetail}</Text>}
           {!!trialLabel && <Text style={[styles.trialLabel, cardTextSecondary]}>{trialLabel}</Text>}
@@ -141,6 +148,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
                 styles.buttonBase,
                 styles.subscriptionButton,
                 styles.premiumButton,
+                disabled && styles.buttonDisabled,
                 pressed && styles.premiumButtonPressed,
               ]}
             >
@@ -154,6 +162,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
                 styles.buttonBase,
                 styles.subscriptionButton,
                 styles.deeperButton,
+                disabled && styles.buttonDisabled,
                 pressed && styles.deeperButtonPressed,
               ]}
             >
@@ -167,6 +176,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
                 styles.buttonBase,
                 styles.subscriptionButton,
                 styles.freeButton,
+                disabled && styles.buttonDisabled,
                 pressed && styles.freeButtonPressed,
               ]}
             >
@@ -360,6 +370,9 @@ const styles = StyleSheet.create({
   },
   subscriptionButton: {
     borderWidth: 1,
+  },
+  buttonDisabled: {
+    opacity: 0.58,
   },
   premiumButton: {
     backgroundColor: subscriptionButtons.premiumBackground,

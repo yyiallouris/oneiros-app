@@ -18,6 +18,8 @@ let mockHasPaidAccess = false;
 let mockEntitlementState: 'active' | 'inactive' | 'grace_period' = 'inactive';
 let mockIapRuntimeAvailable = true;
 let mockIapUnavailableReason: 'expo_go' | 'web' | 'missing_native_module' | 'unknown' | null = null;
+let mockStorePriceAvailable = true;
+let mockStoreProductsLoading = false;
 
 jest.mock('@react-navigation/native', () => ({
   __esModule: true,
@@ -72,13 +74,13 @@ jest.mock('../../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle, onPress }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
     const React = require('react');
     const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <TouchableOpacity onPress={onPress}>
+        <TouchableOpacity onPress={onPress} disabled={disabled}>
           <Text>{actionTitle}</Text>
         </TouchableOpacity>
       </View>
@@ -139,12 +141,16 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
     refreshing: false,
     iapRuntimeAvailable: mockIapRuntimeAvailable,
     iapUnavailableReason: mockIapUnavailableReason,
+    storeProductsLoading: mockStoreProductsLoading,
     products: [
       {
         planCode: 'paid_monthly',
         planTier: 'premium',
         billingInterval: 'monthly',
         productId: 'monthly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 4.99,
+        currencyCode: 'EUR',
         displayPrice: '€4.99 / month',
         totalPriceLabel: 'Billed monthly',
         compareAtPriceLabel: null,
@@ -158,6 +164,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'premium',
         billingInterval: 'yearly',
         productId: 'yearly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 47.88,
+        currencyCode: 'EUR',
         displayPrice: '€47.88 / year',
         totalPriceLabel: '€47.88 billed yearly',
         compareAtPriceLabel: '€4.99 / month',
@@ -171,6 +180,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'deeper',
         billingInterval: 'monthly',
         productId: 'deeper-monthly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 8.99,
+        currencyCode: 'EUR',
         displayPrice: '€8.99 / month',
         totalPriceLabel: 'Billed monthly',
         compareAtPriceLabel: null,
@@ -184,6 +196,9 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
         planTier: 'deeper',
         billingInterval: 'yearly',
         productId: 'deeper-yearly',
+        storePriceAvailable: mockStorePriceAvailable,
+        priceAmount: 77.88,
+        currencyCode: 'EUR',
         displayPrice: '€77.88 / year',
         totalPriceLabel: '€77.88 billed yearly',
         compareAtPriceLabel: '€8.99 / month',
@@ -210,6 +225,8 @@ describe('subscription surface flow', () => {
     mockEntitlementState = 'inactive';
     mockIapRuntimeAvailable = true;
     mockIapUnavailableReason = null;
+    mockStorePriceAvailable = true;
+    mockStoreProductsLoading = false;
     mockGetDisplayName.mockResolvedValue('Yiannis');
     mockGetInterpretationDepth.mockResolvedValue('standard');
     mockGetPatternInsightLanguage.mockResolvedValue('en');
@@ -252,6 +269,16 @@ describe('subscription surface flow', () => {
     await waitFor(() => {
       expect(mockPurchasePlan).toHaveBeenCalledWith('premium', 'monthly', 'subscription');
     });
+  });
+
+  it('does not start a purchase when the current store price is unavailable', async () => {
+    mockStorePriceAvailable = false;
+    const screen = render(<SubscriptionScreen />);
+
+    await waitFor(() => expect(screen.getAllByText('Price unavailable').length).toBeGreaterThan(0));
+    fireEvent.press(screen.getAllByText('Price unavailable')[0]);
+
+    expect(mockPurchasePlan).not.toHaveBeenCalled();
   });
 
   it('shows Manage only for active paid access', async () => {

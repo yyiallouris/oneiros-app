@@ -64,6 +64,10 @@ describe('onboarding language flow', () => {
     const screen = render(<OnboardingDepthScreen />);
 
     expect(screen.queryByText('Skip')).toBeNull();
+    expect(screen.getByText('A short reflection on one clear thread.')).toBeTruthy();
+    expect(screen.getByText('Core Reflection (recommended)')).toBeTruthy();
+    expect(screen.getByText('A fuller reading of the dream’s images and inner movement.')).toBeTruthy();
+    expect(screen.getByText('An extended reflection when you want to explore the dream further.')).toBeTruthy();
     fireEvent.press(screen.getByText('Continue'));
     await waitFor(() => {
       expect(mockSetInterpretationDepth).toHaveBeenCalledWith('standard');

@@ -27,12 +27,27 @@ export interface PendingVoiceTranscription {
   sizeBytes: number;
   durationMs: number | null;
   target: VoiceTranscriptionTarget;
-  status: 'queued' | 'transcribing' | 'retrying' | 'completed' | 'needs_attention';
+  status: 'queued' | 'transcribing' | 'retrying' | 'completed' | 'needs_attention' | 'deletion_pending';
   lastErrorCode?: string;
   createdAt: string;
   nextAttemptAt: string;
   attemptCount: number;
   transcript?: string;
+}
+
+/**
+ * Durable handoff written as soon as a native recording has been finalized.
+ * Keeping this separate from the upload queue prevents queue-write failures or
+ * UI unmounts from orphaning an otherwise valid local recording.
+ */
+export interface PendingVoiceClipInboxItem {
+  id: string;
+  userId: string;
+  audioUri: string;
+  sizeBytes: number;
+  durationMs: number | null;
+  target: VoiceTranscriptionTarget;
+  createdAt: string;
 }
 
 export type JungianSymbol = 'moon' | 'sun' | 'key' | 'eye' | 'labyrinth';
@@ -157,4 +172,32 @@ export interface DreamDraft {
   title?: string;
   content: string;
   lastSaved: string;
+}
+
+export interface CompletedVoiceTranscript {
+  id: string;
+  transcript: string;
+}
+
+export interface VoiceComposerState {
+  id: string;
+  userId: string;
+  target: VoiceTranscriptionTarget;
+  text: string;
+  deliveredClipIds: string[];
+  /** Monotonic per-composer state revision. Legacy rows default to zero. */
+  revision?: number;
+  /** Delivery text protected from saves based on a pre-commit composer revision. */
+  pendingDeliveries?: Array<{
+    id: string;
+    transcript: string;
+    /** Revision that first contained this delivery. Optional only for legacy rows. */
+    committedRevision?: number;
+  }>;
+  updatedAt: string;
+}
+
+export interface VoiceComposerCommit {
+  text: string;
+  composerRevision: number;
 }

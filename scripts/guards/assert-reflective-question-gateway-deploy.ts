@@ -1,17 +1,20 @@
 /**
  * Fail-closed pre-deploy check for `ai-entitlements-gateway`.
  *
- * Does not change runtime prompts. Exits 1 unless the local bundled
- * reflective-question method matches an approved production identity.
- * Missing or unparseable `src/ai/reflectiveQuestionPrompt.ts` is a hard fail.
+ * Exits 1 unless the local bundled reflective-question method matches
+ * recovered production `reflective-question-psychological-aliveness-v1.4.0`
+ * SHA `4885e351…`. Missing or unparseable
+ * `src/ai/reflectiveQuestionPrompt.ts` is a hard fail.
  */
 import { readFileSync } from 'fs';
 import path from 'path';
 import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
   REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV,
+  REFLECTIVE_QUESTION_RUNTIME_FILES,
   ReflectiveQuestionGatewayDeployBlockedError,
   assertReflectiveQuestionGatewayDeployAllowed,
+  assertReflectiveQuestionRuntimeHasNoRdImports,
   hashReflectiveQuestionPrompt,
 } from '../../src/ai/reflectiveQuestionProductionHold';
 
@@ -46,7 +49,15 @@ function readLocalBundledMethod(): { methodId: string; promptSha256: string } {
   };
 }
 
+function assertRuntimeIsolation(): void {
+  for (const rel of REFLECTIVE_QUESTION_RUNTIME_FILES) {
+    const source = readFileSync(path.join(repoRoot, rel), 'utf8');
+    assertReflectiveQuestionRuntimeHasNoRdImports(source, rel);
+  }
+}
+
 try {
+  assertRuntimeIsolation();
   const local = readLocalBundledMethod();
   assertReflectiveQuestionGatewayDeployAllowed({
     localMethodId: local.methodId,
