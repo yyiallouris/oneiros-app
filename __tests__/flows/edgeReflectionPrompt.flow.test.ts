@@ -15,8 +15,9 @@ describe('edge reflection prompt flow', () => {
     expect(clientAi).toMatch(/Core Constitution — non-negotiable principles/);
     expect(clientAi).toMatch(/ADVANCED mode \(Deeper Dive\)/);
     expect(clientAi).toMatch(/Length: aim for 550–800 words/);
-    expect(clientAi).toMatch(/Finish the full response, including both reflective questions/);
+    expect(clientAi).toMatch(/Finish the full response, including the complete reflective-question section/);
     expect(clientAi).toMatch(/Do not stop mid-sentence or mid-question/);
+    expect(clientAi).toMatch(/content: REFLECTIVE_QUESTION_METHOD_PROMPT/);
 
     expect(billingAi).toMatch(/Keep this initial reflection contract in parity with src\/services\/ai\.ts/);
     expect(billingAi).toMatch(/Core Constitution — non-negotiable principles/);
@@ -26,14 +27,15 @@ describe('edge reflection prompt flow', () => {
     expect(billingAi).toMatch(/STANDARD mode \(Core Reading\)/);
     expect(billingAi).toMatch(/ADVANCED mode \(Deeper Dive\)/);
     expect(billingAi).toMatch(/same primary language as the dream narrative and any user notes/);
-    expect(billingAi).toMatch(/Exactly 2 questions/);
-    expect(billingAi).toMatch(/First question: somatic-observational when possible/);
-    expect(billingAi).toMatch(/Second question: symbolic, relational, or imaginal/);
+    expect(billingAi).toMatch(/Output 1–2 questions, maximum 2/);
+    expect(billingAi).toMatch(/Default to one question/);
+    expect(billingAi).toMatch(/Do not follow a fixed somatic-first\/symbolic-second sequence/);
+    expect(billingAi).not.toMatch(/Exactly 2 questions/);
     expect(billingAi).toMatch(/Length: aim for 550–800 words/);
-    expect(billingAi).toMatch(/Finish the full response, including both reflective questions/);
+    expect(billingAi).toMatch(/Finish the full response, including the complete reflective-question section/);
     expect(billingAi).toMatch(/Do not stop mid-sentence or mid-question/);
     expect(billingAi).toMatch(/After the complete response, append this exact hidden marker/);
-    expect(billingAi).toMatch(/messages:\s*\[\s*\{\s*role: 'system' as const, content: DREAM_CONSTITUTION_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: INTERPRETATION_ROLE_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: formatPrompt\s*\},\s*\{\s*role: 'user' as const, content: userPrompt\s*\},\s*\]/);
+    expect(billingAi).toMatch(/messages:\s*\[\s*\{\s*role: 'system' as const, content: DREAM_CONSTITUTION_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: INTERPRETATION_ROLE_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: REFLECTIVE_QUESTION_METHOD_PROMPT\s*\},\s*\{\s*role: 'system' as const, content: formatPrompt\s*\},\s*\{\s*role: 'user' as const, content: userPrompt\s*\},\s*\]/);
     expect(billingAi).toMatch(/temperature: depth === 'quick' \? 0\.68 : depth === 'advanced' \? 0\.60 : 0\.55/);
     expect(billingAi).toMatch(/tokenLimit: depth === 'quick' \? 550 : depth === 'advanced' \? 2800 : 1600/);
     expect(billingAi).toMatch(/timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS/);

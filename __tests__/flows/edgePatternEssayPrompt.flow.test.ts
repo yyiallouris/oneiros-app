@@ -27,8 +27,13 @@ describe('edge pattern essay prompt flow', () => {
     expect(essayPrompt).toMatch(/One strong question is complete/);
     expect(essayPrompt).not.toMatch(/Output 1–2 questions, maximum 2/);
     expect(essayPrompt).toMatch(/Preserve the chosen field topology in the question/);
-    expect(billingAi).not.toMatch(/REFLECTIVE_QUESTION_METHOD_PROMPT/);
-    expect(clientAi).not.toMatch(/REFLECTIVE_QUESTION_METHOD_PROMPT/);
+    expect(essayPrompt).not.toMatch(/from '\.\/reflectiveQuestionPrompt'/);
+    expect(billingAi).toMatch(
+      /role: 'system' as const,\s*content: RECENT_DREAM_FIELD_SYSTEM_PROMPT,\s*\},\s*\{\s*role: 'user' as const,/
+    );
+    expect(billingAi).toMatch(
+      /content: buildPeriodReflectionSystemPrompt\(scope\.kind, entries\.length\),\s*\},\s*\{\s*role: 'user' as const,/
+    );
     expect(essayPrompt).not.toMatch(/Exactly 2 questions/);
     expect(essayPrompt).toMatch(/No advice verbs such as try, practice, breathe, relax, focus, improve, or work on/);
     expect(billingAi).toMatch(/END_MARKER_DREAM_ESSAY/);

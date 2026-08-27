@@ -1,5 +1,7 @@
 # Oneiros AI prompts inventory
 
+> **Versioned note (2026-08-27):** Production reflective questions are recovered remote v105 `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…` in `src/ai/reflectiveQuestionPrompt.ts`. Quick/chat: exactly 1 through the method. Standard/Advanced: 1–2 default 1. Essays remain `2.0.3-phase1` exactly one and do not inject the method. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+
 > **Versioned note (2026-07-28):** Current repo dream metadata extraction is `prompt_id` `dream-field-map-interpretive-v4.1.10-M2.2` / `prompt_version` `4.1.10-M2.2` / schema `13` / `temperature` `0`, with closed Mythic catalog `1.2.0` (128 ids) and archetype catalog `1.7.1`. Patch `M2.2` keeps the general calm-field activation from `M2.1`, adds an explicit-negation rule so directly denied archetypal functions do not overfire from neighboring imagery alone, applies a minimal `Lover` wording revision for calm beloved intimacy vs warm companionship, and tightens Inner Tensions so ordinary resolved obstacles are not misread as psychic conflict. Live contract: [`ECHOES_PROMPTS_AND_CATALOG.md`](./ECHOES_PROMPTS_AND_CATALOG.md). Canonical prompt source: `src/ai/dreamExtractionPrompt.ts`.
 
 ## Prompt Maintenance Rule
@@ -11,6 +13,7 @@ Connected files include:
 - `src/ai/dreamExtractionJsonSchema.ts`
 - `src/ai/structuredTaskValidation.ts`
 - `src/ai/dreamOutputLanguage.ts`
+- `src/ai/reflectiveQuestionPrompt.ts`
 - `src/ai/catalogs/*`
 - `supabase/functions/_shared/billing-ai.ts`
 
@@ -30,10 +33,12 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 | Voice transcription strategy | `voice-transcription-v3.0.0-language-neutral` in `supabase/functions/whisper-transcription/index.ts` |
 | Period reflection essay | `oneiros-period-reflection-v2` / `2.0.3-phase1` |
 | Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.3-phase1` |
+| Production reflective-question method | `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d` |
 | Reflective-essay Field Map spike | offline-only `oneiros-reflective-essay-field-map-spike` / `0.1.0-rd`, schema `1` (failed stop rule; no production wiring) |
 
 Canonical sources:
 - Recent/period essay prompt construction: shared `src/ai/reflectiveEssayPrompt.ts` (client + gateway)
+- Production reflective-question method: shared `src/ai/reflectiveQuestionPrompt.ts` (client + gateway; SHA `4885e351…`). Essays do not inject this method; they keep `2.0.3-phase1` exactly one.
 - Reflection / chat / grouping / conversation update: `src/services/ai.ts` (client) and corresponding runtime wiring in `supabase/functions/_shared/billing-ai.ts` (gateway production path)
 - Dream extraction: shared `src/ai/dreamExtractionPrompt.ts` (client + gateway)
 - JSON repair: `src/ai/structuredTaskValidation.ts`
@@ -457,7 +462,7 @@ Keep only one living psychological movement.
 Do not summarize the whole dream or list symbols.
 Do not use report-like language or framework labels.
 Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
-End with exactly one observational reflective question.
+End with exactly one reflective question selected through the reflective-question method.
 The response must end naturally and not be cut off.
 
 Technical requirement:
@@ -485,8 +490,9 @@ Use the Standard mode, but with hidden structure:
 - If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
 - Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
 
-End with exactly one reflective question selected through the reflective-question method.
-One strong question is complete.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
 
 Technical requirement:
@@ -517,8 +523,9 @@ Allow brief mythic resonance only when it is unmistakably earned by the dream im
 Prefer one precise mythic echo over extended amplification.
 Do not create a Mythic Resonance section or lecture on mythology.
 
-End with exactly one reflective question selected through the reflective-question method.
-One strong question is complete.
+End with 1–2 reflective questions, maximum 2.
+Default to one question.
+One strong question is a complete response. Add a second only when it contributes genuine psychological or experiential value.
 The response must end naturally and not be cut off.
 
 Technical requirement:
@@ -634,7 +641,7 @@ BRIEF mode (Quick Glance):
   2. render the atmosphere briefly
   3. follow one central psychological movement
   4. include one felt-sense sentence only if bodily tone is clearly present
-- End with exactly one observational reflective question.
+- End with exactly one reflective question selected through the reflective-question method.
 - Do not use archetype labels, amplifications, or extra framework language.
 - Do not summarize the whole dream before entering it.
 - Do not list symbols.
@@ -703,10 +710,14 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Output exactly one reflective question selected through the canonical reflective-question method.
-- One strong question is complete.
-- Let the psychologically most alive unexplored point determine the question.
-- Keep the question inside the dream's living material.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive unexplored point determine the first question.
+- If a second question is warranted, deepen the same living material from another angle or open the next genuinely connected element.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Questions should deepen the dream's living material, not open an unrelated analytic thread.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
@@ -784,10 +795,14 @@ Rules for this section:
 
 ## Reflective Questions
 
-- Output exactly one reflective question selected through the canonical reflective-question method.
-- One strong question is complete.
-- Let the psychologically most alive unexplored point determine the question.
-- Keep the question inside the dream's living material.
+- Output 1–2 questions, maximum 2.
+- Default to one question.
+- One strong question is complete when no second question adds genuine psychological or experiential value.
+- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
+- Let the psychologically most alive unexplored point determine the first question.
+- If a second question is warranted, deepen the same living material from another angle or open the next genuinely connected element.
+- Do not follow a fixed somatic-first/symbolic-second sequence.
+- Questions should deepen the dream's living material, not open an unrelated analytic thread.
 - Questions invite noticing, not self-improvement.
 - No advice verbs: try, practice, breathe, focus, work on, improve.
 
@@ -1170,7 +1185,8 @@ task === 'dream_extraction'
 You are continuing a symbolic dream reflection.
 Be concise, grounded, and psychologically precise.
 Do not redo the full interpretation.
-${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without inviting another question.' : 'End with exactly ONE reflective question selected through the reflective-question method.'}
+${isFinalResponse ? 'This is the final allowed assistant reply. Conclude without inviting another question.' : `End with exactly ONE reflective question selected through the reflective-question method. Never ask two questions in chat.
+Base it on what remains most psychologically alive and generative across the dream and latest exchange.`}
 ```
 
 ## DREAM_FIRST_READING_DIRECTIVE

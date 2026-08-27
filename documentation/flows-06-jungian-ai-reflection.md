@@ -100,6 +100,18 @@ This contract exists because agents previously “fixed” a layout/streaming vi
 - Related guards in `__tests__/flows/aiCostLogging.flow.test.ts`, `__tests__/dreamDetailChatLayout.test.ts`
 - Agent rules: `AGENTS.md`, `.codex/skills/oneiros-repo/SKILL.md`
 
+## Locked contract: production reflective-question identity
+
+**Status: locked product contract (2026-08-27).** Recovered live v105 method is the git source of truth for Quick / Standard / Advanced / Chat. Essays are a separate family.
+
+- Method: `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…` in `src/ai/reflectiveQuestionPrompt.ts`.
+- Quick: exactly 1 through the method.
+- Standard / Advanced: 1–2, default 1; no fixed somatic-first / symbolic-second sequence.
+- Chat non-final: exactly 1 through the method. Chat final: no question.
+- Essays: `2.0.3-phase1`, exactly one. Do not inject the method. Do not revert to remote `2.0.0` 1–2.
+- Deploy only through `npm run deploy:ai-entitlements-gateway`. Candidate B stays out of runtime.
+- Contract tests: `__tests__/flows/reflectiveQuestions.productionSurfaces.contract.flow.test.ts`. Record: `docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`.
+
 ## Happy path — first reflection
 
 1. User opens dream with no interpretation (or stale handling per screen logic).
@@ -128,8 +140,9 @@ This contract exists because agents previously “fixed” a layout/streaming vi
 - Free-origin reflections stay eligible for their own 5 follow-up replies.
 - Paid-origin reflections become read-only when paid entitlement lapses.
 - Reflection AI calls have a gateway timeout; timeout/error releases the quota reservation and leaves the existing UI/input intact.
-- Reflection prompts preserve the canonical initial interpretation structure from `src/services/ai.ts`: constitution, role, selected depth format, and user prompt. Body text and reflective questions stay in the dream's primary language; markdown headings stay in English for UI consistency.
-- Standard and Advanced reflections end with exactly 2 reflective questions.
+- Reflection prompts preserve the canonical initial interpretation structure from `src/services/ai.ts`: constitution, role, recovered production reflective-question method (`reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`), selected depth format, and user prompt. Body text and reflective questions stay in the dream's primary language; markdown headings stay in English for UI consistency.
+- Quick reflections end with exactly one question through that method. Standard and Advanced use 1–2 questions, default 1; a second question is added only when it opens distinct value. There is no fixed somatic-first / symbolic-second sequence. Chat non-final replies use exactly one question through the method; the final chat turn has no reflective question.
+- Essays remain on the separate QA-approved `2.0.3-phase1` contract and stay exactly one question. Essay cardinality is owned by the essay surface; the reflective-question method is not injected into essay requests. Record: `docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`. Deploy the gateway only through `npm run deploy:ai-entitlements-gateway`.
 - Progressive reflection display is status-poll based: the Edge task streams model chunks into `quota_events.result_context.partial_reflection`, while mobile reveals partial text only after the 15-second threshold and keeps polling until final commit. Streamed partials use append-aware phased typing with the same markdown formatter as the settled reflection (`formatInterpretationMarkdown`), with catch-up when the gateway buffer grows faster than the typewriter. If partial text was shown, the final committed reflection replaces it without replaying the typewriter from the beginning.
 - Metadata extraction requests use the shared canonical prompt in `src/ai/dreamExtractionPrompt.ts` (client and gateway), enforce OpenAI JSON response format through `openai-proxy`, then Zod domain validation with one same-provider repair attempt; invalid or empty extraction output fails fast (502) so the client retry loop can recover instead of saving an empty ready metadata state.
 - Metadata extraction is protected by `interpretation_metadata_extraction_jobs` and SQL claim/finish RPCs, so retries and overlapping app calls cannot start two provider metadata requests for the same pending interpretation unless the previous lease expires.

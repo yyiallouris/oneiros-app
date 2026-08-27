@@ -1,5 +1,7 @@
 # Archetypal / Mythic Echo prompts & catalog (v4.1.10-M2.2)
 
+> **2026-08-27 reflective-question production identity:** recovered remote `ai-entitlements-gateway` v105 is `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`. Quick / Standard / Advanced / Chat use that method. Essays remain `2.0.3-phase1` exactly one and do not inject it. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md). No Echo prompt, extraction, catalog, or validation change.
+
 > **2026-08-26 transcription note:** voice transcription uses server-owned, language-neutral strategy `voice-transcription-v3.0.0-language-neutral` and `gpt-transcribe` (no primary prose prompt; detected-language hints only on bounded recovery). This is an independent pre-dream-input path; no Echo prompt, extraction id/version, schema, catalog, evidence, or validation behavior changed.
 
 > **2026-08-26 reflective-essay Phase 2 final note:** Period Reflection and Recent Dream Field keep the frozen prompt ids `oneiros-period-reflection-v2` / `oneiros-recent-dream-field-v2` at `2.0.3-phase1`. Production returns to metadata-heavy context version `1`, which includes bounded Archetypal and Mythic Echo summaries. Narrative-first context version `2` and the Field Map pre-pass are offline research artifacts only. Echo extraction, catalog, validation, persistence, Insights aggregation, and Dream Detail behavior are unchanged.

@@ -17,6 +17,8 @@
     "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
     "test:live-ai": "RUN_LIVE_AI_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
     "test:live-ai-quality": "RUN_LIVE_AI_TESTS=1 RUN_LIVE_AI_QUALITY_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
+    "guard:ai-entitlements-gateway-deploy": "node -r ./scripts/register-typescript.cjs scripts/guards/assert-reflective-question-gateway-deploy.ts",
+    "deploy:ai-entitlements-gateway": "npm run guard:ai-entitlements-gateway-deploy && supabase functions deploy ai-entitlements-gateway",
     "review:reflective-essays-phase1": "node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-phase1-regression.ts",
     "review:reflective-essays-anti-coherence": "REFLECTIVE_ESSAY_FIXTURE=testing/live-scenarios/reflective-essays-anti-coherence-stress-set.v1.json node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-phase1-regression.ts",
     "review:reflective-essays-phase2": "REFLECTIVE_ESSAY_CONTEXT_EXPERIMENT=phase2 node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-phase1-regression.ts",
