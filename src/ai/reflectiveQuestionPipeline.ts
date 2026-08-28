@@ -4,7 +4,7 @@
  * Frozen Generator → Integrity Gate → Premise Check → Repair orchestration.
  * Do not import this module from client, gateway, or billing-ai runtime.
  */
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import type { DreamReflectionDepth } from './dreamReflectionPrompt.ts';
 import { DREAM_REFLECTION_PROMPT_ID } from './dreamReflectionPrompt.ts';
 import type { OneirosLanguageCode } from '../constants/oneirosLanguages.ts';
