@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExportForeground, PrimaryIconButton } from '../components/ui';
+import { ReflectiveQuestionCard } from '../components/ui/ReflectiveQuestionCard';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
@@ -58,6 +59,7 @@ import { remoteGetInterpretationById } from '../services/remoteStorage';
 import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
+import { getReflectiveQuestionCopy } from '../constants/reflectiveQuestionCopy';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
@@ -284,6 +286,13 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
           ) : (
             <>
               <FormattedMessageText text={message.content || ''} isUser={isUser} />
+              {!isUser ? (
+                <ReflectiveQuestionCard
+                  artifact={message.reflectiveQuestion}
+                  variant="embedded"
+                  testID={`reflective-question-${message.id}`}
+                />
+              ) : null}
               {showSettleFooter && (
                 <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
               )}
@@ -499,6 +508,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
 
     const flatListRef = useRef<ScrollView>(null);
     const scrollViewRef = useRef<ScrollView>(null);
+    const composerInputRef = useRef<TextInput>(null);
     const metadataRefreshTimers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
     const metadataRefreshGenerationRef = useRef(0);
     const streamingReflectionMessageIdRef = useRef<string | null>(null);
@@ -863,6 +873,95 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       setShowChat(true);
     };
 
+    const openQuestionComposer = (draft?: string) => {
+      if (draft?.trim()) setInputText(draft.trim());
+      setShowChat(true);
+      setTimeout(() => {
+        composerInputRef.current?.focus();
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 120);
+    };
+
+    const sendExploringMessage = async (overrideText?: string) => {
+      const nextText = (overrideText ?? inputText).trim();
+      if (overrideText) setInputText(nextText);
+      if (!nextText || !dream || !interpretation || isLoading) return;
+      if (premiumReflectionReadOnly) {
+        setUpsellSource('followup');
+        setUpsellVisible(true);
+        return;
+      }
+      if (reflectionLimitReached) return;
+
+      const online = await isOnline();
+      if (!online) {
+        setShowOfflineMessage(true);
+        setTimeout(() => setShowOfflineMessage(false), 5000);
+        return;
+      }
+      setShowOfflineMessage(false);
+
+      const messageContent = nextText;
+      const userMessage: ChatMessage = {
+        id: generateId(),
+        role: 'user',
+        content: messageContent,
+        timestamp: new Date().toISOString(),
+      };
+
+      const savedInputText = messageContent;
+      const newMessages = [...messages, userMessage];
+      setMessages(newMessages);
+      setInputText('');
+      setIsLoading(true);
+
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+
+      try {
+        const updatedInterpretationBase = await generateEntitledFollowupReply(interpretation.id, messageContent);
+        const updatedMessages = updatedInterpretationBase.messages;
+
+        setMessages(updatedMessages);
+        setTypingMessageId(updatedMessages[updatedMessages.length - 1]?.id ?? null);
+        setInterpretation(updatedInterpretationBase);
+
+        const updatedInterpretation = await updateInterpretationElementsFromConversation(
+          dream,
+          updatedInterpretationBase,
+          updatedMessages
+        );
+
+        if (updatedInterpretation !== updatedInterpretationBase) {
+          await saveInterpretation(updatedInterpretation);
+          setInterpretation(updatedInterpretation);
+        }
+        await VoiceComposerService.clear(chatVoiceTarget);
+      } catch (error: any) {
+        console.error('[DreamDetail] Error sending message:', error);
+        setMessages(messages);
+        setInputText(savedInputText);
+        if (error instanceof EntitlementError) {
+          if (error.premiumRequired || error.readOnlyAfterLapse) {
+            setUpsellSource('followup');
+            setUpsellVisible(true);
+          }
+          Alert.alert('Follow-up unavailable', error.message);
+        } else {
+          const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
+          Alert.alert('Error', errorMessage);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const answerReflectiveQuestion = (answer: string) => {
+      openQuestionComposer();
+      void sendExploringMessage(answer);
+    };
+
     const animateChatClose = () => {
       setShowChat(false);
       if (
@@ -1088,80 +1187,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     const premiumReflectionReadOnly = interpretation?.reflection_origin === 'paid_cycle' && !hasPaidAccess;
 
     const handleSendMessage = async () => {
-      if (!inputText.trim() || !dream || !interpretation || isLoading) return;
-      if (premiumReflectionReadOnly) {
-        setUpsellSource('followup');
-        setUpsellVisible(true);
-        return;
-      }
-      if (reflectionLimitReached) return;
-
-      const online = await isOnline();
-      if (!online) {
-        setShowOfflineMessage(true);
-        setTimeout(() => setShowOfflineMessage(false), 5000);
-        return;
-      }
-      setShowOfflineMessage(false);
-
-      const messageContent = inputText.trim();
-      const userMessage: ChatMessage = {
-        id: generateId(),
-        role: 'user',
-        content: messageContent,
-        timestamp: new Date().toISOString(),
-      };
-
-      // Save the input text in case we need to restore it on error
-      const savedInputText = messageContent;
-
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-      setInputText('');
-      setIsLoading(true);
-      
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-
-      try {
-        const updatedInterpretationBase = await generateEntitledFollowupReply(interpretation.id, messageContent);
-        const updatedMessages = updatedInterpretationBase.messages;
-
-        setMessages(updatedMessages);
-        setTypingMessageId(updatedMessages[updatedMessages.length - 1]?.id ?? null);
-        setInterpretation(updatedInterpretationBase);
-
-        const updatedInterpretation = await updateInterpretationElementsFromConversation(
-          dream,
-          updatedInterpretationBase,
-          updatedMessages
-        );
-
-        if (updatedInterpretation !== updatedInterpretationBase) {
-          await saveInterpretation(updatedInterpretation);
-          setInterpretation(updatedInterpretation);
-        }
-        await VoiceComposerService.clear(chatVoiceTarget);
-      } catch (error: any) {
-        console.error('[DreamDetail] Error sending message:', error);
-        // Remove the user message that failed
-        setMessages(messages);
-        // Restore the input text so user can retry
-        setInputText(savedInputText);
-        if (error instanceof EntitlementError) {
-          if (error.premiumRequired || error.readOnlyAfterLapse) {
-            setUpsellSource('followup');
-            setUpsellVisible(true);
-          }
-          Alert.alert('Follow-up unavailable', error.message);
-        } else {
-          const errorMessage = error?.message || 'Failed to send message. Please check your connection and try again.';
-          Alert.alert('Error', errorMessage);
-        }
-      } finally {
-        setIsLoading(false);
-      }
+      await sendExploringMessage();
     };
 
     const handleEdit = () => {
@@ -1215,10 +1241,16 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     const keyboardVerticalOffset =
       Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) + 56 : 90;
 
+    const firstAssistantMessage =
+      interpretation?.messages?.find((message) => message.role === 'assistant') ?? null;
     const firstAssistantInterpretationText =
-      interpretation?.messages?.find((m) => m.role === 'assistant')?.content?.trim() ??
+      firstAssistantMessage?.content?.trim() ??
       interpretation?.messages?.[0]?.content?.trim() ??
       '';
+    const firstReflectiveQuestion = firstAssistantMessage?.reflectiveQuestion ?? null;
+    const continuationLabel = getReflectiveQuestionCopy(
+      firstReflectiveQuestion?.languageCode
+    ).continueLabel;
 
     const interpretationPreviewExcerpt = buildInterpretationPreviewExcerpt(firstAssistantInterpretationText);
 
@@ -1339,6 +1371,13 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       </Text>
                     </View>
                   )}
+                  <ReflectiveQuestionCard
+                    artifact={firstReflectiveQuestion}
+                    variant="preview"
+                    onContinue={openQuestionComposer}
+                    onAnswer={answerReflectiveQuestion}
+                    testID="dream-detail-reflective-question-card"
+                  />
                   {typeof __DEV__ !== 'undefined' && __DEV__ && interpretation?.id ? (
                     <TouchableOpacity
                       onPress={() => {
@@ -1375,15 +1414,15 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       <Text style={styles.debugReextractLabel}>↻ Re-extract echoes (debug packet)</Text>
                     </TouchableOpacity>
                   ) : null}
-                  {!showChat && (
+                  {!showChat && firstReflectiveQuestion?.status !== 'question' && (
                     <TouchableOpacity
                       onPress={animateChatOpen}
                       style={styles.continueExploringButton}
                       activeOpacity={0.7}
                       accessibilityRole="button"
-                      accessibilityLabel="Continue exploring"
+                      accessibilityLabel={continuationLabel}
                     >
-                      <Text style={styles.continueExploringText}>Continue exploring</Text>
+                      <Text style={styles.continueExploringText}>{continuationLabel}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -1544,6 +1583,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                 }
               >
                 <TextInput
+                  ref={composerInputRef}
                   style={styles.input}
                   placeholder="Ask about an image, feeling, or pattern..."
                   placeholderTextColor={colors.textMuted}

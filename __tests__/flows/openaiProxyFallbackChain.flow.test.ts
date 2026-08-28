@@ -9,7 +9,7 @@ import {
 } from '../../supabase/functions/openai-proxy/task-config';
 
 describe('openai-proxy Anthropic fallback chains', () => {
-  it('keeps Haiku safety net after Sonnet for reflection and essays', () => {
+  it('keeps Haiku safety net after Sonnet for user-facing reflective work', () => {
     for (const task of [
       'interpretation_quick',
       'interpretation_standard',
@@ -17,12 +17,17 @@ describe('openai-proxy Anthropic fallback chains', () => {
       'interpretation_retry_compact',
       'pattern_insights',
       'pattern_insights_retry_compact',
+      'reflective_question_generate',
+      'reflective_question_validate',
     ] as const) {
       expect(getAnthropicFallbackModels(TASK_AI_BY_TASK[task])).toEqual([
         'claude-sonnet-5',
         'claude-haiku-4-5',
       ]);
     }
+    expect(TASK_AI_BY_TASK.reflective_question_generate.model).toBe('gpt-5.4');
+    expect(TASK_AI_BY_TASK.reflective_question_generate.model).not.toMatch(/mini|nano/);
+    expect(TASK_AI_BY_TASK.chat_followup.model).toBe('gpt-5.4-mini');
   });
 
   it('uses Haiku-only fallbacks for lighter tasks', () => {

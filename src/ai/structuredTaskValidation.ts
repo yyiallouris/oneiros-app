@@ -393,14 +393,12 @@ export const dreamExtractionSchema = z
   });
 
 const conversationElementFieldsSchema = z.object({
-  archetypes: z.array(legacyArchetypalEchoSchema).default([]),
   affects: stringArray.default([]),
   motifs: stringArray.default([]),
   relational_dynamics: stringArray.default([]),
   thresholds: stringArray.default([]),
   central_conflicts: stringArray.default([]),
   core_mode: coreModeSchema,
-  amplifications: z.array(amplificationSchema).default([]),
 });
 
 export const conversationElementUpdateSchema = z.union([
@@ -632,13 +630,11 @@ function coerceDreamExtraction(raw: unknown): unknown {
 
 function hasConversationElementFields(o: Record<string, unknown>): boolean {
   return (
-    Array.isArray(o.archetypes) ||
     Array.isArray(o.affects) ||
     Array.isArray(o.motifs) ||
     Array.isArray(o.relational_dynamics) ||
     Array.isArray(o.thresholds) ||
     Array.isArray(o.central_conflicts) ||
-    Array.isArray(o.amplifications) ||
     o.core_mode !== undefined
   );
 }
@@ -650,14 +646,12 @@ function coerceConversationElementUpdate(raw: unknown): unknown {
   if (o.status === 'updated' || hasConversationElementFields(o)) {
     return {
       status: 'updated',
-      archetypes: coerceArchetypes(o.archetypes),
       affects: asStringArray(o.affects),
       motifs: asStringArray(o.motifs),
       relational_dynamics: asStringArray(o.relational_dynamics),
       thresholds: asStringArray(o.thresholds),
       central_conflicts: asStringArray(o.central_conflicts ?? o.centralConflicts),
       core_mode: o.core_mode === undefined ? null : o.core_mode,
-      amplifications: coerceAmplifications(o.amplifications),
     };
   }
   // Bare {} / nullish field bags are invalid — require explicit no_change via repair.
@@ -943,7 +937,7 @@ export function buildStructuredRepairMessages(
       : task === 'dream_archetype_adjudication'
         ? 'Return {"decisions":[{"archetype_id":"closed enum id","decision":"accept|reject","decisive_feature":"short distinguishing feature or null","reason":"one concise sentence","evidence_ids":["D1"]}],"accepted_archetype_ids":["closed enum id"]}. accepted_archetype_ids must match accept decisions exactly. Never add new archetypes, mechanism_tags, myth fields, or regenerated quality/expression/resonance.'
       : task === 'conversation_element_update'
-        ? 'Return either {"status":"no_change"} or {"status":"updated", "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null, "amplifications":[]}. Bare {} is invalid. For v1, follow-up chat must not revise archetypes; omit the field or leave it unchanged.'
+        ? 'Return either {"status":"no_change"} or {"status":"updated", "affects":[], "motifs":[], "relational_dynamics":[], "thresholds":[], "central_conflicts":[], "core_mode":null}. Bare {} is invalid. Follow-up chat must never return or revise archetypes or amplifications; both remain frozen from raw-dream extraction.'
         : 'Return {"symbol_groups":[{"canonical":"...","members":["...","..."]}],"landscape_groups":[...]} with members length >= 2 when present. Empty arrays are allowed.';
 
   const system = `You repair invalid JSON for the Oneiros task "${task}". Return ONLY valid JSON. No markdown. ${schemaHint}`;

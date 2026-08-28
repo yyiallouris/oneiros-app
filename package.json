@@ -1,6 +1,6 @@
 {
   "name": "oneiros-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -26,6 +26,13 @@
     "review:reflective-essays-field-map": "node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-field-map-spike.ts",
     "review:reflective-essays-field-map-anti-coherence": "REFLECTIVE_ESSAY_FIXTURE=testing/live-scenarios/reflective-essays-anti-coherence-stress-set.v1.json node -r ./scripts/register-typescript.cjs scripts/live/run-reflective-essay-field-map-spike.ts",
     "review:reflective-questions-active": "node -r ./scripts/register-typescript.cjs scripts/live/rd/reflective-questions/run-active-candidate.ts",
+    "benchmark:same-call-minimal-gate1": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-same-call-minimal-gate1.ts",
+    "benchmark:same-call-minimal-final-24": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-same-call-minimal-final-24.ts",
+    "benchmark:same-call-minimal-v12-paired": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-same-call-minimal-v12-paired.ts",
+    "benchmark:question-integrity-gate-phase1": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-question-integrity-gate-phase1.ts",
+    "benchmark:question-repair-phase2": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-question-repair-phase2.ts",
+    "validate:reflective-question-production": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-production-pipeline-bounded-validation.ts",
+    "benchmark:reflective-dialogue-v1": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-dialogue/run-v1-trajectory-benchmark.ts",
     "test:live-production-baseline": "bash scripts/live/run-production-baseline.sh",
     "site:preview": "python3 -m http.server 4173 -d site",
     "typecheck": "tsc --noEmit",

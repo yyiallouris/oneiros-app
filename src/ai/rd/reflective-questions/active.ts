@@ -1,22 +1,20 @@
 /**
- * Current reflective-question R&D selection.
+ * Closed reflective-question R&D selection.
  *
- * Candidate B SHA `08cd3eaf…` is the only active research base.
- * Closed experiments live under `archive/` and `lineage/` and are not
- * selectable from this module. Future Candidate C should export from here.
- * Not imported by client interpretation or the entitlement gateway.
+ * status: frozen_rnd_reference
+ * Prompt grammar R&D remains STOP. These identities ship only as frozen
+ * components of `oneiros-reflective-question-production-v1.0.0`.
+ *
+ * Frozen references: same-call v1.2 generator, Integrity Gate, Repair.
+ * Historical Composer lives in `src/ai/reflectiveQuestionComposer.ts`.
+ *
+ * Canonical record:
+ * `docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`
  */
-export {
-  LANGUAGE_OPERATOR_CANDIDATE_B_CASE_COUNT,
-  LANGUAGE_OPERATOR_CANDIDATE_B_CASE_IDS,
-  LANGUAGE_OPERATOR_CANDIDATE_B_FIXTURE,
-  LANGUAGE_OPERATOR_CANDIDATE_B_REPEAT_COUNT,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_ID,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_PROMPT,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_VERSION,
-} from './candidateB/reflectiveQuestionLanguageOperatorCandidateBExperiment';
+export { SAME_CALL_MINIMAL_BUNDLE_SHA256, SAME_CALL_MINIMAL_METHOD_ID, SAME_CALL_MINIMAL_RD_STATUS } from './sameCallMinimal/sameCallMinimalCandidate';
+export { QUESTION_INTEGRITY_GATE_BUNDLE_SHA256, QUESTION_INTEGRITY_GATE_METHOD_ID, QUESTION_INTEGRITY_GATE_RD_STATUS } from './questionIntegrityGate/questionIntegrityGateCandidate';
+export { QUESTION_REPAIR_BUNDLE_SHA256, QUESTION_REPAIR_METHOD_ID, QUESTION_REPAIR_RD_STATUS } from './questionIntegrityGate/questionRepairCandidate';
 
-export const ACTIVE_REFLECTIVE_QUESTION_RD_STATUS = 'candidate-b-frozen' as const;
+export const ACTIVE_REFLECTIVE_QUESTION_RD_STATUS = 'frozen_rnd_reference' as const;
 export const ACTIVE_REFLECTIVE_QUESTION_RD_SHA256 =
-  '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622';
+  '4506c8981c1e0f38edcb641bf89e59126bfdafe64a3adff99a94a2d1a12e81f7' as const;

@@ -25,7 +25,7 @@
  * - Nano + Haiku          → mechanical classify/update
  * - Mini + Haiku          → dream metadata extraction + chat follow-up
  * - Mini/requested + Haiku → standalone archetype recognition spike
- * - GPT-5.4 + Sonnet→Haiku → user-facing analysis (reflection / pattern essay)
+ * - GPT-5.4 + Sonnet→Haiku → user-facing analysis (reflection / reflective questions / pattern essay)
  * - Missing/unknown task  → reject (no silent unrouted default)
  *
  * After any change here: deploy openai-proxy AND smoke-test Advanced reflection
@@ -128,11 +128,22 @@ export const TASK_AI_BY_TASK: Record<OneirosTask, TaskAiEntry> = {
     model: OPENAI_FULL,
     fallbackAnthropicModels: FALLBACK_PREMIUM,
   },
-  // chat_followup
+  // chat_followup — Dialogue v1.9.1 stays gpt-5.4-mini. Do not "upgrade" this.
   chat_followup: {
     provider: "openai",
     model: OPENAI_MINI,
     fallbackAnthropicModels: FALLBACK_HAIKU,
+  },
+  // Reflective Question Composer v1 — must stay full GPT-5.4, never mini/nano.
+  reflective_question_generate: {
+    provider: "openai",
+    model: OPENAI_FULL,
+    fallbackAnthropicModels: FALLBACK_PREMIUM,
+  },
+  reflective_question_validate: {
+    provider: "openai",
+    model: OPENAI_FULL,
+    fallbackAnthropicModels: FALLBACK_PREMIUM,
   },
 };
 

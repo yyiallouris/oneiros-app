@@ -2,6 +2,7 @@ import { supabase } from './supabaseClient';
 import {
   Dream,
   Interpretation,
+  type ChatMessage,
   type CoreMode,
   type DisplayDistillation,
   type InterpretationMetadataStatus,
@@ -9,6 +10,7 @@ import {
 } from '../types/dream';
 import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
 import { normalizeAmplifications } from '../ai/mythicEchoes';
+import { normalizeReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -114,11 +116,32 @@ function mapDreamToRow(dream: Dream, userId: string): Partial<DreamRow> {
   };
 }
 
+function normalizeChatMessages(value: unknown): ChatMessage[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return [];
+    const raw = item as Record<string, unknown>;
+    const role = raw.role === 'user' || raw.role === 'assistant' ? raw.role : null;
+    const id = typeof raw.id === 'string' ? raw.id.trim() : '';
+    const content = typeof raw.content === 'string' ? raw.content : '';
+    const timestamp = typeof raw.timestamp === 'string' ? raw.timestamp : '';
+    if (!role || !id || !content.trim() || !timestamp) return [];
+    const reflectiveQuestion = normalizeReflectiveQuestionArtifact(raw.reflectiveQuestion);
+    return [{
+      id,
+      role,
+      content,
+      timestamp,
+      ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
+    }];
+  });
+}
+
 function mapInterpretationRowToInterpretation(row: InterpretationRow): Interpretation {
   return {
     id: row.id,
     dreamId: row.dream_id,
-    messages: row.messages as any,
+    messages: normalizeChatMessages(row.messages),
     symbols: row.symbols,
     archetypes: normalizeArchetypalEchoes(row.archetypes ?? []),
     landscapes: row.landscapes && row.landscapes.length > 0 ? row.landscapes : undefined,

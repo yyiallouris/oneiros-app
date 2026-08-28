@@ -6,7 +6,7 @@ const EAS_PROJECT_ID = 'b81471aa-9f89-4729-8bf3-5ec9e8ec62e9';
 const baseExpoConfig = {
   name: 'Oneiros',
   slug: 'oneiros-app',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   icon: './assets/branding/icon-ios.png',
   userInterfaceStyle: 'light',
@@ -15,7 +15,7 @@ const baseExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'com.oneirosdreamjournal.app',
     icon: './assets/branding/icon-ios.png',
-    buildNumber: '1',
+    buildNumber: '2',
     usesAppleSignIn: true,
   },
   android: {
@@ -28,7 +28,7 @@ const baseExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: 'com.oneirosdreamjournal.app',
-    versionCode: 1,
+    versionCode: 2,
   },
   scheme: 'oneiros-dream-journal',
   web: {

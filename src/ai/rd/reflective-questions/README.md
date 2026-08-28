@@ -1,38 +1,19 @@
 # Reflective-question R&D boundary
 
-Offline research only. Nothing in this folder is a runtime/client/gateway import.
+Offline research plus frozen production-component sources. Client must not import this folder. Gateway may reach same-call / Integrity Gate / Repair only through `src/ai/reflectiveQuestionPipeline.ts`.
 
-Protected production is recovered `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…` in `src/ai/reflectiveQuestionPrompt.ts`. Client and gateway import that file. `src/ai/reflectiveQuestionProductionHold.ts` is the deploy-gate identity (re-exports the same body) and is not a runtime import.
+Prompt grammar R&D on Generator, Integrity Gate, and Repair remains **STOP**.
 
-## After (this cleanup)
+Canonical record: `docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`
 
-```
-src/ai/reflectiveQuestionPrompt.ts                  canonical production method (runtime import)
-src/ai/reflectiveQuestionProductionHold.ts          deploy gate + recovered identity (not a runtime import)
-src/ai/rd/reflective-questions/active.ts            only current R&D selection (Candidate B)
-src/ai/rd/reflective-questions/candidateB/          active research base SHA 08cd3eaf…
-src/ai/rd/reflective-questions/lineage/             frozen imports Candidate B still needs
-src/ai/rd/reflective-questions/archive/             closed experiments + rejected local Reader
-scripts/live/rd/reflective-questions/               thin current R&D runner
-scripts/live/archive/reflective-questions/          historical multiplexer + old live scripts
-```
+Frozen production components (`status: frozen_rnd_reference`; standalone method IDs denied):
 
-## Before
+| Identity | SHA | Status |
+|---|---|---|
+| `oneiros-same-call-minimal-v1.2.0-candidate` | `4506c898…` | frozen production Generator |
+| `oneiros-question-integrity-gate-v1.0.0-candidate` | `c1d8090f…` | frozen production Gate |
+| `oneiros-question-repair-v1.0.0-candidate` | `0859fd54…` | frozen production Repair |
 
-Closed experiments, rejected local Reader, Candidate B, and the 2300-line multiplexer all sat in `src/ai/` / `scripts/live/` as if they were live choices.
+Do not mutate their prompts. Approved production identity is the orchestration bundle `oneiros-reflective-question-production-v1.0.0`.
 
-## Active vs archived
-
-| Identity | Status |
-|---|---|
-| psychological-aliveness v1.4.0 / `4885e351…` | production runtime in `reflectiveQuestionPrompt.ts` |
-| Oneiros Reader v1.4.0 / `0ea4b9a2…` | archived, `DO NOT DEPLOY` |
-| Candidate B / `08cd3eaf…` | only active R&D base |
-| Language+Operator / `f5aa40a4…` | frozen lineage, not selectable |
-| Decoupling and earlier experiments | archived historical lineage/source |
-
-Lineage modules were not flattened: Candidate B still imports Language+Operator contracts/SHAs. Flattening would duplicate frozen prompt text.
-
-Historical docs, tmp packets, and result sheets were not deleted.
-
-Current R&D runner: `npm run review:reflective-questions-active`. Do not add flags to the archived mega-runner. Future Candidate C should land in `active.ts` + the thin runner, not the multiplexer.
+Historical Composer lives in `src/ai/reflectiveQuestionComposer.ts` and is not an R&D import. Frozen Reader remains `src/ai/dreamReflectionPrompt.ts`. Candidate B SHA `08cd3eaf…` remains the historical research base under `candidateB/`. Closed archive/lineage stays in git for provenance only.

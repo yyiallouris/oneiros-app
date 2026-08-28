@@ -2,16 +2,16 @@ import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
   DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES,
   FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256,
+  PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE,
+  REVOKED_REFLECTIVE_QUESTION_PRODUCTION,
   REFLECTIVE_QUESTION_RD_ROOT,
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_METHOD_ID,
-  RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT,
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT_SHA256,
   REFLECTIVE_QUESTION_DEPLOYED_FUNCTION,
   REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION,
   ReflectiveQuestionGatewayDeployBlockedError,
   assertReflectiveQuestionGatewayDeployAllowed,
   assertReflectiveQuestionRuntimeHasNoRdImports,
-  hashReflectiveQuestionPrompt,
 } from '../src/ai/reflectiveQuestionProductionHold';
 
 describe('reflective question production deploy hold', () => {
@@ -24,11 +24,25 @@ describe('reflective question production deploy hold', () => {
     expect(RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT_SHA256).toBe(
       '4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d'
     );
-    expect(
-      hashReflectiveQuestionPrompt(RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT)
-    ).toBe(RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT_SHA256);
-    expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
-      RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_METHOD_ID
+    expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
+      methodId: 'oneiros-reflective-question-production-v1.0.0',
+      promptSha256: 'fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea',
+    });
+    expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
+      'oneiros-reflective-question-v2.0.1'
+    );
+    expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.reason).toBe(
+      'human_quality_failed_sterile_literalism'
+    );
+    expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).toBe(
+      'oneiros-reflective-question-production-v1.0.0'
+    );
+    expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.chatQuestionMethodId).toBe(
+      'oneiros-reflective-question-v5.0.0'
+    );
+    expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.dialoguePromptId).toBe(
+      'oneiros-reflective-dialogue-v1.9.1'
     );
     expect(FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256).toBe(
       '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622'
@@ -36,8 +50,42 @@ describe('reflective question production deploy hold', () => {
     expect(REFLECTIVE_QUESTION_RD_ROOT).toBe('src/ai/rd/reflective-questions');
   });
 
+  it('blocks frozen Generator/Gate/Repair from becoming production-active', () => {
+    const frozen = [
+      {
+        methodId: 'oneiros-same-call-minimal-v1.2.0-candidate',
+        promptSha256: '4506c8981c1e0f38edcb641bf89e59126bfdafe64a3adff99a94a2d1a12e81f7',
+      },
+      {
+        methodId: 'oneiros-question-integrity-gate-v1.0.0-candidate',
+        promptSha256: 'c1d8090fec6149adf492d1319657ba02bf5ae28ddfa5ce28114ef8a0df6629b2',
+      },
+      {
+        methodId: 'oneiros-question-repair-v1.0.0-candidate',
+        promptSha256: '0859fd5474124613b7c5cd610d4f48e65ccee6f0ea05b8d4ca382ddd5a53d53b',
+      },
+    ] as const;
+    for (const candidate of frozen) {
+      expect(DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES).toEqual(
+        expect.arrayContaining([candidate])
+      );
+      expect(() =>
+        assertReflectiveQuestionGatewayDeployAllowed({
+          localMethodId: candidate.methodId,
+          localPromptSha256: candidate.promptSha256,
+          approvalToken: `${candidate.methodId}:${candidate.promptSha256}`,
+        })
+      ).toThrow(/denied candidate/i);
+    }
+    expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
+      'oneiros-reflective-question-production-v1.0.0'
+    );
+  });
+
   it('blocks the denied Oneiros Reader v1.4 candidate even with an approval token', () => {
-    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES[0];
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'reflective-question-oneiros-reader-v1.4.0'
+    )!;
 
     expect(() =>
       assertReflectiveQuestionGatewayDeployAllowed({
@@ -55,11 +103,141 @@ describe('reflective question production deploy hold', () => {
     ).toThrow(/denied candidate/);
   });
 
-  it('allows deploy only when local identity matches the recovered production SHA', () => {
+  it('blocks the failed post-reading Inviter bundle even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-post-reading-inviter-v1.0.0-candidate'
+    );
+    expect(denied).toEqual({
+      methodId: 'oneiros-post-reading-inviter-v1.0.0-candidate',
+      promptSha256: '70c533e59b56693d5ade15a5234d2a7457ef194ba157750f67e884e13bb42cfa',
+    });
     expect(() =>
       assertReflectiveQuestionGatewayDeployAllowed({
-        localMethodId: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
-        localPromptSha256: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/i);
+  });
+
+  it('blocks the failed Post-Jungian Inviter v2 bundle even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-post-jungian-inviter-v2.0.1-candidate'
+    );
+    expect(denied).toEqual({
+      methodId: 'oneiros-post-jungian-inviter-v2.0.1-candidate',
+      promptSha256: '09045bf1860b2a2a6325e468cc19de019c351f0162cfa17c3f0a6153f3f3f35e',
+    });
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/i);
+  });
+
+  it('blocks the superseded v2.2 identity even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-reflective-question-v2.2.0'
+    );
+    expect(denied).toBeDefined();
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/);
+  });
+
+  it('blocks the benchmarked v2.3.0 identity even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-reflective-question-v2.3.0'
+    );
+    expect(denied).toBeDefined();
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/);
+  });
+
+  it('blocks the benchmarked but human-weak v2.3.1 identity even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-reflective-question-v2.3.1'
+    );
+    expect(denied).toBeDefined();
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/);
+  });
+
+  it('blocks the benchmarked and overengineered v2.4 identity even with an approval token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-reflective-question-v2.4.0'
+    );
+    expect(denied).toBeDefined();
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied!.methodId,
+        localPromptSha256: denied!.promptSha256,
+        approvalToken: `${denied!.methodId}:${denied!.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/);
+  });
+
+  it('revokes the mechanically valid v2.0.1 identity even with an override', () => {
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
+        localPromptSha256: REVOKED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+      })
+    ).toThrow(/revoked after human review/);
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
+        localPromptSha256: REVOKED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+        approvalToken: `${REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId}:${REVOKED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256}`,
+      })
+    ).toThrow(/revoked/);
+  });
+
+  it('denies the failed v2 editorial-arc identity even with an environment token', () => {
+    const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-reflection-editorial-arc-v2.0.0-candidate'
+    )!;
+    expect(denied.promptSha256).toBe(
+      '6cd304e1c246f237f21743232de32723e81656f9c8cb3c4f51ee49fe26249b49'
+    );
+    expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).not.toBe(
+      denied.methodId
+    );
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied.methodId,
+        localPromptSha256: denied.promptSha256,
+      })
+    ).toThrow(/denied candidate/i);
+
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: denied.methodId,
+        localPromptSha256: denied.promptSha256,
+        approvalToken: `${denied.methodId}:${denied.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/i);
+
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId,
+        localPromptSha256: PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.promptSha256,
       })
     ).not.toThrow();
   });
@@ -67,20 +245,20 @@ describe('reflective question production deploy hold', () => {
   it('rejects a malformed or non-matching approval token', () => {
     expect(() =>
       assertReflectiveQuestionGatewayDeployAllowed({
-        localMethodId: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
-        localPromptSha256: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+        localMethodId: 'oneiros-reflective-question-unapproved',
+        localPromptSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         approvalToken: 'not-a-token',
       })
     ).toThrow(/must be <methodId>:<sha256>/);
 
     expect(() =>
       assertReflectiveQuestionGatewayDeployAllowed({
-        localMethodId: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
-        localPromptSha256: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+        localMethodId: 'oneiros-reflective-question-unapproved',
+        localPromptSha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         approvalToken:
           'some-future-method:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       })
-    ).toThrow(/not explicitly approved/);
+    ).toThrow(/does not match the code-owned approved/i);
   });
 
   it('rejects runtime imports of R&D or the hold snapshot', () => {

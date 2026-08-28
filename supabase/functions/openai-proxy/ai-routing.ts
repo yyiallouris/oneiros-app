@@ -8,6 +8,8 @@ export type OneirosTask =
   | "interpretation_advanced"
   | "interpretation_retry_compact"
   | "chat_followup"
+  | "reflective_question_generate"
+  | "reflective_question_validate"
   | "dream_extraction"
   | "dream_archetype_recognition"
   | "dream_archetype_adjudication"
@@ -22,6 +24,8 @@ export const TASKS = new Set<OneirosTask>([
   "interpretation_advanced",
   "interpretation_retry_compact",
   "chat_followup",
+  "reflective_question_generate",
+  "reflective_question_validate",
   "dream_extraction",
   "dream_archetype_recognition",
   "dream_archetype_adjudication",

@@ -5,6 +5,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
+import { createEditorialArcQuestionArtifact } from '../../src/ai/reflectiveQuestionPrompt';
 
 const mockChatScrollToEnd = jest.fn();
 const mockSetOptions = jest.fn();
@@ -274,6 +275,28 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(screen.getByText(/Reflective Questions/)).toBeTruthy();
     expect(screen.getByText(/Where in the body does that shoreline still hold/)).toBeTruthy();
     expect(screen.getByText(/What would it mean to step one pace closer tomorrow/)).toBeTruthy();
+  });
+
+  it('keeps a quiet localized continuation after an intentional no-question ending', async () => {
+    mockGetInterpretationByDreamId.mockResolvedValue({
+      ...interpretation,
+      messages: [{
+        ...interpretation.messages[0],
+        reflectiveQuestion: createEditorialArcQuestionArtifact({
+          id: 'opening-no-question-el',
+          createdAt: '2026-08-28T12:00:00.000Z',
+          status: 'no_question',
+          languageCode: 'el',
+        }),
+      }],
+    });
+
+    const screen = render(<DreamDetailScreen />);
+
+    const continuation = await screen.findByText('Συνέχισε την εξερεύνηση');
+    expect(screen.queryByTestId('reflective-question-card')).toBeNull();
+    fireEvent.press(continuation);
+    expect(await screen.findByText('Exploring the dream')).toBeTruthy();
   });
 
   it('keeps the nested chat ScrollView scrollable (bounded height, nestedScroll, no overflow hidden)', async () => {

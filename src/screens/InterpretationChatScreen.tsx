@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
+import { ReflectiveQuestionCard } from '../components/ui/ReflectiveQuestionCard';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
@@ -204,6 +205,13 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
         ) : (
           <>
             <FormattedMessageText text={message.content} isUser={isUser} />
+            {!isUser ? (
+              <ReflectiveQuestionCard
+                artifact={message.reflectiveQuestion}
+                variant="embedded"
+                testID={`reflective-question-${message.id}`}
+              />
+            ) : null}
             {showSettleFooter && (
               <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
             )}
@@ -489,12 +497,6 @@ const InterpretationChatScreen: React.FC = () => {
     }
   };
 
-  const handleQuickQuestion = (question: string) => {
-    inputEditGuardRef.current.markEdited();
-    setInputText(question);
-    void VoiceComposerService.saveText(chatVoiceTarget, question);
-  };
-
   if (isLoadingDream) {
     return (
       <View style={styles.container}>
@@ -573,30 +575,6 @@ const InterpretationChatScreen: React.FC = () => {
             // Content stays where it is; user scrolls manually to continue reading.
           }}
         />
-
-      {/* Quick Questions */}
-      {messages.length <= 1 && (
-        <View style={styles.quickQuestionsContainer}>
-          <TouchableOpacity
-            style={styles.quickButton}
-            onPress={() => handleQuickQuestion('What symbols stand out?')}
-          >
-            <Text style={styles.quickButtonText}>What symbols stand out?</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickButton}
-            onPress={() => handleQuickQuestion('What are the shadow aspects?')}
-          >
-            <Text style={styles.quickButtonText}>Shadow aspects?</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickButton}
-            onPress={() => handleQuickQuestion('What might this image suggest?')}
-          >
-            <Text style={styles.quickButtonText}>What might this suggest?</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Offline Message */}
       {showOfflineMessage && (
@@ -810,26 +788,6 @@ const styles = StyleSheet.create({
   },
   userMessageText: {
     color: colors.white,
-  },
-  quickQuestionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
-    flexWrap: 'wrap',
-  },
-  quickButton: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  quickButtonText: {
-    fontSize: typography.sizes.sm,
-    color: colors.buttonPrimary,
-    fontWeight: typography.weights.medium,
   },
   offlineMessageContainer: {
     paddingHorizontal: spacing.md,

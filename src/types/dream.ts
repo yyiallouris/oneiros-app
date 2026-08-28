@@ -1,5 +1,6 @@
 import type { ArchetypalEcho } from '../ai/archetypalEchoes.ts';
 import type { MythicEcho } from '../ai/mythicEchoes.ts';
+import type { ReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt.ts';
 
 export interface Dream {
   id: string;
@@ -165,6 +166,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  /** Versioned opening artifact; schemas 1–8 remain readable. Schema 9 always stores a question. */
+  reflectiveQuestion?: ReflectiveQuestionArtifact;
 }
 
 export interface DreamDraft {

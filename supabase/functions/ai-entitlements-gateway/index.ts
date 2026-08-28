@@ -23,9 +23,14 @@ import {
   generateDreamExtractionWithCost,
   generateDreamReflectionWithCost,
   generateFollowupReply,
+  generateReflectiveQuestionArtifact,
   generatePeriodReflection,
   generateRecentReflection,
 } from '../_shared/billing-ai.ts';
+import {
+  normalizeReflectiveQuestionArtifact,
+  type ReflectiveQuestionArtifact,
+} from '../../../src/ai/reflectiveQuestionPrompt.ts';
 import {
   claimMetadataExtraction,
   commitQuota,
@@ -86,6 +91,7 @@ type ChatMessagePayload = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  reflectiveQuestion?: ReflectiveQuestionArtifact;
 };
 
 declare const EdgeRuntime: {
@@ -286,7 +292,14 @@ function asChatMessages(value: unknown): ChatMessagePayload[] {
       const timestamp = typeof message.timestamp === 'string' ? message.timestamp : new Date().toISOString();
       const id = typeof message.id === 'string' ? message.id : crypto.randomUUID();
       if (!role || !content.trim()) return null;
-      return { id, role, content, timestamp };
+      const reflectiveQuestion = normalizeReflectiveQuestionArtifact(message.reflectiveQuestion);
+      return {
+        id,
+        role,
+        content,
+        timestamp,
+        ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
+      };
     })
     .filter((message): message is ChatMessagePayload => message !== null);
 }
@@ -340,12 +353,18 @@ async function buildAndSaveReflection(params: {
   });
   const reflection = reflectionResult.text;
   const reflectionCost = reflectionResult.cost;
+  const reflectiveQuestion = reflectionResult.reflectiveQuestion;
   params.timings.reflectionAiMs = measureSince(reflectionStartedAt);
   console.log('[ai-entitlements-gateway] reflection ai done', {
     action: params.action,
     dreamId: params.dream.id,
     reflectionAiMs: params.timings.reflectionAiMs,
     aiCost: safeCostLog(reflectionCost),
+    reflectiveQuestionStatus: reflectiveQuestion?.status ?? null,
+    reflectiveQuestionOutcome: reflectionResult.questionOutcome,
+    reflectiveQuestionSource: reflectionResult.questionSource,
+    reflectiveQuestionMs: reflectionResult.questionMs,
+    reflectiveQuestionCostUsd: costUsd(reflectionResult.questionCost),
   });
 
   const interpretationId = params.existing?.id ?? crypto.randomUUID();
@@ -357,6 +376,7 @@ async function buildAndSaveReflection(params: {
       role: 'assistant',
       content: reflection,
       timestamp: updatedAt,
+      ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
     },
   ];
   const pendingExtraction = emptyExtraction();
@@ -384,6 +404,9 @@ async function buildAndSaveReflection(params: {
       reflection,
       reflection_ai_cost: safeCostLog(reflectionCost),
       reflection_cost_usd: costUsd(reflectionCost),
+      reflective_question_ai_cost: safeCostLog(reflectionResult.questionCost),
+      reflective_question_cost_usd: costUsd(reflectionResult.questionCost),
+      reflective_question_outcome: reflectionResult.questionOutcome,
       interpretation: clientInterpretationPayload({
         id: interpretationId,
         dreamId: params.dream.id,
@@ -403,6 +426,10 @@ async function buildAndSaveReflection(params: {
       save_reflection_ms: params.timings.saveReflectionMs,
       reflection_ai_cost: safeCostLog(reflectionCost),
       reflection_cost_usd: costUsd(reflectionCost),
+      reflective_question_ai_cost: safeCostLog(reflectionResult.questionCost),
+      reflective_question_cost_usd: costUsd(reflectionResult.questionCost),
+      reflective_question_ms: reflectionResult.questionMs,
+      reflective_question_outcome: reflectionResult.questionOutcome,
     },
   };
 }
@@ -1074,18 +1101,29 @@ serve(async (req: Request) => {
         commit: (quotaEventId, commitResult) => commitQuota(admin, quotaEventId, commitResult ?? {}),
         release: (quotaEventId, reason, releaseResult) => releaseQuota(admin, quotaEventId, reason, releaseResult),
         work: async () => {
+          // Restore typed question artifacts as part of model-visible history.
+          // Casting to role/content only made the next answer forget the
+          // visible question the user was responding to.
+          const conversation = asChatMessages(interpretation.messages ?? []);
+          const assistantRepliesUsed = interpretation.chat_replies_used ?? 0;
+          const assistantRepliesLimit = interpretation.chat_replies_limit ?? 5;
+          const isFinalResponse = assistantRepliesUsed + 1 >= assistantRepliesLimit;
           const assistantReply = await generateFollowupReply({
             authHeader,
             dream,
-            conversation: (interpretation.messages ?? []) as Array<{
-              id: string;
-              role: 'user' | 'assistant';
-              content: string;
-              timestamp: string;
-            }>,
+            conversation,
             userMessage: body.message!.trim(),
-            assistantRepliesUsed: interpretation.chat_replies_used ?? 0,
-            assistantRepliesLimit: interpretation.chat_replies_limit ?? 5,
+            assistantRepliesUsed,
+            assistantRepliesLimit,
+          });
+          const reflectiveQuestionResult = await generateReflectiveQuestionArtifact({
+            authHeader,
+            dream,
+            chatAnswerContext: assistantReply,
+            surface: 'chat',
+            conversation,
+            latestUserMessage: body.message!.trim(),
+            isFinalResponse,
           });
 
           // Persist messages only after quota commit succeeds (see executeQuotaJob).
@@ -1104,6 +1142,7 @@ serve(async (req: Request) => {
               role: 'assistant',
               content: assistantReply,
               timestamp: new Date().toISOString(),
+              reflectiveQuestion: reflectiveQuestionResult.artifact,
             },
           ];
 
@@ -1112,8 +1151,13 @@ serve(async (req: Request) => {
               interpretation_id: interpretation.id,
               assistant_reply: assistantReply,
               next_messages: nextMessages,
+              reflective_question: reflectiveQuestionResult.artifact,
             },
-            result: { interpretation_id: interpretation.id },
+            result: {
+              interpretation_id: interpretation.id,
+              reflective_question_status: reflectiveQuestionResult.artifact.status,
+              reflective_question_cost_usd: costUsd(reflectiveQuestionResult.cost),
+            },
           };
         },
       });
@@ -1126,6 +1170,7 @@ serve(async (req: Request) => {
         interpretation_id: string;
         assistant_reply: string;
         next_messages: Record<string, unknown>[];
+        reflective_question: ReflectiveQuestionArtifact;
       };
 
       await saveInterpretation(admin, {
@@ -1141,6 +1186,7 @@ serve(async (req: Request) => {
           status: 'committed',
           interpretation_id: committed.interpretation_id,
           assistant_reply: committed.assistant_reply,
+          reflective_question: committed.reflective_question,
         },
         200,
         methods

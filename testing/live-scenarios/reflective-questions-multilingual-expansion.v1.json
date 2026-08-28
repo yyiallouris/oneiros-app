@@ -1,0 +1,172 @@
+{
+  "version": "1.0.0",
+  "benchmark_id": "oneiros-reflective-question-multilingual-expansion-v1",
+  "source": "synthetic",
+  "cases": [
+    {
+      "id": "en-watch-runs-backward",
+      "title": "The backward watch",
+      "content": "I was waiting at a quiet bus stop. The watch in my hand was running backward, but I was not late and felt no urgency.",
+      "language": "en",
+      "length_band": "short",
+      "categories": ["ordinary_banal_low_affect", "contradictory_paradoxical"],
+      "narrative_features": ["non_event", "calm_paradox"],
+      "reviewer_focus": "Preserve the lack of urgency; do not turn it into denial or avoidance.",
+      "forbidden_inventions": ["hidden anxiety", "fear of time", "a missed destination"]
+    },
+    {
+      "id": "es-paraguas-en-la-cocina",
+      "title": "El paraguas rojo",
+      "content": "En la cocina flotaba un paraguas rojo abierto. Mi hermana lo tocó con un dedo y empezó a girar lentamente sobre la mesa.",
+      "language": "es",
+      "length_band": "short",
+      "categories": ["strange_surreal", "relational_intimate_erotic_vital"],
+      "narrative_features": ["concrete_motion", "shared_attention"],
+      "reviewer_focus": "Let tocar or girar carry the opening rather than asking for a generic meaning.",
+      "forbidden_inventions": ["sibling conflict", "danger", "a choice to close the umbrella"]
+    },
+    {
+      "id": "fr-grand-mere-noeud",
+      "title": "Le nœud sans nom",
+      "content": "Ma grand-mère défaisait un nœud dans une longue corde bleue. Quand je lui ai demandé son nom, elle a souri et a continué sans répondre.",
+      "language": "fr",
+      "length_band": "medium",
+      "categories": ["relational_intimate_erotic_vital", "meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": ["silence", "repeated_action"],
+      "reviewer_focus": "Silence is not concealment; stay with smiling and untying.",
+      "forbidden_inventions": ["family secret", "repression", "the grandmother refusing the dreamer"]
+    },
+    {
+      "id": "de-zug-im-wald",
+      "title": "Der Zug im Wald",
+      "content": "Ein leerer Zug hielt mitten im Wald. Alle Türen öffneten sich gleichzeitig, doch niemand stieg ein oder aus. Ich hörte nur die Blätter.",
+      "language": "de",
+      "length_band": "short",
+      "categories": ["meaningful_non_action_waiting_silence_absence", "numinous"],
+      "narrative_features": ["open_threshold", "non_event"],
+      "reviewer_focus": "Do not force a choice about entering; use öffneten or hörte.",
+      "forbidden_inventions": ["missed opportunity", "fear of boarding", "a destination"]
+    },
+    {
+      "id": "it-mare-nella-ciotola",
+      "title": "Il mare nella ciotola",
+      "content": "Una donna portava il mare in una ciotola di vetro. Ogni volta che inciampava, le onde diventavano più calme invece di rovesciarsi.",
+      "language": "it",
+      "length_band": "short",
+      "categories": ["strange_surreal", "contradictory_paradoxical"],
+      "narrative_features": ["impossible_containment", "reversal"],
+      "reviewer_focus": "Let inciampava or diventavano più calme carry the paradox.",
+      "forbidden_inventions": ["emotional control", "female archetype label", "fear of spilling"]
+    },
+    {
+      "id": "pt-casa-sem-portas",
+      "title": "A casa sem portas",
+      "content": "Eu estava numa casa sem portas e não queria sair. A luz entrava pelas paredes, e eu continuava a arrumar flores numa jarra.",
+      "language": "pt",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent", "contradictory_paradoxical"],
+      "narrative_features": ["calm_enclosure", "ordinary_action"],
+      "reviewer_focus": "No doors and no wish to leave do not imply imprisonment or avoidance.",
+      "forbidden_inventions": ["feeling trapped", "denial", "need to escape"]
+    },
+    {
+      "id": "nl-fiets-krijgt-wortels",
+      "title": "De fiets met wortels",
+      "content": "Terwijl ik door de stad fietste, kregen de wielen dunne wortels. Ze bleven de straat raken en toch reed ik zonder moeite verder.",
+      "language": "nl",
+      "length_band": "short",
+      "categories": ["transformation_body_change_metamorphosis", "positive_peaceful_beautiful_coherent"],
+      "narrative_features": ["movement_and_rooting", "effortless_motion"],
+      "reviewer_focus": "Hold the simultaneous rooting and riding without manufacturing conflict.",
+      "forbidden_inventions": ["being stuck", "fear of change", "choice between roots and movement"]
+    },
+    {
+      "id": "pl-oddychajace-ksiazki",
+      "title": "Oddychające książki",
+      "content": "W bibliotece wszystkie zamknięte książki oddychały w tym samym rytmie. Położyłem dłoń na jednej z nich i mój oddech zwolnił.",
+      "language": "pl",
+      "length_band": "medium",
+      "categories": ["numinous", "relational_intimate_erotic_vital"],
+      "narrative_features": ["shared_rhythm", "touch"],
+      "reviewer_focus": "Open through breathing or placing the hand; no instruction to breathe.",
+      "forbidden_inventions": ["breathing exercise", "secret knowledge", "the book choosing the dreamer"]
+    },
+    {
+      "id": "ru-siniy-klyuch",
+      "title": "Синий ключ",
+      "content": "Мой умерший отец сидел на скамейке и держал синий ключ. Он положил его мне на ладонь, ничего не сказал и остался рядом.",
+      "language": "ru",
+      "length_band": "medium",
+      "categories": ["emotionally_intense", "relational_intimate_erotic_vital"],
+      "narrative_features": ["grief", "silent_gift"],
+      "reviewer_focus": "Stay with placing the key and remaining nearby; do not claim a message from the dead.",
+      "forbidden_inventions": ["afterlife message", "unfinished grief diagnosis", "what the key opens"]
+    },
+    {
+      "id": "ja-yoru-no-eki",
+      "title": "夜の駅",
+      "content": "夜の駅で、光る電車が停まらずに通り過ぎた。私はベンチに座ったまま、なぜか安心していた。",
+      "language": "ja",
+      "length_band": "short",
+      "categories": ["positive_peaceful_beautiful_coherent", "meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": ["passing_without_stopping", "calm_waiting"],
+      "reviewer_focus": "Cross-script structure must pass; calm is not compensation for a missed train.",
+      "forbidden_inventions": ["missed chance", "hidden disappointment", "need to board"]
+    },
+    {
+      "id": "zh-niuli-de-he",
+      "title": "逆流的河",
+      "content": "一条河从我的房间里向上流，水穿过天花板却没有弄湿任何东西。我把一只纸船放进水里，看着它升高。",
+      "language": "zh",
+      "length_band": "medium",
+      "categories": ["strange_surreal", "numinous"],
+      "narrative_features": ["upward_flow", "dry_water", "release"],
+      "reviewer_focus": "Cross-script structure must pass; let flowing, placing, or rising carry the opening.",
+      "forbidden_inventions": ["spiritual ascension", "flood anxiety", "destination above the ceiling"]
+    },
+    {
+      "id": "en-spanish-door-phrase",
+      "title": "The door that said despacio",
+      "content": "I opened a narrow green door and heard a voice say “despacio.” Everything beyond it was already moving slowly, including the rain, but my hands moved at their usual speed.",
+      "language": "en",
+      "length_band": "medium",
+      "categories": ["contradictory_paradoxical", "strange_surreal"],
+      "narrative_features": ["code_switch", "different_tempos"],
+      "reviewer_focus": "Keep the quoted Spanish word but answer in English; do not pathologize different tempos.",
+      "forbidden_inventions": ["command to slow down in life", "anxiety", "language choice as symbolism"]
+    },
+    {
+      "id": "fr-enseigne-stay",
+      "title": "L’enseigne Stay",
+      "content": "Je marchais dans une rue vide où toutes les enseignes étaient éteintes, sauf une qui affichait le mot « Stay ». Je l’ai regardée, puis j’ai continué à marcher tranquillement.",
+      "language": "fr",
+      "length_band": "medium",
+      "categories": ["meaningful_non_action_waiting_silence_absence", "contradictory_paradoxical"],
+      "narrative_features": ["code_switch", "unfollowed_word"],
+      "reviewer_focus": "Keep Stay quoted but answer in French; continuing is not resistance.",
+      "forbidden_inventions": ["refusal to stay", "avoidance", "the sign as instruction"]
+    },
+    {
+      "id": "ja-neon-home",
+      "title": "HOMEのネオン",
+      "content": "海の上に「HOME」というネオンが浮かんでいた。私は岸を離れず、波がその文字を小さく揺らすのを見ていた。",
+      "language": "ja",
+      "length_band": "short",
+      "categories": ["numinous", "meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": ["code_switch", "watching_from_shore"],
+      "reviewer_focus": "Keep HOME as written, output Japanese, and do not force a shore-versus-home conflict.",
+      "forbidden_inventions": ["homesickness", "fear of leaving shore", "need to swim"]
+    },
+    {
+      "id": "zh-faguo-mingzi",
+      "title": "会发光的名字",
+      "content": "桌上写着「Camille」的纸片开始发光。我不认识这个人，但我把纸片轻轻盖在一杯水上。",
+      "language": "zh",
+      "length_band": "short",
+      "categories": ["strange_surreal", "meaningful_non_action_waiting_silence_absence"],
+      "narrative_features": ["foreign_name", "covering_action"],
+      "reviewer_focus": "Keep Camille unchanged, output Chinese, and do not invent who the person is.",
+      "forbidden_inventions": ["forgotten relationship", "hidden memory", "identity of Camille"]
+    }
+  ]
+}

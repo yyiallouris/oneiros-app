@@ -13,7 +13,7 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 | Local data | `src/services/localStorage.ts` | AsyncStorage-only persistence and queues |
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
 | Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
-| AI | `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Reflection, chat, extraction, grouping, pattern essays |
+| AI | `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectionEditorialArc.ts`, `src/ai/reflectiveEvidence.ts`, `src/ai/reflectiveDialogueResponseFormat.ts`, `src/ai/reflectiveQuestionPrompt.ts`, `src/ai/reflectiveLanguage.ts`, `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Private-first initial `question | no_question` plus complete reading in one call, stream-safe BEGIN/END projection, schema-8 opening artifact, Dialogue `1.9.1`, optional chat v5 question, 12-language continuity, extraction, grouping, pattern essays |
 | Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, bounded/authenticated transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
 
 ## Navigation contract
@@ -32,7 +32,7 @@ Route params live in `src/navigation/types.ts`. Update this file, flow docs, and
 ## Data model and persistence
 
 - `Dream`: saved locally and remotely; app UI treats dream content as sensitive.
-- `Interpretation`: AI messages plus symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, symbol stances, and `display_distillation`.
+- `Interpretation`: AI messages (assistant messages may own a typed Reflective Questions artifact that is restored into the next dialogue turn) plus symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, symbol stances, and `display_distillation`.
 - `PatternReportEntry` / recent sequence reflection: Insights reports and caches.
 - Reflective essay input ownership: `src/ai/reflectiveEssayContext.ts` builds accepted metadata-heavy production context version `1`; its narrative-first version `2` builder remains research-only. `src/ai/reflectiveEssayPrompt.ts` owns the frozen `2.0.3-phase1` prompt, sections, temperatures, and retry policy. Client and gateway select the metadata-first builder; `src/ai/reflectiveEssayFieldMapSpike.ts` is used only by the rejected offline architecture harness.
 - User settings: interpretation depth, Insights report language, mythic resonance, biometric preference, and persisted timezone for calendar-based backend quota logic. Insights report language is currently device-local via `patternInsightLanguageService`.

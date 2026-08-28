@@ -9,7 +9,6 @@ import {
   REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_PROMPT,
   REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256,
 } from '../src/ai/rd/reflective-questions/candidateB/reflectiveQuestionLanguageOperatorCandidateBExperiment';
-import { ACTIVE_REFLECTIVE_QUESTION_RD_SHA256 } from '../src/ai/rd/reflective-questions/active';
 
 describe('reflective-question Candidate B freeze', () => {
   it('keeps Candidate B SHA frozen and does not mutate Language+Operator', () => {
@@ -28,9 +27,6 @@ describe('reflective-question Candidate B freeze', () => {
     ).toBe(REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256);
     expect(REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256).toBe(
       '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622'
-    );
-    expect(ACTIVE_REFLECTIVE_QUESTION_RD_SHA256).toBe(
-      REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256
     );
   });
 

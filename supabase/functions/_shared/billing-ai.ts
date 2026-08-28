@@ -22,8 +22,81 @@ import {
   DEBUG_INTERPRETIVE_ECHOES_USER_SUFFIX,
 } from '../../../src/ai/dreamExtractionPrompt.ts';
 import {
-  REFLECTIVE_QUESTION_METHOD_PROMPT,
+  buildChatFollowupRequest,
+  buildInitialReflectionRequest,
+  END_MARKER_DREAM_READING,
+  stripTrailingReflectiveDialogueQuestion,
+} from '../../../src/ai/dreamReflectionPrompt.ts';
+import {
+  parseReflectiveDialogueAnswer,
+  resolveReflectiveDialogueAnswer,
+  type ReflectiveDialogueResponseFormat,
+} from '../../../src/ai/reflectiveDialogueResponseFormat.ts';
+import {
+  buildDreamEvidenceSpans,
+  buildUserEvidenceSpans,
+  buildReflectiveQuestionMessages,
+  createProductionQuestionArtifact,
+  createReflectiveQuestionArtifact,
+  parseReflectiveQuestionResult,
+  validateReflectiveQuestionCommit,
+  REFLECTIVE_QUESTION_TEMPERATURE,
+  REFLECTIVE_QUESTION_TOKEN_LIMIT,
+  type ReflectiveQuestionArtifact,
+  type ReflectiveQuestionArtifactV11,
+  type ReflectiveQuestionOutcome,
+  type ReflectiveQuestionSinglePassResult,
+  type ReflectiveQuestionSurface,
 } from '../../../src/ai/reflectiveQuestionPrompt.ts';
+import {
+  buildQuestionIntegrityGateMessages,
+  buildQuestionIntegrityGateResponseFormat,
+  parseQuestionIntegrityGateResult,
+  QUESTION_INTEGRITY_GATE_TASK,
+  QUESTION_INTEGRITY_GATE_TEMPERATURE,
+  QUESTION_INTEGRITY_GATE_TOKEN_LIMIT,
+} from '../../../src/ai/rd/reflective-questions/questionIntegrityGate/questionIntegrityGateCandidate.ts';
+import {
+  buildQuestionRepairMessages,
+  buildQuestionRepairResponseFormat,
+  parseQuestionRepairResult,
+  QUESTION_REPAIR_TASK,
+  QUESTION_REPAIR_TEMPERATURE,
+  QUESTION_REPAIR_TOKEN_LIMIT,
+} from '../../../src/ai/rd/reflective-questions/questionIntegrityGate/questionRepairCandidate.ts';
+import {
+  buildQuestionPremiseCheckMessages,
+  buildQuestionPremiseCheckResponseFormat,
+  parseQuestionPremiseCheckResult,
+  QUESTION_PREMISE_CHECK_TASK,
+  QUESTION_PREMISE_CHECK_TEMPERATURE,
+  QUESTION_PREMISE_CHECK_TOKEN_LIMIT,
+} from '../../../src/ai/questionPremiseCheck.ts';
+import {
+  REFLECTIVE_QUESTION_KILL_SWITCH_ENV,
+  REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
+  buildSameCallMinimalRequest,
+  isReflectiveQuestionKillSwitchEnabled,
+  mapQuestionModeToArtifactDepth,
+  mapReadingDepthToProductionQuestionMode,
+  productionPipelineTelemetry,
+  resolveProductionReflectiveQuestion,
+  splitSameCallReadingAndQuestion,
+  visibleSameCallReading,
+} from '../../../src/ai/reflectiveQuestionPipeline.ts';
+import {
+  buildChatReflectiveLanguageContext,
+  buildInitialReflectiveLanguageContext,
+  detectOneirosLanguageCode,
+} from '../../../src/ai/reflectiveLanguage.ts';
+import type { OneirosLanguageCode } from '../../../src/constants/oneirosLanguages.ts';
+import {
+  visibleEditorialArcReading,
+} from '../../../src/ai/reflectionEditorialArc.ts';
+import {
+  buildReflectiveQuestionResponseFormat,
+  type ReflectiveQuestionResponseFormat,
+} from '../../../src/ai/reflectiveQuestionResponseFormat.ts';
 import {
   buildEssayCompressionRetryPrompt,
   buildPeriodReflectionSystemPrompt,
@@ -140,6 +213,7 @@ type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  reflectiveQuestion?: ReflectiveQuestionArtifact;
 };
 
 type DreamRecord = {
@@ -184,279 +258,8 @@ type ReflectionProgressCallback = (progress: {
 }) => Promise<void> | void;
 
 const DEFAULT_AI_PROXY_TIMEOUT_MS = 60000;
-const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->';
 const AI_COST_FIELD = '__oneiros_ai_cost';
 const DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS = 2;
-
-/* ============================
-   PROMPT CONSTITUTION
-   Keep this initial reflection contract in parity with src/services/ai.ts.
-   ============================ */
-
-const DREAM_CONSTITUTION_PROMPT = `
-You are Dream Weaver, a post-Jungian dream journal companion.
-
-Core Constitution — non-negotiable principles:
-
-- Interpret dreams symbolically, never literally.
-- Never give advice, diagnosis, prescriptions, moral judgments, or therapeutic instructions of any kind.
-- Embodiment must remain purely observational. Never instruct the user to breathe, relax, sit with, focus on, try, or practice anything.
-- Use hypothetical language, but do not hide behind vagueness. Never present interpretations as facts, yet allow clear symbolic landings when strongly grounded in dream details.
-- Use English for markdown section headings exactly as specified.
-- Use the user's dominant language for all paragraph text, bullets, and reflective questions.
-- Always start from affect, image, and the ego’s relationship to what appears.
-- Track ego-position as a primary interpretive axis: where the dreamer belongs, withdraws, watches, hides, explores, refuses, approaches, or imagines exit.
-- The ego's changing relation to the dream-field is often more important than symbol meaning.
-- Every interpretive claim must be tied to at least one concrete detail from the dream.
-- Treat dream figures as autonomous inner presences or complexes.
-- Shadow is always unintegrated intensity, charge, or unmetabolized vitality — never "negative" or moral failure.
-- Self is used only when a clear organizing center appears and the dream moves toward coherence. If the center brings agitation and loss of coherence, describe it as contested or unstable.
-
-Symbolic stance:
-- When one central movement is strongly staged, name it clearly. Do not confuse ambiguity with hesitation.
-- Preserve unresolvedness, but allow a precise symbolic landing when concrete dream details support it.
-- When a concrete image carries clear emotional, bodily, familial, cultural, or symbolic charge, allow the interpretation to land with precision instead of retreating into excessive neutrality.
-- A grounded symbolic landing is preferred over cautious neutrality.
-- Do not emotionally flatten the strongest image. Restraint should keep the image alive, not make it vague.
-- Do not reduce unusual dream details into generic symbolic categories. Stay with what makes the image specifically this image and not another one.
-- Preserve ambiguity without dissolving intensity. A strong image may remain unresolved while still carrying a clear psychological pressure.
-- Some dream images carry disproportionate psychic weight. Prioritize the images that alter atmosphere, embodiment, identity, belonging, orientation, or emotional reality inside the dream.
-- Do not make the dream more elegant, healed, coherent, or meaningful than it is. Keep awkward, violent, chaotic, ordinary, secretive, or morally uncomfortable details alive.
-- If the dream contains disorder, secrecy, violence, avoidance, or strange calm, do not smooth them into growth language.
-- Archetypal language should sharpen the image, not label it. Describe the figure's behavior first; name an archetypal pressure only if the name adds precision.
-
-Core Mode Logic (choose exactly one):
-
-- Core Tension: opposition, rupture, alarm, or vitality restricted while functioning continues.
-- Core State: coherence, flow, belonging, ease, or consolidation without marked disturbance.
-- Core Shift: threshold, irreversible change, leaving-behind, emergence, or transformation of form/identity/ground.
-- Core Restoration: the dream gives what waking life lacks, and tension is mild or absent.
-
-If two modes feel close, choose the mode that best describes the dream's final movement and dominant affect.
-Prefer Core Tension when warmth, play, or coherence becomes organized around blockage, exposure, evaluation, shame, threat, illegitimacy, or unresolved pressure.
-Prefer Core State or Core Restoration only when ease, coherence, or replenishment remains dominant through the end.
-Do not force tension when the dream remains cohesive, restorative, playful, absurd, or numinous without a central rupture.
-
-Do not over-diagnose tension. Threat, shame, pursuit, exile, or bodily alarm usually indicate Core Tension, but only when they organize the dream's whole movement. If these appear briefly inside a wider field of play, coherence, absurdity, or restoration, choose the mode that best describes the dream as a whole.
-
-Style:
-- Be precise, psychologically grounded, and image-near.
-- Prefer plain, vivid, concrete language over jargon or elevated wording.
-- Start from the image or action itself rather than generic openers.
-- Archetype labels are optional. Use them only when they genuinely deepen the specific image. A strong reading without labels is often better.
-`;
-
-const INTERPRETATION_ROLE_PROMPT = `
-Role:
-You offer a symbolic psychological reading that illuminates how the psyche organizes meaning through images — whether through tension, flow, transition, or restoration.
-
-Prioritize:
-- Emotional atmosphere and bodily affect
-- Whatever is most psychologically alive: tension when genuinely present, but also flow, beauty, calm, vitality, intimacy, transformation, strangeness, numinosity, or coherence
-- Inner tensions, ambivalences, or flows only as the dream actually stages them
-- How the ego relates to what appears (what it approaches, avoids, or cannot yet metabolize)
-- Where the ego belongs, withdraws, watches, hides, approaches, refuses, or imagines exit
-- What each image does to the dreamer’s attention, body, or stance
-- The psychic gravity of images that change atmosphere, embodiment, identity, belonging, orientation, or emotional reality
-- The larger symbolic forms or imaginal structures shaping the dream when clearly present
-- Archetypal dynamics only when they unmistakably deepen the specific image
-
-Never give conclusions, advice, or reassurance. Help the dreamer think symbolically.
-`;
-
-const DREAM_FIRST_READING_DIRECTIVE = `
-Let the dream narrative lead: image, affect, ego-position, figures, spaces, and movement.
-
-Return to the dream sequence and charged images first.
-Do not organize the reading around categories, tags, or frameworks.
-Do not mention indexing fields.
-
-The interpretation should feel like it arises from the dream scene itself.
-`;
-
-const INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE =
-  'OUTPUT LANGUAGE (mandatory): Keep all markdown section headings exactly as specified in English for UI consistency. ' +
-  'Write all paragraph text, bullets, and reflective questions in the same primary language as the dream narrative and any user notes in this request. ' +
-  'Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. ' +
-  'If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.';
-
-const BRIEF_INTERPRETATION_FORMAT_PROMPT = `
-BRIEF mode (Quick Glance):
-- Total 80–180 words.
-- No headings.
-- Write one continuous image-near reflection, not a mini report.
-- Use 1–2 short paragraphs that do four things only:
-  1. begin from one concrete dream image, action, place, figure, or bodily tone
-  2. render the atmosphere briefly
-  3. follow one central psychological movement
-  4. include one felt-sense sentence only if bodily tone is clearly present
-- End with exactly one reflective question selected through the reflective-question method.
-- Keep it close to the dream image unless another movement is clearly supported.
-- Do not manufacture a problem when the dream is calm, joyful, beautiful, vital, cohesive, transformative, or numinous.
-- Do not use archetype labels, amplifications, or extra framework language.
-- Do not summarize the whole dream before entering it.
-- Do not list symbols.
-- Do not widen into mythic, archetypal, ritual, cosmic, sacred, or transpersonal framing.
-
-Hard output limit:
-- Each paragraph must be 2–4 sentences maximum.
-- Prefer ending early over covering every detail.
-- The response must end naturally after the reflective question.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_READING}
-`;
-
-const STANDARD_INTERPRETATION_FORMAT_PROMPT = `
-STANDARD mode (Core Reading):
-- Prioritize symbolic immediacy and the best reading experience, not exhaustive coverage.
-- Use hidden structure: organize the reading internally, but keep the visible structure light.
-- The reading should feel like one compact path through the dream, not a report.
-- Let the dream sequence carry the form.
-- Follow the order of the dream unless one image clearly pulls the whole dream around it.
-- Do not distribute commentary equally across all details.
-- Avoid report-like language, therapeutic polish, and framework labels.
-
-Mythic resonance:
-- Mythic or archetypal widening is normally out of scope in Standard mode.
-- If one image carries unmistakable ritual, initiatory, underworld, sacred, or transpersonal weight, allow at most one brief image-born resonance sentence.
-- Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
-- Prefer resonance over explanation.
-
-Opening section:
-The first heading MUST be exactly one of:
-## Core Tension
-## Core State
-## Core Shift
-## Core Restoration
-
-- Under the chosen Core heading, write 1–2 image-near sentences.
-- This should orient the dominant affect and final movement without sounding like a diagnosis.
-- Do not use archetype labels here.
-
-## Dream Movement
-
-Write this as one compact interpretive reading, 2–4 short paragraphs.
-
-Internal movement to follow, without naming these as subheadings:
-1. Begin inside a concrete dream image, action, place, figure, or bodily tone.
-2. Let the strongest 1–3 images emerge naturally from the sequence.
-3. Show what they do to the dreamer's position, attention, body, agency, or belonging.
-4. Track the central movement without trying to cover every detail.
-5. Let unresolvedness appear only if the dream itself leaves something suspended.
-
-Rules for this section:
-- Do not split the reading into multiple analytical sections.
-- Do not use bullets for symbols.
-- Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, or Integration.
-- Every interpretive claim must be grounded in concrete dream detail.
-- Prefer one clear thread over complete coverage.
-- When the dream strongly stages one central movement, name it clearly.
-- Preserve ambiguity without becoming vague.
-
-## Reflective Questions
-
-- Output 1–2 questions, maximum 2.
-- Default to one question.
-- One strong question is complete when no second question adds genuine psychological or experiential value.
-- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
-- Let the psychologically most alive unexplored point determine the first question.
-- If a second question is warranted, deepen the same living material from another angle or open the next genuinely connected element.
-- Do not follow a fixed somatic-first/symbolic-second sequence.
-- Questions should deepen the dream's living material, not open an unrelated analytic thread.
-- Questions invite noticing, not self-improvement.
-- No advice verbs: try, practice, breathe, focus, work on, improve.
-
-Anti-framework language rule:
-- Prefer immediate, image-near, psychologically alive wording over analytic or institutional phrasing.
-- If a sentence can be made more vivid and direct without losing accuracy, always prefer the vivid version.
-
-Length: aim for 300–520 words.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_READING}
-`;
-
-const ADVANCED_INTERPRETATION_FORMAT_PROMPT = `
-ADVANCED mode (Deeper Dive):
-- Depth means staying inside the dream's movement, not explaining more.
-- The reading should feel like a continuous movement through the dream-field, not a report.
-- Use hidden structure: organize the interpretation internally, but do not expose many analytical headings.
-- Let the dream sequence carry the form.
-- Follow the order of the dream unless one charged image clearly pulls the whole dream around it.
-- Do not make the dream cleaner, wiser, or more coherent than it is.
-- Do not explain the strongest image too quickly.
-- Stay with strange, bodily, awkward, comic, ugly, tender, domestic, or uncanny details.
-- Prefer atmosphere, continuity, and image-near unfolding over category-by-category analysis.
-- Avoid report-like language, therapeutic polish, elegant over-synthesis, and framework labels.
-- Do not make disorder, secrecy, violence, avoidance, strange calm, or ordinary awkwardness sound more resolved than it is.
-- Do not use phrases like "the dream organizes", "symbolic movement", or "charged image" in the body unless absolutely necessary.
-
-Mythic resonance:
-- When a dream image carries unmistakable mythic, archetypal, ritual, initiatory, underworld, cosmic, sacred, or transpersonal weight, allow the interpretation to briefly widen beyond the personal psyche.
-- Mythic resonance must emerge organically from the image itself, not from symbolic inflation.
-- Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams.
-- A single precise mythic echo is stronger than extended amplification.
-- Prefer resonance over explanation.
-- Do not create a Mythic Resonance section.
-- Do not lecture on mythology or explain archetypal systems.
-
-Opening section:
-The first heading MUST be exactly one of:
-## Core Tension
-## Core State
-## Core Shift
-## Core Restoration
-
-- Under the chosen Core heading, write 1–2 image-near sentences.
-- This should orient the dominant affect and final movement without sounding like a diagnosis.
-- Do not use archetype labels here.
-
-## Dream Movement
-
-Write this as one continuous interpretive essay, 4–6 short paragraphs.
-
-Internal movement to follow, without naming these as subheadings:
-1. Begin inside the first scene: place, atmosphere, ego-position, and affect.
-2. Let the most charged image emerge naturally from the dream sequence.
-3. Stay with that image before interpreting it.
-4. Show how figures, spaces, objects, and actions gather around it.
-5. Track shifts in agency, belonging, distance, intimacy, passivity, activity, or permission.
-6. Let unresolvedness appear only if the dream itself leaves something suspended.
-
-Rules for this section:
-- Do not split the reading into multiple analytical sections.
-- Do not distribute equal commentary across all symbols.
-- Let one image become the gravitational center.
-- Use transitions that feel organic, not institutional.
-- Trust the image. Do not translate everything into psychology immediately.
-- Every interpretive claim must be grounded in concrete dream detail.
-- When the dream strongly stages one central movement, name it clearly.
-- Preserve ambiguity without becoming vague.
-
-## Reflective Questions
-
-- Output 1–2 questions, maximum 2.
-- Default to one question.
-- One strong question is complete when no second question adds genuine psychological or experiential value.
-- Never add a weaker, redundant, unrelated, or artificially deeper second question merely to satisfy quantity.
-- Let the psychologically most alive image, affect, relation, atmosphere, transformation, absence, movement, or ego-position determine the first question.
-- Somatic questions should refer to the remembered dream-body or bodily tone, not instruct the user to perform an exercise.
-- If a second question is warranted, keep it inside the image or move toward symbolic, relational, somatic, imaginal, or personal meaning only when the dream supports that movement.
-- Do not follow a fixed somatic-first/symbolic-second sequence.
-- Never manufacture tension, pathology, compensation, hidden fear, or avoidance to demonstrate advanced reasoning.
-- Questions invite noticing, not self-improvement.
-- No advice verbs: try, practice, breathe, focus, work on, improve.
-
-Length: aim for 550–800 words. Prefer density and continuity over coverage.
-Finish the full response, including the complete reflective-question section and the end marker. One question is valid and complete; do not retry or add filler because a second is absent. Do not stop mid-sentence or mid-question.
-
-Technical requirement:
-After the complete response, append this exact hidden marker on its own line:
-${END_MARKER_DREAM_READING}
-`;
 
 function requestId(): string {
   return crypto.randomUUID();
@@ -480,7 +283,14 @@ async function invokeOpenAiProxy(params: {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
   temperature: number;
   tokenLimit: number;
-  responseFormat?: ReturnType<typeof buildDreamExtractionResponseFormat> | { type: 'json_object' };
+  responseFormat?:
+    | ReturnType<typeof buildDreamExtractionResponseFormat>
+    | ReflectiveQuestionResponseFormat
+    | ReflectiveDialogueResponseFormat
+    | ReturnType<typeof buildQuestionIntegrityGateResponseFormat>
+    | ReturnType<typeof buildQuestionRepairResponseFormat>
+    | ReturnType<typeof buildQuestionPremiseCheckResponseFormat>
+    | { type: 'json_object' };
   timeoutMs?: number;
   skipStructuredValidation?: boolean;
 }): Promise<Record<string, unknown>> {
@@ -616,7 +426,7 @@ async function invokeOpenAiProxyStream(params: {
   tokenLimit: number;
   timeoutMs?: number;
   onProgress?: ReflectionProgressCallback;
-}): Promise<{ text: string; cost: AiCallCost | null }> {
+}): Promise<{ content: string; cost: AiCallCost | null }> {
   const startedAt = Date.now();
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), params.timeoutMs ?? DEFAULT_AI_PROXY_TIMEOUT_MS);
@@ -707,9 +517,10 @@ async function invokeOpenAiProxyStream(params: {
   if (!response.body || !contentType.includes('text/event-stream')) {
     const data = await response.json();
     const cost = estimateAiCallCost(data as Record<string, unknown>, provider);
-    const text = extractContent(data as Record<string, unknown>);
-    await params.onProgress?.({ text, cost, done: true });
-    return { text, cost };
+    const content = extractContent(data as Record<string, unknown>);
+    const visible = visibleEditorialArcReading(content, END_MARKER_DREAM_READING);
+    await params.onProgress?.({ text: visible, cost, done: true });
+    return { content, cost };
   }
 
   const reader = response.body.getReader();
@@ -728,7 +539,11 @@ async function invokeOpenAiProxyStream(params: {
     const cost = usage && typeof usage === 'object'
       ? estimateAiCallCost({ model: response.headers.get('X-AI-Model') ?? null, usage } as Record<string, unknown>, provider)
       : null;
-    await params.onProgress?.({ text: stripEndMarker(text, END_MARKER_DREAM_READING), cost, done });
+    await params.onProgress?.({
+      text: visibleEditorialArcReading(text, END_MARKER_DREAM_READING),
+      cost,
+      done,
+    });
   };
 
   const processEventLine = async (line: string) => {
@@ -775,7 +590,7 @@ async function invokeOpenAiProxyStream(params: {
   const finalCost = usage && typeof usage === 'object'
     ? estimateAiCallCost({ model: response.headers.get('X-AI-Model') ?? null, usage } as Record<string, unknown>, provider)
     : null;
-  const finalText = stripEndMarker(text, END_MARKER_DREAM_READING);
+  const finalText = visibleEditorialArcReading(text, END_MARKER_DREAM_READING);
   if (!finalText.trim()) {
     throw new HttpError(502, 'AI proxy returned empty content');
   }
@@ -795,7 +610,7 @@ async function invokeOpenAiProxyStream(params: {
     totalTokens: finalCost?.totalTokens,
     estimatedUsd: finalCost?.estimatedUsd,
   });
-  return { text: finalText, cost: finalCost };
+  return { content: text, cost: finalCost };
 }
 
 function extractContent(payload: Record<string, unknown>): string {
@@ -811,11 +626,6 @@ function extractContent(payload: Record<string, unknown>): string {
 
 function stripEndMarker(text: string, marker: string): string {
   return text.replace(marker, '').trim();
-}
-
-function trim(text: string, max: number): string {
-  const normalized = text.replace(/\s+/g, ' ').trim();
-  return normalized.length > max ? `${normalized.slice(0, max)}...` : normalized;
 }
 
 function buildEssayLanguageInstruction(language: string): string {
@@ -842,57 +652,19 @@ Do not translate section headings.
 Preserve extracted symbols in English only if needed, but explain them in the requested language.`;
 }
 
-function buildReflectionMessages(dream: DreamRecord, depth: 'quick' | 'standard' | 'advanced') {
-  const outputLangSuffix = `\n\n${INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE}`;
-  const userPrompt = depth === 'quick'
-    ? `Here is a dream I want a brief symbolic reflection on.
-
-Title: ${dream.title || 'Untitled'}
-Date: ${dream.date}
-Dream:
-${dream.content}
-
-${DREAM_FIRST_READING_DIRECTIVE}
-Give 1–2 short paragraphs and one reflective question. No conclusions, no advice.${outputLangSuffix}`
-    : `Here is a dream I want to explore symbolically.
-
-Title: ${dream.title || 'Untitled'}
-Date: ${dream.date}
-Dream:
-${dream.content}
-
-${DREAM_FIRST_READING_DIRECTIVE}
-Please approach this as a symbolic psychological image, not a literal event.
-Focus on:
-- Emotional atmosphere and bodily affect
-- Inner tensions, ambivalences, or flows — whatever the dream actually stages
-- How the ego relates to what appears (including what it avoids, moves toward, or cannot metabolize)
-- What each image does to the dreamer's attention, body, or stance
-- The one or two images that carry the strongest charge
-- What remains strange, unresolved, or not fully readable
-
-Do not give conclusions. Offer symbolic perspectives and reflective questions.${outputLangSuffix}`;
-
-  const formatPrompt =
-    depth === 'quick'
-      ? BRIEF_INTERPRETATION_FORMAT_PROMPT
-      : depth === 'advanced'
-        ? ADVANCED_INTERPRETATION_FORMAT_PROMPT
-        : STANDARD_INTERPRETATION_FORMAT_PROMPT;
+function buildReflectionMessages(
+  dream: DreamRecord,
+  depth: 'quick' | 'standard' | 'advanced',
+  outputLanguage: OneirosLanguageCode
+) {
+  const request = buildSameCallMinimalRequest({
+    dream,
+    depth,
+    outputLanguage,
+  });
 
   return {
-    task: depth === 'quick' ? 'interpretation_quick' : depth === 'advanced' ? 'interpretation_advanced' : 'interpretation_standard',
-    messages: [
-      { role: 'system' as const, content: DREAM_CONSTITUTION_PROMPT },
-      { role: 'system' as const, content: INTERPRETATION_ROLE_PROMPT },
-      { role: 'system' as const, content: REFLECTIVE_QUESTION_METHOD_PROMPT },
-      { role: 'system' as const, content: formatPrompt },
-      { role: 'user' as const, content: userPrompt },
-    ],
-    temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.60 : 0.55,
-    // Advanced word target stays 550–800; 2800 is soft headroom so the model can finish
-    // the full response instead of truncating mid-sentence / mid-question.
-    tokenLimit: depth === 'quick' ? 550 : depth === 'advanced' ? 2800 : 1600,
+    ...request,
     timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS,
   };
 }
@@ -960,44 +732,12 @@ function buildExtractionMessages(
 }
 
 function buildFollowupMessages(dream: DreamRecord, conversation: ChatMessage[], userMessage: string, isFinalResponse: boolean) {
-  const history = conversation
-    .slice(-10)
-    .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
-    .join('\n\n');
-
-  const system = `You are continuing a symbolic dream reflection.
-Be concise, grounded, and psychologically precise.
-Do not redo the full interpretation.
-${isFinalResponse
-  ? 'This is the final allowed assistant reply. Conclude without inviting another question.'
-  : `End with exactly ONE reflective question selected through the reflective-question method. Never ask two questions in chat.
-Base it on what remains most psychologically alive and generative across the dream and latest exchange.
-Do not ask the user to repeat something already stated in the dream, initial reading, or conversation.
-Do not mechanically transfer the dream into waking life or turn peaceful, joyful, beautiful, vital, or coherent material into a hidden problem.`}`;
-
-  const user = `Dream title: ${dream.title || 'Untitled'}
-Dream date: ${dream.date}
-Dream text:
-${trim(dream.content, 1400)}
-
-Existing conversation:
-${history || '(none)'}
-
-New user message:
-${userMessage}`;
-
-  return {
-    task: 'chat_followup',
-    messages: [
-      { role: 'system' as const, content: system },
-      ...(!isFinalResponse
-        ? [{ role: 'system' as const, content: REFLECTIVE_QUESTION_METHOD_PROMPT }]
-        : []),
-      { role: 'user' as const, content: user },
-    ],
-    temperature: 0.6,
-    tokenLimit: 900,
-  };
+  return buildChatFollowupRequest({
+    dream,
+    conversation,
+    userMessage,
+    isFinalResponse,
+  });
 }
 
 function buildEssayContext(entries: PatternEntry[], surface: 'period' | 'recent'): string {
@@ -1415,27 +1155,279 @@ export async function generateDreamInterpretation(params: {
   return { text: reflectionResult.text, extraction: extractionResult.extraction };
 }
 
+export type DreamReflectionEditorialArcResult = {
+  text: string;
+  cost: AiCallCost | null;
+  reflectiveQuestion: ReflectiveQuestionArtifactV11 | null;
+  questionOutcome: 'committed_question' | 'fallback' | 'omitted';
+  questionErrors: string[];
+  questionSource: 'generator' | 'repair' | 'fallback' | null;
+  questionMs: number;
+  questionCost: AiCallCost | null;
+};
+
+function resolveInitialQuestionLanguage(dreamContent: string): OneirosLanguageCode {
+  const languageContext = buildInitialReflectiveLanguageContext({
+    dreamContent,
+  });
+  return languageContext.expectedLanguageCode
+    ?? detectOneirosLanguageCode(dreamContent)
+    ?? 'en';
+}
+
+function readKillSwitchEnv(name: string): string | undefined {
+  try {
+    const deno = (globalThis as {
+      Deno?: { env?: { get?: (key: string) => string | undefined } };
+    }).Deno;
+    const fromDeno = deno?.env?.get?.(name);
+    if (typeof fromDeno === 'string') return fromDeno;
+  } catch {
+    // Edge and Node both need a kill switch; ignore missing Deno.
+  }
+  try {
+    return (globalThis as { process?: { env?: Record<string, string | undefined> } })
+      .process?.env?.[name];
+  } catch {
+    return undefined;
+  }
+}
+
+async function generateProductionReflectiveQuestion(params: {
+  authHeader: string;
+  dream: DreamRecord;
+  generatorQuestion: string | null;
+  depth: 'quick' | 'standard' | 'advanced';
+  outputLanguage: OneirosLanguageCode;
+}): Promise<{
+  artifact: ReflectiveQuestionArtifactV11;
+  outcome: 'committed_question' | 'fallback';
+  errors: string[];
+  source: 'generator' | 'repair' | 'fallback';
+  questionMs: number;
+  cost: AiCallCost | null;
+}> {
+  const createdAt = new Date().toISOString();
+  const questionMode = mapReadingDepthToProductionQuestionMode(params.depth);
+  const startedAt = Date.now();
+  let pipelineCost: AiCallCost | null = null;
+  const addCost = (cost: AiCallCost | null) => {
+    if (!cost) return;
+    if (!pipelineCost) {
+      pipelineCost = { ...cost };
+      return;
+    }
+    pipelineCost = {
+      ...pipelineCost,
+      inputTokens: (pipelineCost.inputTokens ?? 0) + (cost.inputTokens ?? 0),
+      outputTokens: (pipelineCost.outputTokens ?? 0) + (cost.outputTokens ?? 0),
+      totalTokens: (pipelineCost.totalTokens ?? 0) + (cost.totalTokens ?? 0),
+      estimatedUsd: typeof pipelineCost.estimatedUsd === 'number' && typeof cost.estimatedUsd === 'number'
+        ? pipelineCost.estimatedUsd + cost.estimatedUsd
+        : pipelineCost.estimatedUsd ?? cost.estimatedUsd,
+    };
+  };
+
+  const result = await resolveProductionReflectiveQuestion({
+    generatorQuestion: params.generatorQuestion,
+    depth: params.depth,
+    outputLanguage: params.outputLanguage,
+  }, {
+    runIntegrityGate: async (question) => {
+      const payload = await invokeOpenAiProxy({
+        authHeader: params.authHeader,
+        task: QUESTION_INTEGRITY_GATE_TASK,
+        messages: buildQuestionIntegrityGateMessages({
+          dream: params.dream.content,
+          candidateQuestion: question,
+          outputLanguage: params.outputLanguage,
+          questionMode,
+        }),
+        temperature: QUESTION_INTEGRITY_GATE_TEMPERATURE,
+        tokenLimit: QUESTION_INTEGRITY_GATE_TOKEN_LIMIT,
+        responseFormat: buildQuestionIntegrityGateResponseFormat(),
+        timeoutMs: 30000,
+      });
+      addCost(aiCallCostFromPayload(payload));
+      const parsed = parseQuestionIntegrityGateResult(extractContent(payload));
+      return parsed.ok ? parsed.data : null;
+    },
+    runPremiseCheck: async (question) => {
+      const payload = await invokeOpenAiProxy({
+        authHeader: params.authHeader,
+        task: QUESTION_PREMISE_CHECK_TASK,
+        messages: buildQuestionPremiseCheckMessages({
+          dream: params.dream.content,
+          question,
+          outputLanguage: params.outputLanguage,
+        }),
+        temperature: QUESTION_PREMISE_CHECK_TEMPERATURE,
+        tokenLimit: QUESTION_PREMISE_CHECK_TOKEN_LIMIT,
+        responseFormat: buildQuestionPremiseCheckResponseFormat(),
+        timeoutMs: 30000,
+      });
+      addCost(aiCallCostFromPayload(payload));
+      const parsed = parseQuestionPremiseCheckResult(extractContent(payload));
+      if (!parsed.ok) return null;
+      return { pass: parsed.data.decision === 'PASS' };
+    },
+    runRepair: async (question, violations) => {
+      const payload = await invokeOpenAiProxy({
+        authHeader: params.authHeader,
+        task: QUESTION_REPAIR_TASK,
+        messages: buildQuestionRepairMessages({
+          dream: params.dream.content,
+          rejectedQuestion: question,
+          violations,
+          outputLanguage: params.outputLanguage,
+          questionMode,
+        }),
+        temperature: QUESTION_REPAIR_TEMPERATURE,
+        tokenLimit: QUESTION_REPAIR_TOKEN_LIMIT,
+        responseFormat: buildQuestionRepairResponseFormat(),
+        timeoutMs: 30000,
+      });
+      addCost(aiCallCostFromPayload(payload));
+      const parsed = parseQuestionRepairResult(extractContent(payload));
+      return parsed.ok ? parsed.data.question : null;
+    },
+  });
+
+  const questionMs = Date.now() - startedAt;
+  const artifact = createProductionQuestionArtifact({
+    id: crypto.randomUUID(),
+    createdAt,
+    question: result.question,
+    languageCode: result.languageCode,
+    depth: mapQuestionModeToArtifactDepth(result.questionMode),
+    source: result.source,
+    questionMode: result.questionMode,
+    generatorGateDecision: result.generatorGateDecision,
+    repairGateDecision: result.repairGateDecision,
+    generatorPremiseDecision: result.generatorPremiseDecision,
+    repairPremiseDecision: result.repairPremiseDecision,
+    gateViolationCategories: result.gateViolationCategories,
+  });
+  const telemetry = productionPipelineTelemetry(result);
+  console.log('[billing-ai] reflective question production', {
+    methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
+    sourceEvent: telemetry.sourceEvent,
+    source: result.source,
+    language: telemetry.language,
+    readingMode: params.depth,
+    questionMode: telemetry.question_mode,
+    generatorGateDecision: result.generatorGateDecision,
+    repairGateDecision: result.repairGateDecision,
+    generatorPremiseDecision: result.generatorPremiseDecision,
+    repairPremiseDecision: result.repairPremiseDecision,
+    gateViolationCategories: telemetry.gate_violation_categories,
+    gateCallCount: result.gateCallCount,
+    repairCallCount: result.repairCallCount,
+    premiseCallCount: result.premiseCallCount,
+    questionMs,
+    estimatedUsd: pipelineCost?.estimatedUsd ?? null,
+  });
+  return {
+    artifact,
+    outcome: result.source === 'fallback' ? 'fallback' : 'committed_question',
+    errors: [],
+    source: result.source,
+    questionMs,
+    cost: pipelineCost,
+  };
+}
+
+function finalizeSameCallReading(params: {
+  content: string;
+  cost: AiCallCost | null;
+}): { text: string; question: string | null; cost: AiCallCost | null } {
+  const split = splitSameCallReadingAndQuestion(params.content);
+  const reading = split.reading.trim();
+  if (!reading) {
+    throw new HttpError(502, 'AI proxy returned empty reading');
+  }
+  return {
+    text: reading,
+    question: split.question,
+    cost: params.cost,
+  };
+}
+
 export async function generateDreamReflectionWithCost(params: {
   authHeader: string;
   dream: DreamRecord;
   depth: 'quick' | 'standard' | 'advanced';
   onProgress?: ReflectionProgressCallback;
-}): Promise<{ text: string; cost: AiCallCost | null }> {
-  const request = buildReflectionMessages(params.dream, params.depth);
-  if (params.onProgress) {
-    return invokeOpenAiProxyStream({
-      authHeader: params.authHeader,
-      ...request,
-      onProgress: params.onProgress,
-    });
+}): Promise<DreamReflectionEditorialArcResult> {
+  const outputLanguage = resolveInitialQuestionLanguage(params.dream.content);
+  const killSwitchOn = isReflectiveQuestionKillSwitchEnabled({
+    [REFLECTIVE_QUESTION_KILL_SWITCH_ENV]: readKillSwitchEnv(
+      REFLECTIVE_QUESTION_KILL_SWITCH_ENV
+    ),
+  });
+  const request = killSwitchOn
+    ? { ...buildInitialReflectionRequest(params.dream, params.depth), timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS }
+    : buildReflectionMessages(params.dream, params.depth, outputLanguage);
+
+  const onProgress = params.onProgress
+    ? async (progress: Parameters<NonNullable<ReflectionProgressCallback>>[0]) => {
+        await params.onProgress?.({
+          ...progress,
+          text: visibleSameCallReading(progress.text),
+        });
+      }
+    : undefined;
+
+  const streamedOrComplete = onProgress
+    ? await invokeOpenAiProxyStream({
+        authHeader: params.authHeader,
+        ...request,
+        onProgress,
+      })
+    : await invokeOpenAiProxy({
+        authHeader: params.authHeader,
+        ...request,
+      }).then((payload) => ({
+        content: extractContent(payload),
+        cost: aiCallCostFromPayload(payload),
+      }));
+
+  const reading = finalizeSameCallReading({
+    content: streamedOrComplete.content,
+    cost: streamedOrComplete.cost,
+  });
+
+  if (killSwitchOn) {
+    return {
+      text: reading.text,
+      cost: reading.cost,
+      reflectiveQuestion: null,
+      questionOutcome: 'omitted',
+      questionErrors: ['kill_switch'],
+      questionSource: null,
+      questionMs: 0,
+      questionCost: null,
+    };
   }
 
-  const reflectionPayload = await invokeOpenAiProxy({
+  const produced = await generateProductionReflectiveQuestion({
     authHeader: params.authHeader,
-    ...request,
+    dream: params.dream,
+    generatorQuestion: reading.question,
+    depth: params.depth,
+    outputLanguage,
   });
-  const text = stripEndMarker(extractContent(reflectionPayload), END_MARKER_DREAM_READING);
-  return { text, cost: aiCallCostFromPayload(reflectionPayload) };
+
+  return {
+    text: reading.text,
+    cost: reading.cost,
+    reflectiveQuestion: produced.artifact,
+    questionOutcome: produced.outcome,
+    questionErrors: produced.errors,
+    questionSource: produced.source,
+    questionMs: produced.questionMs,
+    questionCost: produced.cost,
+  };
 }
 
 export async function generateDreamReflection(params: {
@@ -1445,6 +1437,245 @@ export async function generateDreamReflection(params: {
 }): Promise<string> {
   const result = await generateDreamReflectionWithCost(params);
   return result.text;
+}
+
+export type ReflectiveQuestionGenerationResult = {
+  artifact: ReflectiveQuestionArtifact;
+  cost: AiCallCost | null;
+  questionMs: number;
+  outcome: ReflectiveQuestionOutcome;
+  diagnostics: ReflectiveQuestionSinglePassResult | null;
+};
+
+async function generateReflectiveQuestionArtifactInternal(params: {
+  authHeader: string;
+  dream: DreamRecord;
+  initialReadingContext?: string;
+  chatAnswerContext?: string;
+  surface: ReflectiveQuestionSurface;
+  conversation?: ChatMessage[];
+  latestUserMessage?: string;
+  isFinalResponse?: boolean;
+}): Promise<ReflectiveQuestionGenerationResult> {
+  const createdAt = new Date().toISOString();
+  const abstain = (
+    reason: NonNullable<ReflectiveQuestionArtifact['abstainReason']>,
+    outcome: ReflectiveQuestionOutcome,
+    cost: AiCallCost | null = null,
+    questionMs = 0,
+    diagnostics: ReflectiveQuestionSinglePassResult | null = null
+  ): ReflectiveQuestionGenerationResult => ({
+    artifact: createReflectiveQuestionArtifact({
+      id: crypto.randomUUID(),
+      surface: params.surface,
+      createdAt,
+      abstainReason: reason,
+    }),
+    cost,
+    questionMs,
+    outcome,
+    diagnostics,
+  });
+
+  if (params.isFinalResponse) {
+    return abstain('final_chat_reply', 'semantic_abstention');
+  }
+
+  const evidenceSpans = buildDreamEvidenceSpans(params.dream.content);
+  if (evidenceSpans.length === 0) {
+    return abstain(
+      'deterministic_validation_rejection',
+      'deterministic_validation_rejection'
+    );
+  }
+  const userEvidenceSpans = params.surface === 'chat'
+    ? buildUserEvidenceSpans(
+        params.conversation ?? [],
+        params.latestUserMessage
+      )
+    : [];
+  const validEvidenceIds = new Set([
+    ...evidenceSpans.map((span) => span.id),
+    ...userEvidenceSpans.map((span) => span.id),
+  ]);
+  const languageContext = params.surface === 'chat'
+    ? buildChatReflectiveLanguageContext({
+        dreamContent: params.dream.content,
+        conversation: params.conversation ?? [],
+        latestUserMessage: params.latestUserMessage,
+      })
+    : buildInitialReflectiveLanguageContext({
+        dreamContent: params.dream.content,
+      });
+
+  const questionStartedAt = Date.now();
+  let questionPayload: Record<string, unknown>;
+  try {
+    questionPayload = await invokeOpenAiProxy({
+      authHeader: params.authHeader,
+      task: 'reflective_question_generate',
+      messages: buildReflectiveQuestionMessages({
+        surface: params.surface,
+        languageContext,
+        evidenceSpans,
+        userEvidenceSpans,
+        initialReadingContext: params.initialReadingContext,
+        chatAnswerContext: params.chatAnswerContext,
+        conversation: params.conversation,
+        latestUserMessage: params.latestUserMessage,
+      }),
+      temperature: REFLECTIVE_QUESTION_TEMPERATURE,
+      tokenLimit: REFLECTIVE_QUESTION_TOKEN_LIMIT,
+      responseFormat: buildReflectiveQuestionResponseFormat(),
+      timeoutMs: 30000,
+    });
+  } catch (error) {
+    console.error('[billing-ai] reflective question provider unavailable', {
+      surface: params.surface,
+      message: error instanceof Error ? error.message : 'Unknown question error',
+      questionMs: Date.now() - questionStartedAt,
+    });
+    return abstain(
+      'provider_failure',
+      'provider_failure',
+      null,
+      Date.now() - questionStartedAt
+    );
+  }
+
+  const questionMs = Date.now() - questionStartedAt;
+  const questionCost = aiCallCostFromPayload(questionPayload);
+  let parsed: ReturnType<typeof parseReflectiveQuestionResult>;
+  try {
+    parsed = parseReflectiveQuestionResult(
+      extractContent(questionPayload),
+      validEvidenceIds,
+      languageContext
+    );
+  } catch {
+    console.warn('[billing-ai] reflective question content unavailable', {
+      surface: params.surface,
+      questionMs,
+    });
+    return abstain(
+      'deterministic_validation_rejection',
+      'deterministic_validation_rejection',
+      questionCost,
+      questionMs
+    );
+  }
+  if (!parsed.ok) {
+    const outcome: ReflectiveQuestionOutcome = parsed.errors.includes('wrong_language')
+      ? 'language_mismatch'
+      : 'deterministic_validation_rejection';
+    console.warn('[billing-ai] reflective question rejected', {
+      surface: params.surface,
+      outcome,
+      errorCodes: parsed.errors.slice(0, 8),
+      questionMs,
+    });
+    return abstain(outcome, outcome, questionCost, questionMs);
+  }
+
+  if (parsed.data.decision === 'abstain') {
+    console.log('[billing-ai] reflective question semantic abstention', {
+      surface: params.surface,
+      questionMs,
+    });
+    return abstain(
+      'semantic_abstention',
+      'semantic_abstention',
+      questionCost,
+      questionMs,
+      parsed.data
+    );
+  }
+
+  const previouslyAskedQuestions = (params.conversation ?? []).flatMap((message) =>
+    message.role === 'assistant' &&
+    message.reflectiveQuestion?.status === 'question' &&
+    typeof message.reflectiveQuestion.question === 'string'
+      ? [message.reflectiveQuestion.question]
+      : []
+  );
+  const commitErrors = validateReflectiveQuestionCommit(
+    parsed.data,
+    { previouslyAskedQuestions }
+  );
+  if (commitErrors.length > 0) {
+    console.warn('[billing-ai] reflective question deterministic commit rejected', {
+      surface: params.surface,
+      errorCodes: commitErrors.slice(0, 8),
+      questionMs,
+    });
+    return abstain(
+      'deterministic_validation_rejection',
+      'deterministic_validation_rejection',
+      questionCost,
+      questionMs,
+      parsed.data
+    );
+  }
+
+  const artifact = createReflectiveQuestionArtifact({
+    id: crypto.randomUUID(),
+    surface: params.surface,
+    createdAt,
+    question: parsed.data.question,
+    languageCode: parsed.data.output_language,
+    evidenceIds: parsed.data.evidence_ids,
+  });
+  console.log('[billing-ai] reflective question committed', {
+    surface: params.surface,
+    outcome: 'committed_question',
+    evidenceCount: artifact.evidenceIds.length,
+    questionMs,
+    aiCost: {
+      provider: questionCost?.provider ?? null,
+      model: questionCost?.model ?? null,
+      inputTokens: questionCost?.inputTokens ?? 0,
+      outputTokens: questionCost?.outputTokens ?? 0,
+      estimatedUsd: questionCost?.estimatedUsd ?? null,
+    },
+  });
+  return {
+    artifact,
+    cost: questionCost,
+    questionMs,
+    outcome: 'committed_question',
+    diagnostics: parsed.data,
+  };
+}
+
+/**
+ * The reflective-question subsystem must never turn a successful reading or
+ * chat answer into a failed product operation. Expected provider/schema
+ * failures are handled at their stage above; this outer boundary catches any
+ * remaining implementation fault and records a quiet, typed fallback.
+ */
+export async function generateReflectiveQuestionArtifact(
+  params: Parameters<typeof generateReflectiveQuestionArtifactInternal>[0]
+): Promise<ReflectiveQuestionGenerationResult> {
+  try {
+    return await generateReflectiveQuestionArtifactInternal(params);
+  } catch (error) {
+    console.error('[billing-ai] reflective question subsystem unavailable', {
+      surface: params.surface,
+      errorType: error instanceof Error ? error.name : 'UnknownError',
+    });
+    return {
+      artifact: createReflectiveQuestionArtifact({
+        id: crypto.randomUUID(),
+        surface: params.surface,
+        createdAt: new Date().toISOString(),
+        abstainReason: 'provider_failure',
+      }),
+      cost: null,
+      questionMs: 0,
+      outcome: 'provider_failure',
+      diagnostics: null,
+    };
+  }
 }
 
 export async function generateDreamExtractionWithCost(params: {
@@ -2032,16 +2263,29 @@ export async function generateFollowupReply(params: {
   assistantRepliesUsed: number;
   assistantRepliesLimit: number;
 }): Promise<string> {
+  const request = buildFollowupMessages(
+    params.dream,
+    params.conversation,
+    params.userMessage,
+    params.assistantRepliesUsed + 1 >= params.assistantRepliesLimit
+  );
   const payload = await invokeOpenAiProxy({
     authHeader: params.authHeader,
-    ...buildFollowupMessages(
-      params.dream,
-      params.conversation,
-      params.userMessage,
-      params.assistantRepliesUsed + 1 >= params.assistantRepliesLimit
-    ),
+    ...request,
   });
-  return extractContent(payload);
+  const parsed = parseReflectiveDialogueAnswer(
+    extractContent(payload),
+    request.reflectiveLanguageContext!
+  );
+  if (!parsed.ok) {
+    throw new HttpError(502, 'Reflective dialogue response validation failed', {
+      failureCode: 'reflective_dialogue_schema_invalid',
+      errorCodes: parsed.errors.slice(0, 8),
+    });
+  }
+  return stripTrailingReflectiveDialogueQuestion(
+    resolveReflectiveDialogueAnswer(parsed.data)
+  );
 }
 
 type EssayProxyRequest = {

@@ -8,10 +8,12 @@ import {
   CompletedVoiceTranscript,
   VoiceComposerState,
   VoiceTranscriptionTarget,
+  type ChatMessage,
 } from '../types/dream';
 import type { RecentSequenceReflection } from '../types/insights';
 import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
 import { normalizeAmplifications } from '../ai/mythicEchoes';
+import { normalizeReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
 import { logError, logEvent } from './logger';
 
 const VOICE_STATUSES = new Set([
@@ -359,8 +361,26 @@ export class LocalStorage {
   private static normalizeInterpretation(raw: Interpretation): Interpretation {
     const archetypes = normalizeArchetypalEchoes(raw.archetypes ?? []);
     const amplifications = normalizeAmplifications(raw.amplifications ?? []);
+    const messages = Array.isArray(raw.messages)
+      ? raw.messages.flatMap((message): ChatMessage[] => {
+          if (!message || typeof message !== 'object') return [];
+          if (message.role !== 'user' && message.role !== 'assistant') return [];
+          if (!message.id || !message.content?.trim() || !message.timestamp) return [];
+          const reflectiveQuestion = normalizeReflectiveQuestionArtifact(
+            message.reflectiveQuestion
+          );
+          return [{
+            id: message.id,
+            role: message.role,
+            content: message.content,
+            timestamp: message.timestamp,
+            ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
+          }];
+        })
+      : [];
     return {
       ...raw,
+      messages,
       archetypes,
       amplifications: amplifications.length > 0 ? amplifications : undefined,
     };

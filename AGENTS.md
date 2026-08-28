@@ -135,15 +135,17 @@ Canonical docs:
 
 ## Reflective-question production must not drift
 
-Remote `ai-entitlements-gateway` currently serves recovered `reflective-question-psychological-aliveness-v1.4.0` SHA `4885e351…`. Canonical runtime prompt is `src/ai/reflectiveQuestionPrompt.ts`. Local Oneiros Reader v1.4.0 SHA `0ea4b9a2…` is `DO NOT DEPLOY`.
+Product invariant: **every successful initial reading always has exactly one reflective question.** Production orchestration is `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…` (`APPROVED_REFLECTIVE_QUESTION_PRODUCTION`). Frozen Reader `oneiros-dream-reflection-v3.1.0-candidate` plus same-call Generator v1.2 (`4506c898…`) → Integrity Gate (`c1d8090f…`) → Premise Check (`ceca4568…`) → at most one Repair (`0859fd54…`) → Gate → Premise Check → deterministic localized fallback. Schema `11` new writes; schemas 1–10 remain readable. Depth maps `quick→core`, `standard→core`, `advanced→deeper`. Kill switch `ONEIROS_REFLECTIVE_QUESTION_KILL_SWITCH` (default off) is the emergency omit path; otherwise never silence and never leak a rejected original/repaired question. Chat remains Dialogue `1.9.1` plus optional v5 questions, final none. Exploring `chat_followup` stays `gpt-5.4-mini`. Do not mutate Generator, Gate, Repair, or Premise Check prompts. Do not reopen question-grammar R&D. Standalone component method IDs stay denied for deploy-as-the-production-method. Closed historical R&D (Director/Composer, editorial arc, Inviter v1/v2.0.1) is not a selectable production identity. Canonical sources: `src/ai/reflectiveQuestionPipeline.ts`, `src/ai/questionPremiseCheck.ts`, `src/ai/dreamReflectionPrompt.ts`, `docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`, `docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`, `docs/REFLECTIVE_QUESTIONS_V2_ARCHITECTURE.md`.
 
 **Whenever you deploy** `ai-entitlements-gateway`:
 
 1. Use `npm run deploy:ai-entitlements-gateway` only. Do not run raw `supabase functions deploy ai-entitlements-gateway`.
 2. The wrapper fails closed unless the bundled reflective-question method ID + prompt SHA are explicitly approved.
 3. Denied candidates cannot be approved with an env override.
-4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` or `src/ai/rd/` into client or gateway runtime.
-5. Candidate B SHA `08cd3eaf…` is the only active reflective-question R&D base. Closed experiments stay archived. Do not add flags to the archived mega-runner.
+4. Do not import `src/ai/reflectiveQuestionProductionHold.ts` into client or gateway request paths. Client must not import `src/ai/rd/`. Gateway `_shared/billing-ai.ts` may reach frozen Generator/Gate/Repair only through `src/ai/reflectiveQuestionPipeline.ts`. Inviter/C/remainder/hold stay out of runtime.
+5. Candidate B SHA `08cd3eaf…` is the frozen reflective-question research base. Candidate C SHA `c2b0f766…`, remainder-first SHA `a37426d1…`, post-reading Inviter v1 SHA `70c533e5…`, and Post-Jungian Inviter v2.0.1 SHA `09045bf1…` are closed offline experiments. V2.0.1 failed its blind human Gate at `0 PASS / 1 BORDERLINE / 7 FAIL`; pre-gate `14b742db…` is superseded without a paid call. Closed experiments stay archived. Do not add flags to the archived mega-runner.
+6. Preserve the post-reading question card and never render a question inside reading prose. New writes are always schema-11 `status: "question"` (generator, repair, or localized fallback). Historical `no_question` artifacts remain readable. Keep D# evidence boundary, fail-safe reading salvage, Continue Exploring without forcing an answer, and the post-typing card contract.
+7. Keep `APPROVED_REFLECTIVE_QUESTION_PRODUCTION` on `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…`. V2 SHA `6cd304e1…`, post-reading Inviter SHA `70c533e5…`, Post-Jungian Inviter v2 SHA `09045bf1…`, and editorial v1 SHA `57a066e5…` all failed their human gates and remain denied.
 
 Canonical docs:
 

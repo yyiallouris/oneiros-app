@@ -24,3 +24,4 @@ export { SectionTitleWithInfo } from './SectionTitleWithInfo';
 export { SymbolInfoModal } from './SymbolInfoModal';
 export { DesignExportForeground } from './DesignExportForeground';
 export { WebContentShell } from './WebContentShell';
+export { ReflectiveQuestionCard } from './ReflectiveQuestionCard';

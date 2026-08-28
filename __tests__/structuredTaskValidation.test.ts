@@ -94,17 +94,44 @@ describe('structuredTaskValidation', () => {
       'conversation_element_update',
       JSON.stringify({
         status: 'updated',
-        archetypes: ['Shadow'],
         affects: [],
         motifs: [],
         relational_dynamics: [],
         thresholds: [],
         central_conflicts: [],
         core_mode: null,
-        amplifications: [],
       })
     );
     expect(result.ok).toBe(true);
+  });
+
+  it('drops archetype and myth injection from conversation updates', () => {
+    const result = validateStructuredTaskContent(
+      'conversation_element_update',
+      JSON.stringify({
+        status: 'updated',
+        affects: ['unease'],
+        motifs: [],
+        relational_dynamics: [],
+        thresholds: [],
+        central_conflicts: [],
+        core_mode: 'Core Tension',
+        archetypes: ['Shadow'],
+        amplifications: [{ title: 'Invented myth', resonance: 'Open-world drift' }],
+      })
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data).toEqual({
+      status: 'updated',
+      affects: ['unease'],
+      motifs: [],
+      relational_dynamics: [],
+      thresholds: [],
+      central_conflicts: [],
+      core_mode: 'Core Tension',
+    });
   });
 
   it('accepts rich archetypal/mythic echo objects and rejects bare archetype tags', () => {

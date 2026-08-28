@@ -23,6 +23,7 @@ import {
 } from './pendingReflectionJobService';
 import { logInfo, logWarn } from './logger';
 import type { Dream, Interpretation } from '../types/dream';
+import type { ReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
 import type { GatewayAction } from '../billing/types';
 import type { PatternInsightDreamEntry } from './ai';
 
@@ -115,6 +116,7 @@ type GatewayFollowupResponse = {
   status: 'committed';
   interpretation_id: string;
   assistant_reply: string;
+  reflective_question?: ReflectiveQuestionArtifact;
 };
 
 type GatewayArtifactResponse = {

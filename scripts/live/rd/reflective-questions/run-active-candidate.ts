@@ -1,57 +1,34 @@
 /**
- * Thin current reflective-question R&D runner.
+ * Reflective-question R&D runner — CLOSED FOR CURRENT ARCHITECTURE.
  *
- * Selects only the active research base (Candidate B). Closed experiment
- * env flags are rejected here. Historical replay stays in
- * scripts/live/archive/reflective-questions/run-reflective-question-golden-set.ts.
- *
- * This pass does not generate. Future Candidate C should use this runner,
- * not the archived multiplexer.
+ * Do not run paid generation. Frozen references only.
+ * Canonical record: docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md
  */
+import { ARCHIVED_REFLECTIVE_QUESTION_EXPERIMENT_ENV_FLAGS } from '../../../../src/ai/rd/reflective-questions/archivedFlags';
 import {
   ACTIVE_REFLECTIVE_QUESTION_RD_SHA256,
   ACTIVE_REFLECTIVE_QUESTION_RD_STATUS,
-  LANGUAGE_OPERATOR_CANDIDATE_B_FIXTURE,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_ID,
-  REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256,
 } from '../../../../src/ai/rd/reflective-questions/active';
-import { ARCHIVED_REFLECTIVE_QUESTION_EXPERIMENT_ENV_FLAGS } from '../../../../src/ai/rd/reflective-questions/archivedFlags';
 
 function main(): void {
-  const setFlags = ARCHIVED_REFLECTIVE_QUESTION_EXPERIMENT_ENV_FLAGS.filter(
-    (flag) => process.env[flag] && process.env[flag] !== '0'
+  const hijack = ARCHIVED_REFLECTIVE_QUESTION_EXPERIMENT_ENV_FLAGS.find(
+    (flag) => process.env[flag] === '1'
   );
-  if (setFlags.length > 0) {
-    throw new Error(
-      [
-        'Closed reflective-question experiment flags are not current R&D selection.',
-        `Rejected: ${setFlags.join(', ')}`,
-        'Historical replay only: scripts/live/archive/reflective-questions/run-reflective-question-golden-set.ts',
-        'Current R&D identity is Candidate B via this runner.',
-      ].join('\n')
-    );
+  if (hijack) {
+    process.stderr.write(`Closed experiment flag ${hijack} is not selectable.\n`);
+    process.exitCode = 1;
+    return;
   }
-
-  if (REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256 !== ACTIVE_REFLECTIVE_QUESTION_RD_SHA256) {
-    throw new Error('Active reflective-question R&D SHA drifted from Candidate B freeze.');
-  }
-
-  console.log(
+  process.stderr.write(
     [
-      'Active reflective-question R&D runner (no generation in cleanup pass #2).',
-      `Status: ${ACTIVE_REFLECTIVE_QUESTION_RD_STATUS}`,
-      `ID: ${REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_ID}`,
-      `SHA: ${REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256}`,
-      `Fixture: ${LANGUAGE_OPERATOR_CANDIDATE_B_FIXTURE}`,
-      'Future Candidate C should replace active.ts, not the archived mega-runner.',
+      'Reflective-question R&D is CLOSED FOR CURRENT ARCHITECTURE.',
+      `status=${ACTIVE_REFLECTIVE_QUESTION_RD_STATUS}`,
+      `frozen_generator_sha=${ACTIVE_REFLECTIVE_QUESTION_RD_SHA256}`,
+      'Do not run paid generation. See docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md',
+      '',
     ].join('\n')
   );
+  process.exitCode = 1;
 }
 
-try {
-  main();
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exit(1);
-}
+main();

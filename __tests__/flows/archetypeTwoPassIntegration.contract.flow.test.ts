@@ -28,12 +28,15 @@ describe('two-pass archetype production integration contract', () => {
     expect(gatewayReadme).toMatch(/never fall back to legacy monolithic archetypes/);
   });
 
-  it('keeps archetypes frozen after the raw-dream extraction pass and out of follow-up chat updates', () => {
+  it('keeps archetypes and amplifications frozen after raw-dream extraction and visible downstream', () => {
     const clientAi = read('src/services/ai.ts');
     const interpretationDoc = read('documentation/architecture-interpretation.md');
 
     expect(clientAi).toContain('const archetypes = normalizeArchetypalEchoes(current.archetypes, MAX_ARCHETYPAL_ECHOES);');
-    expect(clientAi).toMatch(/Do NOT return or revise archetypes in follow-up chat for v1/);
+    expect(clientAi).toMatch(/Do NOT return or revise archetypes in follow-up chat/);
+    expect(clientAi).toMatch(/Do NOT return or revise amplifications/);
+    expect(clientAi).toContain('amplifications: normalizeAmplifications(current.amplifications, MAX_MYTHIC_ECHOES)');
+    expect(interpretationDoc).toMatch(/Persisted `archetypes` and closed-catalog `amplifications` are extracted once/);
     expect(interpretationDoc).toMatch(/are not revised by follow-up chat/);
   });
 });
