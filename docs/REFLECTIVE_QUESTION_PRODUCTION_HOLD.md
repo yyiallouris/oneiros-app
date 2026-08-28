@@ -1,9 +1,24 @@
 # Reflective-question production identity
 
 **Updated:** 2026-08-29
-**Status:** production orchestration approved. Product invariant: every successful initial reading always has exactly one question. Identity: `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea`. Post-Jungian Inviter v2.0.1 (`09045bf1…`) failed its 2026-08-28 blind human Gate at `0 CLEAR PASS / 1 BORDERLINE / 7 FAIL`. Editorial-arc v2 (`6cd304e1…`) and predecessors remain denied. Chat remains Dialogue `1.9.1` plus optional v5 questions. Deploy remains fail-closed against this exact orchestration SHA; remote gateway v105 remains predecessor provenance; essays stay `2.0.3-phase1`.
+**Status:** launch production approved. Same-call Reader + questions. Identity: `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c`. Composer, v1.2 orchestration, Integrity Gate, Repair, and Premise Check are **CLOSED R&D — not production**. Post-Jungian Inviter v2.0.1 (`09045bf1…`), editorial-arc v2 (`6cd304e1…`), and predecessors remain denied. Chat is `oneiros-followup-chat-v2.0.0`. Deploy remains fail-closed against this exact SHA; remote gateway v105 remains predecessor provenance; essays stay `2.0.3-phase1` with exactly two questions.
 
-## Approved production orchestration v1.0.0
+## Approved launch same-call v1.0.0
+
+| Field | Value |
+|---|---|
+| Method | `oneiros-same-call-reflective-questions-v1.0.0` |
+| Reader | `oneiros-dream-reflection-v3.2.0` |
+| Chat | `oneiros-followup-chat-v2.0.0` |
+| Topology | one Reader/chat/essay call; no second question inference |
+| Cardinality | Quick 1; Standard/Advanced 2; chat open 1 / close 0; essays 2 |
+| Safeguards | no manufactured either/or; no missing footage; interpretation is not dream fact |
+| Extraction | deterministic markdown parse → `reflectiveQuestions: string[]` |
+| Bundle SHA-256 | `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c` |
+
+Canonical source: `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`. Closed R&D record: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
+
+## Historical production orchestration v1.0.0 — CLOSED R&D
 
 | Field | Value |
 |---|---|
@@ -18,9 +33,9 @@
 | Depth map | `quick→core`, `standard→core`, `advanced→deeper` |
 | Reader | frozen `oneiros-dream-reflection-v3.1.0-candidate` |
 | Bundle SHA-256 | `fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea` |
-| Bounded validation | 2026-08-28T21-54-49Z: original 17/24, repair 6/24, fallback 1/24; HOME Standard did not leak |
+| Status | denied for launch; not runtime |
 
-Canonical source: `src/ai/reflectiveQuestionPipeline.ts`. Premise Check: `src/ai/questionPremiseCheck.ts`. R&D FAIL + launch addendum: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
+Canonical museum source: `src/ai/reflectiveQuestionPipeline.ts`. Premise Check: `src/ai/questionPremiseCheck.ts`.
 
 ## Historical Composer v1.1 — not production
 
@@ -34,9 +49,9 @@ Canonical source: `src/ai/reflectiveQuestionPipeline.ts`. Premise Check: `src/ai
 
 Canonical museum source: `src/ai/reflectiveQuestionComposer.ts`. Record: [`ONEIROS_REFLECTIVE_QUESTION_COMPOSER_V1_RD_2026-08-28.md`](./ONEIROS_REFLECTIVE_QUESTION_COMPOSER_V1_RD_2026-08-28.md).
 
-## Frozen same-call Generator + Integrity Gate + Repair — production components, prompts frozen
+## Frozen same-call Generator + Integrity Gate + Repair — CLOSED R&D
 
-v1.0.0 SHA `47db8084…` won the 2026-08-28 A/B: reading PASS, questions `2 GOLD / 2 SHIP / 3 WEAK / 1 FAIL` vs separate-call brutal-simple Core. v1.1.0 SHA `8e0edada…` is the frozen comparison identity. v1.2.0 (`oneiros-same-call-minimal-v1.2.0-candidate`, SHA `4506c8981c1e0f38edcb641bf89e59126bfdafe64a3adff99a94a2d1a12e81f7`) won the paired Standard/CORE gate 8/8 and is frozen exactly as tested. Prompt R&D on System 4 is STOP. Integrity Gate v1 (`oneiros-question-integrity-gate-v1.0.0-candidate`, SHA `c1d8090f…`) plus one Repair (`oneiros-question-repair-v1.0.0-candidate`, SHA `0859fd54…`) remain frozen after mechanical Phase 2 PASS 7/7 and editorial FAIL 16/24 GOLD+SHIP. Do not mutate Repair, Gate, or v1.2 System 4. They ship only as components of `oneiros-reflective-question-production-v1.0.0`, never as standalone deploy identities. Records: [`ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md`](./ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md), [`ONEIROS_QUESTION_INTEGRITY_GATE_V1_RD_2026-08-28.md`](./ONEIROS_QUESTION_INTEGRITY_GATE_V1_RD_2026-08-28.md), [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
+v1.0.0 SHA `47db8084…` won the 2026-08-28 A/B: reading PASS, questions `2 GOLD / 2 SHIP / 3 WEAK / 1 FAIL` vs separate-call brutal-simple Core. v1.1.0 SHA `8e0edada…` is the frozen comparison identity. v1.2.0 (`oneiros-same-call-minimal-v1.2.0-candidate`, SHA `4506c8981c1e0f38edcb641bf89e59126bfdafe64a3adff99a94a2d1a12e81f7`) won the paired Standard/CORE gate 8/8 and is frozen exactly as tested. Prompt R&D on System 4 is STOP. Integrity Gate v1 (`oneiros-question-integrity-gate-v1.0.0-candidate`, SHA `c1d8090f…`) plus one Repair (`oneiros-question-repair-v1.0.0-candidate`, SHA `0859fd54…`) remain frozen after mechanical Phase 2 PASS 7/7 and editorial FAIL 16/24 GOLD+SHIP. Do not mutate Repair, Gate, or v1.2 System 4. They ship only as frozen R&D evidence, never as standalone or launch deploy identities. Records: [`ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md`](./ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md), [`ONEIROS_QUESTION_INTEGRITY_GATE_V1_RD_2026-08-28.md`](./ONEIROS_QUESTION_INTEGRITY_GATE_V1_RD_2026-08-28.md), [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
 
 ## Denied Post-Jungian Inviter v2 — live Gate 1 failed
 

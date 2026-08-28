@@ -18,9 +18,8 @@ OpenAI or Anthropic.
 ## Request forwarding
 
 The proxy forwards OpenAI-compatible `response_format` when present. Metadata
-extraction and the two Reflective Questions v2 stages use this to request JSON
-responses from OpenAI. Reflective Dialogue v1.9.1 and Questions v5 send strict `json_schema`
-formats from `src/ai/reflectiveQuestionResponseFormat.ts`; Anthropic fallbacks
+extraction uses this to request JSON
+responses from OpenAI. Launch follow-up chat is prose (`oneiros-followup-chat-v2.0.0`) and does not send a question `json_schema`. Historical Dialogue / Questions v5 formats remain in `src/ai/reflectiveQuestionResponseFormat.ts` for archived R&D. Anthropic fallbacks
 still rely on the compact field contract in the prompt and are converted back
 into the OpenAI-compatible response shape. Gateway parsers and commit checks
 remain the final provider-neutral boundary.
@@ -92,11 +91,11 @@ can collect partial chunks and expose them through status polling.
 - Optional request flag **`disable_anthropic_fallback: true`** — skips Anthropic rescue for benchmark/diagnostic calls (used by global archetype primary-only rerun). Production traffic unchanged when omitted.
 
 Προεπιλογή στο repo (A/B-backed product mapping):
-- **`gpt-5.4-mini`** + fallback **`[claude-haiku-4-5]`** — `dream_extraction` (Fabric + Interpretive Echoes need mid-tier judgment), `chat_followup` (Dialogue v1.9.1 Exploring replies; do not route this to full GPT-5.4)
+- **`gpt-5.4-mini`** + fallback **`[claude-haiku-4-5]`** — `dream_extraction` (Fabric + Interpretive Echoes need mid-tier judgment), `chat_followup` (Exploring replies; do not route this to full GPT-5.4)
 - **requested model** + fallback **`[claude-haiku-4-5]`** — `dream_archetype_recognition` dedicated production discovery pass for persisted archetypes (default runner model `gpt-5.4-mini-2026-03-17`; final output still depends on adjudication)
 - **requested model** + fallback **`[claude-haiku-4-5]`** — `dream_archetype_adjudication` dedicated production contrastive pass for persisted archetypes (default runner model `gpt-5.4-mini-2026-03-17`; final saved `interpretation.archetypes` use only this adjudicated two-pass result)
 - **`gpt-5.4-nano`** + fallback **`[claude-haiku-4-5]`** — `conversation_element_update`, `semantic_grouping`
-- **`gpt-5.4`** + fallback **`[claude-sonnet-5, claude-haiku-4-5]`** — `interpretation_*` (frozen Reader + same-call Generator), `reflective_question_generate` (Repair and optional v5 chat question), `reflective_question_validate` (Integrity Gate + Premise Check), `pattern_insights*`
+- **`gpt-5.4`** + fallback **`[claude-sonnet-5, claude-haiku-4-5]`** — `interpretation_*` (same-call Reader + questions), `reflective_question_generate` / `reflective_question_validate` (archived R&D scripts only; not launch runtime), `pattern_insights*`
 
 Missing or unknown `task` is **rejected with HTTP 400** (no silent unrouted default). Live Regenerate still picks `interpretation_quick|standard|advanced` from the user’s depth setting; όλα πάνε σε `gpt-5.4` με Sonnet 5 fallback.
 

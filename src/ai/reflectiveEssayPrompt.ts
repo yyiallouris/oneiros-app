@@ -107,19 +107,14 @@ Compression and novelty:
 - Omit material that does not materially change the reading.`;
 
 const SHARED_QUESTION_RULES = `## Reflective Questions
-- Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field.
-- One strong question is complete.
-- Keep each question under 30 words.
-- Anchor each question in a concrete recurrence, contrast, shift, image, affect, atmosphere, relation, stance, absence, transformation, coherence, or unresolved pressure present across the supplied dreams.
-- Let the psychologically most alive unexplored field-level material determine the first question.
-- Do not assume that a meaningful sequence must contain conflict, blockage, deterioration, or unresolved tension.
-- Preserve the chosen field topology in the question.
-- Never use the question to create a cross-dream relation that the essay evidence does not support.
-- Do not ask the user to confirm the essay's interpretation.
-- Do not embed the answer inside the question.
-- Avoid forced analogies unless the dream material strongly supports the metaphor.
-- Questions invite noticing, not self-improvement.
-- No advice verbs such as try, practice, breathe, relax, focus, improve, or work on.`;
+Exactly 2 questions as markdown bullets.
+They may be observational, symbolic, relational, or somatic.
+Questions invite noticing, not self-improvement.
+No advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
+Do not ask the dreamer to rank, choose, or decide between field elements unless the supplied dreams explicitly contain that choice.
+Do not ask them to remember unreported footage.
+Do not state an inferred meaning as though the dreams literally established it.
+Do not use a question to invent a cross-dream relation the essay did not already support.`;
 
 const TECHNICAL_COMPLETION_REQUIREMENT = `Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -321,7 +316,7 @@ Keep only what is most psychologically alive or generative in the field and the 
 Each section must do a different job.
 Remove repeated formulations, secondary themes, decorative transitions, and recap language.
 Stay near the lower end of ${length.target} and below ${length.hardMaximum} words.
-Preserve the complete reflective-question section with exactly one question.
+Preserve the complete reflective-question section with exactly two questions.
 Never cut a sentence or question to satisfy the word limit.
 
 ${TECHNICAL_COMPLETION_REQUIREMENT}`;

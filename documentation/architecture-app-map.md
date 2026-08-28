@@ -13,7 +13,7 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 | Local data | `src/services/localStorage.ts` | AsyncStorage-only persistence and queues |
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
 | Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
-| AI | `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectionEditorialArc.ts`, `src/ai/reflectiveEvidence.ts`, `src/ai/reflectiveDialogueResponseFormat.ts`, `src/ai/reflectiveQuestionPrompt.ts`, `src/ai/reflectiveLanguage.ts`, `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Private-first initial `question | no_question` plus complete reading in one call, stream-safe BEGIN/END projection, schema-8 opening artifact, Dialogue `1.9.1`, optional chat v5 question, 12-language continuity, extraction, grouping, pattern essays |
+| AI | `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`, `src/ai/reflectiveEssayPrompt.ts`, `src/ai/reflectiveLanguage.ts`, `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Same-call Reader `oneiros-dream-reflection-v3.2.0` writes reading + questions; follow-up chat `oneiros-followup-chat-v2.0.0`; deterministic question extraction; 12-language continuity; extraction, grouping, pattern essays |
 | Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, bounded/authenticated transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
 
 ## Navigation contract

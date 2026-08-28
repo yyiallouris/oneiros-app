@@ -26,13 +26,8 @@ import {
   buildInitialReflectionRequest,
   buildInitialReflectionRetryPrompt,
   END_MARKER_DREAM_READING,
-  stripTrailingReflectiveDialogueQuestion,
   type DreamReflectionDepth,
 } from '../ai/dreamReflectionPrompt';
-import {
-  parseReflectiveDialogueAnswer,
-  resolveReflectiveDialogueAnswer,
-} from '../ai/reflectiveDialogueResponseFormat';
 import { splitReflectionEditorialArc } from '../ai/reflectionEditorialArc';
 import {
   normalizeMainTensionAgainstCentralConflicts,
@@ -925,7 +920,7 @@ export const generateInitialInterpretation = async (
     }
 
     if (isTruncatedResponse(data) || !content.trim()) {
-      const retryTokenLimit = depth === 'quick' ? 550 : depth === 'advanced' ? 1800 : 1200;
+      const retryTokenLimit = depth === 'quick' ? 620 : depth === 'advanced' ? 1900 : 1350;
       content = await retryCompressedInitialInterpretation({
         apiUrl,
         apiKey,
@@ -995,9 +990,6 @@ export const sendChatMessage = async (
 
     const payload: any = { model, messages, temperature: request.temperature };
     attachProxyTask(payload, apiUrl, 'chat_followup');
-    if (capabilities.supportsResponseFormat && request.responseFormat) {
-      payload.response_format = request.responseFormat;
-    }
 
     let tokenLimit: number | undefined;
     if (capabilities.supportsMaxCompletionTokens) {
@@ -1031,16 +1023,7 @@ export const sendChatMessage = async (
 
     recordDreamAiUsage(dream.id, 'chat_followup', data, aiResponseMeta(response, requestId));
 
-    const parsed = parseReflectiveDialogueAnswer(
-      extractApiResponseContent(data),
-      request.reflectiveLanguageContext!
-    );
-    if (!parsed.ok) {
-      throw new Error(`reflective_dialogue_${parsed.errors.join('_')}`);
-    }
-    return stripTrailingReflectiveDialogueQuestion(
-      resolveReflectiveDialogueAnswer(parsed.data)
-    );
+    return extractApiResponseContent(data);
   } catch (error) {
     logError('ai_send_chat_error', error, { requestId, model });
     throw error;

@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
-import { ReflectiveQuestionCard } from '../components/ui/ReflectiveQuestionCard';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
@@ -205,13 +204,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
         ) : (
           <>
             <FormattedMessageText text={message.content} isUser={isUser} />
-            {!isUser ? (
-              <ReflectiveQuestionCard
-                artifact={message.reflectiveQuestion}
-                variant="embedded"
-                testID={`reflective-question-${message.id}`}
-              />
-            ) : null}
             {showSettleFooter && (
               <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
             )}
@@ -576,6 +568,29 @@ const InterpretationChatScreen: React.FC = () => {
           }}
         />
 
+      {messages.length <= 1 && !reflectionLimitReached && !premiumReflectionReadOnly && (
+        <View style={styles.quickQuestionsContainer}>
+          <TouchableOpacity
+            style={styles.quickButton}
+            onPress={() => setInputText('What stayed with you?')}
+          >
+            <Text style={styles.quickButtonText}>What stayed with you?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickButton}
+            onPress={() => setInputText('Was there an image that felt unfinished?')}
+          >
+            <Text style={styles.quickButtonText}>An unfinished image?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickButton}
+            onPress={() => setInputText('What changed after the reading?')}
+          >
+            <Text style={styles.quickButtonText}>What changed?</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Offline Message */}
       {showOfflineMessage && (
         <View style={styles.offlineMessageContainer}>
@@ -792,6 +807,26 @@ const styles = StyleSheet.create({
   offlineMessageContainer: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
+  },
+  quickQuestionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  quickButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.contourLineSoft,
+    backgroundColor: colors.fieldSurface,
+  },
+  quickButtonText: {
+    color: colors.textSecondary,
+    fontFamily: typography.roles.ui,
+    fontSize: typography.sizes.sm,
   },
   inputContainer: {
     padding: spacing.md,

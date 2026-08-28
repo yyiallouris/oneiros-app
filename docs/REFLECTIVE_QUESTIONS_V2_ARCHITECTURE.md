@@ -1,43 +1,35 @@
 # Oneiros reflective intelligence architecture
 
-Status: production orchestration `oneiros-reflective-question-production-v1.0.0` approved  
-Initial method: `oneiros-reflective-question-production-v1.0.0`  
-Reading prompt: `oneiros-dream-reflection-v3.1.0-candidate` (frozen)  
-Artifact: schema `11` (schemas `1–10` remain readable)  
-Chat: Dialogue `oneiros-reflective-dialogue-v1.9.1` + optional v5 question  
-Approved local default: `fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea`
+Status: launch same-call production `oneiros-same-call-reflective-questions-v1.0.0` approved  
+Reading prompt: `oneiros-dream-reflection-v3.2.0`  
+Chat: `oneiros-followup-chat-v2.0.0`  
+Approved local default: `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c`
 
 ## Product boundary
 
-**Oneiros always leaves the dreamer with a question.** The question does not have to manufacture a problem. Sometimes it opens a tension. Sometimes it deepens a relation. Sometimes it asks the dreamer to remain a little longer with a beautiful or complete image.
-
-The Reader constitution and the question path are separate cognitive jobs. Production uses a frozen same-call Generator, then a semantic Integrity Gate, then a narrow Premise Check, then at most one Repair, then deterministic fallback.
+Launch restores the older same-call rhythm. Questions are generated in the same response as the reading. Composer, Integrity Gate, Repair, Premise Check, and v1.2 single-question orchestration are **CLOSED R&D — not production**.
 
 ```text
 RAW DREAM
    ↓
-FROZEN READER + v1.2 GENERATOR
+ONE READER CALL
    ↓
-INTEGRITY GATE
-   ↓
-PREMISE CHECK
-   ↓
-AT MOST ONE REPAIR → GATE → PREMISE CHECK
-   ↓
-DETERMINISTIC FALLBACK IF NEEDED
-   ↓
-EXACTLY ONE QUESTION
+READING + REFLECTIVE QUESTION(S)
    ↓
 USER ANSWER / CONTINUE EXPLORING
    ↓
-EXPLORING DIALOGUE
+FOLLOW-UP CHAT
 ```
 
-New writes never emit `no_question`. Historical schema-8 `no_question` artifacts remain readable. There is no invitation taxonomy on live writes.
+Cardinality: Quick 1 terminal question; Standard/Advanced exactly 2; chat open 1 / close 0; essays 2.
 
-Chat is unchanged: a non-final reply may carry zero or one follow-up question; the final reply asks none. Extraction, `display_distillation`, essays, Archetypal Echoes, Mythic Echoes, `archetypes`, `amplifications`, quota semantics, and the locked partial reveal / `PhasedTypingText` experience are unchanged.
+Three safeguards only: no manufactured either/or; no missing dream footage; do not treat interpretation as dream fact.
 
-Closed historical R&D (Director/Composer, v5 initial, editorial arc, question-first, post-reading Inviter v1, Post-Jungian Inviter v2/v2.0.1) is not a selectable production identity. Same-call v1.2.0 (`oneiros-same-call-minimal-v1.2.0-candidate`, SHA `4506c898…`) is the frozen Generator. Prompt R&D on System 4 is STOP. Integrity Gate (`c1d8090f…`) and Repair (`0859fd54…`) prompts stay frozen. Premise Check (`ceca4568…`) is production hardening, not another question-grammar candidate. Records: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md), [`ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md`](./ONEIROS_SAME_CALL_MINIMAL_GATE1_RD_2026-08-28.md).
+Chat continues the existing conversation. It is not a second interpretation engine.
+
+Extraction, `display_distillation`, Archetypal Echoes, Mythic Echoes, `archetypes`, `amplifications`, quota semantics, and the locked partial reveal / `PhasedTypingText` experience are unchanged.
+
+Closed historical R&D (Director/Composer, v1.2 orchestration, Gate/Repair, v5 initial, editorial arc, Inviter v1/v2.0.1) is not a selectable production identity. Records: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md), [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
 
 ## Combined initial flow (historical, denied)
 

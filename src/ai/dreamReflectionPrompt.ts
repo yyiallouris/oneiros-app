@@ -3,7 +3,6 @@ import {
   buildReflectiveLanguageInstruction,
 } from './reflectiveLanguage.ts';
 import {
-  buildReflectiveDialogueResponseFormat,
   type ReflectiveDialogueResponseFormat,
 } from './reflectiveDialogueResponseFormat.ts';
 import {
@@ -21,11 +20,16 @@ import {
 } from './reflectiveEvidence.ts';
 
 export const DREAM_REFLECTION_PROMPT_ID =
-  'oneiros-dream-reflection-v3.1.0-candidate' as const;
-export const DREAM_REFLECTION_PROMPT_VERSION = '3.1.0-candidate' as const;
-export const REFLECTIVE_DIALOGUE_PROMPT_ID =
-  'oneiros-reflective-dialogue-v1.9.1' as const;
-export const REFLECTIVE_DIALOGUE_PROMPT_VERSION = '1.9.1' as const;
+  'oneiros-dream-reflection-v3.2.0' as const;
+export const DREAM_REFLECTION_PROMPT_VERSION = '3.2.0' as const;
+export const FOLLOWUP_CHAT_PROMPT_ID = 'oneiros-followup-chat-v2.0.0' as const;
+export const FOLLOWUP_CHAT_PROMPT_VERSION = '2.0.0' as const;
+/** @deprecated Historical Dialogue identity; launch chat is FOLLOWUP_CHAT_PROMPT_ID. */
+export const REFLECTIVE_DIALOGUE_PROMPT_ID = FOLLOWUP_CHAT_PROMPT_ID;
+export const REFLECTIVE_DIALOGUE_PROMPT_VERSION = FOLLOWUP_CHAT_PROMPT_VERSION;
+export const SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID =
+  'oneiros-same-call-reflective-questions-v1.0.0' as const;
+export const SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_VERSION = '1.0.0' as const;
 export const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->' as const;
 export const REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG =
   'oneiros_visible_reflective_question' as const;
@@ -106,82 +110,89 @@ tension is mild or absent). Do not force Tension from one disturbing detail when
 the larger dream remains cohesive, playful, absurd, restorative, or numinous.
 `;
 
-/**
- * Versioned follow-up method. This is deliberately separate from the first
- * reading prompt: a good reading and a good reflective conversation are not
- * the same task.
- */
-export const REFLECTIVE_DIALOGUE_PROMPT = `
-Reflective Dialogue — Oneiros method ${REFLECTIVE_DIALOGUE_PROMPT_VERSION}
-
-You are continuing the reflection, not delivering a second reading. The latest
-user turn is the center. Make one exact conversational move and stop.
-
-Evidence hierarchy:
-- The user's latest words are first-person evidence. Dream details are scene evidence.
-- Prior assistant readings are provisional context, never facts about the person.
-- A <${REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG}> block is the question card the user saw; understand the reply in relation to it, but never repeat the question back.
-- Do not import a stock symbol meaning, biography, motive, diagnosis, advice, or waking-life claim.
-
-Choose reply_mode by this priority, then obey its movement: an explicit wish to
-stop is always completion even if the same turn also answers the prior question;
-a brief yes/okay with no new material is acknowledgment; only then classify the
-remaining content.
-
-- completion: close warmly in one short sentence. Do not repeat any dream detail.
-- acknowledgment: reply with one short acknowledgment and no interpretation.
-- sensory_detail: place the new quality beside the exact dream action. A quality such as warmth, weight, color, silence, or painlessness proves no presence, safety, intimacy, absence, integration, or hidden condition.
-- correction: release the earlier frame completely and state only how the image now stands with the correction.
-- not_knowing: one plain sentence is usually complete. Nothing, no memory, and no change may remain exactly that.
-- waking_association: follow only the person or relation the user named. Do not make an image represent that person or add what was unspoken, missing, interrupted, or lost.
-- meaning_request: answer provisionally from the staged details, then state the limit of what they establish. A missing reaction changes the scene's tone; it does not prove acceptance, harmlessness, stability, defense, or absence of injury/damage.
-- positive_coherence: allow joy, calm, protection, ordinariness, or enoughness to be sufficient.
-- grief_or_loss: acknowledge the exact person and feeling named. Death or loss may be named only if the user named it. Say that the person came to mind and that the feeling arrived; do not give the dream image new weight, humanity, grief, or relational meaning because of that association.
-- other: stay with one supported change introduced by the latest turn.
-
-Oneiros depth is increased precision, not extra meaning. Keep the strange image
-alive without translating it into an abstract psychological claim. Do not use a
-sensory fact as proof of a relational fact. Do not convert absence into meaning.
-Do not explain the whole dream again. Natural, spoken target-language prose is
-more important than impressive language. Never append a question; a separate
-subsystem decides whether a next opening is warranted.
-
-Output contract:
-- Return exactly one JSON object with answer, output_language, and reply_mode.
-- answer contains only the user-facing reply, with no wrapper, language tag, or fenced block.
-- output_language names the language actually used in answer and must follow the output-language contract supplied for this turn.
-- reply_mode must be one of: sensory_detail, correction, not_knowing, waking_association, meaning_request, positive_coherence, grief_or_loss, completion, acknowledgment, other.
+export const SAME_CALL_QUESTION_SAFEGUARDS = `
+Reflective-question safeguards:
+- Do not ask the dreamer to rank, choose, compare, or decide between dream elements unless the dream itself explicitly contains that choice. Do not invent either/or structures.
+- Do not ask the dreamer to remember an unreported visual, sensory, bodily, or factual detail as though that detail existed in the dream. Fresh noticing is fine; fabricated memory retrieval is not.
+- A symbolic or relational question may explore a possibility opened by the reading, but do not state an inferred meaning, motive, causal relation, or metaphor as though the dream itself literally established it. Keep questions invitational rather than confirmatory.
+- No advice verbs: try, practice, breathe, focus, work on, improve, regulate.
 `;
 
-function attachedQuestionText(message: ReflectiveDialogueConversationMessage): string {
-  if (
-    message.role !== 'assistant' ||
-    message.reflectiveQuestion?.status !== 'question' ||
-    typeof message.reflectiveQuestion.question !== 'string'
-  ) {
-    return '';
-  }
-  return message.reflectiveQuestion.question.replace(/\s+/g, ' ').trim();
-}
+export const SAME_CALL_STANDARD_ADVANCED_QUESTIONS = `
+## Reflective Questions
+
+- Exactly 2 questions as markdown bullets. No more. No fewer. Do not use 1–2. Do not default to one.
+- Question 1 — observational / somatic: prefer a concrete observational or remembered dream-body question when the dream supports it. Somatic means the body inside the remembered dream, never a present-time exercise. If a somatic question would be forced or uninteresting, use another concrete observational question instead.
+- Question 2 — symbolic / relational / imaginal: open the dream symbolically, relationally, or imaginally. It may follow an image, relation, transformation, contradiction, recurring gesture, unresolved movement, symbolic tension, or surprising juxtaposition. Deepen or reopen the central movement already developed in the reading; do not start a new analytic thread. The second question may be more psychologically or symbolically suggestive than the first. Do not make it safe by reducing it to generic phenomenology.
+- No prose after the questions.
+${SAME_CALL_QUESTION_SAFEGUARDS}
+`;
 
 /**
- * Reconstructs what the user actually saw without mutating persisted prose.
- * Reflective questions live on typed artifacts, so model context must restore
- * them explicitly or the next answer cannot know what it is answering.
+ * Follow-up chat continues the existing reading. It is not a second
+ * interpretation engine, Gate, Repair, or question pipeline.
+ */
+export const CHAT_MODE_INSTRUCTIONS = `
+Follow-up chat — Oneiros method ${FOLLOWUP_CHAT_PROMPT_VERSION}
+
+Continue the conversation naturally from the existing dream reading and the
+user's latest response.
+
+Respond first to what the user actually said. Build on the existing conversation
+rather than restarting the interpretation.
+
+You may deepen an image, relation, feeling, symbolic possibility, or imaginal
+movement when the user's response genuinely opens it. Keep interpretations
+tentative and grounded in the dream and conversation. Prefer “it may be”,
+“it seems”, and “I wonder whether” over “this means”, “the dream is telling you”,
+or “this represents”. Do not become afraid of interpretation to the point of
+saying nothing.
+
+Do not turn every reply into analysis, advice, a somatic exercise, or a summary.
+Do not reset into symbol lists, archetypes, shadow, meaning, and conclusion
+unless the user explicitly asks for a structured analysis.
+Do not invent dream facts. Do not force symbolic certainty. Do not manufacture
+either/or choices. Do not give advice unless requested.
+
+If the user answers unexpectedly, follow that new material. Do not drag them
+back to the original reading theme merely because it seemed central.
+If the user becomes emotionally intense, respond to that intensity before
+continuing symbolic analysis.
+
+Keep ordinary replies around 90–220 words. Shorter is allowed when the user's
+reply is short. Do not inflate every response into a mini essay.
+
+For ordinary ongoing replies, end with exactly one natural reflective question
+that follows from the current exchange. The question may be observational,
+somatic, relational, symbolic, or imaginal. Do not stack questions or hide
+multiple choices inside one sentence. Avoid generic therapy/coaching shells
+such as “What comes up for you?”, “How does that land?”, or “Where do you feel
+that in your body?” unless the specific context genuinely earns them.
+
+When the user is clearly closing the conversation, ask no question. End with a
+concise closing insight or acknowledgement. Closing intent includes clear
+equivalents of that's enough, let's close, got it, okay I understand, that's
+all, or stop here — use conversational judgment, not exact keywords.
+
+Keep the tone conversational, psychologically intelligent, and specific to this
+dream.
+`;
+
+/** @deprecated Historical Dialogue prompt; launch chat uses CHAT_MODE_INSTRUCTIONS. */
+export const REFLECTIVE_DIALOGUE_PROMPT = CHAT_MODE_INSTRUCTIONS;
+
+/**
+ * Conversation history for follow-up chat. Questions already live in assistant
+ * prose, so no tagged artifact replay is required.
  */
 export function buildReflectiveDialogueModelHistory(
   conversation: ReflectiveDialogueConversationMessage[],
   maxMessages: number = 12
 ): ReflectionPromptMessage[] {
-  return conversation.slice(-maxMessages).map((message) => {
-    const question = attachedQuestionText(message);
-    return {
-      role: message.role,
-      content: question
-        ? `${message.content}\n\n<${REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG}>\n${question}\n</${REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG}>`
-        : message.content,
-    };
-  });
+  return conversation.slice(-maxMessages).map((message) => ({
+    role: message.role,
+    content: message.content,
+  }));
 }
 
 /** Plain-text equivalent used by the question generator/validator context. */
@@ -221,7 +232,7 @@ The interpretation should feel like it arises from the dream scene itself.
 
 export const INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE =
   'OUTPUT LANGUAGE (mandatory): Keep all markdown section headings exactly as specified in English for UI consistency. ' +
-  'Write all paragraph text and bullets in the same primary language as the dream narrative and any user notes in this request. ' +
+  'Write all paragraph text, bullets, and reflective questions in the same primary language as the dream narrative and any user notes in this request. ' +
   'Technical labels in this prompt may be in English for UI consistency only; do not let them affect the body language. ' +
   'If the dream mixes languages, use the language used most for the narrative and keep short phrases from other languages as written.';
 
@@ -235,7 +246,8 @@ BRIEF mode (Quick Glance):
 - Do not use archetype labels, amplifications, or extra framework language.
 - Prefer ending early to covering every detail. Roughly 70–160 words is guidance,
   never a reason to pad or compress a complete movement unnaturally.
-- Do not place a question inside the reading prose.
+- End with exactly one natural reflective question as the final sentence or short paragraph. No Reflective Questions heading.
+${SAME_CALL_QUESTION_SAFEGUARDS}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -276,10 +288,11 @@ movement earns. Let unresolvedness appear only when the dream leaves it there.
 Rules for this section:
 - Do not split the reading into multiple analytical sections.
 - Do not use bullets for symbols.
-- Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, Integration, or Reflective Questions.
-- Do not place a question inside the reading prose.
+- Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, or Integration.
 - Typical density may fall around 140–360 words, but this is telemetry and
   guidance only. Psychic resolution—not a word floor—decides when to stop.
+
+${SAME_CALL_STANDARD_ADVANCED_QUESTIONS}
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -336,10 +349,12 @@ Rules for this section:
 - Let one image become the gravitational center when the dream earns that structure.
 - Use transitions that feel organic, not institutional.
 - Trust the image. Do not translate everything into psychology immediately.
-- Do not place a question inside the reading prose.
 - Roughly 250–400 words may be enough for a small but numinous dream; complex
   multi-scene material may earn 650–800. These are telemetry bands, never quality
   constraints. End as soon as the reading has yielded enough.
+
+${SAME_CALL_STANDARD_ADVANCED_QUESTIONS}
+Finish the full response, including both reflective questions and the end marker. Do not stop mid-sentence or mid-question.
 
 Technical requirement:
 After the complete response, append this exact hidden marker on its own line:
@@ -347,11 +362,11 @@ ${END_MARKER_DREAM_READING}
 `;
 
 const QUICK_INITIAL_USER_DIRECTIVE = `Give 1–2 short paragraphs. No conclusions
-or advice. Do not place a question inside the reading prose.`;
+or advice. End with exactly one observational or imaginal reflective question.`;
 
 const FULL_INITIAL_USER_DIRECTIVE = `Follow the one or two images with the
 strongest specific gravity and the actual movement they create. Do not give
-conclusions. Do not place a question inside the reading prose.`;
+conclusions. End with exactly two reflective questions under Reflective Questions.`;
 
 const QUICK_INITIAL_USER_DIRECTIVE_EDITORIAL_ARC_V2 = `Give 1–2 short paragraphs. No conclusions
 or advice. Keep any optional question out of the reading prose and obey the
@@ -363,16 +378,17 @@ conclusions. Keep any optional question out of the reading prose and obey the
 private-first editorial protocol.`;
 
 const INITIAL_RETRY_MODE_DIRECTIVES: Record<DreamReflectionDepth, string> = {
-  quick: 'Rewrite from scratch as a concise glimpse. No headings. Use 1–2 short paragraphs and one image-near movement.',
-  standard: 'Rewrite from scratch. Use only one Core heading and Dream Movement. Stop when one compact image-near path is complete.',
-  advanced: 'Rewrite from scratch. Use only one Core heading and Dream Movement. Linger only where the dream earns greater resolution.',
+  quick: 'Rewrite from scratch as a concise glimpse. No headings. Use 1–2 short paragraphs, one image-near movement, and exactly one terminal reflective question.',
+  standard: 'Rewrite from scratch. Use only one Core heading, Dream Movement, and Reflective Questions. End with exactly 2 questions.',
+  advanced: 'Rewrite from scratch. Use only one Core heading, Dream Movement, and Reflective Questions. Linger only where the dream earns greater resolution. End with exactly 2 questions.',
 };
 
 const INITIAL_RETRY_PROTOCOL_DIRECTIVE = `Do not continue the previous response.
 Stay with the strongest specific dream details. Do not summarize the whole dream,
 list symbols, or use report-like, therapeutic, or framework language. Write a
-complete reading and append the reading-end marker. Emit nothing after the
-reading-end marker. Never append a reflective question.`;
+complete reading, including the required reflective question(s), and append the
+reading-end marker. Missing or extra questions are handled by rewriting this
+whole response, never by a second question call.`;
 
 const INITIAL_RETRY_PROTOCOL_DIRECTIVE_EDITORIAL_ARC_V2 = `Do not continue the previous response.
 Stay with the strongest specific dream details. Do not summarize the whole dream,
@@ -442,7 +458,7 @@ ${FULL_INITIAL_USER_DIRECTIVE}${outputLanguage}`;
       { role: 'user', content: userPrompt },
     ],
     temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.6 : 0.55,
-    tokenLimit: depth === 'quick' ? 500 : depth === 'advanced' ? 2600 : 1450,
+    tokenLimit: depth === 'quick' ? 560 : depth === 'advanced' ? 2700 : 1600,
   };
 }
 
@@ -458,6 +474,35 @@ Write the complete reading and append this exact hidden end marker:
 ${END_MARKER_DREAM_READING}
 Emit nothing after the reading-end marker.`;
 }
+
+export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE = [
+  SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_VERSION,
+  DREAM_REFLECTION_PROMPT_ID,
+  DREAM_REFLECTION_PROMPT_VERSION,
+  FOLLOWUP_CHAT_PROMPT_ID,
+  FOLLOWUP_CHAT_PROMPT_VERSION,
+  DREAM_CONSTITUTION_PROMPT,
+  INTERPRETATION_ROLE_PROMPT,
+  DREAM_FIRST_READING_DIRECTIVE,
+  INTERPRETATION_OUTPUT_LANGUAGE_DIRECTIVE,
+  BRIEF_INTERPRETATION_FORMAT_PROMPT,
+  STANDARD_INTERPRETATION_FORMAT_PROMPT,
+  ADVANCED_INTERPRETATION_FORMAT_PROMPT,
+  SAME_CALL_QUESTION_SAFEGUARDS,
+  SAME_CALL_STANDARD_ADVANCED_QUESTIONS,
+  CHAT_MODE_INSTRUCTIONS,
+  QUICK_INITIAL_USER_DIRECTIVE,
+  FULL_INITIAL_USER_DIRECTIVE,
+  ...Object.values(INITIAL_RETRY_MODE_DIRECTIVES),
+  INITIAL_RETRY_PROTOCOL_DIRECTIVE,
+  'one-reader-call-reading-plus-questions',
+  'quick-1-standard-2-advanced-2',
+  'chat-nonfinal-1-final-0',
+  'essay-exactly-2',
+  'no-second-question-inference',
+  'no-gate-repair-premise-composer',
+].join('\n---ONEIROS-SAME-CALL-REFLECTIVE-QUESTIONS-V1---\n');
 
 export const DREAM_REFLECTION_EDITORIAL_ARC_BUNDLE = [
   DREAM_REFLECTION_PROMPT_ID,
@@ -517,20 +562,9 @@ Date: ${params.dream.date}
 Content:
 ${buildBoundedDreamExcerpt(params.dream.content)}`;
 
-  const chatMode = `Chat mode:
-- First answer the user's actual request. Do not redirect it into a new exercise or question.
-- Build on the existing reading instead of redoing a full analysis.
-- Be concise without becoming casual, flattened, generic, or therapist-like.
-- Prefer one precise development over a quick summary of many points.
-- Let length follow evidence rather than a quota. One natural sentence may be complete for an ambiguous, corrective, ordinary, or closing turn. Use one compact paragraph when the user offers substantial new material; use a second only when their direct request genuinely needs it.
-- Never fill space by assigning significance, intention, acceptance, absence, or symbolic weight that the user did not provide.
-- Use no headings and no mini-essays.
-- Do not mechanically repeat what the initial interpretation or conversation established. You may return to the same image when the user's new words change or deepen their relation to it; continuity is not novelty-seeking.
-- Do not append a reflective question. A separate evidence-bound subsystem owns optional questions.`;
-
   const turnBoundary = params.isFinalResponse
-    ? 'This is the final allowed assistant reply. Conclude without inviting another exchange and do not end with a question.'
-    : 'End after the answer itself. Do not add a generic invitation such as “What would you like to explore?”';
+    ? 'This is the final allowed assistant reply. The user has reached the close of this reflection. Ask no question. End with a concise closing insight, synthesis, or acknowledgement.'
+    : 'This is an ordinary ongoing reply. After responding to what the user just said, end with exactly one natural reflective question. Never two.';
   const languageContext = buildChatReflectiveLanguageContext({
     dreamContent: params.dream.content,
     conversation: history,
@@ -543,8 +577,8 @@ ${buildBoundedDreamExcerpt(params.dream.content)}`;
   return {
     task: 'chat_followup',
     messages: [
-      { role: 'system', content: REFLECTIVE_DIALOGUE_PROMPT },
-      { role: 'system', content: chatMode },
+      { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
+      { role: 'system', content: CHAT_MODE_INSTRUCTIONS },
       { role: 'system', content: turnBoundary },
       { role: 'system', content: dreamContext },
       { role: 'system', content: outputLanguage },
@@ -553,7 +587,6 @@ ${buildBoundedDreamExcerpt(params.dream.content)}`;
     ],
     temperature: CHAT_FOLLOWUP_TEMPERATURE,
     tokenLimit: CHAT_FOLLOWUP_TOKEN_LIMIT,
-    responseFormat: buildReflectiveDialogueResponseFormat(),
     reflectiveLanguageContext: languageContext,
   };
 }

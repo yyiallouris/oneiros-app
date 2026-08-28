@@ -3,12 +3,6 @@ import {
   REFLECTIVE_DIALOGUE_PROMPT_ID,
   REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG,
 } from '../src/ai/dreamReflectionPrompt';
-import {
-  buildDreamEvidenceSpans,
-  buildReflectiveQuestionMessages,
-  buildUserEvidenceSpans,
-} from '../src/ai/reflectiveQuestionPrompt';
-import { buildChatReflectiveLanguageContext } from '../src/ai/reflectiveLanguage';
 
 const dream = {
   title: 'Το χέρι στην παραλία',
@@ -55,9 +49,9 @@ const trajectories = [
   },
 ] as const;
 
-describe('Oneiros Reflective Dialogue v1 trajectory contract', () => {
+describe('Oneiros follow-up chat trajectory contract', () => {
   it.each(trajectories)(
-    'keeps the active question and latest user material connected for $id',
+    'keeps conversation history and the latest user material connected for $id',
     ({ user }) => {
       const answerRequest = buildChatFollowupRequest({
         dream,
@@ -68,42 +62,15 @@ describe('Oneiros Reflective Dialogue v1 trajectory contract', () => {
       const joinedAnswerPrompt = answerRequest.messages
         .map((message) => message.content)
         .join('\n');
-      const userEvidenceSpans = buildUserEvidenceSpans([opening], user);
-      const questionRequest = buildReflectiveQuestionMessages({
-        surface: 'chat',
-        languageContext: buildChatReflectiveLanguageContext({
-          dreamContent: dream.content,
-          conversation: [opening],
-          latestUserMessage: user,
-        }),
-        evidenceSpans: buildDreamEvidenceSpans(dream.content),
-        userEvidenceSpans,
-        chatAnswerContext:
-          'Η νέα απάντηση αλλάζει τον τρόπο που η εγγύτητα και η διαφάνεια συνυπάρχουν.',
-        conversation: [opening],
-        latestUserMessage: user,
-      });
 
-      expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe(
-        'oneiros-reflective-dialogue-v1.9.1'
-      );
-      expect(joinedAnswerPrompt).not.toContain(
-        'Core Constitution — non-negotiable principles'
-      );
-      expect(joinedAnswerPrompt).not.toContain('Core Restoration');
-      expect(joinedAnswerPrompt).toContain(
-        REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG
-      );
-      expect(joinedAnswerPrompt).toContain(opening.reflectiveQuestion.question);
+      expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.0');
+      expect(answerRequest.responseFormat).toBeUndefined();
+      expect(joinedAnswerPrompt).toContain('Continue the conversation naturally');
+      expect(joinedAnswerPrompt).toContain(opening.content);
+      expect(joinedAnswerPrompt).toContain(user);
+      expect(joinedAnswerPrompt).toContain('If the user answers unexpectedly, follow that new material');
+      expect(joinedAnswerPrompt).not.toContain(REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG);
       expect(answerRequest.messages.at(-1)).toEqual({ role: 'user', content: user });
-      expect(userEvidenceSpans).toEqual([{ id: 'U1', text: user }]);
-      expect(questionRequest[1].content).toContain(`[U1] ${user}`);
-      expect(questionRequest[1].content).toContain(
-        'assistant material remains provisional'
-      );
-      expect(questionRequest[1].content).not.toContain(
-        '[U1] Η εγγύτητα του παιδιού'
-      );
     }
   );
 
@@ -117,6 +84,6 @@ describe('Oneiros Reflective Dialogue v1 trajectory contract', () => {
     const prompt = request.messages.map((message) => message.content).join('\n');
 
     expect(prompt).toContain('This is the final allowed assistant reply');
-    expect(prompt).toContain('do not end with a question');
+    expect(prompt).toContain('Ask no question');
   });
 });

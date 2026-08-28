@@ -1,6 +1,6 @@
 # Archetypal / Mythic Echo prompts & catalog (v4.1.10-M2.2)
 
-> **2026-08-29 production orchestration boundary:** approved `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…` always returns one schema-11 question after the frozen Reader + v1.2 Generator, Integrity Gate, Premise Check, and at most one Repair. Depth maps `quick→core`, `standard→core`, `advanced→deeper`. Prompt R&D on System 4 / Gate / Repair is STOP. This changes **no** extraction prompt id/version/schema, Archetype/Mythic catalog, Echo selection, Echo validation, `display_distillation`, or metadata language gate. Record: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
+> **2026-08-29 launch same-call boundary:** approved `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114a…` writes questions inside the Reader/chat/essay call. Composer/Gate/Repair are not production. This changes **no** extraction prompt id/version/schema, Archetype/Mythic catalog, Echo selection, Echo validation, `display_distillation`, or metadata language gate. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
 
 > **2026-08-28 Composer v1.1.0 boundary (historical):** `oneiros-reflective-question-composer-v1.1.0-candidate` is not the production writer. Same-call v1.2.0 (`oneiros-same-call-minimal-v1.2.0-candidate`, SHA `4506c898…`) won the paired Standard/CORE gate 8/8 versus frozen v1.1.0 (`8e0edada…`) and is frozen exactly as tested.
 

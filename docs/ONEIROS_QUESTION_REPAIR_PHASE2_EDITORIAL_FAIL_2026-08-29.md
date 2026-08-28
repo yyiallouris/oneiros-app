@@ -137,6 +137,18 @@ Maximum: one Generator question, one Repair, no semantic regeneration loop, no s
 
 Bounded corpus validation `2026-08-28T21-54-49-463Z`: original_pass 17/24, repair 6/24, fallback 1/24, premise_check_fail 1/24. HOME Standard did **not** reach final output unchanged.
 
-`APPROVED_REFLECTIVE_QUESTION_PRODUCTION` is the orchestration identity above. Standalone Generator / Gate / Repair / Premise Check method IDs remain denied for deploy-as-the-production-method.
+`APPROVED_REFLECTIVE_QUESTION_PRODUCTION` was briefly set to the orchestration identity above during R&D closeout. That identity is now denied for launch.
 
-Canonical runtime: `src/ai/reflectiveQuestionPipeline.ts`, `src/ai/questionPremiseCheck.ts`. No further prompt R&D.
+Canonical museum runtime: `src/ai/reflectiveQuestionPipeline.ts`, `src/ai/questionPremiseCheck.ts`. No further prompt R&D on this architecture.
+
+---
+
+## Launch addendum (2026-08-29) — same-call restore
+
+**CLOSED R&D — not production.** After reviewing the full R&D line, launch reverts to pre-week same-call generation.
+
+Approved production: `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114a…`.
+Reader: `oneiros-dream-reflection-v3.2.0`.
+Chat: `oneiros-followup-chat-v2.0.0`.
+
+The Generator / Gate / Repair / Premise Check / Composer pipeline is not part of launch runtime. Keep this document as frozen editorial evidence. Do not import it into production routing.

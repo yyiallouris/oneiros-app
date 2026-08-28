@@ -25,78 +25,17 @@ import {
   buildChatFollowupRequest,
   buildInitialReflectionRequest,
   END_MARKER_DREAM_READING,
-  stripTrailingReflectiveDialogueQuestion,
+  SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
 } from '../../../src/ai/dreamReflectionPrompt.ts';
 import {
-  parseReflectiveDialogueAnswer,
-  resolveReflectiveDialogueAnswer,
-  type ReflectiveDialogueResponseFormat,
-} from '../../../src/ai/reflectiveDialogueResponseFormat.ts';
+  extractSameCallReflectiveQuestions,
+} from '../../../src/ai/reflectiveQuestionExtract.ts';
 import {
-  buildDreamEvidenceSpans,
-  buildUserEvidenceSpans,
-  buildReflectiveQuestionMessages,
-  createProductionQuestionArtifact,
-  createReflectiveQuestionArtifact,
-  parseReflectiveQuestionResult,
-  validateReflectiveQuestionCommit,
-  REFLECTIVE_QUESTION_TEMPERATURE,
-  REFLECTIVE_QUESTION_TOKEN_LIMIT,
   type ReflectiveQuestionArtifact,
-  type ReflectiveQuestionArtifactV11,
-  type ReflectiveQuestionOutcome,
-  type ReflectiveQuestionSinglePassResult,
-  type ReflectiveQuestionSurface,
 } from '../../../src/ai/reflectiveQuestionPrompt.ts';
-import {
-  buildQuestionIntegrityGateMessages,
-  buildQuestionIntegrityGateResponseFormat,
-  parseQuestionIntegrityGateResult,
-  QUESTION_INTEGRITY_GATE_TASK,
-  QUESTION_INTEGRITY_GATE_TEMPERATURE,
-  QUESTION_INTEGRITY_GATE_TOKEN_LIMIT,
-} from '../../../src/ai/rd/reflective-questions/questionIntegrityGate/questionIntegrityGateCandidate.ts';
-import {
-  buildQuestionRepairMessages,
-  buildQuestionRepairResponseFormat,
-  parseQuestionRepairResult,
-  QUESTION_REPAIR_TASK,
-  QUESTION_REPAIR_TEMPERATURE,
-  QUESTION_REPAIR_TOKEN_LIMIT,
-} from '../../../src/ai/rd/reflective-questions/questionIntegrityGate/questionRepairCandidate.ts';
-import {
-  buildQuestionPremiseCheckMessages,
-  buildQuestionPremiseCheckResponseFormat,
-  parseQuestionPremiseCheckResult,
-  QUESTION_PREMISE_CHECK_TASK,
-  QUESTION_PREMISE_CHECK_TEMPERATURE,
-  QUESTION_PREMISE_CHECK_TOKEN_LIMIT,
-} from '../../../src/ai/questionPremiseCheck.ts';
-import {
-  REFLECTIVE_QUESTION_KILL_SWITCH_ENV,
-  REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-  buildSameCallMinimalRequest,
-  isReflectiveQuestionKillSwitchEnabled,
-  mapQuestionModeToArtifactDepth,
-  mapReadingDepthToProductionQuestionMode,
-  productionPipelineTelemetry,
-  resolveProductionReflectiveQuestion,
-  splitSameCallReadingAndQuestion,
-  visibleSameCallReading,
-} from '../../../src/ai/reflectiveQuestionPipeline.ts';
-import {
-  buildChatReflectiveLanguageContext,
-  buildInitialReflectiveLanguageContext,
-  detectOneirosLanguageCode,
-} from '../../../src/ai/reflectiveLanguage.ts';
-import type { OneirosLanguageCode } from '../../../src/constants/oneirosLanguages.ts';
 import {
   visibleEditorialArcReading,
 } from '../../../src/ai/reflectionEditorialArc.ts';
-import {
-  buildReflectiveQuestionResponseFormat,
-  type ReflectiveQuestionResponseFormat,
-} from '../../../src/ai/reflectiveQuestionResponseFormat.ts';
 import {
   buildEssayCompressionRetryPrompt,
   buildPeriodReflectionSystemPrompt,
@@ -214,6 +153,7 @@ type ChatMessage = {
   content: string;
   timestamp: string;
   reflectiveQuestion?: ReflectiveQuestionArtifact;
+  reflectiveQuestions?: string[];
 };
 
 type DreamRecord = {
@@ -654,15 +594,9 @@ Preserve extracted symbols in English only if needed, but explain them in the re
 
 function buildReflectionMessages(
   dream: DreamRecord,
-  depth: 'quick' | 'standard' | 'advanced',
-  outputLanguage: OneirosLanguageCode
+  depth: 'quick' | 'standard' | 'advanced'
 ) {
-  const request = buildSameCallMinimalRequest({
-    dream,
-    depth,
-    outputLanguage,
-  });
-
+  const request = buildInitialReflectionRequest(dream, depth);
   return {
     ...request,
     timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS,
@@ -1155,200 +1089,33 @@ export async function generateDreamInterpretation(params: {
   return { text: reflectionResult.text, extraction: extractionResult.extraction };
 }
 
-export type DreamReflectionEditorialArcResult = {
+export type DreamReflectionResult = {
   text: string;
   cost: AiCallCost | null;
-  reflectiveQuestion: ReflectiveQuestionArtifactV11 | null;
-  questionOutcome: 'committed_question' | 'fallback' | 'omitted';
-  questionErrors: string[];
-  questionSource: 'generator' | 'repair' | 'fallback' | null;
-  questionMs: number;
-  questionCost: AiCallCost | null;
+  reflectiveQuestions: string[];
 };
+/** @deprecated Use DreamReflectionResult. Kept for gateway log compatibility during restore. */
+export type DreamReflectionEditorialArcResult = DreamReflectionResult;
 
-function resolveInitialQuestionLanguage(dreamContent: string): OneirosLanguageCode {
-  const languageContext = buildInitialReflectiveLanguageContext({
-    dreamContent,
-  });
-  return languageContext.expectedLanguageCode
-    ?? detectOneirosLanguageCode(dreamContent)
-    ?? 'en';
-}
-
-function readKillSwitchEnv(name: string): string | undefined {
-  try {
-    const deno = (globalThis as {
-      Deno?: { env?: { get?: (key: string) => string | undefined } };
-    }).Deno;
-    const fromDeno = deno?.env?.get?.(name);
-    if (typeof fromDeno === 'string') return fromDeno;
-  } catch {
-    // Edge and Node both need a kill switch; ignore missing Deno.
-  }
-  try {
-    return (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env?.[name];
-  } catch {
-    return undefined;
-  }
-}
-
-async function generateProductionReflectiveQuestion(params: {
-  authHeader: string;
-  dream: DreamRecord;
-  generatorQuestion: string | null;
-  depth: 'quick' | 'standard' | 'advanced';
-  outputLanguage: OneirosLanguageCode;
-}): Promise<{
-  artifact: ReflectiveQuestionArtifactV11;
-  outcome: 'committed_question' | 'fallback';
-  errors: string[];
-  source: 'generator' | 'repair' | 'fallback';
-  questionMs: number;
-  cost: AiCallCost | null;
-}> {
-  const createdAt = new Date().toISOString();
-  const questionMode = mapReadingDepthToProductionQuestionMode(params.depth);
-  const startedAt = Date.now();
-  let pipelineCost: AiCallCost | null = null;
-  const addCost = (cost: AiCallCost | null) => {
-    if (!cost) return;
-    if (!pipelineCost) {
-      pipelineCost = { ...cost };
-      return;
-    }
-    pipelineCost = {
-      ...pipelineCost,
-      inputTokens: (pipelineCost.inputTokens ?? 0) + (cost.inputTokens ?? 0),
-      outputTokens: (pipelineCost.outputTokens ?? 0) + (cost.outputTokens ?? 0),
-      totalTokens: (pipelineCost.totalTokens ?? 0) + (cost.totalTokens ?? 0),
-      estimatedUsd: typeof pipelineCost.estimatedUsd === 'number' && typeof cost.estimatedUsd === 'number'
-        ? pipelineCost.estimatedUsd + cost.estimatedUsd
-        : pipelineCost.estimatedUsd ?? cost.estimatedUsd,
-    };
-  };
-
-  const result = await resolveProductionReflectiveQuestion({
-    generatorQuestion: params.generatorQuestion,
-    depth: params.depth,
-    outputLanguage: params.outputLanguage,
-  }, {
-    runIntegrityGate: async (question) => {
-      const payload = await invokeOpenAiProxy({
-        authHeader: params.authHeader,
-        task: QUESTION_INTEGRITY_GATE_TASK,
-        messages: buildQuestionIntegrityGateMessages({
-          dream: params.dream.content,
-          candidateQuestion: question,
-          outputLanguage: params.outputLanguage,
-          questionMode,
-        }),
-        temperature: QUESTION_INTEGRITY_GATE_TEMPERATURE,
-        tokenLimit: QUESTION_INTEGRITY_GATE_TOKEN_LIMIT,
-        responseFormat: buildQuestionIntegrityGateResponseFormat(),
-        timeoutMs: 30000,
-      });
-      addCost(aiCallCostFromPayload(payload));
-      const parsed = parseQuestionIntegrityGateResult(extractContent(payload));
-      return parsed.ok ? parsed.data : null;
-    },
-    runPremiseCheck: async (question) => {
-      const payload = await invokeOpenAiProxy({
-        authHeader: params.authHeader,
-        task: QUESTION_PREMISE_CHECK_TASK,
-        messages: buildQuestionPremiseCheckMessages({
-          dream: params.dream.content,
-          question,
-          outputLanguage: params.outputLanguage,
-        }),
-        temperature: QUESTION_PREMISE_CHECK_TEMPERATURE,
-        tokenLimit: QUESTION_PREMISE_CHECK_TOKEN_LIMIT,
-        responseFormat: buildQuestionPremiseCheckResponseFormat(),
-        timeoutMs: 30000,
-      });
-      addCost(aiCallCostFromPayload(payload));
-      const parsed = parseQuestionPremiseCheckResult(extractContent(payload));
-      if (!parsed.ok) return null;
-      return { pass: parsed.data.decision === 'PASS' };
-    },
-    runRepair: async (question, violations) => {
-      const payload = await invokeOpenAiProxy({
-        authHeader: params.authHeader,
-        task: QUESTION_REPAIR_TASK,
-        messages: buildQuestionRepairMessages({
-          dream: params.dream.content,
-          rejectedQuestion: question,
-          violations,
-          outputLanguage: params.outputLanguage,
-          questionMode,
-        }),
-        temperature: QUESTION_REPAIR_TEMPERATURE,
-        tokenLimit: QUESTION_REPAIR_TOKEN_LIMIT,
-        responseFormat: buildQuestionRepairResponseFormat(),
-        timeoutMs: 30000,
-      });
-      addCost(aiCallCostFromPayload(payload));
-      const parsed = parseQuestionRepairResult(extractContent(payload));
-      return parsed.ok ? parsed.data.question : null;
-    },
-  });
-
-  const questionMs = Date.now() - startedAt;
-  const artifact = createProductionQuestionArtifact({
-    id: crypto.randomUUID(),
-    createdAt,
-    question: result.question,
-    languageCode: result.languageCode,
-    depth: mapQuestionModeToArtifactDepth(result.questionMode),
-    source: result.source,
-    questionMode: result.questionMode,
-    generatorGateDecision: result.generatorGateDecision,
-    repairGateDecision: result.repairGateDecision,
-    generatorPremiseDecision: result.generatorPremiseDecision,
-    repairPremiseDecision: result.repairPremiseDecision,
-    gateViolationCategories: result.gateViolationCategories,
-  });
-  const telemetry = productionPipelineTelemetry(result);
-  console.log('[billing-ai] reflective question production', {
-    methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-    sourceEvent: telemetry.sourceEvent,
-    source: result.source,
-    language: telemetry.language,
-    readingMode: params.depth,
-    questionMode: telemetry.question_mode,
-    generatorGateDecision: result.generatorGateDecision,
-    repairGateDecision: result.repairGateDecision,
-    generatorPremiseDecision: result.generatorPremiseDecision,
-    repairPremiseDecision: result.repairPremiseDecision,
-    gateViolationCategories: telemetry.gate_violation_categories,
-    gateCallCount: result.gateCallCount,
-    repairCallCount: result.repairCallCount,
-    premiseCallCount: result.premiseCallCount,
-    questionMs,
-    estimatedUsd: pipelineCost?.estimatedUsd ?? null,
-  });
-  return {
-    artifact,
-    outcome: result.source === 'fallback' ? 'fallback' : 'committed_question',
-    errors: [],
-    source: result.source,
-    questionMs,
-    cost: pipelineCost,
-  };
+function visibleSameCallReadingStream(accumulated: string): string {
+  return visibleEditorialArcReading(accumulated, END_MARKER_DREAM_READING);
 }
 
 function finalizeSameCallReading(params: {
   content: string;
   cost: AiCallCost | null;
-}): { text: string; question: string | null; cost: AiCallCost | null } {
-  const split = splitSameCallReadingAndQuestion(params.content);
-  const reading = split.reading.trim();
+  depth: 'quick' | 'standard' | 'advanced';
+}): { text: string; reflectiveQuestions: string[]; cost: AiCallCost | null } {
+  const reading = stripEndMarker(
+    visibleEditorialArcReading(params.content, END_MARKER_DREAM_READING) || params.content,
+    END_MARKER_DREAM_READING
+  ).trim();
   if (!reading) {
     throw new HttpError(502, 'AI proxy returned empty reading');
   }
   return {
     text: reading,
-    question: split.question,
+    reflectiveQuestions: extractSameCallReflectiveQuestions(reading, params.depth),
     cost: params.cost,
   };
 }
@@ -1358,22 +1125,13 @@ export async function generateDreamReflectionWithCost(params: {
   dream: DreamRecord;
   depth: 'quick' | 'standard' | 'advanced';
   onProgress?: ReflectionProgressCallback;
-}): Promise<DreamReflectionEditorialArcResult> {
-  const outputLanguage = resolveInitialQuestionLanguage(params.dream.content);
-  const killSwitchOn = isReflectiveQuestionKillSwitchEnabled({
-    [REFLECTIVE_QUESTION_KILL_SWITCH_ENV]: readKillSwitchEnv(
-      REFLECTIVE_QUESTION_KILL_SWITCH_ENV
-    ),
-  });
-  const request = killSwitchOn
-    ? { ...buildInitialReflectionRequest(params.dream, params.depth), timeoutMs: DEFAULT_AI_PROXY_TIMEOUT_MS }
-    : buildReflectionMessages(params.dream, params.depth, outputLanguage);
-
+}): Promise<DreamReflectionResult> {
+  const request = buildReflectionMessages(params.dream, params.depth);
   const onProgress = params.onProgress
     ? async (progress: Parameters<NonNullable<ReflectionProgressCallback>>[0]) => {
         await params.onProgress?.({
           ...progress,
-          text: visibleSameCallReading(progress.text),
+          text: visibleSameCallReadingStream(progress.text),
         });
       }
     : undefined;
@@ -1395,39 +1153,14 @@ export async function generateDreamReflectionWithCost(params: {
   const reading = finalizeSameCallReading({
     content: streamedOrComplete.content,
     cost: streamedOrComplete.cost,
-  });
-
-  if (killSwitchOn) {
-    return {
-      text: reading.text,
-      cost: reading.cost,
-      reflectiveQuestion: null,
-      questionOutcome: 'omitted',
-      questionErrors: ['kill_switch'],
-      questionSource: null,
-      questionMs: 0,
-      questionCost: null,
-    };
-  }
-
-  const produced = await generateProductionReflectiveQuestion({
-    authHeader: params.authHeader,
-    dream: params.dream,
-    generatorQuestion: reading.question,
     depth: params.depth,
-    outputLanguage,
   });
-
-  return {
-    text: reading.text,
-    cost: reading.cost,
-    reflectiveQuestion: produced.artifact,
-    questionOutcome: produced.outcome,
-    questionErrors: produced.errors,
-    questionSource: produced.source,
-    questionMs: produced.questionMs,
-    questionCost: produced.cost,
-  };
+  console.log('[billing-ai] same-call reflective questions', {
+    methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+    depth: params.depth,
+    questionCount: reading.reflectiveQuestions.length,
+  });
+  return reading;
 }
 
 export async function generateDreamReflection(params: {
@@ -1437,245 +1170,6 @@ export async function generateDreamReflection(params: {
 }): Promise<string> {
   const result = await generateDreamReflectionWithCost(params);
   return result.text;
-}
-
-export type ReflectiveQuestionGenerationResult = {
-  artifact: ReflectiveQuestionArtifact;
-  cost: AiCallCost | null;
-  questionMs: number;
-  outcome: ReflectiveQuestionOutcome;
-  diagnostics: ReflectiveQuestionSinglePassResult | null;
-};
-
-async function generateReflectiveQuestionArtifactInternal(params: {
-  authHeader: string;
-  dream: DreamRecord;
-  initialReadingContext?: string;
-  chatAnswerContext?: string;
-  surface: ReflectiveQuestionSurface;
-  conversation?: ChatMessage[];
-  latestUserMessage?: string;
-  isFinalResponse?: boolean;
-}): Promise<ReflectiveQuestionGenerationResult> {
-  const createdAt = new Date().toISOString();
-  const abstain = (
-    reason: NonNullable<ReflectiveQuestionArtifact['abstainReason']>,
-    outcome: ReflectiveQuestionOutcome,
-    cost: AiCallCost | null = null,
-    questionMs = 0,
-    diagnostics: ReflectiveQuestionSinglePassResult | null = null
-  ): ReflectiveQuestionGenerationResult => ({
-    artifact: createReflectiveQuestionArtifact({
-      id: crypto.randomUUID(),
-      surface: params.surface,
-      createdAt,
-      abstainReason: reason,
-    }),
-    cost,
-    questionMs,
-    outcome,
-    diagnostics,
-  });
-
-  if (params.isFinalResponse) {
-    return abstain('final_chat_reply', 'semantic_abstention');
-  }
-
-  const evidenceSpans = buildDreamEvidenceSpans(params.dream.content);
-  if (evidenceSpans.length === 0) {
-    return abstain(
-      'deterministic_validation_rejection',
-      'deterministic_validation_rejection'
-    );
-  }
-  const userEvidenceSpans = params.surface === 'chat'
-    ? buildUserEvidenceSpans(
-        params.conversation ?? [],
-        params.latestUserMessage
-      )
-    : [];
-  const validEvidenceIds = new Set([
-    ...evidenceSpans.map((span) => span.id),
-    ...userEvidenceSpans.map((span) => span.id),
-  ]);
-  const languageContext = params.surface === 'chat'
-    ? buildChatReflectiveLanguageContext({
-        dreamContent: params.dream.content,
-        conversation: params.conversation ?? [],
-        latestUserMessage: params.latestUserMessage,
-      })
-    : buildInitialReflectiveLanguageContext({
-        dreamContent: params.dream.content,
-      });
-
-  const questionStartedAt = Date.now();
-  let questionPayload: Record<string, unknown>;
-  try {
-    questionPayload = await invokeOpenAiProxy({
-      authHeader: params.authHeader,
-      task: 'reflective_question_generate',
-      messages: buildReflectiveQuestionMessages({
-        surface: params.surface,
-        languageContext,
-        evidenceSpans,
-        userEvidenceSpans,
-        initialReadingContext: params.initialReadingContext,
-        chatAnswerContext: params.chatAnswerContext,
-        conversation: params.conversation,
-        latestUserMessage: params.latestUserMessage,
-      }),
-      temperature: REFLECTIVE_QUESTION_TEMPERATURE,
-      tokenLimit: REFLECTIVE_QUESTION_TOKEN_LIMIT,
-      responseFormat: buildReflectiveQuestionResponseFormat(),
-      timeoutMs: 30000,
-    });
-  } catch (error) {
-    console.error('[billing-ai] reflective question provider unavailable', {
-      surface: params.surface,
-      message: error instanceof Error ? error.message : 'Unknown question error',
-      questionMs: Date.now() - questionStartedAt,
-    });
-    return abstain(
-      'provider_failure',
-      'provider_failure',
-      null,
-      Date.now() - questionStartedAt
-    );
-  }
-
-  const questionMs = Date.now() - questionStartedAt;
-  const questionCost = aiCallCostFromPayload(questionPayload);
-  let parsed: ReturnType<typeof parseReflectiveQuestionResult>;
-  try {
-    parsed = parseReflectiveQuestionResult(
-      extractContent(questionPayload),
-      validEvidenceIds,
-      languageContext
-    );
-  } catch {
-    console.warn('[billing-ai] reflective question content unavailable', {
-      surface: params.surface,
-      questionMs,
-    });
-    return abstain(
-      'deterministic_validation_rejection',
-      'deterministic_validation_rejection',
-      questionCost,
-      questionMs
-    );
-  }
-  if (!parsed.ok) {
-    const outcome: ReflectiveQuestionOutcome = parsed.errors.includes('wrong_language')
-      ? 'language_mismatch'
-      : 'deterministic_validation_rejection';
-    console.warn('[billing-ai] reflective question rejected', {
-      surface: params.surface,
-      outcome,
-      errorCodes: parsed.errors.slice(0, 8),
-      questionMs,
-    });
-    return abstain(outcome, outcome, questionCost, questionMs);
-  }
-
-  if (parsed.data.decision === 'abstain') {
-    console.log('[billing-ai] reflective question semantic abstention', {
-      surface: params.surface,
-      questionMs,
-    });
-    return abstain(
-      'semantic_abstention',
-      'semantic_abstention',
-      questionCost,
-      questionMs,
-      parsed.data
-    );
-  }
-
-  const previouslyAskedQuestions = (params.conversation ?? []).flatMap((message) =>
-    message.role === 'assistant' &&
-    message.reflectiveQuestion?.status === 'question' &&
-    typeof message.reflectiveQuestion.question === 'string'
-      ? [message.reflectiveQuestion.question]
-      : []
-  );
-  const commitErrors = validateReflectiveQuestionCommit(
-    parsed.data,
-    { previouslyAskedQuestions }
-  );
-  if (commitErrors.length > 0) {
-    console.warn('[billing-ai] reflective question deterministic commit rejected', {
-      surface: params.surface,
-      errorCodes: commitErrors.slice(0, 8),
-      questionMs,
-    });
-    return abstain(
-      'deterministic_validation_rejection',
-      'deterministic_validation_rejection',
-      questionCost,
-      questionMs,
-      parsed.data
-    );
-  }
-
-  const artifact = createReflectiveQuestionArtifact({
-    id: crypto.randomUUID(),
-    surface: params.surface,
-    createdAt,
-    question: parsed.data.question,
-    languageCode: parsed.data.output_language,
-    evidenceIds: parsed.data.evidence_ids,
-  });
-  console.log('[billing-ai] reflective question committed', {
-    surface: params.surface,
-    outcome: 'committed_question',
-    evidenceCount: artifact.evidenceIds.length,
-    questionMs,
-    aiCost: {
-      provider: questionCost?.provider ?? null,
-      model: questionCost?.model ?? null,
-      inputTokens: questionCost?.inputTokens ?? 0,
-      outputTokens: questionCost?.outputTokens ?? 0,
-      estimatedUsd: questionCost?.estimatedUsd ?? null,
-    },
-  });
-  return {
-    artifact,
-    cost: questionCost,
-    questionMs,
-    outcome: 'committed_question',
-    diagnostics: parsed.data,
-  };
-}
-
-/**
- * The reflective-question subsystem must never turn a successful reading or
- * chat answer into a failed product operation. Expected provider/schema
- * failures are handled at their stage above; this outer boundary catches any
- * remaining implementation fault and records a quiet, typed fallback.
- */
-export async function generateReflectiveQuestionArtifact(
-  params: Parameters<typeof generateReflectiveQuestionArtifactInternal>[0]
-): Promise<ReflectiveQuestionGenerationResult> {
-  try {
-    return await generateReflectiveQuestionArtifactInternal(params);
-  } catch (error) {
-    console.error('[billing-ai] reflective question subsystem unavailable', {
-      surface: params.surface,
-      errorType: error instanceof Error ? error.name : 'UnknownError',
-    });
-    return {
-      artifact: createReflectiveQuestionArtifact({
-        id: crypto.randomUUID(),
-        surface: params.surface,
-        createdAt: new Date().toISOString(),
-        abstainReason: 'provider_failure',
-      }),
-      cost: null,
-      questionMs: 0,
-      outcome: 'provider_failure',
-      diagnostics: null,
-    };
-  }
 }
 
 export async function generateDreamExtractionWithCost(params: {
@@ -2262,30 +1756,29 @@ export async function generateFollowupReply(params: {
   userMessage: string;
   assistantRepliesUsed: number;
   assistantRepliesLimit: number;
-}): Promise<string> {
+}): Promise<{ text: string; reflectiveQuestions: string[]; cost: AiCallCost | null }> {
+  const isFinalResponse = params.assistantRepliesUsed + 1 >= params.assistantRepliesLimit;
   const request = buildFollowupMessages(
     params.dream,
     params.conversation,
     params.userMessage,
-    params.assistantRepliesUsed + 1 >= params.assistantRepliesLimit
+    isFinalResponse
   );
   const payload = await invokeOpenAiProxy({
     authHeader: params.authHeader,
     ...request,
   });
-  const parsed = parseReflectiveDialogueAnswer(
-    extractContent(payload),
-    request.reflectiveLanguageContext!
-  );
-  if (!parsed.ok) {
-    throw new HttpError(502, 'Reflective dialogue response validation failed', {
-      failureCode: 'reflective_dialogue_schema_invalid',
-      errorCodes: parsed.errors.slice(0, 8),
-    });
+  const text = extractContent(payload).trim();
+  if (!text) {
+    throw new HttpError(502, 'AI proxy returned empty follow-up reply');
   }
-  return stripTrailingReflectiveDialogueQuestion(
-    resolveReflectiveDialogueAnswer(parsed.data)
-  );
+  return {
+    text,
+    reflectiveQuestions: extractSameCallReflectiveQuestions(text, 'chat', {
+      isFinalChat: isFinalResponse,
+    }),
+    cost: aiCallCostFromPayload(payload),
+  };
 }
 
 type EssayProxyRequest = {

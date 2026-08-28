@@ -25,8 +25,8 @@ describe('reflective question production deploy hold', () => {
       '4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d'
     );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
-      methodId: 'oneiros-reflective-question-production-v1.0.0',
-      promptSha256: 'fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea',
+      methodId: 'oneiros-same-call-reflective-questions-v1.0.0',
+      promptSha256: '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c',
     });
     expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
       'oneiros-reflective-question-v2.0.1'
@@ -36,13 +36,13 @@ describe('reflective question production deploy hold', () => {
       'human_quality_failed_sterile_literalism'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).toBe(
-      'oneiros-reflective-question-production-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.0'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.chatQuestionMethodId).toBe(
-      'oneiros-reflective-question-v5.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.0'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.dialoguePromptId).toBe(
-      'oneiros-reflective-dialogue-v1.9.1'
+      'oneiros-followup-chat-v2.0.0'
     );
     expect(FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256).toBe(
       '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622'
@@ -78,7 +78,7 @@ describe('reflective question production deploy hold', () => {
       ).toThrow(/denied candidate/i);
     }
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
-      'oneiros-reflective-question-production-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.0'
     );
   });
 

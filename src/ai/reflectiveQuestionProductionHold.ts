@@ -1,19 +1,16 @@
 /**
- * Deploy-gate identity for the production reflective-question method.
+ * Deploy-gate identity for launch same-call reflective questions.
  *
- * Production orchestration lives in `src/ai/reflectiveQuestionPipeline.ts`.
- * Frozen Reader constitution remains in `src/ai/dreamReflectionPrompt.ts`.
- * Optional chat-question text remains in `src/ai/reflectiveQuestionPrompt.ts`.
+ * Production questions are generated inside the Reader/chat/essay calls.
+ * Composer, Integrity Gate, Repair, Premise Check, and v1.2 orchestration
+ * remain frozen R&D and must not be imported from client or gateway runtime.
  * Do not import this module from client or gateway request paths.
  */
 import { createHash } from 'crypto';
 import {
-  REFLECTIVE_QUESTION_METHOD_ID,
-} from './reflectiveQuestionPrompt';
-import {
-  REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256,
-  REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-} from './reflectiveQuestionPipeline';
+  SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE,
+  SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+} from './dreamReflectionPrompt';
 import { REFLECTION_EDITORIAL_ARC_METHOD_ID } from './reflectionEditorialArc';
 
 export const REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV =
@@ -42,12 +39,14 @@ export type ReflectiveQuestionProductionIdentity = {
 };
 
 /**
- * Approved production orchestration after bounded corpus validation 2026-08-29.
- * HOME Standard did not surface unchanged. Generator/Gate/Repair prompts stay frozen.
+ * Launch production: same-call Reader + questions. No second question inference.
  */
+export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256 =
+  '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c' as const;
+
 export const APPROVED_REFLECTIVE_QUESTION_PRODUCTION: ReflectiveQuestionProductionIdentity = {
-  methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-  promptSha256: REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256,
+  methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  promptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
 };
 
 /** Mechanically valid, but explicitly revoked after the 20-dream human review. */
@@ -62,16 +61,20 @@ export const REVOKED_REFLECTIVE_QUESTION_PRODUCTION = {
  * Exact local production orchestration identity used by the deploy guard.
  */
 export const PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE = {
-  methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-  promptSha256: REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256,
-  dialoguePromptId: 'oneiros-reflective-dialogue-v1.9.1',
-  chatQuestionMethodId: REFLECTIVE_QUESTION_METHOD_ID,
-  chatQuestionPromptSha256:
-    '759b4726a666ea12ac087c7fae61c9a7681def2f7ecadbf04e08a3bb36555472',
+  methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  promptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
+  dialoguePromptId: 'oneiros-followup-chat-v2.0.0',
+  chatQuestionMethodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  chatQuestionPromptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
 } as const;
 
 /** Local Oneiros Reader candidate. Never deploy this SHA. */
 export const DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES = [
+  {
+    methodId: 'oneiros-reflective-question-production-v1.0.0',
+    promptSha256:
+      'fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea',
+  },
   {
     methodId: 'oneiros-same-call-minimal-v1.1.0-candidate',
     promptSha256:
@@ -280,7 +283,7 @@ export function assertReflectiveQuestionGatewayDeployAllowed(input: {
         'Blocked ai-entitlements-gateway deploy: local reflective-question source is a denied candidate.',
         `Local: ${input.localMethodId} / ${localSha}`,
         `Denied: ${deniedCandidate.methodId} / ${deniedCandidate.promptSha256}`,
-        'Approved production: oneiros-reflective-question-production-v1.0.0',
+        'Approved production: oneiros-same-call-reflective-questions-v1.0.0',
         'Do not deploy a reflective-question identity that failed human-quality review.',
       ].join('\n')
     );
@@ -346,7 +349,7 @@ export function assertReflectiveQuestionGatewayDeployAllowed(input: {
 }
 
 const RUNTIME_RD_IMPORT =
-  /from\s+['"][^'"]*(?:\/rd\/reflective-questions(?:['"]|\/(?:active|archive|lineage|candidateB|candidateC|remainderFirst|postJungianInviter|postReadingInviter))|reflectiveQuestion(?:ProductionHold|LanguageOperator|Minimalism|Witnessed|Surgical|Relation|Selection|OneirosReader))/;
+  /from\s+['"][^'"]*(?:\/rd\/reflective-questions(?:['"]|\/)|reflectiveQuestion(?:Pipeline|Composer|ProductionHold|LanguageOperator|Minimalism|Witnessed|Surgical|Relation|Selection|OneirosReader)|questionPremiseCheck)/;
 
 export function assertReflectiveQuestionRuntimeHasNoRdImports(
   source: string,

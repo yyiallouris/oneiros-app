@@ -2,11 +2,8 @@
  * Closed reflective-question R&D selection.
  *
  * status: frozen_rnd_reference
- * Prompt grammar R&D remains STOP. These identities ship only as frozen
- * components of `oneiros-reflective-question-production-v1.0.0`.
- *
- * Frozen references: same-call v1.2 generator, Integrity Gate, Repair.
- * Historical Composer lives in `src/ai/reflectiveQuestionComposer.ts`.
+ * CLOSED R&D — not production.
+ * Prompt grammar R&D remains STOP.
  *
  * Canonical record:
  * `docs/ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`

@@ -36,19 +36,17 @@ describe('reflective essay v2 prompt contract', () => {
     expect(monthly).toContain('## Movement Across the Month');
   });
 
-  it('does not force conflict or coherence and outputs exactly one reflective question', () => {
+  it('does not force conflict or coherence and outputs exactly two reflective questions', () => {
     const prompt = buildPeriodReflectionSystemPrompt('monthly', 5);
 
     expect(prompt).toMatch(/tension, contradiction, or lack of coherence/);
     expect(prompt).toContain('Conflict is one possible organizing quality, never the default');
     expect(prompt).toContain('If no coherent organization is well supported, do not manufacture one');
-    expect(prompt).toContain(
-      'Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field'
-    );
-    expect(prompt).toContain('One strong question is complete');
+    expect(prompt).toContain('Exactly 2 questions as markdown bullets');
+    expect(prompt).not.toContain('canonical reflective-question method');
     expect(prompt).not.toContain('Output 1–2 questions');
-    expect(prompt).toContain('Preserve the chosen field topology in the question.');
-    expect(prompt).toContain('Never use the question to create a cross-dream relation');
+    expect(prompt).toContain('Once chosen, preserve that topology throughout every section and the reflective question');
+    expect(prompt).toContain('Do not use a question to invent a cross-dream relation');
   });
 
   it('requires concrete evidence before unifying dreams while preserving ambition', () => {
@@ -72,7 +70,7 @@ describe('reflective essay v2 prompt contract', () => {
     expect(prompt).toContain('Chronology is not development.');
     expect(prompt).toContain('Do not default to fragmentation or perform skepticism.');
     expect(prompt).toContain('name it clearly and follow it with full interpretive ambition');
-    expect(prompt).toContain('Never use the question to create a cross-dream relation');
+    expect(prompt).toContain('Do not use a question to invent a cross-dream relation');
   });
 
   it('lets fixed sections express no field, parallel clusters, and no temporal development', () => {
@@ -144,7 +142,7 @@ describe('reflective essay v2 prompt contract', () => {
     expect(essayExceedsRetryTolerance(sevenWords, policy, 'en')).toBe(true);
     expect(retry).toContain('Rewrite the entire essay from scratch');
     expect(retry).toContain(
-      'Preserve the complete reflective-question section with exactly one question.'
+      'Preserve the complete reflective-question section with exactly two questions.'
     );
     expect(retry).toContain('Never cut a sentence or question to satisfy the word limit.');
     expect(retry).not.toMatch(/truncate|string truncation/i);

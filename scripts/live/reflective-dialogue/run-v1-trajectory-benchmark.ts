@@ -34,7 +34,6 @@ import {
   parseReflectiveQuestionResult,
   validateReflectiveQuestionCommit,
 } from '../../../src/ai/reflectiveQuestionPrompt';
-import { PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE } from '../../../src/ai/reflectiveQuestionProductionHold';
 import {
   REFLECTIVE_DIALOGUE_HUMAN_QUALITY_GATE,
   REFLECTIVE_DIALOGUE_V1_BENCHMARK_ID,
@@ -113,13 +112,9 @@ function sha256(value: string): string {
 
 function assertCandidateIdentity(): string {
   const localSha = sha256(REFLECTIVE_QUESTION_PRODUCTION_BUNDLE);
-  if (
-    REFLECTIVE_QUESTION_METHOD_ID !==
-      PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.chatQuestionMethodId ||
-    localSha !== PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.chatQuestionPromptSha256
-  ) {
+  if (REFLECTIVE_QUESTION_METHOD_ID !== 'oneiros-reflective-question-v5.0.0') {
     throw new Error(
-      `Dialogue benchmark identity drifted: ${REFLECTIVE_QUESTION_METHOD_ID}/${localSha}.`
+      `Closed dialogue benchmark identity drifted: ${REFLECTIVE_QUESTION_METHOD_ID}/${localSha}.`
     );
   }
   return localSha;

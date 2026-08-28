@@ -14,6 +14,7 @@ import type { RecentSequenceReflection } from '../types/insights';
 import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
 import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { normalizeReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
+import { normalizeReflectiveQuestions } from '../ai/reflectiveQuestionExtract';
 import { logError, logEvent } from './logger';
 
 const VOICE_STATUSES = new Set([
@@ -369,12 +370,14 @@ export class LocalStorage {
           const reflectiveQuestion = normalizeReflectiveQuestionArtifact(
             message.reflectiveQuestion
           );
+          const reflectiveQuestions = normalizeReflectiveQuestions(message.reflectiveQuestions);
           return [{
             id: message.id,
             role: message.role,
             content: message.content,
             timestamp: message.timestamp,
             ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
+            ...(reflectiveQuestions ? { reflectiveQuestions } : {}),
           }];
         })
       : [];

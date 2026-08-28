@@ -132,7 +132,7 @@ describe('Reflective Dialogue v1 synthetic trajectory benchmark', () => {
     expect(runner).toContain('buildReflectiveQuestionMessages');
     expect(runner).toContain('buildReflectiveQuestionResponseFormat');
     expect(runner).not.toContain("task: 'reflective_question_validate'");
-    expect(runner).toContain('PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE');
+    expect(runner).toContain('oneiros-reflective-question-v5.0.0');
     expect(runner).not.toMatch(/src\/ai\/rd|run-active-candidate|archive\/reflective-questions/);
   });
 });

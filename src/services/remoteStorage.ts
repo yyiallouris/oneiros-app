@@ -11,6 +11,7 @@ import {
 import { normalizeArchetypalEchoes } from '../ai/archetypalEchoes';
 import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { normalizeReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
+import { normalizeReflectiveQuestions } from '../ai/reflectiveQuestionExtract';
 import { logEvent, logError } from './logger';
 
 // Helper: get current authenticated user id from Supabase
@@ -127,12 +128,14 @@ function normalizeChatMessages(value: unknown): ChatMessage[] {
     const timestamp = typeof raw.timestamp === 'string' ? raw.timestamp : '';
     if (!role || !id || !content.trim() || !timestamp) return [];
     const reflectiveQuestion = normalizeReflectiveQuestionArtifact(raw.reflectiveQuestion);
+    const reflectiveQuestions = normalizeReflectiveQuestions(raw.reflectiveQuestions);
     return [{
       id,
       role,
       content,
       timestamp,
       ...(reflectiveQuestion ? { reflectiveQuestion } : {}),
+      ...(reflectiveQuestions ? { reflectiveQuestions } : {}),
     }];
   });
 }

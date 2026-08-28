@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExportForeground, PrimaryIconButton } from '../components/ui';
-import { ReflectiveQuestionCard } from '../components/ui/ReflectiveQuestionCard';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
@@ -60,6 +59,7 @@ import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 import { getReflectiveQuestionCopy } from '../constants/reflectiveQuestionCopy';
+import { resolveDreamOutputLanguage } from '../ai/dreamOutputLanguage';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
@@ -286,13 +286,6 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
           ) : (
             <>
               <FormattedMessageText text={message.content || ''} isUser={isUser} />
-              {!isUser ? (
-                <ReflectiveQuestionCard
-                  artifact={message.reflectiveQuestion}
-                  variant="embedded"
-                  testID={`reflective-question-${message.id}`}
-                />
-              ) : null}
               {showSettleFooter && (
                 <Text style={styles.settleFooter}>{SETTLE_FOOTER}</Text>
               )}
@@ -873,15 +866,6 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       setShowChat(true);
     };
 
-    const openQuestionComposer = (draft?: string) => {
-      if (draft?.trim()) setInputText(draft.trim());
-      setShowChat(true);
-      setTimeout(() => {
-        composerInputRef.current?.focus();
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 120);
-    };
-
     const sendExploringMessage = async (overrideText?: string) => {
       const nextText = (overrideText ?? inputText).trim();
       if (overrideText) setInputText(nextText);
@@ -955,11 +939,6 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       } finally {
         setIsLoading(false);
       }
-    };
-
-    const answerReflectiveQuestion = (answer: string) => {
-      openQuestionComposer();
-      void sendExploringMessage(answer);
     };
 
     const animateChatClose = () => {
@@ -1247,9 +1226,9 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       firstAssistantMessage?.content?.trim() ??
       interpretation?.messages?.[0]?.content?.trim() ??
       '';
-    const firstReflectiveQuestion = firstAssistantMessage?.reflectiveQuestion ?? null;
     const continuationLabel = getReflectiveQuestionCopy(
-      firstReflectiveQuestion?.languageCode
+      firstAssistantMessage?.reflectiveQuestion?.languageCode ??
+        resolveDreamOutputLanguage(dream.content).code
     ).continueLabel;
 
     const interpretationPreviewExcerpt = buildInterpretationPreviewExcerpt(firstAssistantInterpretationText);
@@ -1371,13 +1350,6 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       </Text>
                     </View>
                   )}
-                  <ReflectiveQuestionCard
-                    artifact={firstReflectiveQuestion}
-                    variant="preview"
-                    onContinue={openQuestionComposer}
-                    onAnswer={answerReflectiveQuestion}
-                    testID="dream-detail-reflective-question-card"
-                  />
                   {typeof __DEV__ !== 'undefined' && __DEV__ && interpretation?.id ? (
                     <TouchableOpacity
                       onPress={() => {
@@ -1414,7 +1386,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       <Text style={styles.debugReextractLabel}>↻ Re-extract echoes (debug packet)</Text>
                     </TouchableOpacity>
                   ) : null}
-                  {!showChat && firstReflectiveQuestion?.status !== 'question' && (
+                  {!showChat && (
                     <TouchableOpacity
                       onPress={animateChatOpen}
                       style={styles.continueExploringButton}

@@ -1,6 +1,8 @@
 # Oneiros AI prompts inventory
 
-> **Production orchestration v1.0.0 (2026-08-29):** approved identity `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…`. Frozen Reader `oneiros-dream-reflection-v3.1.0-candidate` plus Generator v1.2 (`4506c898…`) → Integrity Gate (`c1d8090f…`) → Premise Check (`ceca4568…`) → at most one Repair (`0859fd54…`) → Gate → Premise Check → localized `reflective-question-fallback-v1`. Schema `11`. Depth maps `quick→core`, `standard→core`, `advanced→deeper`. Composer is not the production writer. Canonical sources: `src/ai/reflectiveQuestionPipeline.ts`, `src/ai/questionPremiseCheck.ts`. Record: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
+> **Launch same-call questions (2026-08-29):** approved identity `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114a…`. Reader `oneiros-dream-reflection-v3.2.0`. Follow-up chat `oneiros-followup-chat-v2.0.0`. One inference writes reading + questions. Quick 1; Standard/Advanced 2; chat open 1 / close 0; essays 2. No Composer, Gate, Repair, or Premise Check in runtime. Canonical sources: `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`. Hold: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+
+> **Historical production orchestration v1.0.0 (2026-08-29, CLOSED R&D):** `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…`. Frozen Reader `oneiros-dream-reflection-v3.1.0-candidate` plus Generator v1.2 (`4506c898…`) → Integrity Gate (`c1d8090f…`) → Premise Check (`ceca4568…`) → at most one Repair (`0859fd54…`). Schema `11`. Not launch runtime. Museum: `src/ai/reflectiveQuestionPipeline.ts`. Record: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
 
 > **Composer v1.1.0 brutal-simple (2026-08-28, historical):** `oneiros-reflective-question-composer-v1.1.0-candidate` / prompt `oneiros-reflective-question-composer-prompt-v1.1.0-candidate` / schema `10` / SHA `a42e79df…`. Not production. Structured Composer v1.0.1 SHA `56150c82…` remains readable historical evidence. Same-call v1.2.0 (`oneiros-same-call-minimal-v1.2.0-candidate`, SHA `4506c898…`) won the paired Standard/CORE gate 8/8 versus frozen v1.1.0 (`8e0edada…`) and is frozen exactly as tested. Prompt R&D on System 4 is STOP. Integrity Gate plus Repair editorial FAIL 16/24 is the R&D closeout; production wraps those frozen prompts instead of mutating them. Museum source: `src/ai/reflectiveQuestionComposer.ts`.
 
@@ -49,10 +51,10 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 | Voice transcription strategy | `voice-transcription-v3.0.0-language-neutral` in `supabase/functions/whisper-transcription/index.ts` |
 | Period reflection essay | `oneiros-period-reflection-v2` / `2.0.3-phase1` |
 | Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.3-phase1` |
-| Initial dream reflection | `oneiros-dream-reflection-v3.1.0-candidate` / `3.1.0-candidate`; Reader frozen; question protocol detached |
-| Reflective dialogue candidate | `oneiros-reflective-dialogue-v1.9.1`; `chat_followup` → `gpt-5.4-mini`; strict `{answer, output_language, reply_mode}` response; visible-question replay; completion/correction/brief acknowledgment/grief/non-event restraint |
-| Reflective-question production | `oneiros-reflective-question-production-v1.0.0`, schema `11`, Generator v1.2 + Integrity Gate + Premise Check + at most one Repair + localized fallback. Chat: historical v5 single-pass engine, schema/response `6`/`5`, SHA `759b4726…`, optional after Dialogue `1.9.1`. |
-| Approved local reflective question | `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea`; v2.0.1 / SHA `2e412879…` remains human-quality revoked |
+| Initial dream reflection | `oneiros-dream-reflection-v3.2.0` / `3.2.0`; same-call questions in the reading |
+| Follow-up chat | `oneiros-followup-chat-v2.0.0`; `chat_followup` → `gpt-5.4-mini`; prose conversation; open 1 question / close 0 |
+| Reflective-question production | `oneiros-same-call-reflective-questions-v1.0.0`; Quick 1, Standard/Advanced 2, essays 2; deterministic extract; no second LLM |
+| Approved local reflective question | `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c`; orchestration `fc8b6304…` and v2.0.1 / SHA `2e412879…` remain denied |
 | Same-call minimal Generator | `oneiros-same-call-minimal-v1.2.0-candidate`; SHA `4506c898…`; frozen after paired PASS 8/8 vs v1.1.0 `8e0edada…`; System 4 prompt R&D STOP; production import only via `reflectiveQuestionPipeline.ts` |
 | Question Integrity Gate | `oneiros-question-integrity-gate-v1.0.0-candidate`; SHA `c1d8090f…`; production component; standalone method denied |
 | Question Premise Check | `oneiros-question-premise-check-v1.0.0-candidate`; SHA `ceca4568…`; GPT-5.4 / temp `0`; `{decision}` only |
@@ -64,8 +66,9 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 
 Canonical sources:
 - Recent/period essay prompt construction: shared `src/ai/reflectiveEssayPrompt.ts` (client + gateway)
-- Initial reflection construction: shared `src/ai/dreamReflectionPrompt.ts` and `src/ai/reflectiveEvidence.ts` (client + gateway; Reader frozen).
-- Initial production question path: `src/ai/reflectiveQuestionPipeline.ts` + `src/ai/questionPremiseCheck.ts` (schema `11`; approved orchestration).
+- Initial reflection construction: shared `src/ai/dreamReflectionPrompt.ts` (client + gateway; same-call questions).
+- Question extraction: `src/ai/reflectiveQuestionExtract.ts` (deterministic; no second LLM).
+- Historical production question path: `src/ai/reflectiveQuestionPipeline.ts` + `src/ai/questionPremiseCheck.ts` (CLOSED R&D).
 - Historical Composer museum: `src/ai/reflectiveQuestionComposer.ts` (schema `10`; not production).
 - Chat-question candidate: `src/ai/reflectiveQuestionPrompt.ts` (v5 single-pass gateway subsystem; bundle SHA `759b4726…`). Shared language source is `src/ai/reflectiveLanguage.ts`.
 - Grouping / conversation update: `src/services/ai.ts` (client) and corresponding runtime wiring in `supabase/functions/_shared/billing-ai.ts` (gateway production path)

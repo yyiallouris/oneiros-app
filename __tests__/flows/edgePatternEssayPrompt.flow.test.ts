@@ -21,12 +21,10 @@ describe('edge pattern essay prompt flow', () => {
     expect(essayPrompt).toMatch(/Read the dreams as a recent sequence, not as a completed calendar period/);
     expect(essayPrompt).toMatch(/what is most psychologically alive or generative/);
     expect(essayPrompt).toMatch(/Conflict is one possible organizing quality, never the default/);
-    expect(essayPrompt).toMatch(
-      /Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field/
-    );
-    expect(essayPrompt).toMatch(/One strong question is complete/);
+    expect(essayPrompt).toMatch(/Exactly 2 questions as markdown bullets/);
+    expect(essayPrompt).not.toMatch(/canonical reflective-question method/);
     expect(essayPrompt).not.toMatch(/Output 1–2 questions, maximum 2/);
-    expect(essayPrompt).toMatch(/Preserve the chosen field topology in the question/);
+    expect(essayPrompt).toMatch(/Once chosen, preserve that topology throughout every section/);
     expect(essayPrompt).not.toMatch(/from '\.\/reflectiveQuestionPrompt'/);
     expect(billingAi).toMatch(
       /role: 'system' as const,\s*content: RECENT_DREAM_FIELD_SYSTEM_PROMPT,\s*\},\s*\{\s*role: 'user' as const,/
@@ -34,7 +32,7 @@ describe('edge pattern essay prompt flow', () => {
     expect(billingAi).toMatch(
       /content: buildPeriodReflectionSystemPrompt\(scope\.kind, entries\.length\),\s*\},\s*\{\s*role: 'user' as const,/
     );
-    expect(essayPrompt).not.toMatch(/Exactly 2 questions/);
+    expect(essayPrompt).toMatch(/Exactly 2 questions as markdown bullets/);
     expect(essayPrompt).toMatch(/No advice verbs such as try, practice, breathe, relax, focus, improve, or work on/);
     expect(billingAi).toMatch(/END_MARKER_DREAM_ESSAY/);
     expect(billingAi).toMatch(/stripEndMarker\((primary|retry)MarkedContent, END_MARKER_DREAM_ESSAY\)/);

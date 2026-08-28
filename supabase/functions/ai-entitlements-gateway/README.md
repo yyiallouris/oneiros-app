@@ -27,8 +27,8 @@ Behavior:
 - before starting the background worker, the gateway sets `result_context.async_background_started`; a later reserve with the same stable idempotency key returns `pending` without starting a second Edge worker (client rejoins via `dream_reflection_status`)
 - while async reflection is pending, the gateway streams model chunks into `quota_events.result_context.partial_reflection`; status polling can return this partial text for progressive display, but quota still commits only after the final reflection row is saved
 - `dream_reflection_status` reads the quota event and returns the committed interpretation payload once available, or `pending` / `released` / `denied` status while preserving quota semantics
-- client and gateway import the canonical initial reading (`oneiros-dream-reflection-v3.1.0-candidate`) and follow-up dialogue (`oneiros-reflective-dialogue-v1.9.1`) builders. Quick remains a glimpse; Standard stops when the central movement is illuminated; Advanced earns length through resolution rather than a word minimum. The gateway streams reading bytes; historical `BEGIN_DREAM_READING` envelopes remain salvageable. Dialogue behavior is unchanged.
-- production question identity is `oneiros-reflective-question-production-v1.0.0` (schema `11`): frozen Reader + v1.2 Generator, Integrity Gate, Premise Check, at most one Repair, then localized fallback. Depth maps `quick→core`, `standard→core`, `advanced→deeper`. New writes never emit `no_question`. Chat stays Dialogue `1.9.1` plus optional v5 question; final skips it. Exploring `chat_followup` stays `gpt-5.4-mini`. Schemas 1–10 remain readable. Closed Inviter/editorial SHAs remain denied. Essays stay `2.0.3-phase1`. Kill switch `ONEIROS_REFLECTIVE_QUESTION_KILL_SWITCH` is the emergency omit path.
+- client and gateway import the canonical initial reading (`oneiros-dream-reflection-v3.2.0`) and follow-up chat (`oneiros-followup-chat-v2.0.0`) builders. Quick remains a glimpse; Standard stops when the central movement is illuminated; Advanced earns length through resolution rather than a word minimum. The gateway streams reading bytes, including same-call questions. Historical `BEGIN_DREAM_READING` envelopes remain salvageable.
+- production question identity is `oneiros-same-call-reflective-questions-v1.0.0`: one Reader/chat/essay call writes the questions. Quick 1; Standard/Advanced 2; chat open 1 / close 0; essays 2. No Composer, Gate, Repair, or Premise Check. Exploring `chat_followup` stays `gpt-5.4-mini`. Closed Inviter/editorial/orchestration SHAs remain denied. Essays stay `2.0.3-phase1`.
 - Recent Dream Field and period reflection keep shared prompt ids `oneiros-recent-dream-field-v2` / `oneiros-period-reflection-v2` frozen at `2.0.3-phase1`. `_shared/billing-ai.ts` now selects the accepted metadata-heavy builder and persists context version `1`. Provider/model routing, temperatures, sections, length handling, and one-shot compact retry remain unchanged. Narrative-first context version `2` and the Field Map pre-pass are evaluation-only and are not imported into gateway generation. The Phase 2 regression scored `7 PASS / 2 FAIL`; its one permitted Field Map spike failed the stop rule at manual `2 PASS / 7 FAIL`. Phase 2 R&D is closed. Deploying this gateway would ship the Phase 1 baseline, not Phase 2.
 - incomplete or initially over-limit essays receive one compact full rewrite; the retry has a small measured tolerance and is never string-truncated. Sanitized telemetry may include word counts and thresholds but never dream content, prompts, messages, or essay output
 - gateway-to-proxy reflection timeouts release the quota reservation before the client sees an error
@@ -60,12 +60,12 @@ Required env:
 
 Deploy:
 
-The local complete dialogue/question bundle must match an explicitly approved identity before this function can ship. Do not run raw `supabase functions deploy ai-entitlements-gateway`. Use the fail-closed wrapper:
+The local same-call question bundle must match an explicitly approved identity before this function can ship. Do not run raw `supabase functions deploy ai-entitlements-gateway`. Use the fail-closed wrapper:
 
 ```bash
 npm run deploy:ai-entitlements-gateway
 ```
 
-That runs the fail-closed guard first. Editorial arc / SHA `57a066e5…` remains blocked until the fresh combined adversarial 8 and fluent human gates pass. There is no initial selector, repair, second question call, or judge. Larger packets require separate cost authorization. Revoked/denied candidates cannot be approved by override. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../../../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+That runs the fail-closed guard first. Composer / Gate / Repair / orchestration SHAs remain blocked. Record: [`docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](../../../docs/REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
 
 `openai-proxy` must also be deployed and reachable; gateway AI calls fail with `Unauthorized` if the proxy receives a non-user Bearer token.

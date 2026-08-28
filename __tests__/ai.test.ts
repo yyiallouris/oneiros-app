@@ -114,7 +114,7 @@ describe('ai service', () => {
     expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(1);
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
     expect(interpretationBody.model).toBe('gpt-5.4-mini');
-    expect(interpretationBody.max_completion_tokens).toBe(1450);
+    expect(interpretationBody.max_completion_tokens).toBe(1600);
     expect(interpretationBody.max_tokens).toBeUndefined();
     const userMsg = interpretationBody.messages.find((m: { role: string }) => m.role === 'user')?.content ?? '';
     expect(userMsg).toMatch(/OUTPUT LANGUAGE/);
@@ -358,7 +358,7 @@ describe('ai service', () => {
     );
 
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
-    expect(interpretationBody.max_completion_tokens).toBe(1450);
+    expect(interpretationBody.max_completion_tokens).toBe(1600);
     expect(interpretationBody.temperature).toBe(0.55);
     const systemText = interpretationBody.messages
       .filter((m: { role: string }) => m.role === 'system')
@@ -369,7 +369,7 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Write one compact interpretive reading in as many short paragraphs as its/);
     expect(systemText).toMatch(/Do not split the reading into multiple analytical sections/);
     expect(systemText).toMatch(/Do not use bullets for symbols/);
-    expect(systemText).toMatch(/Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, Integration, or Reflective Questions/);
+    expect(systemText).toMatch(/Do not use headings for Emotional Atmosphere, Key Symbols, Possible Psychological Meaning, Symbolic Movement, or Integration/);
     expect(systemText).toMatch(/Mythic or archetypal widening is normally out of scope in Standard mode/);
     expect(systemText).toMatch(/at most one brief image-born resonance sentence/);
     expect(systemText).toMatch(/Do not force mythology onto domestic, ordinary, comic, bureaucratic, or psychologically local dreams/);
@@ -379,15 +379,8 @@ describe('ai service', () => {
     expect(systemText).not.toMatch(/## Possible Psychological Meaning/);
     expect(systemText).not.toMatch(/## Mythic Resonance/);
     expect(systemText).toMatch(/Typical density may fall around 140–360 words, but this is telemetry/);
-    expect(systemText).toMatch(/Do not place a question inside the reading prose/);
-    expect(systemText).not.toMatch(/ONEIROS EDITORIAL ARC/);
-    expect(systemText).not.toMatch(/PRIVATE-FIRST PROTOCOL/);
-    expect(systemText).not.toMatch(/Return zero or one question/);
-    expect(systemText).not.toMatch(/FOUR EPISTEMIC BOUNDARIES/);
-    expect(systemText).not.toMatch(/ONEIROS_REFLECTION_OPENING_V2/);
-    expect(systemText).not.toMatch(/BEGIN_DREAM_READING/);
-    expect(systemText).not.toMatch(/## Reflective Questions/);
-    expect(systemText).not.toMatch(/psychological aliveness v1\.4\.0/);
+    expect(systemText).toMatch(/## Reflective Questions/);
+    expect(systemText).toMatch(/Exactly 2 questions as markdown bullets/);
   });
 
   it('uses the image-near quick prompt', async () => {
@@ -416,7 +409,7 @@ describe('ai service', () => {
     );
 
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
-    expect(interpretationBody.max_completion_tokens).toBe(500);
+    expect(interpretationBody.max_completion_tokens).toBe(560);
     expect(interpretationBody.temperature).toBe(0.68);
     const systemText = interpretationBody.messages
       .filter((m: { role: string }) => m.role === 'system')
@@ -428,7 +421,8 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Do not manufacture a problem when the dream is calm/);
     expect(systemText).toMatch(/Do not use archetype labels, amplifications, or extra framework language/);
     expect(systemText).toMatch(/Roughly 70–160 words is guidance/);
-    expect(systemText).toMatch(/Do not place a question inside the reading prose/);
+    expect(systemText).toMatch(/exactly one natural reflective question/);
+    expect(systemText).not.toMatch(/## Reflective Questions/);
     expect(systemText).not.toMatch(/ONEIROS EDITORIAL ARC/);
     expect(systemText).not.toMatch(/psychological aliveness v1\.4\.0/);
   });
@@ -459,7 +453,7 @@ describe('ai service', () => {
     );
 
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
-    expect(interpretationBody.max_completion_tokens).toBe(2600);
+    expect(interpretationBody.max_completion_tokens).toBe(2700);
     expect(interpretationBody.temperature).toBe(0.6);
     const systemText = interpretationBody.messages
       .filter((m: { role: string }) => m.role === 'system')
@@ -483,7 +477,7 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Do not split the reading into multiple analytical sections/);
     expect(systemText).toMatch(/Let one image become the gravitational center/);
     expect(systemText).toMatch(/Trust the image/);
-    expect(systemText).not.toMatch(/## Reflective Questions/);
+    expect(systemText).toMatch(/## Reflective Questions/);
     expect(systemText).not.toMatch(/## The Charged Image/);
     expect(systemText).not.toMatch(/## What the Dream Organizes/);
     expect(systemText).not.toMatch(/## Symbolic Movement/);
@@ -496,7 +490,7 @@ describe('ai service', () => {
     expect(systemText).toMatch(/Let unresolvedness appear only if the dream itself leaves something suspended/);
     expect(systemText).toMatch(/Roughly 250–400 words may be enough for a small but numinous dream/);
     expect(systemText).toMatch(/complex\s+multi-scene material may earn 650–800/);
-    expect(systemText).toMatch(/Do not place a question inside the reading prose/);
+    expect(systemText).toMatch(/Exactly 2 questions as markdown bullets/);
     expect(systemText).not.toMatch(/ONEIROS EDITORIAL ARC/);
     expect(systemText).not.toMatch(/Return zero or one question/);
     expect(systemText).not.toMatch(/Silence is a valid editorial ending/);
@@ -552,20 +546,19 @@ describe('ai service', () => {
 
     expect(result).toBe('Compact advanced analysis');
     const retryBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
-    expect(retryBody.max_completion_tokens).toBe(1800);
+    expect(retryBody.max_completion_tokens).toBe(1900);
     const retrySystemText = retryBody.messages
       .filter((m: { role: string }) => m.role === 'system')
       .map((m: { content: string }) => m.content)
       .join('\n');
     expect(retrySystemText).toMatch(/Rewrite from scratch/);
-    expect(retrySystemText).toMatch(/Use only one Core heading and Dream Movement/);
+    expect(retrySystemText).toMatch(/Use only one Core heading, Dream Movement, and Reflective Questions/);
     expect(retrySystemText).toMatch(/Linger only where the dream earns greater resolution/);
     expect(retrySystemText).toMatch(/Stay with the strongest specific dream details/);
-    expect(retrySystemText).toMatch(/Do not place a question inside the reading prose/);
-    expect(retrySystemText).toMatch(/Never append a reflective question/);
+    expect(retrySystemText).toMatch(/required reflective question/);
+    expect(retrySystemText).toMatch(/never by a second question call/);
     expect(retrySystemText).not.toMatch(/fresh private question-or-no-question envelope first/);
     expect(retrySystemText).not.toMatch(/Never repair or reuse the\s+previous envelope/);
-    expect(retrySystemText).not.toMatch(/Reflective Questions/);
   });
 
   it('attaches proxy task keys and dream headers for reflection depths and compact retry', async () => {
@@ -745,9 +738,7 @@ describe('ai service', () => {
       'semantic_grouping',
     ]);
     expect(bodies[0].response_format).toEqual(buildDreamExtractionResponseFormat());
-    expect(bodies[1].response_format?.json_schema?.name).toBe(
-      'oneiros_reflective_dialogue_answer_v1_8'
-    );
+    expect(bodies[1].response_format).toBeUndefined();
     expect(bodies[2].response_format).toEqual({ type: 'json_object' });
     expect(bodies[5].response_format).toEqual({ type: 'json_object' });
   });

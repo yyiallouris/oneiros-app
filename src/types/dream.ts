@@ -166,8 +166,10 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
-  /** Versioned opening artifact; schemas 1–8 remain readable. Schema 9 always stores a question. */
+  /** Versioned opening artifact; schemas 1–11 remain readable. New writes store `reflectiveQuestions`. */
   reflectiveQuestion?: ReflectiveQuestionArtifact;
+  /** Deterministic same-call questions extracted from markdown. Quick: 1; Standard/Advanced: 2. */
+  reflectiveQuestions?: string[];
 }
 
 export interface DreamDraft {

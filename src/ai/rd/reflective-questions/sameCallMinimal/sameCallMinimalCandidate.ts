@@ -5,18 +5,20 @@ import {
 } from '../../../../constants/oneirosLanguages.ts';
 import {
   buildInitialReflectionRequest,
-  DREAM_REFLECTION_PROMPT_ID,
   END_MARKER_DREAM_READING,
   type DreamReflectionDepth,
   type DreamReflectionInput,
   type ReflectionPromptRequest,
 } from '../../../dreamReflectionPrompt.ts';
 
+/** Historical Reader identity at the time these R&D SHAs were frozen. */
+const FROZEN_SAME_CALL_READER_PROMPT_ID = 'oneiros-dream-reflection-v3.1.0-candidate';
+
 /**
- * Offline same-call R&D. status: frozen_rnd_reference.
- * Prompt contents are frozen. Production may import this file only through
- * `src/ai/reflectiveQuestionPipeline.ts`. Client must not import it.
- * The standalone method ID remains denied for deploy-as-the-production-method.
+ * Offline same-call R&D. status: frozen_rnd_reference. CLOSED R&D — not production.
+ * Prompt contents are frozen. Do not import from client, gateway, or billing-ai.
+ * Hash identity pins the historical Reader id so launch Reader version bumps
+ * do not rewrite these closed SHAs.
  */
 export const SAME_CALL_MINIMAL_RD_STATUS = 'frozen_rnd_reference' as const;
 export const SAME_CALL_MINIMAL_MODEL = 'gpt-5.4' as const;
@@ -376,7 +378,7 @@ export const SAME_CALL_MINIMAL_V11_BUNDLE = [
   SAME_CALL_MINIMAL_V11_METHOD_ID,
   SAME_CALL_MINIMAL_V11_PROMPT_ID,
   SAME_CALL_MINIMAL_V11_PROMPT_VERSION,
-  DREAM_REFLECTION_PROMPT_ID,
+  FROZEN_SAME_CALL_READER_PROMPT_ID,
   SAME_CALL_MINIMAL_MODEL,
   SAME_CALL_MINIMAL_V11_QUESTION_PROMPT,
   'production-reader:quick|standard|advanced+terminal-question',
@@ -388,7 +390,7 @@ export const SAME_CALL_MINIMAL_BUNDLE = [
   SAME_CALL_MINIMAL_METHOD_ID,
   SAME_CALL_MINIMAL_PROMPT_ID,
   SAME_CALL_MINIMAL_PROMPT_VERSION,
-  DREAM_REFLECTION_PROMPT_ID,
+  FROZEN_SAME_CALL_READER_PROMPT_ID,
   SAME_CALL_MINIMAL_MODEL,
   SAME_CALL_MINIMAL_QUESTION_PROMPT,
   'production-reader:quick|standard|advanced+terminal-question',

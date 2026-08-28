@@ -33,7 +33,7 @@ function deps(overrides: Partial<ReflectiveQuestionPipelineDeps> = {}): Reflecti
   };
 }
 
-describe('reflective question production pipeline', () => {
+describe('CLOSED R&D reflective question pipeline (not launch runtime)', () => {
   it('keeps frozen component identities and maps reading depth', () => {
     expect(REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID).toBe(
       'oneiros-reflective-question-production-v1.0.0'
@@ -54,9 +54,12 @@ describe('reflective question production pipeline', () => {
     expect(mapReadingDepthToProductionQuestionMode('quick')).toBe('CORE');
     expect(mapReadingDepthToProductionQuestionMode('standard')).toBe('CORE');
     expect(mapReadingDepthToProductionQuestionMode('advanced')).toBe('DEEPER');
+    expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId).not.toBe(
+      REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID
+    );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
-      methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-      promptSha256: 'fc8b6304fc2e8bc108242113299f7073cfbcc80d3f8df41cf747d218540d00ea',
+      methodId: 'oneiros-same-call-reflective-questions-v1.0.0',
+      promptSha256: '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c',
     });
   });
 

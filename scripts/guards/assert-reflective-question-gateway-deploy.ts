@@ -1,10 +1,9 @@
 /**
  * Fail-closed pre-deploy check for `ai-entitlements-gateway`.
  *
- * Exits 1 unless the local reflective-question production orchestration
- * matches the approved identity. Frozen Generator/Gate/Repair/Premise Check
- * prompts must remain unchanged. Closed Inviter/editorial-arc identities
- * remain denied as standalone methods.
+ * Launch identity is same-call Reader + questions. A second question
+ * inference, Integrity Gate, Repair, Premise Check, or Composer path
+ * blocks deploy.
  */
 import { readFileSync } from 'fs';
 import path from 'path';
@@ -12,81 +11,74 @@ import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
   REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV,
   REFLECTIVE_QUESTION_RUNTIME_FILES,
+  SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
   ReflectiveQuestionGatewayDeployBlockedError,
   assertReflectiveQuestionGatewayDeployAllowed,
   assertReflectiveQuestionRuntimeHasNoRdImports,
+  hashReflectiveQuestionPrompt,
 } from '../../src/ai/reflectiveQuestionProductionHold';
 import {
-  REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256,
-  REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-  hashReflectiveQuestionProductionBundle,
-} from '../../src/ai/reflectiveQuestionPipeline';
-import {
-  SAME_CALL_MINIMAL_BUNDLE_SHA256,
-} from '../../src/ai/rd/reflective-questions/sameCallMinimal/sameCallMinimalCandidate';
-import {
-  QUESTION_INTEGRITY_GATE_BUNDLE_SHA256,
-} from '../../src/ai/rd/reflective-questions/questionIntegrityGate/questionIntegrityGateCandidate';
-import {
-  QUESTION_REPAIR_BUNDLE_SHA256,
-} from '../../src/ai/rd/reflective-questions/questionIntegrityGate/questionRepairCandidate';
-import {
-  QUESTION_PREMISE_CHECK_BUNDLE_SHA256,
-} from '../../src/ai/questionPremiseCheck';
+  SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE,
+  SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+} from '../../src/ai/dreamReflectionPrompt';
 
 const repoRoot = path.resolve(__dirname, '../..');
-const pipelinePath = path.join(repoRoot, 'src/ai/reflectiveQuestionPipeline.ts');
 const readerPath = path.join(repoRoot, 'src/ai/dreamReflectionPrompt.ts');
+const billingAiPath = path.join(repoRoot, 'supabase/functions/_shared/billing-ai.ts');
+const gatewayPath = path.join(repoRoot, 'supabase/functions/ai-entitlements-gateway/index.ts');
 
 function readLocalBundledMethod(): { methodId: string; promptSha256: string } {
-  let pipelineSource: string;
   let readerSource: string;
+  let billingAi: string;
+  let gateway: string;
   try {
-    pipelineSource = readFileSync(pipelinePath, 'utf8');
     readerSource = readFileSync(readerPath, 'utf8');
+    billingAi = readFileSync(billingAiPath, 'utf8');
+    gateway = readFileSync(gatewayPath, 'utf8');
   } catch {
     throw new ReflectiveQuestionGatewayDeployBlockedError(
-      `Blocked ai-entitlements-gateway deploy: missing ${pipelinePath} or ${readerPath}.`
+      `Blocked ai-entitlements-gateway deploy: missing reader, billing-ai, or gateway source.`
     );
   }
 
-  if (
-    !pipelineSource.includes('REFLECTIVE_QUESTION_PRODUCTION_BUNDLE') ||
-    !pipelineSource.includes('oneiros-reflective-question-production-v1.0.0') ||
-    !pipelineSource.includes('no-drop-no-rejected-leak-no-second-repair') ||
-    hashReflectiveQuestionProductionBundle() !== REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256
-  ) {
+  const localSha = hashReflectiveQuestionPrompt(SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE);
+  if (localSha !== SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256) {
     throw new ReflectiveQuestionGatewayDeployBlockedError(
-      'Blocked ai-entitlements-gateway deploy: incomplete or mutated production orchestration bundle.'
+      'Blocked ai-entitlements-gateway deploy: same-call question bundle SHA drifted.'
     );
   }
   if (
-    SAME_CALL_MINIMAL_BUNDLE_SHA256 !==
-      '4506c8981c1e0f38edcb641bf89e59126bfdafe64a3adff99a94a2d1a12e81f7' ||
-    QUESTION_INTEGRITY_GATE_BUNDLE_SHA256 !==
-      'c1d8090fec6149adf492d1319657ba02bf5ae28ddfa5ce28114ef8a0df6629b2' ||
-    QUESTION_REPAIR_BUNDLE_SHA256 !==
-      '0859fd5474124613b7c5cd610d4f48e65ccee6f0ea05b8d4ca382ddd5a53d53b' ||
-    QUESTION_PREMISE_CHECK_BUNDLE_SHA256 !==
-      'ceca45684d24ab1a0de374373b2c705e4eb75f7d18001a615246551289368130'
+    !readerSource.includes('oneiros-same-call-reflective-questions-v1.0.0') ||
+    !readerSource.includes('## Reflective Questions') ||
+    !readerSource.includes('End with exactly one natural reflective question') ||
+    !readerSource.includes('Exactly 2 questions as markdown bullets')
   ) {
     throw new ReflectiveQuestionGatewayDeployBlockedError(
-      'Blocked ai-entitlements-gateway deploy: frozen Generator/Gate/Repair/Premise Check SHA drifted.'
+      'Blocked ai-entitlements-gateway deploy: same-call question contract is missing from the Reader.'
     );
   }
   if (
-    !readerSource.includes('DREAM_CONSTITUTION_PROMPT') ||
-    !readerSource.includes('END_MARKER_DREAM_READING') ||
-    !readerSource.includes('oneiros-dream-reflection-v3.1.0-candidate')
+    billingAi.includes('generateProductionReflectiveQuestion') ||
+    billingAi.includes('generateReflectiveQuestionArtifact') ||
+    billingAi.includes('resolveProductionReflectiveQuestion') ||
+    billingAi.includes('QUESTION_INTEGRITY_GATE') ||
+    billingAi.includes('QUESTION_REPAIR_TASK') ||
+    billingAi.includes('QUESTION_PREMISE_CHECK') ||
+    gateway.includes('generateReflectiveQuestionArtifact')
   ) {
     throw new ReflectiveQuestionGatewayDeployBlockedError(
-      'Blocked ai-entitlements-gateway deploy: Reader constitution is missing from the local reading module.'
+      'Blocked ai-entitlements-gateway deploy: abandoned second-question pipeline is still in runtime.'
+    );
+  }
+  if (!billingAi.includes('buildInitialReflectionRequest') || !billingAi.includes('extractSameCallReflectiveQuestions')) {
+    throw new ReflectiveQuestionGatewayDeployBlockedError(
+      'Blocked ai-entitlements-gateway deploy: same-call Reader extraction is missing from billing-ai.'
     );
   }
 
   return {
-    methodId: REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-    promptSha256: REFLECTIVE_QUESTION_PRODUCTION_BUNDLE_SHA256,
+    methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+    promptSha256: localSha,
   };
 }
 
@@ -95,7 +87,7 @@ function assertRuntimeIsolation(): void {
     const source = readFileSync(path.join(repoRoot, rel), 'utf8');
     assertReflectiveQuestionRuntimeHasNoRdImports(source, rel);
     if (
-      /postJungianInviter|postReadingInviter|remainderFirst|candidateC|candidateB/.test(source)
+      /postJungianInviter|postReadingInviter|remainderFirst|candidateC|candidateB|questionIntegrityGate|sameCallMinimal/.test(source)
     ) {
       throw new ReflectiveQuestionGatewayDeployBlockedError(
         `Blocked: ${rel} still references a closed reflective-question R&D candidate.`

@@ -22,10 +22,10 @@ describe('edge reflection prompt flow', () => {
     const promptSource = readFileSync(path.join(repoRoot, 'src/ai/dreamReflectionPrompt.ts'), 'utf8');
     const editorialArcSource = readFileSync(path.join(repoRoot, 'src/ai/reflectionEditorialArc.ts'), 'utf8');
 
-    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.1.0-candidate');
-    expect(DREAM_REFLECTION_PROMPT_VERSION).toBe('3.1.0-candidate');
-    expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-reflective-dialogue-v1.9.1');
-    expect(REFLECTIVE_DIALOGUE_PROMPT_VERSION).toBe('1.9.1');
+    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.2.0');
+    expect(DREAM_REFLECTION_PROMPT_VERSION).toBe('3.2.0');
+    expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.0');
+    expect(REFLECTIVE_DIALOGUE_PROMPT_VERSION).toBe('2.0.0');
     expect(clientAi).toMatch(/buildInitialReflectionRequest/);
     expect(clientAi).toMatch(/buildChatFollowupRequest/);
     expect(billingAi).toMatch(/buildInitialReflectionRequest/);
@@ -37,7 +37,7 @@ describe('edge reflection prompt flow', () => {
     expect(editorialArcSource).toMatch(/ONEIROS_REFLECTION_OPENING_V2/);
     expect(editorialArcSource).toMatch(/BEGIN_DREAM_READING/);
     expect(editorialArcSource).toMatch(/question_evidence_ids/);
-    expect(promptSource).toMatch(/user turn is the center/);
+    expect(promptSource).toMatch(/Continue the conversation naturally/);
     expect(promptSource).toMatch(/buildReflectiveDialogueModelHistory/);
     expect(promptSource).not.toMatch(/content: REFLECTIVE_QUESTION_METHOD_PROMPT/);
 
@@ -49,7 +49,7 @@ describe('edge reflection prompt flow', () => {
     expect(advanced.messages[2].content).toContain('Linger longer, not explain more');
     expect(advanced.messages[2].content).not.toContain('Return zero or one question');
     expect(advanced.temperature).toBe(0.6);
-    expect(advanced.tokenLimit).toBe(2600);
+    expect(advanced.tokenLimit).toBe(2700);
     const chat = buildChatFollowupRequest({
       dream: { title: 'Sea', date: '2026-08-27', content: 'I enter the sea.' },
       conversation: [],
@@ -60,13 +60,13 @@ describe('edge reflection prompt flow', () => {
       .filter((message) => message.role === 'system')
       .map((message) => message.content)
       .join('\n');
-    expect(chatSystem).toContain('Reflective Dialogue — Oneiros method 1.9.1');
-    expect(chatSystem).not.toContain('Core Constitution — non-negotiable principles');
+    expect(chatSystem).toContain('Follow-up chat — Oneiros method 2.0.0');
+    expect(chatSystem).toContain('exactly one natural reflective question');
     expect(chatSystem).not.toContain('Core Mode Logic');
     expect(billingAi).toMatch(/finalizeSameCallReading/);
-    expect(billingAi).toMatch(/visibleSameCallReading/);
-    expect(billingAi).toMatch(/generateProductionReflectiveQuestion/);
-    expect(billingAi).toMatch(/src\/ai\/reflectiveQuestionPipeline\.ts/);
+    expect(billingAi).toMatch(/extractSameCallReflectiveQuestions/);
+    expect(billingAi).not.toMatch(/generateProductionReflectiveQuestion/);
+    expect(billingAi).not.toMatch(/src\/ai\/reflectiveQuestionPipeline\.ts/);
     expect(billingAi).toMatch(/visibleEditorialArcReading/);
   });
 
