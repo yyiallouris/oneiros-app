@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import {
   getOneirosLanguageName,
   type OneirosLanguageCode,
-} from '../../../../constants/oneirosLanguages';
+} from '../../../../constants/oneirosLanguages.ts';
 
 /**
  * Offline Integrity Gate R&D. status: frozen_rnd_reference.

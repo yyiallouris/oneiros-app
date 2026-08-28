@@ -1,11 +1,11 @@
 import {
   buildChatReflectiveLanguageContext,
   buildReflectiveLanguageInstruction,
-} from './reflectiveLanguage';
+} from './reflectiveLanguage.ts';
 import {
   buildReflectiveDialogueResponseFormat,
   type ReflectiveDialogueResponseFormat,
-} from './reflectiveDialogueResponseFormat';
+} from './reflectiveDialogueResponseFormat.ts';
 import {
   REFLECTION_EDITORIAL_ARC_METHOD_ID,
   REFLECTION_EDITORIAL_ARC_METHOD_VERSION,
@@ -14,11 +14,11 @@ import {
   REFLECTION_EDITORIAL_ARC_PROMPT,
   REFLECTION_EDITORIAL_ARC_PROTOCOL_VERSION,
   REFLECTION_EDITORIAL_ARC_READING_START,
-} from './reflectionEditorialArc';
+} from './reflectionEditorialArc.ts';
 import {
   buildCompleteDreamEvidenceSpans,
   formatDreamEvidenceSpans,
-} from './reflectiveEvidence';
+} from './reflectiveEvidence.ts';
 
 export const DREAM_REFLECTION_PROMPT_ID =
   'oneiros-dream-reflection-v3.1.0-candidate' as const;

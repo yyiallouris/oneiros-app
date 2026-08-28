@@ -1,7 +1,7 @@
 import {
   normalizeOneirosLanguageCode,
   type OneirosLanguageCode,
-} from '../constants/oneirosLanguages';
+} from '../constants/oneirosLanguages.ts';
 
 export const REFLECTION_EDITORIAL_ARC_METHOD_ID =
   'oneiros-reflection-editorial-arc-v2.0.0-candidate' as const;

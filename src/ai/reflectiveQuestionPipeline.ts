@@ -1,11 +1,11 @@
-import { createHash } from 'crypto';
-import type { DreamReflectionDepth } from './dreamReflectionPrompt';
-import { DREAM_REFLECTION_PROMPT_ID } from './dreamReflectionPrompt';
-import type { OneirosLanguageCode } from '../constants/oneirosLanguages';
+import { createHash } from 'node:crypto';
+import type { DreamReflectionDepth } from './dreamReflectionPrompt.ts';
+import { DREAM_REFLECTION_PROMPT_ID } from './dreamReflectionPrompt.ts';
+import type { OneirosLanguageCode } from '../constants/oneirosLanguages.ts';
 import {
   getReflectiveQuestionFallback,
   REFLECTIVE_QUESTION_FALLBACK_VERSION,
-} from '../constants/reflectiveQuestionCopy';
+} from '../constants/reflectiveQuestionCopy.ts';
 import {
   SAME_CALL_MINIMAL_BUNDLE_SHA256,
   SAME_CALL_MINIMAL_METHOD_ID,
@@ -14,20 +14,20 @@ import {
   splitSameCallReadingAndQuestion,
   visibleSameCallReading,
   type SameCallQuestionMode,
-} from './rd/reflective-questions/sameCallMinimal/sameCallMinimalCandidate';
+} from './rd/reflective-questions/sameCallMinimal/sameCallMinimalCandidate.ts';
 import {
   QUESTION_INTEGRITY_GATE_BUNDLE_SHA256,
   QUESTION_INTEGRITY_GATE_METHOD_ID,
   type QuestionIntegrityViolationId,
-} from './rd/reflective-questions/questionIntegrityGate/questionIntegrityGateCandidate';
+} from './rd/reflective-questions/questionIntegrityGate/questionIntegrityGateCandidate.ts';
 import {
   QUESTION_REPAIR_BUNDLE_SHA256,
   QUESTION_REPAIR_METHOD_ID,
-} from './rd/reflective-questions/questionIntegrityGate/questionRepairCandidate';
+} from './rd/reflective-questions/questionIntegrityGate/questionRepairCandidate.ts';
 import {
   QUESTION_PREMISE_CHECK_BUNDLE_SHA256,
   QUESTION_PREMISE_CHECK_METHOD_ID,
-} from './questionPremiseCheck';
+} from './questionPremiseCheck.ts';
 
 export {
   SAME_CALL_MINIMAL_BUNDLE_SHA256,

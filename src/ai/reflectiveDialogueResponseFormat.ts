@@ -2,12 +2,12 @@ import {
   ONEIROS_LANGUAGE_CODES,
   normalizeOneirosLanguageCode,
   type OneirosLanguageCode,
-} from '../constants/oneirosLanguages';
+} from '../constants/oneirosLanguages.ts';
 import {
   detectOneirosLanguageCode,
   languageContextAcceptsOutput,
   type ReflectiveLanguageContext,
-} from './reflectiveLanguage';
+} from './reflectiveLanguage.ts';
 
 export const REFLECTIVE_DIALOGUE_RESPONSE_SCHEMA_VERSION = 3 as const;
 

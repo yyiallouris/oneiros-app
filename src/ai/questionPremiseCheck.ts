@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import {
   getOneirosLanguageName,
   type OneirosLanguageCode,
-} from '../constants/oneirosLanguages';
+} from '../constants/oneirosLanguages.ts';
 
 /**
  * Narrow dream-evidence premise check. Production hardening, not an editorial

@@ -1,7 +1,7 @@
 import {
   DEFAULT_ONEIROS_LANGUAGE_CODE,
   type OneirosLanguageCode,
-} from './oneirosLanguages';
+} from './oneirosLanguages.ts';
 
 export type ReflectiveQuestionCopy = {
   eyebrow: string;

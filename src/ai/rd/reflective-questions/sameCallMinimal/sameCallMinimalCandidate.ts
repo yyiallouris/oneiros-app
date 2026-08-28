@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import {
   getOneirosLanguageName,
   type OneirosLanguageCode,
-} from '../../../../constants/oneirosLanguages';
+} from '../../../../constants/oneirosLanguages.ts';
 import {
   buildInitialReflectionRequest,
   DREAM_REFLECTION_PROMPT_ID,
@@ -10,7 +10,7 @@ import {
   type DreamReflectionDepth,
   type DreamReflectionInput,
   type ReflectionPromptRequest,
-} from '../../../dreamReflectionPrompt';
+} from '../../../dreamReflectionPrompt.ts';
 
 /**
  * Offline same-call R&D. status: frozen_rnd_reference.

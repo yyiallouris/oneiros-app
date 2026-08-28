@@ -4,15 +4,15 @@ import {
   REFLECTIVE_DIALOGUE_PROMPT_ID,
   REFLECTIVE_DIALOGUE_PROMPT_VERSION,
   type ReflectiveDialogueConversationMessage,
-} from './dreamReflectionPrompt';
-import { REFLECTIVE_DIALOGUE_RESPONSE_SCHEMA_VERSION } from './reflectiveDialogueResponseFormat';
-import { REFLECTIVE_QUESTION_RESPONSE_SCHEMA_VERSION } from './reflectiveQuestionResponseFormat';
+} from './dreamReflectionPrompt.ts';
+import { REFLECTIVE_DIALOGUE_RESPONSE_SCHEMA_VERSION } from './reflectiveDialogueResponseFormat.ts';
+import { REFLECTIVE_QUESTION_RESPONSE_SCHEMA_VERSION } from './reflectiveQuestionResponseFormat.ts';
 import {
   buildReflectiveLanguageInstruction,
   languageContextAcceptsOutput,
   type ReflectiveLanguageContext,
-} from './reflectiveLanguage';
-import { normalizeOneirosLanguageCode, type OneirosLanguageCode } from '../constants/oneirosLanguages';
+} from './reflectiveLanguage.ts';
+import { normalizeOneirosLanguageCode, type OneirosLanguageCode } from '../constants/oneirosLanguages.ts';
 import {
   buildDreamEvidenceSpans,
   buildUserEvidenceSpans,
@@ -21,16 +21,16 @@ import {
   formatUserEvidenceSpans,
   type DreamEvidenceSpan,
   type UserEvidenceSpan,
-} from './reflectiveEvidence';
+} from './reflectiveEvidence.ts';
 import {
   REFLECTION_EDITORIAL_ARC_METHOD_ID,
   REFLECTION_EDITORIAL_ARC_METHOD_VERSION,
   REFLECTION_EDITORIAL_ARC_QUESTION_ARTIFACT_SCHEMA_VERSION,
-} from './reflectionEditorialArc';
+} from './reflectionEditorialArc.ts';
 import {
   DREAM_REFLECTION_PROMPT_ID,
   DREAM_REFLECTION_PROMPT_VERSION,
-} from './dreamReflectionPrompt';
+} from './dreamReflectionPrompt.ts';
 import {
   REFLECTIVE_QUESTION_PRODUCTION_ARTIFACT_SCHEMA_VERSION,
   REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
@@ -39,7 +39,7 @@ import {
   REFLECTIVE_QUESTION_PRODUCTION_PROMPT_VERSION,
   type IntegrityCheckDecision,
   type ReflectiveQuestionSource,
-} from './reflectiveQuestionPipeline';
+} from './reflectiveQuestionPipeline.ts';
 
 export {
   buildDreamEvidenceSpans,

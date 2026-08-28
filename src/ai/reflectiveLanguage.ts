@@ -2,7 +2,7 @@ import {
   getOneirosLanguageName,
   normalizeOneirosLanguageCode,
   type OneirosLanguageCode,
-} from '../constants/oneirosLanguages';
+} from '../constants/oneirosLanguages.ts';
 
 export const REFLECTIVE_LANGUAGE_CONTRACT_VERSION = '1.0.0' as const;
 

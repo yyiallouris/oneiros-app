@@ -1,4 +1,4 @@
-import { ONEIROS_LANGUAGE_CODES } from '../constants/oneirosLanguages';
+import { ONEIROS_LANGUAGE_CODES } from '../constants/oneirosLanguages.ts';
 
 export const REFLECTIVE_QUESTION_RESPONSE_SCHEMA_VERSION = 5 as const;
 

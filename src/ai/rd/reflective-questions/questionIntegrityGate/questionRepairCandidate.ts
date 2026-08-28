@@ -1,13 +1,13 @@
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import {
   getOneirosLanguageName,
   type OneirosLanguageCode,
-} from '../../../../constants/oneirosLanguages';
+} from '../../../../constants/oneirosLanguages.ts';
 import {
   QUESTION_INTEGRITY_GATE_VIOLATION_IDS,
   type QuestionIntegrityQuestionMode,
   type QuestionIntegrityViolationId,
-} from './questionIntegrityGateCandidate';
+} from './questionIntegrityGateCandidate.ts';
 
 /**
  * Offline Phase 2 Repair. status: frozen_rnd_reference.

@@ -1,7 +1,7 @@
 import {
   ONEIROS_LANGUAGE_CODES,
   type OneirosLanguageCode,
-} from '../../../../constants/oneirosLanguages';
+} from '../../../../constants/oneirosLanguages.ts';
 
 /**
  * Diagnostic-only lexical lint. Never rewrite model output.
