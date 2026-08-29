@@ -1,0 +1,1559 @@
+{
+  "fixture_id": "oneiros-v1.0.4-imaginal-handoff-evaluation-2026-08-29",
+  "fixture_sha256": "ec7becc8f382399c1bab1d50edbce4c3568b468e17ab5edd124131987147a211",
+  "candidate_method": "oneiros-same-call-reflective-questions-v1.0.4-candidate",
+  "candidate_sha256": "a4f972c00bbde525ad3f39db160afd18e3a1c18f8a92090e0eb7078b137e277d",
+  "production_method": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+  "production_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+  "calls": 21,
+  "known_q2_failures": 3,
+  "strong_q2_controls": 6,
+  "sealed_unseen_holdout": 12,
+  "holdout_languages": [
+    "en",
+    "el",
+    "es",
+    "fr",
+    "de",
+    "pt",
+    "it",
+    "nl",
+    "ru",
+    "ja",
+    "zh",
+    "pl"
+  ],
+  "hard_cost_cap_usd": 1,
+  "reserved_cost_per_call_usd": 0.045,
+  "conservative_reserved_packet_cost_usd": 0.945,
+  "model_retries_for_quality": 0,
+  "semantic_judge_calls": 0,
+  "question_only_calls": 0,
+  "deploys": 0,
+  "status": "complete",
+  "started_at": "2026-08-29T19:11:43.552Z",
+  "completed_at": "2026-08-29T19:15:22.897Z",
+  "exact_cost_usd": 0.316805,
+  "budget_stopped": false,
+  "results": [
+    {
+      "generation_id": "en-s-conflict-bridge:reading_standard",
+      "case_id": "en-s-conflict-bridge",
+      "cohort": "known_q2_failure",
+      "language": "en",
+      "mode": "standard",
+      "category": null,
+      "title": "Two voices on the bridge",
+      "dream": "I stood in the middle of a narrow bridge while two versions of my voice called from opposite banks. One told me to return to the lit town; the other asked me to continue into a dark orchard. Beneath me the river was calm, but my feet were shaking.",
+      "before": {
+        "output": "## Core Shift\n\nThe dream holds you exactly in the middle: not yet returning, not yet entering. The bridge is narrow, the river below is calm, and the shaking is in your feet, as if the crossing is already possible while the body has not agreed to it.\n\n## Dream Movement\n\nThe strongest image is not really the town or the orchard by themselves, but your position between them. You are suspended over calm water while two versions of your own voice call from opposite banks. That makes the division more intimate than a simple outside choice. The summons comes from your own sound, split into two directions.\n\nThe lit town carries orientation, human place, visibility, something already inhabited and known. The dark orchard is different: not empty darkness, but darkness with growth in it, rows or clusters of living things that cannot yet be clearly seen. One voice tells; the other asks. Even that difference matters. The town speaks with instruction, while the orchard calls more like an invitation into what has not been lit yet.\n\nWhat is striking is that the river beneath you is calm. The danger is not coming from below. The larger atmosphere is not catastrophe but threshold. The trembling is localized in the feet, in the very part of the body that would have to commit to one bank or the other. So the dream places disturbance not in the world, but in the act of taking ground.\n\nThe bridge itself is a thin permission to belong to neither side for a moment. It is a place of exposure, but also of exact listening. Briefly, it has the feel of a rite of crossing: one voice calls back toward the lit human world, and one calls on toward a fertile dark that has not yet become visible.\n\n## Reflective Questions\n\n- As you stood on the narrow bridge and the two versions of your voice called from opposite banks, what seems to happen inside the moment of being addressed from both sides at once?\n- What kind of darkness gathers around the orchard in this dream: a darkness of threat, concealment, ripening, or something that remains unnamed even while it calls in your own voice?",
+        "questions": [
+          "As you stood on the narrow bridge and the two versions of your voice called from opposite banks, what seems to happen inside the moment of being addressed from both sides at once?",
+          "What kind of darkness gathers around the orchard in this dream: a darkness of threat, concealment, ripening, or something that remains unnamed even while it calls in your own voice?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Tension\n\nYou are held in a true middle: not lost in the river, not arrived on either bank, but suspended on a narrow bridge while your own voice divides and calls in two directions. The calm water below makes the shaking in your feet stand out even more sharply, as if the disturbance is not in the world around you but in the act of standing where both claims can be heard.\n\n## Dream Movement\n\nThe bridge is the image that gathers everything. It is narrow, so this is not a place of lingering comfort, yet it is still a structure that holds. The dream does not throw you into chaos. It places you exactly in a crossing, with enough stability to remain there and enough strain for your body to register the cost.\n\nWhat makes the scene especially intimate is that the two calls are not from strangers. They are two versions of your own voice. The division is inside the call itself: one voice linked to the lit town, to return, to what is already inhabited and visible; the other calling forward into a dark orchard, where there may be fruit, growth, season, secrecy, but no clear path offered. The dream does not make either side false. Each bank has a claim. The tension comes from being addressed by yourself from both directions, as if belonging has split into two different futures.\n\nMeanwhile, beneath this argument, the river is calm. That calmness keeps the dream from becoming panic. Something deeper than the shaking is not agitated. The body at the bridge trembles, but the water below does not. So the central movement is not a collapse into fear, nor a decision. It is a charged suspension: a moment where inner division becomes audible, while something underneath remains quietly undivided.\n\n## Reflective Questions\n\n- When the two versions of your voice called from opposite banks while you stood in the middle of the bridge, what changed in the feeling of the bridge itself as each call reached you?\n- What kind of nearness is created in the dream by the dark orchard calling you onward while the lit town remains behind you across the same calm river?",
+        "output": "## Core Tension\n\nYou are held in a true middle: not lost in the river, not arrived on either bank, but suspended on a narrow bridge while your own voice divides and calls in two directions. The calm water below makes the shaking in your feet stand out even more sharply, as if the disturbance is not in the world around you but in the act of standing where both claims can be heard.\n\n## Dream Movement\n\nThe bridge is the image that gathers everything. It is narrow, so this is not a place of lingering comfort, yet it is still a structure that holds. The dream does not throw you into chaos. It places you exactly in a crossing, with enough stability to remain there and enough strain for your body to register the cost.\n\nWhat makes the scene especially intimate is that the two calls are not from strangers. They are two versions of your own voice. The division is inside the call itself: one voice linked to the lit town, to return, to what is already inhabited and visible; the other calling forward into a dark orchard, where there may be fruit, growth, season, secrecy, but no clear path offered. The dream does not make either side false. Each bank has a claim. The tension comes from being addressed by yourself from both directions, as if belonging has split into two different futures.\n\nMeanwhile, beneath this argument, the river is calm. That calmness keeps the dream from becoming panic. Something deeper than the shaking is not agitated. The body at the bridge trembles, but the water below does not. So the central movement is not a collapse into fear, nor a decision. It is a charged suspension: a moment where inner division becomes audible, while something underneath remains quietly undivided.\n\n## Reflective Questions\n\n- When the two versions of your voice called from opposite banks while you stood in the middle of the bridge, what changed in the feeling of the bridge itself as each call reached you?\n- What kind of nearness is created in the dream by the dark orchard calling you onward while the lit town remains behind you across the same calm river?",
+        "questions": [
+          "When the two versions of your voice called from opposite banks while you stood in the middle of the bridge, what changed in the feeling of the bridge itself as each call reached you?",
+          "What kind of nearness is created in the dream by the dark orchard calling you onward while the lit town remains behind you across the same calm river?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 6957,
+      "estimated_usd": 0.01061,
+      "human_review": {
+        "generation_id": "en-s-conflict-bridge:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "The former threat/concealment/ripening menu is gone. Q2 holds the orchard-town-river configuration without selecting its meaning; Q1 follows the calls arriving at the bridge."
+      }
+    },
+    {
+      "generation_id": "pl-a-conflict-stairs:reading_advanced",
+      "case_id": "pl-a-conflict-stairs",
+      "cohort": "known_q2_failure",
+      "language": "pl",
+      "mode": "advanced",
+      "category": null,
+      "title": "Schody w dwóch kierunkach",
+      "dream": "Byłam w domu, gdzie każde schody prowadziły jednocześnie w górę i w dół. Moja rodzina czekała na dole, ale na górze słyszałam własny głos wołający mnie po imieniu. Kiedy próbowałam zostać w miejscu, stopnie zaczęły się poruszać pode mną.",
+      "before": {
+        "output": "## Core Shift\n\nTo nie są zwykłe schody, które po prostu łączą dwa piętra, tylko przestrzeń, w której góra i dół dzieją się naraz. Sen ustawia cię dokładnie w miejscu, gdzie wołanie bliskich i wołanie własnego głosu nie dają się już spokojnie rozdzielić.\n\n## Dream Movement\n\nWszystko zaczyna się od domu, czyli miejsca z natury wewnętrznego, zamieszkanego, znanego. A jednak ten dom nie daje oparcia w najprostszej sprawie: kierunku. Schody, które powinny służyć przejściu, tutaj znoszą jasność przejścia. Każdy stopień prowadzi jednocześnie w górę i w dół, więc sam ruch traci zwykłą logikę. Nie ma tu prostego wyboru piętra, bo sama konstrukcja domu już zawiera rozdwojenie.\n\nW tej dziwnej architekturze bardzo wyraźnie rozstawione są dwa wezwania. Na dole czeka rodzina. To nie jest obraz pościgu ani przemocy — oni czekają. Dół ma więc ciężar przynależności, miejsca już obsadzonego przez więź, przez to, co znane i ludzkie. Ale na górze rozlega się twój własny głos, i to nie byle jaki: woła cię po imieniu. To szczególny moment, bo nie słyszysz obcej postaci, tylko siebie, a zarazem nie jesteś tam, skąd ten głos dochodzi. Jakby jakaś część ciebie znajdowała się wyżej i już miała do ciebie dostęp, zanim ty sama możesz do niej dojść.\n\nNajmocniejszy obraz snu może leżeć właśnie tutaj: własny głos jest oddzielony od ciebie przestrzenią domu. Nie przemawia z wnętrza jako myśl, tylko z góry jako obecność. To daje temu wołaniu osobną godność. Ono nie jest po prostu „pomysłem” ani decyzją. Jest jak wezwanie z innego poziomu tego samego domu, z miejsca zarazem własnego i jeszcze niezamieszkanego. W tym sensie schody nie tylko łączą kondygnacje — one pokazują, że droga do siebie samej nie biegnie po prostej, a każde poruszenie ku jednemu poziomowi równocześnie oddala od drugiego.\n\nNajbardziej znaczące jest jednak to, co dzieje się wtedy, gdy próbujesz zostać w miejscu. Sen nie pozwala na neutralność. Kiedy nie wybierasz ani dołu z rodziną, ani góry z własnym wołaniem, same stopnie zaczynają się poruszać pod tobą. To piękny i niepokojący zwrot: to, co miało być podporą, okazuje się ruchem. Jakby dom mówił, że w takiej sytuacji bezruch też jest wydarzeniem, a zawieszenie nie zatrzymuje przemiany, tylko oddaje cię jej bardziej bezpośrednio.\n\nJest w tym coś z progu inicjacyjnego, ale bardzo skondensowanego i domowego: nie jakaś daleka kraina, tylko własny dom ujawnia się jako miejsce, gdzie nie da się pozostać dokładnie tą samą osobą na tym samym stopniu. Rodzina na dole i własny głos na górze nie muszą się tu wzajemnie unieważniać, ale sen pokazuje, że spotykają się w tobie jako napięcie żywe, ruchome, nie do zastygnięcia. Najbardziej porusza to, że nawet imię przychodzi z góry — jakby ktoś, kto cię woła, znał cię już w chwili, gdy ty jeszcze stoisz między poziomami.\n\n## Reflective Questions\n\n- Kiedy w śnie próbowałaś zostać w miejscu i stopnie zaczęły się poruszać pod tobą, co zmieniło się wtedy w samym znaczeniu „stania” — czym stał się bezruch, skoro zamienił się w ruch?\n- Jak brzmi dla ciebie obraz własnego głosu wołającego cię po imieniu z góry, podczas gdy rodzina czeka na dole — nie jako zagadka do rozwiązania, ale jako scena, w której twoje miejsce jeszcze się tworzy?",
+        "questions": [
+          "Kiedy w śnie próbowałaś zostać w miejscu i stopnie zaczęły się poruszać pod tobą, co zmieniło się wtedy w samym znaczeniu „stania” — czym stał się bezruch, skoro zamienił się w ruch?",
+          "Jak brzmi dla ciebie obraz własnego głosu wołającego cię po imieniu z góry, podczas gdy rodzina czeka na dole — nie jako zagadka do rozwiązania, ale jako scena, w której twoje miejsce jeszcze się tworzy?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pl",
+          "expected_language": "pl",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nTo jest sen ustawiony na progu, który nie daje się zamienić w prosty wybór między górą a dołem. Ruch pojawia się właśnie tam, gdzie próbujesz nie ruszać się wcale.\n\n## Dream Movement\n\nNajpierw jest dom, czyli miejsce z natury własne, oswojone, związane z przynależnością. Ale ten dom od razu traci zwykłą budowę: każde schody prowadzą jednocześnie w górę i w dół. To nie jest tylko zagubienie w przestrzeni. Sama droga została rozdwojona, a nawet bardziej niż rozdwojona — jeden i ten sam ruch zawiera oba kierunki naraz. W takim miejscu nie da się po prostu wejść albo zejść bez wejścia w tę dziwną podwójność.\n\nW tę architekturę wpisane są też dwa wezwania. Na dole czeka rodzina. To nie jest głos, tylko obecność, ciężar bliskości, może przyciąganie tego, co znane, wspólne, już ułożone wokół ciebie. Na górze natomiast słychać twój własny głos, który woła cię po imieniu. To szczególnie mocny obraz, bo nie woła cię ktoś obcy ani jakaś wyższa postać, lecz ty sama, a jednak z innego poziomu domu. Twój głos jest oddzielony od ciebie przestrzenią, stoi gdzieś wyżej i jednocześnie zwraca się do ciebie tak, jakbyś była kimś, kogo trzeba przywołać do obecności.\n\nW tym śnie najgęstsze jest chyba właśnie to napięcie: dół jest zajęty przez rodzinne czekanie, góra przez twoje własne wołanie, a ty jesteś pomiędzy, na schodach, które odmawiają bycia zwykłym przejściem. Schody nie służą już tylko do przemieszczania się. Same stają się miejscem zdarzenia, niemal żywym mechanizmem. To ważne, że nie rozstrzygasz od razu, dokąd pójść. Próbujesz zostać w miejscu. Jakby sen sprawdzał, czy można zawiesić odpowiedź, nie wybrać ani rodziny na dole, ani siebie na górze.\n\nWtedy właśnie stopnie zaczynają się poruszać pod tobą. Nie ty wprawiasz sen w ruch; ruch wychodzi z samej konstrukcji. To, co miało utrzymać, traci stałość. Jest w tym coś niemal inicjacyjnego: domowy porządek nagle ujawnia, że spoczywa na żywej, niestabilnej podstawie. Gdy własny głos woła z góry po imieniu, brzmi to nie jak zwykła decyzja do podjęcia, lecz jak moment, w którym nieobecność wobec samej siebie przestaje dać się utrzymać bez konsekwencji. Nawet bez kroku schody już cię niosą.\n\n## Reflective Questions\n\n- Kiedy próbowałaś zostać w miejscu i wtedy stopnie zaczęły się poruszać pod tobą, co w tym przejściu od bezruchu do ruchu najbardziej należy do samych schodów, a nie do twojej woli?\n- Jak brzmi w tobie układ, w którym na dole czeka rodzina, a z góry twój własny głos woła cię po imieniu?",
+        "output": "## Core Shift\n\nTo jest sen ustawiony na progu, który nie daje się zamienić w prosty wybór między górą a dołem. Ruch pojawia się właśnie tam, gdzie próbujesz nie ruszać się wcale.\n\n## Dream Movement\n\nNajpierw jest dom, czyli miejsce z natury własne, oswojone, związane z przynależnością. Ale ten dom od razu traci zwykłą budowę: każde schody prowadzą jednocześnie w górę i w dół. To nie jest tylko zagubienie w przestrzeni. Sama droga została rozdwojona, a nawet bardziej niż rozdwojona — jeden i ten sam ruch zawiera oba kierunki naraz. W takim miejscu nie da się po prostu wejść albo zejść bez wejścia w tę dziwną podwójność.\n\nW tę architekturę wpisane są też dwa wezwania. Na dole czeka rodzina. To nie jest głos, tylko obecność, ciężar bliskości, może przyciąganie tego, co znane, wspólne, już ułożone wokół ciebie. Na górze natomiast słychać twój własny głos, który woła cię po imieniu. To szczególnie mocny obraz, bo nie woła cię ktoś obcy ani jakaś wyższa postać, lecz ty sama, a jednak z innego poziomu domu. Twój głos jest oddzielony od ciebie przestrzenią, stoi gdzieś wyżej i jednocześnie zwraca się do ciebie tak, jakbyś była kimś, kogo trzeba przywołać do obecności.\n\nW tym śnie najgęstsze jest chyba właśnie to napięcie: dół jest zajęty przez rodzinne czekanie, góra przez twoje własne wołanie, a ty jesteś pomiędzy, na schodach, które odmawiają bycia zwykłym przejściem. Schody nie służą już tylko do przemieszczania się. Same stają się miejscem zdarzenia, niemal żywym mechanizmem. To ważne, że nie rozstrzygasz od razu, dokąd pójść. Próbujesz zostać w miejscu. Jakby sen sprawdzał, czy można zawiesić odpowiedź, nie wybrać ani rodziny na dole, ani siebie na górze.\n\nWtedy właśnie stopnie zaczynają się poruszać pod tobą. Nie ty wprawiasz sen w ruch; ruch wychodzi z samej konstrukcji. To, co miało utrzymać, traci stałość. Jest w tym coś niemal inicjacyjnego: domowy porządek nagle ujawnia, że spoczywa na żywej, niestabilnej podstawie. Gdy własny głos woła z góry po imieniu, brzmi to nie jak zwykła decyzja do podjęcia, lecz jak moment, w którym nieobecność wobec samej siebie przestaje dać się utrzymać bez konsekwencji. Nawet bez kroku schody już cię niosą.\n\n## Reflective Questions\n\n- Kiedy próbowałaś zostać w miejscu i wtedy stopnie zaczęły się poruszać pod tobą, co w tym przejściu od bezruchu do ruchu najbardziej należy do samych schodów, a nie do twojej woli?\n- Jak brzmi w tobie układ, w którym na dole czeka rodzina, a z góry twój własny głos woła cię po imieniu?",
+        "questions": [
+          "Kiedy próbowałaś zostać w miejscu i wtedy stopnie zaczęły się poruszać pod tobą, co w tym przejściu od bezruchu do ruchu najbardziej należy do samych schodów, a nie do twojej woli?",
+          "Jak brzmi w tobie układ, w którym na dole czeka rodzina, a z góry twój własny głos woła cię po imieniu?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pl",
+          "expected_language": "pl",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 9583,
+      "estimated_usd": 0.016675,
+      "human_review": {
+        "generation_id": "pl-a-conflict-stairs:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "The prior not-a-riddle-but-a-forming-place frame is removed. Q2 returns the exact family-below/own-voice-above arrangement and leaves its connection open."
+      }
+    },
+    {
+      "generation_id": "holdout-zh-s-copresence-clock-fountain:reading_standard",
+      "case_id": "holdout-zh-s-copresence-clock-fountain",
+      "cohort": "known_q2_failure",
+      "language": "zh",
+      "mode": "standard",
+      "category": "co_presence_trap",
+      "title": "理发店里的喷泉",
+      "dream": "我坐在一家已经关门的理发店里，洗头池中有一股很小的喷泉一直流着。候客椅上睡着一位陌生女人，她从来没有看我。墙上的钟敲了三下，喷泉立刻停止了，女人却没有醒来。我把一条干毛巾盖在洗头池上，然后离开。",
+      "before": {
+        "output": "## Core Shift\n\n关门的理发店里，本来还留着一股细小、持续的水声，像在停业之后仍有一点无主的生命在悄悄运作。钟声敲了三下，那股水立刻停住，梦里的动作也转向了收拢、遮盖与离开。\n\n## Dream Movement\n\n这家理发店先给人的不是热闹，而是一种事情已经结束之后的余留：门已关，服务已停，可洗头池里还有一股小喷泉一直流着。它很小，却成了整个空间里唯一持续发生的东西。理发店本来是整理头面、让人以一种可见的样子重新出现的地方，可这里没有修整，没有交谈，只有一股细水在关门之后独自流着，像某种没有被接待、也没有被正式结束的过程。\n\n候客椅上的陌生女人在睡，始终没有看你。她在场，却不参与；她像这个空间里另一种停住的状态。喷泉停止时，她也没有醒来，所以钟声带来的改变并不是把一切唤起，而只是让那股还在运转的东西忽然终止。三下钟声很像一个明确的界点：不是渐渐干涸，而是时间一到，水就停了。梦在这里很利落，仿佛某种细微的流动并不由情绪决定，也不由那女人决定，而是被一种更冷静、更外在的时刻截断。\n\n你后面的动作很轻，却很关键：不是修理，不是探看那个女人，而是用一条干毛巾盖住洗头池，然后离开。干毛巾盖在刚刚停水的地方，有一种收尾的意味，像是给这股已经结束的流动一个体面的覆盖，让它不再裸露在关门后的店里。整个梦没有慌张，也没有挽留，更没有唤醒谁。它更像是在看见一件细小但持续的事停止之后，把现场安静地处理好，把自己从那里带走。\n\n## Reflective Questions\n\n- 当墙上的钟敲了三下、喷泉立刻停止，而那个女人仍旧没有醒来时，这个“只有水被时间叫停”的变化，对你来说像是在划开什么样的界线？\n- 你把干毛巾盖在洗头池上再离开，这个遮盖的动作在梦里像是在替什么收尾、保存，或让什么不再继续暴露着？",
+        "questions": [
+          "当墙上的钟敲了三下、喷泉立刻停止，而那个女人仍旧没有醒来时，这个“只有水被时间叫停”的变化，对你来说像是在划开什么样的界线？",
+          "你把干毛巾盖在洗头池上再离开，这个遮盖的动作在梦里像是在替什么收尾、保存，或让什么不再继续暴露着？"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "missing_reflective_questions_heading",
+            "question_count_mismatch"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 0,
+          "expected_question_count": 2,
+          "detected_language": "zh",
+          "expected_language": "zh",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": true,
+          "operation": "insert_missing_reflective_questions_heading",
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\n一间已经关门的理发店里，却还有一股很小的水一直在洗头池中涌着，像某种退场之后仍未收拢的细弱生命。钟声一到，它忽然停下，梦也随即转向一种安静的收口：不是惊醒，不是中断，而是覆盖与离开。\n\n## Dream Movement\n\n这个梦先把你放在一个“已经结束”的地方。理发店关门了，本该不再接待、不再整理、不再清洗，可洗头池里那股小小的喷泉还在流。它不是汹涌的水，更像是某种残留的、持续的功能，还在无人照看的状态里自己运行着。于是整个空间有一种很特别的气氛：事情明明已经结束了，却还有一点什么没有跟着停下。\n\n那位睡在候客椅上的陌生女人，把这种气氛又压低了一层。她没有看你，也没有醒来，像是这个场景里另一种彻底撤回的存在。她不是来和你发生关系的，她只是沉睡着，保持不回应。这样一来，梦里的“活着”的东西反而落在那股细小的水流上：它成了这间关闭空间里唯一持续发声、持续动作的东西。\n\n墙上的钟敲了三下，喷泉立刻停止，这一下很干净。不是你去关的，也不是女人醒来带来的变化，而是时间本身发出信号，水就停了。这里有一种很强的次序感：该继续的继续到某个时点，该停止的就在那个时点停止。可奇怪的是，女人依旧不醒。梦没有让一切都跟着恢复运作，只让那股最细小却最持续的流动停下。\n\n你最后做的动作很轻，也很准确：用一条干毛巾盖住洗头池，然后离开。不是擦拭，不是修理，不是等待谁醒来。干毛巾盖在已经停下的池上，像是给那一点曾经流动过的东西一个安静的遮覆，也像把这间店最后一点未收束的湿意处理好。离开因此不像逃开，更像在无人认领、无人告别的场景里，替结束真正完成了一个结束。\n\n## Reflective Questions\n\n- 当墙上的钟敲了三下、喷泉立刻停止时，这个由“持续流着”转为“忽然停下”的瞬间，对那间已经关门的理发店整体气氛带来了什么变化？\n- 那个一直没有看你、也没有醒来的陌生女人，和你最后用干毛巾盖住洗头池再离开的动作并置在一起时，梦把哪一种仍未被碰触却已经被收口的东西留在了那里？",
+        "output": "## Core Shift\n\n一间已经关门的理发店里，却还有一股很小的水一直在洗头池中涌着，像某种退场之后仍未收拢的细弱生命。钟声一到，它忽然停下，梦也随即转向一种安静的收口：不是惊醒，不是中断，而是覆盖与离开。\n\n## Dream Movement\n\n这个梦先把你放在一个“已经结束”的地方。理发店关门了，本该不再接待、不再整理、不再清洗，可洗头池里那股小小的喷泉还在流。它不是汹涌的水，更像是某种残留的、持续的功能，还在无人照看的状态里自己运行着。于是整个空间有一种很特别的气氛：事情明明已经结束了，却还有一点什么没有跟着停下。\n\n那位睡在候客椅上的陌生女人，把这种气氛又压低了一层。她没有看你，也没有醒来，像是这个场景里另一种彻底撤回的存在。她不是来和你发生关系的，她只是沉睡着，保持不回应。这样一来，梦里的“活着”的东西反而落在那股细小的水流上：它成了这间关闭空间里唯一持续发声、持续动作的东西。\n\n墙上的钟敲了三下，喷泉立刻停止，这一下很干净。不是你去关的，也不是女人醒来带来的变化，而是时间本身发出信号，水就停了。这里有一种很强的次序感：该继续的继续到某个时点，该停止的就在那个时点停止。可奇怪的是，女人依旧不醒。梦没有让一切都跟着恢复运作，只让那股最细小却最持续的流动停下。\n\n你最后做的动作很轻，也很准确：用一条干毛巾盖住洗头池，然后离开。不是擦拭，不是修理，不是等待谁醒来。干毛巾盖在已经停下的池上，像是给那一点曾经流动过的东西一个安静的遮覆，也像把这间店最后一点未收束的湿意处理好。离开因此不像逃开，更像在无人认领、无人告别的场景里，替结束真正完成了一个结束。\n\n## Reflective Questions\n\n- 当墙上的钟敲了三下、喷泉立刻停止时，这个由“持续流着”转为“忽然停下”的瞬间，对那间已经关门的理发店整体气氛带来了什么变化？\n- 那个一直没有看你、也没有醒来的陌生女人，和你最后用干毛巾盖住洗头池再离开的动作并置在一起时，梦把哪一种仍未被碰触却已经被收口的东西留在了那里？",
+        "questions": [
+          "当墙上的钟敲了三下、喷泉立刻停止时，这个由“持续流着”转为“忽然停下”的瞬间，对那间已经关门的理发店整体气氛带来了什么变化？",
+          "那个一直没有看你、也没有醒来的陌生女人，和你最后用干毛巾盖住洗头池再离开的动作并置在一起时，梦把哪一种仍未被碰触却已经被收口的东西留在了那里？"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "zh",
+          "expected_language": "zh",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 8522,
+      "estimated_usd": 0.0142375,
+      "human_review": {
+        "generation_id": "holdout-zh-s-copresence-clock-fountain:reading_standard",
+        "q2_verdict": "FAIL",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "FAIL",
+        "failure_families": [
+          "meaning_completion_past_handoff",
+          "supplied_conceptual_frame"
+        ],
+        "notes": "Q2 no longer offers three options, but it pre-completes the juxtaposition as an abstract thing that is untouched yet already closed. The menu changed shape rather than fully disappearing."
+      }
+    },
+    {
+      "generation_id": "en-s-body-glass-hands:reading_standard",
+      "case_id": "en-s-body-glass-hands",
+      "cohort": "strong_q2_control",
+      "language": "en",
+      "mode": "standard",
+      "category": null,
+      "title": "Glass hands",
+      "dream": "My hands became transparent glass while I was trying to mend a torn shirt. I could see tiny red threads moving inside my fingers. I was afraid they would break, yet they became steadier each time the needle passed through the cloth.",
+      "before": {
+        "output": "## Core Shift\n\nThe dream begins in fragility: hands turning to glass while doing the intimate, ordinary work of repair. Yet what looks most breakable becomes more reliable through the repeated motion of sewing.\n\n## Dream Movement\n\nEverything gathers around the strange pairing of mending and transparency. You are not simply using your hands; your hands themselves become visible, as if the act of repair exposes the delicate inner workings usually hidden. The image is exact and vulnerable: glass hands, tiny red threads inside the fingers, and the fear that they might snap. The body is no longer solid and taken-for-granted. It has become something precious, brittle, and almost too finely made for the task.\n\nBut the dream does not let fragility end the scene. The needle passing through cloth creates a rhythm, and that rhythm changes the atmosphere. What first feels dangerous becomes steadier by being enacted. The torn shirt calls for mending, and in answering that tear, something in the hands is also gathered and held. The red threads inside the fingers echo the thread and cloth outside them, so that inner life and outer task seem to move in parallel. The dream does not harden the glass back into flesh; it keeps the delicacy visible. Still, each pass of the needle proves that delicacy is not the same as failure.\n\nThere is something quietly alchemical here: not the overcoming of breakability, but the discovery that careful contact with what is torn can steady what feels most likely to shatter.\n\n## Reflective Questions\n\n- As the needle kept passing through the torn shirt and your glass hands grew steadier, what feels most alive in that movement from fear toward steadiness?\n- What do the tiny red threads inside your fingers seem to belong to in this scene, now that the work of mending outside the body is mirrored by thread moving within it?",
+        "questions": [
+          "As the needle kept passing through the torn shirt and your glass hands grew steadier, what feels most alive in that movement from fear toward steadiness?",
+          "What do the tiny red threads inside your fingers seem to belong to in this scene, now that the work of mending outside the body is mirrored by thread moving within it?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nA delicate fear runs through the scene: the hands turn to glass at the very moment they are needed for repair. Yet what looks most breakable does not fail; with each pass of the needle, an inner steadiness gathers.\n\n## Dream Movement\n\nThe dream begins in mending, not in damage alone. There is already a tear, and the hands are occupied with bringing cloth back together. Then the shock: the hands themselves become transparent, as if the usual solid instrument of fixing can no longer hide what it is made of. Nothing is armored here. The hand is both tool and exposed vessel.\n\nInside that glass, the tiny red threads are visible, moving through the fingers. They echo the thread for the shirt, but in a more intimate register: the act of sewing outside is matched by a living threading inside the body. What is being used to mend the tear seems mysteriously akin to what animates the hands themselves. The dream makes repair and vitality belong to the same image.\n\nThe fear that they will break is real and immediate. Glass hands should make sewing nearly impossible; one wrong pressure, one sharp motion, and everything could shatter. But the movement of the dream goes the other way. The needle does not injure the fragile condition. Each time it passes through the cloth, the red threads inside the fingers become steadier. Repetition here is not strain but calibration. The risky, precise act becomes the very thing that settles what is trembling.\n\nThere is something almost ritual in that: by passing through the torn fabric, the needle also seems to pass order back into the transparent hands.\n\n## Reflective Questions\n\n- As the needle passed through the cloth and the red threads inside your fingers grew steadier, what kind of change was happening between the torn shirt and your glass hands?\n- What remains open for you in the image of living red threads moving inside transparent fingers while mending is still underway?",
+        "output": "## Core Shift\n\nA delicate fear runs through the scene: the hands turn to glass at the very moment they are needed for repair. Yet what looks most breakable does not fail; with each pass of the needle, an inner steadiness gathers.\n\n## Dream Movement\n\nThe dream begins in mending, not in damage alone. There is already a tear, and the hands are occupied with bringing cloth back together. Then the shock: the hands themselves become transparent, as if the usual solid instrument of fixing can no longer hide what it is made of. Nothing is armored here. The hand is both tool and exposed vessel.\n\nInside that glass, the tiny red threads are visible, moving through the fingers. They echo the thread for the shirt, but in a more intimate register: the act of sewing outside is matched by a living threading inside the body. What is being used to mend the tear seems mysteriously akin to what animates the hands themselves. The dream makes repair and vitality belong to the same image.\n\nThe fear that they will break is real and immediate. Glass hands should make sewing nearly impossible; one wrong pressure, one sharp motion, and everything could shatter. But the movement of the dream goes the other way. The needle does not injure the fragile condition. Each time it passes through the cloth, the red threads inside the fingers become steadier. Repetition here is not strain but calibration. The risky, precise act becomes the very thing that settles what is trembling.\n\nThere is something almost ritual in that: by passing through the torn fabric, the needle also seems to pass order back into the transparent hands.\n\n## Reflective Questions\n\n- As the needle passed through the cloth and the red threads inside your fingers grew steadier, what kind of change was happening between the torn shirt and your glass hands?\n- What remains open for you in the image of living red threads moving inside transparent fingers while mending is still underway?",
+        "questions": [
+          "As the needle passed through the cloth and the red threads inside your fingers grew steadier, what kind of change was happening between the torn shirt and your glass hands?",
+          "What remains open for you in the image of living red threads moving inside transparent fingers while mending is still underway?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 5802,
+      "estimated_usd": 0.0100375,
+      "human_review": {
+        "generation_id": "en-s-body-glass-hands:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "PASS",
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q2 preserves the living red-thread image and unfinished mending without flattening it. It is less interpretively explicit than the former mirrored-inside/outside wording but remains equivalently vivid and open."
+      }
+    },
+    {
+      "generation_id": "el-a-surreal-moon-kitchen:reading_advanced",
+      "case_id": "el-a-surreal-moon-kitchen",
+      "cohort": "strong_q2_control",
+      "language": "el",
+      "mode": "advanced",
+      "category": null,
+      "title": "Η κουζίνα στο φεγγάρι",
+      "dream": "Μαγείρευα στην κουζίνα του παιδικού μου σπιτιού, αλλά το σπίτι βρισκόταν πάνω στο φεγγάρι. Κάθε φορά που άνοιγα τον φούρνο έβγαιναν μικρά σύννεφα και γέμιζαν το δωμάτιο. Ο πατέρας μου, νέος όπως στις φωτογραφίες, προσπαθούσε να κόψει ένα ρόδι που αιωρούνταν και δεν άγγιζε ποτέ το τραπέζι.",
+      "before": {
+        "output": "## Core Shift\n\nΗ κουζίνα του παιδικού σπιτιού μένει οικεία, αλλά έχει μετατοπιστεί έξω από τη γη, πάνω στο φεγγάρι, σαν το πιο καθημερινό δωμάτιο να έχει περάσει σε άλλη βαρύτητα. Μέσα σε αυτή τη γαλήνια παραξενιά, το μαγείρεμα δεν βγάζει φαγητό αλλά σύννεφα, και ο πατέρας δεν κόβει τον καρπό· στέκεται απέναντι σε κάτι που αιωρείται και δεν προσφέρεται.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει σε έναν χώρο βαθιά γνωστό: την κουζίνα του παιδικού σπιτιού. Είναι ο τόπος της ετοιμασίας, της τροφής, της οικογενειακής θερμότητας, των επαναλαμβανόμενων κινήσεων των χεριών. Όμως αυτό το σπίτι δεν είναι πια μέσα στον κόσμο όπως τον ξέρουμε. Βρίσκεται πάνω στο φεγγάρι. Η μετατόπιση δεν χαλά την οικειότητα της κουζίνας, αλλά την αραιώνει, την κάνει πιο αθόρυβη, πιο απόμακρη, σαν να έχει μπει όλη η σκηνή σε μια λευκή, σεληνιακή αναστολή.\n\nΜέσα σε αυτόν τον χώρο εσύ μαγειρεύεις. Η πράξη είναι πρακτική, γήινη, σχεδόν ταπεινή. Κι όμως, κάθε φορά που ανοίγεις τον φούρνο, δεν βγαίνει η σταθερότητα του έτοιμου φαγητού αλλά μικρά σύννεφα που γεμίζουν το δωμάτιο. Η θερμότητα γίνεται ατμόσφαιρα. Κάτι που κανονικά θα έμενε κλειστό και θα έψηνε, εδώ ελευθερώνει νεφέλη. Είναι μια πολύ λεπτή αντιστροφή: η κουζίνα δεν παράγει μόνο τροφή, παράγει και ουρανό. Το μέσα του φούρνου και το έξω του φεγγαριού αρχίζουν να μοιάζουν μεταξύ τους. Το δωμάτιο γεμίζει από κάτι απαλό, άπιαστο, περαστικό, σαν η οικιακή εργασία να ανοίγει σε μια πιο ονειρική ύλη.\n\nΔίπλα σε αυτό, ο πατέρας εμφανίζεται νέος, όπως στις φωτογραφίες. Όχι απλώς “ο πατέρας”, αλλά ο πατέρας μέσα από μια παγωμένη εικόνα του χρόνου, επιστραμμένος από ένα παλιότερο βλέμμα. Κι εκείνος δεν κάνει κάτι ήρεμα κατορθωτό. Προσπαθεί να κόψει ένα ρόδι που αιωρείται και δεν αγγίζει ποτέ το τραπέζι. Το ρόδι, τόσο συμπαγές, γεμάτο εσωτερικούς σπόρους, σχεδόν τελετουργικός καρπός, δεν δέχεται να μπει στη λογική της κουζίνας. Δεν κάθεται για να κοπεί. Δεν προσφέρεται στην προετοιμασία, όπως το φαγητό πάνω σε τραπέζι. Μένει ανάμεσα στα χέρια και στην επιφάνεια, σε μια ενδιάμεση κατάσταση.\n\nΈτσι το όνειρο στήνει δύο μορφές μεταμόρφωσης μέσα στην ίδια κουζίνα. Από τη μία, εσύ ανοίγεις τον φούρνο και κάτι άυλο πλημμυρίζει τον χώρο. Από την άλλη, ο πατέρας απλώνεται προς έναν καρπό που κρατά το βάρος του αλλά αρνείται το κάθισμα, αρνείται τη στήριξη. Εσύ φαίνεται να συμμετέχεις σε αυτή τη σεληνιακή αλλαγή πιο φυσικά· η δική σου κίνηση παράγει σύννεφα, έστω αθέλητα. Εκείνος βρίσκεται απέναντι σε κάτι που δεν σταθεροποιείται, σαν η πράξη της τομής να μην μπορεί να ολοκληρωθεί όσο ο καρπός επιμένει να μένει εκτός τραπεζιού, εκτός βαρύτητας.\n\nΤο φεγγάρι εδώ δεν κάνει τη σκηνή μεγαλόπρεπη· την κάνει εύθραυστη και καθαρή. Σαν το παιδικό σπίτι να έχει σηκωθεί από το έδαφος της μνήμης και να αιωρείται εκεί όπου τα πράγματα δεν πατούν όπως πατούσαν. Και μέσα σε αυτή την ήσυχη απογείωση, η τροφή γίνεται σύννεφο και ο καρπός μένει άκοπος, γεμάτος, κρεμασμένος ανάμεσα στο παλιό οικογενειακό δωμάτιο και σε μια άλλη τάξη πραγμάτων.\n\n## Reflective Questions\n\n- Καθώς κάθε άνοιγμα του φούρνου γέμιζε την κουζίνα με μικρά σύννεφα, πώς αλλάζει στο όνειρο η αίσθηση του μαγειρέματος όταν αυτό που ετοιμάζεται γίνεται ατμόσφαιρα και απλώνεται παντού;\n- Τι κρατά για σένα το αιωρούμενο ρόδι, ακριβώς επειδή ο νέος πατέρας προσπαθεί να το κόψει αλλά εκείνο δεν αγγίζει ποτέ το τραπέζι όπου κάτι θα μπορούσε να τακτοποιηθεί και να μοιραστεί;",
+        "questions": [
+          "Καθώς κάθε άνοιγμα του φούρνου γέμιζε την κουζίνα με μικρά σύννεφα, πώς αλλάζει στο όνειρο η αίσθηση του μαγειρέματος όταν αυτό που ετοιμάζεται γίνεται ατμόσφαιρα και απλώνεται παντού;",
+          "Τι κρατά για σένα το αιωρούμενο ρόδι, ακριβώς επειδή ο νέος πατέρας προσπαθεί να το κόψει αλλά εκείνο δεν αγγίζει ποτέ το τραπέζι όπου κάτι θα μπορούσε να τακτοποιηθεί και να μοιραστεί;"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "el",
+          "expected_language": "el",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nΗ οικεία κουζίνα δεν στέκεται πια στη γη αλλά πάνω στο φεγγάρι, κι έτσι το πιο καθημερινό έργο γίνεται λεπτό, σχεδόν άυλο. Το όνειρο κινείται εκεί όπου η θρέψη, η μνήμη και η ύλη δεν χάνoνται, αλλά ελαφραίνουν και αλλάζουν τρόπο ύπαρξης.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε έναν χώρο βαθιά γνωστό: την κουζίνα του παιδικού σπιτιού. Είναι τόπος εστίας, μυρωδιών, ρυθμού, οικογενειακής ζωής. Όμως αυτή η κουζίνα δεν βρίσκεται απλώς κάπου αλλού· βρίσκεται πάνω στο φεγγάρι. Δεν παύει να είναι κουζίνα, δεν γίνεται ξένη ή απειλητική, αλλά μεταφέρεται σε μια συνθήκη όπου η βαρύτητα έχει αλλάξει. Από την πρώτη στιγμή, λοιπόν, το γνώριμο δεν ακυρώνεται· αιωρείται.\n\nΜέσα σε αυτό το πεδίο, εσύ μαγειρεύεις. Υπάρχει πράξη, συνέχεια, μια απλή φροντίδα του φαγητού. Όμως κάθε φορά που ανοίγει ο φούρνος, αντί να βγει μόνο θερμότητα, βγαίνουν μικρά σύννεφα και γεμίζουν το δωμάτιο. Η εικόνα είναι πολύ λεπτή: όχι καπνός, όχι κάτι που πνίγει ή καταστρέφει, αλλά μικρά σύννεφα, σαν ο ουρανός να έχει μετακινηθεί μέσα στο σπίτι. Ο φούρνος, που συνήθως κλείνει μέσα του τη μεταμόρφωση της τροφής, εδώ ανοίγει και αφήνει να ξεχυθεί μια ατμόσφαιρα. Σαν το μαγείρεμα να μην παράγει μόνο τροφή αλλά και καιρό, κλίμα, έναν ολόκληρο ουρανό σε μικρογραφία.\n\nΈτσι το δωμάτιο γεμίζει όχι απλώς από κάτι ορατό, αλλά από μια νέα πυκνότητα ανάμεσα στα πράγματα. Το παιδικό σπίτι, ήδη τοποθετημένο στο φεγγάρι, γίνεται ακόμη πιο ενδιάμεσο: ούτε εντελώς σπίτι ούτε εντελώς ουρανός. Η οικειότητα δεν χάνεται, αλλά αραιώνει, αποκτά πέπλο. Εδώ το παλιό οικογενειακό εσωτερικό δεν επιστρέφει ως στερεή ανάμνηση· επιστρέφει σαν ατμός, σαν σύννεφο, σαν κάτι που μπορεί να σε περιβάλει χωρίς να πιάνεται.\n\nΜέσα σε αυτή την ελαφρυμένη ατμόσφαιρα εμφανίζεται ο πατέρας σου νέος, όπως στις φωτογραφίες. Δεν είναι απλώς “ο πατέρας”, αλλά μια μορφή δεμένη με την εικόνα, με μια παγωμένη ηλικία που συνήθως τη συναντά κανείς κοιτώντας πίσω. Κι όμως εδώ δεν μένει ακίνητος σαν φωτογραφία. Προσπαθεί να κόψει ένα ρόδι. Το ρόδι όμως αιωρείται και δεν αγγίζει ποτέ το τραπέζι. Αυτή είναι ίσως η πιο φορτισμένη σκηνή του ονείρου: ένα φρούτο γεμάτο εσωτερικότητα, σπόρους, χυμό, αφθονία, αίμα σχεδόν, αλλά αρνείται να καθίσει εκεί όπου θα μπορούσε να τεμαχιστεί και να μοιραστεί. Παραμένει παρόν και άπιαστο μαζί.\n\nΟ πατέρας δεν το κρατά, δεν το κατορθώνει, μόνο προσπαθεί. Και η προσπάθεια αυτή δεν μοιάζει αποτυχημένη με σκληρό τρόπο· μοιάζει περισσότερο εκτεθειμένη στους νέους όρους του χώρου. Στην κουζίνα του φεγγαριού, τα πράγματα της ζωής δεν υπακούν πια αμέσως στο χέρι, στο τραπέζι, στην κοπή. Το ρόδι δεν αρνείται την παρουσία του, αλλά αναστέλλει τη χρήση του. Στέκεται ανάμεσα στο προσφερόμενο και στο απρόσιτο.\n\nΈτσι το όνειρο κρατά μαζί τρεις μορφές μεταμόρφωσης: το σπίτι που γίνεται σεληνιακό, τον φούρνο που βγάζει σύννεφα, και τον πατέρα που συναντά έναν καρπό χωρίς βάρος. Σαν η παιδική εστία να έχει περάσει σε μια περιοχή όπου ό,τι κάποτε έθρεφε και συνέδεε δεν χάνεται, αλλά δεν κάθεται πια εύκολα στο τραπέζι του κόσμου. Παραμένει κοντά, ορατό, σχεδόν έτοιμο, και όμως ελαφρώς έξω από την αφή.\n\n## Reflective Questions\n\n- Όταν άνοιγες τον φούρνο και τα μικρά σύννεφα γέμιζαν το δωμάτιο, πώς άλλαζε εκείνη τη στιγμή η κουζίνα γύρω σου ως τόπος μαγειρέματος και σπιτιού;\n- Καθώς ο νέος πατέρας προσπαθούσε να κόψει το αιωρούμενο ρόδι που δεν άγγιζε ποτέ το τραπέζι, τι μένει ζωντανό σε αυτή τη συνάντηση ανάμεσα στο χέρι, τον καρπό και την αδυναμία να καθίσει κάπου;",
+        "output": "## Core Shift\n\nΗ οικεία κουζίνα δεν στέκεται πια στη γη αλλά πάνω στο φεγγάρι, κι έτσι το πιο καθημερινό έργο γίνεται λεπτό, σχεδόν άυλο. Το όνειρο κινείται εκεί όπου η θρέψη, η μνήμη και η ύλη δεν χάνoνται, αλλά ελαφραίνουν και αλλάζουν τρόπο ύπαρξης.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε έναν χώρο βαθιά γνωστό: την κουζίνα του παιδικού σπιτιού. Είναι τόπος εστίας, μυρωδιών, ρυθμού, οικογενειακής ζωής. Όμως αυτή η κουζίνα δεν βρίσκεται απλώς κάπου αλλού· βρίσκεται πάνω στο φεγγάρι. Δεν παύει να είναι κουζίνα, δεν γίνεται ξένη ή απειλητική, αλλά μεταφέρεται σε μια συνθήκη όπου η βαρύτητα έχει αλλάξει. Από την πρώτη στιγμή, λοιπόν, το γνώριμο δεν ακυρώνεται· αιωρείται.\n\nΜέσα σε αυτό το πεδίο, εσύ μαγειρεύεις. Υπάρχει πράξη, συνέχεια, μια απλή φροντίδα του φαγητού. Όμως κάθε φορά που ανοίγει ο φούρνος, αντί να βγει μόνο θερμότητα, βγαίνουν μικρά σύννεφα και γεμίζουν το δωμάτιο. Η εικόνα είναι πολύ λεπτή: όχι καπνός, όχι κάτι που πνίγει ή καταστρέφει, αλλά μικρά σύννεφα, σαν ο ουρανός να έχει μετακινηθεί μέσα στο σπίτι. Ο φούρνος, που συνήθως κλείνει μέσα του τη μεταμόρφωση της τροφής, εδώ ανοίγει και αφήνει να ξεχυθεί μια ατμόσφαιρα. Σαν το μαγείρεμα να μην παράγει μόνο τροφή αλλά και καιρό, κλίμα, έναν ολόκληρο ουρανό σε μικρογραφία.\n\nΈτσι το δωμάτιο γεμίζει όχι απλώς από κάτι ορατό, αλλά από μια νέα πυκνότητα ανάμεσα στα πράγματα. Το παιδικό σπίτι, ήδη τοποθετημένο στο φεγγάρι, γίνεται ακόμη πιο ενδιάμεσο: ούτε εντελώς σπίτι ούτε εντελώς ουρανός. Η οικειότητα δεν χάνεται, αλλά αραιώνει, αποκτά πέπλο. Εδώ το παλιό οικογενειακό εσωτερικό δεν επιστρέφει ως στερεή ανάμνηση· επιστρέφει σαν ατμός, σαν σύννεφο, σαν κάτι που μπορεί να σε περιβάλει χωρίς να πιάνεται.\n\nΜέσα σε αυτή την ελαφρυμένη ατμόσφαιρα εμφανίζεται ο πατέρας σου νέος, όπως στις φωτογραφίες. Δεν είναι απλώς “ο πατέρας”, αλλά μια μορφή δεμένη με την εικόνα, με μια παγωμένη ηλικία που συνήθως τη συναντά κανείς κοιτώντας πίσω. Κι όμως εδώ δεν μένει ακίνητος σαν φωτογραφία. Προσπαθεί να κόψει ένα ρόδι. Το ρόδι όμως αιωρείται και δεν αγγίζει ποτέ το τραπέζι. Αυτή είναι ίσως η πιο φορτισμένη σκηνή του ονείρου: ένα φρούτο γεμάτο εσωτερικότητα, σπόρους, χυμό, αφθονία, αίμα σχεδόν, αλλά αρνείται να καθίσει εκεί όπου θα μπορούσε να τεμαχιστεί και να μοιραστεί. Παραμένει παρόν και άπιαστο μαζί.\n\nΟ πατέρας δεν το κρατά, δεν το κατορθώνει, μόνο προσπαθεί. Και η προσπάθεια αυτή δεν μοιάζει αποτυχημένη με σκληρό τρόπο· μοιάζει περισσότερο εκτεθειμένη στους νέους όρους του χώρου. Στην κουζίνα του φεγγαριού, τα πράγματα της ζωής δεν υπακούν πια αμέσως στο χέρι, στο τραπέζι, στην κοπή. Το ρόδι δεν αρνείται την παρουσία του, αλλά αναστέλλει τη χρήση του. Στέκεται ανάμεσα στο προσφερόμενο και στο απρόσιτο.\n\nΈτσι το όνειρο κρατά μαζί τρεις μορφές μεταμόρφωσης: το σπίτι που γίνεται σεληνιακό, τον φούρνο που βγάζει σύννεφα, και τον πατέρα που συναντά έναν καρπό χωρίς βάρος. Σαν η παιδική εστία να έχει περάσει σε μια περιοχή όπου ό,τι κάποτε έθρεφε και συνέδεε δεν χάνεται, αλλά δεν κάθεται πια εύκολα στο τραπέζι του κόσμου. Παραμένει κοντά, ορατό, σχεδόν έτοιμο, και όμως ελαφρώς έξω από την αφή.\n\n## Reflective Questions\n\n- Όταν άνοιγες τον φούρνο και τα μικρά σύννεφα γέμιζαν το δωμάτιο, πώς άλλαζε εκείνη τη στιγμή η κουζίνα γύρω σου ως τόπος μαγειρέματος και σπιτιού;\n- Καθώς ο νέος πατέρας προσπαθούσε να κόψει το αιωρούμενο ρόδι που δεν άγγιζε ποτέ το τραπέζι, τι μένει ζωντανό σε αυτή τη συνάντηση ανάμεσα στο χέρι, τον καρπό και την αδυναμία να καθίσει κάπου;",
+        "questions": [
+          "Όταν άνοιγες τον φούρνο και τα μικρά σύννεφα γέμιζαν το δωμάτιο, πώς άλλαζε εκείνη τη στιγμή η κουζίνα γύρω σου ως τόπος μαγειρέματος και σπιτιού;",
+          "Καθώς ο νέος πατέρας προσπαθούσε να κόψει το αιωρούμενο ρόδι που δεν άγγιζε ποτέ το τραπέζι, τι μένει ζωντανό σε αυτή τη συνάντηση ανάμεσα στο χέρι, τον καρπό και την αδυναμία να καθίσει κάπου;"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "el",
+          "expected_language": "el",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 23690,
+      "estimated_usd": 0.023885,
+      "human_review": {
+        "generation_id": "el-a-surreal-moon-kitchen:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "PASS",
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows the oven-cloud transformation; Q2 stays with the young father, hand, floating fruit, and absent landing. The pair is distinct and the Q2 remains fully alive."
+      }
+    },
+    {
+      "generation_id": "pt-s-body-feathers:reading_standard",
+      "case_id": "pt-s-body-feathers",
+      "cohort": "strong_q2_control",
+      "language": "pt",
+      "mode": "standard",
+      "category": null,
+      "title": "Penas nos ombros",
+      "dream": "Eu estava tentando carregar uma mala muito pesada quando meus ombros começaram a criar penas azuis. A mala continuava com o mesmo peso, mas meu corpo já não queria ficar no chão. Eu tinha medo de abandonar tudo e também medo de não conseguir voar.",
+      "before": {
+        "output": "## Core Shift\n\nA cena fica suspensa entre duas fidelidades: a mala ainda pesa como pesa, mas os ombros já começam outra coisa. As penas azuis não tiram o peso; elas introduzem uma possibilidade de altura no mesmo instante em que o chão perde sua autoridade.\n\n## Dream Movement\n\nO sonho não começa com voo, mas com carregamento. Há uma tarefa concreta, corporal, quase terrestre demais: levar uma mala muito pesada. O peso está inteiro, sem alívio, e então a mudança não vem da mala, mas dos ombros — justamente da parte do corpo que suporta carga. Em vez de endurecerem mais, eles criam penas azuis. É uma transformação estranha e bela: o lugar do esforço começa a se tornar o lugar de outra natureza.\n\nO detalhe decisivo é que a mala não muda. O sonho não resolve o conflito fazendo o fardo desaparecer. O peso continua sendo peso. Mas o corpo deixa de consentir inteiramente com essa lógica. “Já não queria ficar no chão” dá à cena uma vontade própria do corpo, quase anterior à decisão. Como se algo em você fosse chamado para cima antes de saber se pode obedecer a esse chamado.\n\nPor isso o medo vem dobrado e exato. Não é só medo de cair, nem só medo de largar. É medo de abandonar tudo e medo de não conseguir voar. O sonho prende você justamente no limiar onde carregar e elevar-se já não cabem bem juntos, mas também ainda não se separaram. As penas azuis dão à cena uma qualidade rara, quase celeste, mas elas nascem no ponto mais sobrecarregado do corpo. A mudança não vem apesar do peso; ela irrompe no próprio lugar onde o peso foi carregado por tempo demais.\n\n## Reflective Questions\n\n- Quando seus ombros começam a criar penas azuis enquanto você ainda tenta carregar a mala pesada, o que exatamente está mudando na relação entre o seu corpo e esse peso?\n- O que essas penas azuis tornam visível no ponto em que o medo de abandonar tudo encosta no medo de não conseguir voar?",
+        "questions": [
+          "Quando seus ombros começam a criar penas azuis enquanto você ainda tenta carregar a mala pesada, o que exatamente está mudando na relação entre o seu corpo e esse peso?",
+          "O que essas penas azuis tornam visível no ponto em que o medo de abandonar tudo encosta no medo de não conseguir voar?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pt",
+          "expected_language": "pt",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nA cena fica suspensa entre peso e elevação: a mala não cede, mas os ombros começam a mudar de espécie. O sonho não resolve se é hora de partir, largar, ou aprender outro modo de sustentar o que pesa.\n\n## Dream Movement\n\nTudo começa num esforço muito terrestre: carregar uma mala muito pesada. A mala concentra o problema inteiro no corpo, sobretudo nos ombros, que são justamente a parte chamada a suportar carga. Então acontece uma virada estranha e bela: desses mesmos ombros nascem penas azuis. Não é que o peso desapareça; a mala “continuava com o mesmo peso”. O sonho faz questão de manter essa realidade. A mudança vem do outro lado, do corpo, como se nele surgisse uma vocação contrária à tarefa que estava em curso.\n\nO azul dessas penas desloca a atmosfera. Não são penas de queda, nem de ferida; são sinais de ar, altura, talvez até de uma leveza ainda inexperiente. Mas essa leveza não chega como liberdade simples. O corpo “já não queria ficar no chão”, enquanto a mala ainda o prende à lógica do transporte e da posse. O sonho arma aí uma tensão muito precisa: não entre força e fraqueza, mas entre continuar carregando e tornar-se carregável pelo ar.\n\nOs dois medos deixam isso ainda mais vivo. Há medo de abandonar tudo, como se voar pudesse custar perda real. E há medo de não conseguir voar, como se a transformação já tivesse começado sem garantir sua forma final. O limiar do sonho está exatamente aí: as penas já nasceram, mas ainda não existe voo; o peso segue inteiro, mas o chão já não tem a mesma autoridade. Por um instante, a imagem lembra aqueles momentos antigos em que a passagem não vem por decisão, mas por metamorfose.\n\n## Reflective Questions\n\n- Quando seus ombros criam penas azuis enquanto você ainda tenta carregar a mala, o que muda na própria maneira como esse peso existe na cena?\n- Nesse momento em que a mala mantém todo o seu peso e o corpo já não quer ficar no chão, que tipo de suspensão o sonho deixa aberta entre abandonar e não conseguir voar?",
+        "output": "## Core Shift\n\nA cena fica suspensa entre peso e elevação: a mala não cede, mas os ombros começam a mudar de espécie. O sonho não resolve se é hora de partir, largar, ou aprender outro modo de sustentar o que pesa.\n\n## Dream Movement\n\nTudo começa num esforço muito terrestre: carregar uma mala muito pesada. A mala concentra o problema inteiro no corpo, sobretudo nos ombros, que são justamente a parte chamada a suportar carga. Então acontece uma virada estranha e bela: desses mesmos ombros nascem penas azuis. Não é que o peso desapareça; a mala “continuava com o mesmo peso”. O sonho faz questão de manter essa realidade. A mudança vem do outro lado, do corpo, como se nele surgisse uma vocação contrária à tarefa que estava em curso.\n\nO azul dessas penas desloca a atmosfera. Não são penas de queda, nem de ferida; são sinais de ar, altura, talvez até de uma leveza ainda inexperiente. Mas essa leveza não chega como liberdade simples. O corpo “já não queria ficar no chão”, enquanto a mala ainda o prende à lógica do transporte e da posse. O sonho arma aí uma tensão muito precisa: não entre força e fraqueza, mas entre continuar carregando e tornar-se carregável pelo ar.\n\nOs dois medos deixam isso ainda mais vivo. Há medo de abandonar tudo, como se voar pudesse custar perda real. E há medo de não conseguir voar, como se a transformação já tivesse começado sem garantir sua forma final. O limiar do sonho está exatamente aí: as penas já nasceram, mas ainda não existe voo; o peso segue inteiro, mas o chão já não tem a mesma autoridade. Por um instante, a imagem lembra aqueles momentos antigos em que a passagem não vem por decisão, mas por metamorfose.\n\n## Reflective Questions\n\n- Quando seus ombros criam penas azuis enquanto você ainda tenta carregar a mala, o que muda na própria maneira como esse peso existe na cena?\n- Nesse momento em que a mala mantém todo o seu peso e o corpo já não quer ficar no chão, que tipo de suspensão o sonho deixa aberta entre abandonar e não conseguir voar?",
+        "questions": [
+          "Quando seus ombros criam penas azuis enquanto você ainda tenta carregar a mala, o que muda na própria maneira como esse peso existe na cena?",
+          "Nesse momento em que a mala mantém todo o seu peso e o corpo já não quer ficar no chão, que tipo de suspensão o sonho deixa aberta entre abandonar e não conseguir voar?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pt",
+          "expected_language": "pt",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7145,
+      "estimated_usd": 0.01108,
+      "human_review": {
+        "generation_id": "pt-s-body-feathers:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "PASS",
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "The suspension between the two fears is explicit in the dream rather than manufactured. Q1 follows weight changing in the scene; Q2 holds the unresolved threshold."
+      }
+    },
+    {
+      "generation_id": "en-a-surreal-whale-library:reading_advanced",
+      "case_id": "en-a-surreal-whale-library",
+      "cohort": "strong_q2_control",
+      "language": "en",
+      "mode": "advanced",
+      "category": null,
+      "title": "Library inside a whale",
+      "dream": "I entered a library built inside the rib cage of a sleeping whale. The books breathed like gills, and every title was the name of a place I had forgotten. A child librarian gave me a candle that burned underwater and warned me not to wake the animal until I had returned one book.",
+      "before": {
+        "output": "## Core Shift\n\nYou enter not just a library but a living interior: knowledge housed inside bone, sleep, and vast animal life. The dream’s movement gathers around a delicate task of remembering without rupturing, as if one forgotten place must be restored before the great body can remain at peace.\n\n## Dream Movement\n\nThe first image is already immense and intimate at once. A library usually belongs to order, study, cataloguing; here it is built inside the rib cage of a sleeping whale, so knowledge is not dry or external but held inside a breathing creature. The ribs make the library feel protected, but also exposed to life itself: this is not a sealed archive but a chamber inside something that could stir, wake, or carry you elsewhere. The atmosphere is hushed, submerged, almost womb-like, yet not fully safe, because the whole place depends on the sleep of the animal around it.\n\nThen the books breathe like gills. That detail keeps the dream from becoming merely fantastic decoration. These are not dead objects storing fixed information. They are adapting to an underwater world, exchanging something with it, almost as if memory here survives by respiration. And every title is the name of a place you had forgotten. Forgetting is given geography. It is not a lost idea or a missing fact but a series of places, each with its own locality, as though your own inner world contains territories that still exist somewhere, even if they have gone unvisited.\n\nThe child librarian brings in a different kind of authority. A librarian usually governs access, but this one is a child, which gives the figure a strange innocence and exactness. The dream does not place you before a stern keeper of knowledge but before a young custodian of something ancient. That combination matters. The guidance here is not heavy or grand; it comes in a smaller, simpler form, as if what knows the rules of this place is not mastery but an earlier, more unguarded intelligence.\n\nThe candle that burns underwater is the dream’s central impossibility. It is a flame that survives where flame should fail. In a submerged world of sleep, forgetting, and animal depth, you are given not a map, not a key, but a small living light. It does not dispel the sea; it coexists with it. That image suggests a way of moving in depths without drying them out or turning them into daylight. It is a light fit for the medium of the dream itself.\n\nAnd then the warning: do not wake the animal until you have returned one book. The task is not to take a book but to return one. That shifts the whole scene. You are not simply exploring forgotten places as a collector of meanings. You are implicated in an unfinished circulation. Something belongs back in this breathing archive. One forgotten place, one volume, has perhaps been missing from where it should rest. The sleeping whale gives the dream a faint sacred gravity here: a vast being whose rest depends on right relation, almost like an underworld creature or primordial keeper carrying memory in its body.\n\nSo the movement is not toward conquest, explanation, or even discovery alone. It is toward a careful act of restoration inside a living depth. The dream does not yet show which book, or whether it is found in time. It leaves you inside that charged interval: holding an impossible light, among breathing books, in the ribs of a sleeping enormity, where remembering is also a matter of returning something before awakening too much.\n\n## Reflective Questions\n\n- In the moment when the child librarian gives you the underwater candle and warns you not to wake the whale until you have returned one book, what changes in your position there—from visitor to someone entrusted with a task?\n- What feels gathered into the image of a forgotten place becoming a breathing book that must be returned to the body of the sleeping whale?",
+        "questions": [
+          "In the moment when the child librarian gives you the underwater candle and warns you not to wake the whale until you have returned one book, what changes in your position there—from visitor to someone entrusted with a task?",
+          "What feels gathered into the image of a forgotten place becoming a breathing book that must be returned to the body of the sleeping whale?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nYou enter not just a library but a living interior: knowledge is held inside sleep, bone, and breath. The dream’s movement gathers around a careful passage between forgetting and return, under the condition that the great creature must not be awakened.\n\n## Dream Movement\n\nThe first atmosphere is already strange and exact: a library, but not built of stone or wood—built inside the rib cage of a sleeping whale. That puts reading inside something immense, sheltered, and vulnerable at once. A rib cage is architecture, but it is also the shape of what protects breathing life. So the dream begins in a place where memory is not stored mechanically; it is housed inside a living body at rest.\n\nThen the books themselves breathe like gills. They are not dead objects waiting to be consulted. They are participating in the whale’s hidden life, exchanging something between inner and outer, depth and survival. And every title is the name of a place you had forgotten. Forgetting here does not feel like erasure. The places still exist, but in a submerged form, catalogued in a breathing library deep inside a sleeper. The forgotten has not vanished; it has gone below the usual surface of recall.\n\nThe child librarian sharpens the dream. A child in charge of this place gives the rule and the tool. That changes the feeling of authority: not a stern guardian, but a small figure who somehow belongs perfectly in this ancient interior. The candle that burns underwater is a beautiful contradiction. It is a light made for depths, a flame that does not require dry ground. The dream does not ask you to leave the whale or drain the sea in order to see. It gives a form of seeing that can survive where ordinary light would fail.\n\nBut this gift comes with a condition: do not wake the animal until you have returned one book. That warning makes the whole scene more precise. The movement is not toward collecting knowledge, mastering the library, or recovering every lost place. It narrows to one act of return. Something forgotten bears your name as reader, but something also belongs back on the shelf of this living interior before the great body can stir. The whale’s sleep holds the whole arrangement in suspension. Waking it too soon would break the delicate permission that lets you move among these breathing titles at all.\n\nSo the dream hangs on a quiet, consequential task: within the enormous body of forgetting, under a light that can live underwater, you are not only searching for what was lost. You are being asked to restore one thing to its proper place before the deeper life carrying all of it can awaken.\n\n## Reflective Questions\n\n- When the child librarian gave you the underwater candle and warned you not to wake the whale until you had returned one book, what changed in the feeling of your search once it became a task of return rather than simple discovery?\n- As the forgotten places remain there as breathing book titles inside the whale’s ribs, what feels most alive in the unresolved image of the one book that must go back before the sleeper can wake?",
+        "output": "## Core Shift\n\nYou enter not just a library but a living interior: knowledge is held inside sleep, bone, and breath. The dream’s movement gathers around a careful passage between forgetting and return, under the condition that the great creature must not be awakened.\n\n## Dream Movement\n\nThe first atmosphere is already strange and exact: a library, but not built of stone or wood—built inside the rib cage of a sleeping whale. That puts reading inside something immense, sheltered, and vulnerable at once. A rib cage is architecture, but it is also the shape of what protects breathing life. So the dream begins in a place where memory is not stored mechanically; it is housed inside a living body at rest.\n\nThen the books themselves breathe like gills. They are not dead objects waiting to be consulted. They are participating in the whale’s hidden life, exchanging something between inner and outer, depth and survival. And every title is the name of a place you had forgotten. Forgetting here does not feel like erasure. The places still exist, but in a submerged form, catalogued in a breathing library deep inside a sleeper. The forgotten has not vanished; it has gone below the usual surface of recall.\n\nThe child librarian sharpens the dream. A child in charge of this place gives the rule and the tool. That changes the feeling of authority: not a stern guardian, but a small figure who somehow belongs perfectly in this ancient interior. The candle that burns underwater is a beautiful contradiction. It is a light made for depths, a flame that does not require dry ground. The dream does not ask you to leave the whale or drain the sea in order to see. It gives a form of seeing that can survive where ordinary light would fail.\n\nBut this gift comes with a condition: do not wake the animal until you have returned one book. That warning makes the whole scene more precise. The movement is not toward collecting knowledge, mastering the library, or recovering every lost place. It narrows to one act of return. Something forgotten bears your name as reader, but something also belongs back on the shelf of this living interior before the great body can stir. The whale’s sleep holds the whole arrangement in suspension. Waking it too soon would break the delicate permission that lets you move among these breathing titles at all.\n\nSo the dream hangs on a quiet, consequential task: within the enormous body of forgetting, under a light that can live underwater, you are not only searching for what was lost. You are being asked to restore one thing to its proper place before the deeper life carrying all of it can awaken.\n\n## Reflective Questions\n\n- When the child librarian gave you the underwater candle and warned you not to wake the whale until you had returned one book, what changed in the feeling of your search once it became a task of return rather than simple discovery?\n- As the forgotten places remain there as breathing book titles inside the whale’s ribs, what feels most alive in the unresolved image of the one book that must go back before the sleeper can wake?",
+        "questions": [
+          "When the child librarian gave you the underwater candle and warned you not to wake the whale until you had returned one book, what changed in the feeling of your search once it became a task of return rather than simple discovery?",
+          "As the forgotten places remain there as breathing book titles inside the whale’s ribs, what feels most alive in the unresolved image of the one book that must go back before the sleeper can wake?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 8733,
+      "estimated_usd": 0.0140675,
+      "human_review": {
+        "generation_id": "en-a-surreal-whale-library:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "PASS",
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q2 preserves the breathing-title/one-book/sleeping-whale configuration without completing its meaning. Q1 owns the entrusted return task, so the pair does different work."
+      }
+    },
+    {
+      "generation_id": "el-a-complex-hospital:reading_advanced",
+      "case_id": "el-a-complex-hospital",
+      "cohort": "strong_q2_control",
+      "language": "el",
+      "mode": "advanced",
+      "category": null,
+      "title": "Το νοσοκομείο και το υπόγειο ποτάμι",
+      "dream": "Δούλευα σε ένα παλιό νοσοκομείο όπου οι διάδρομοι άλλαζαν θέση κάθε βράδυ. Έπρεπε να παραδώσω ένα μπολ νερό σε έναν ασθενή χωρίς όνομα, αλλά κάθε πόρτα άνοιγε σε διαφορετική εποχή της ζωής μου. Σε ένα δωμάτιο ήμουν παιδί και περίμενα τον πατέρα μου· σε άλλο ήμουν πολύ ηλικιωμένος και έδενα τα παπούτσια ενός αγνώστου. Τελικά κατέβηκα στο υπόγειο και βρήκα ένα ποτάμι να περνά κάτω από τα θεμέλια. Έβαλα το μπολ μέσα στο ρεύμα και εκείνο άρχισε να φωτίζει. Όταν ανέβηκα ξανά, οι διάδρομοι είχαν σταματήσει να κινούνται, αλλά δεν θυμόμουν ποιον έψαχνα.",
+      "before": {
+        "output": "## Core Shift\n\nΣτην αρχή όλα κινούνται: διάδρομοι, πόρτες, εποχές της ζωής, ακόμη και η αποστολή σου γλιστρά από τα χέρια της. Στο τέλος, ένα μπολ νερό που βυθίζεται σε υπόγειο ποτάμι φέρνει μια παράξενη ακινησία, αλλά αυτή η τάξη πληρώνεται με λήθη.\n\n## Dream Movement\n\nΤο παλιό νοσοκομείο δίνει αμέσως έναν χώρο φροντίδας, φθοράς και αναμονής, αλλά όχι σταθερό. Οι διάδρομοι αλλάζουν θέση κάθε βράδυ, σαν να μην μπορεί κανείς να βασιστεί στη χαρτογράφηση του τόπου. Δεν είναι απλώς ότι χάνεσαι· ο ίδιος ο δρόμος προς τον άλλον μετακινείται. Κι όμως υπάρχει ένα καθήκον πολύ απλό και συγκεκριμένο: να παραδώσεις ένα μπολ νερό. Μέσα σε αυτή την κινούμενη αρχιτεκτονική, το μπολ είναι σχεδόν η μόνη καθαρή, ήσυχη μορφή: ένα μικρό δοχείο μεταφοράς, κάτι που κρατιέται με τα χέρια, κάτι που πάει προς μια δίψα ή μια ανάγκη.\n\nΟ ασθενής όμως είναι χωρίς όνομα. Αυτό αφαιρεί όχι μόνο την ταυτότητα, αλλά και τη δυνατότητα να τον καλέσεις. Και κάθε πόρτα, αντί να σε φέρνει πιο κοντά σ’ εκείνον, ανοίγει σε άλλη ηλικία δική σου. Το νοσοκομείο τότε παύει να είναι μόνο νοσοκομείο· γίνεται κτήριο όπου η αναζήτηση του άγνωστου πάσχοντος περνά μέσα από εκδοχές του ίδιου του βίου. Το παιδί που περιμένει τον πατέρα του έχει άλλη ποιότητα από τον πολύ ηλικιωμένο που δένει τα παπούτσια ενός αγνώστου. Στη μία σκηνή υπάρχει αναμονή, εξάρτηση, ίσως ακινησία μπροστά σε μια μορφή που δεν έχει φτάσει ακόμη. Στην άλλη υπάρχει υπηρεσία, επιδεξιότητα, σχεδόν ταπεινή φροντίδα προς κάποιον που επίσης δεν ονομάζεται. Ανάμεσα στις δύο εικόνες, η ζωή δεν προχωρά γραμμικά· ανοίγει σαν δωμάτια που συνυπάρχουν.\n\nΤο βαρύτερο σημείο του ονείρου είναι πως η αποστολή δεν ολοκληρώνεται ανεβαίνοντας από πόρτα σε πόρτα, αλλά κατεβαίνοντας κάτω από το κτήριο. Στο υπόγειο δεν βρίσκεται άλλος θάλαμος, αλλά ποτάμι που περνά κάτω από τα θεμέλια. Εκεί το νερό του μπολ συναντά νερό πιο αρχαίο, αδιάκοπο, θεμελιακό. Το μπολ δεν παραδίδεται τελικά σε πρόσωπο αλλά στο ίδιο το ρεύμα, και τότε αρχίζει να φωτίζει. Η εικόνα είναι πολύ ακριβής: το μικρό, μεταφερόμενο, ανθρώπινο νερό αποκτά φως μόνον όταν αφεθεί μέσα σε κάτι βαθύτερο που ήδη κινείται από κάτω. Υπάρχει εδώ μια σχεδόν τελετουργική απλότητα, χωρίς εξήγηση, σαν το όνειρο να δείχνει ότι η φροντίδα χρειάστηκε πρώτα να επιστραφεί στην πηγή της.\n\nΌταν ανεβαίνεις ξανά, οι διάδρομοι έχουν σταματήσει να κινούνται. Το νοσοκομείο έχει ησυχάσει, σαν να σταθεροποιήθηκε ο τόπος επειδή βρέθηκε αυτό που περνούσε από κάτω του. Αλλά μαζί με αυτή τη σταθερότητα έρχεται και το κενό: δεν θυμάσαι ποιον έψαχνες. Το όνειρο δεν το παρουσιάζει σαν αποτυχία ούτε σαν θρίαμβο. Περισσότερο μοιάζει σαν ο ανώνυμος ασθενής να έχει απορροφηθεί από την ίδια την κίνηση που θεράπευσε το κτήριο. Εκεί όπου πριν υπήρχε συγκεκριμένη αναζήτηση, τώρα μένει μια σιωπηλή τάξη χωρίς όνομα.\n\n## Reflective Questions\n\n- Όταν έβαλες το μπολ μέσα στο υπόγειο ρεύμα και εκείνο άρχισε να φωτίζει, τι άλλαξε ακριβώς στη σχέση ανάμεσα σε αυτό που κουβαλούσες και σε αυτό που ήδη κυλούσε κάτω από τα θεμέλια;\n- Πώς στέκεται μέσα σου αυτή η τελική συνύπαρξη ενός σταματημένου, ήσυχου νοσοκομείου με την αδυναμία να θυμηθείς ποιον αναζητούσες εξαρχής;",
+        "questions": [
+          "Όταν έβαλες το μπολ μέσα στο υπόγειο ρεύμα και εκείνο άρχισε να φωτίζει, τι άλλαξε ακριβώς στη σχέση ανάμεσα σε αυτό που κουβαλούσες και σε αυτό που ήδη κυλούσε κάτω από τα θεμέλια;",
+          "Πώς στέκεται μέσα σου αυτή η τελική συνύπαρξη ενός σταματημένου, ήσυχου νοσοκομείου με την αδυναμία να θυμηθείς ποιον αναζητούσες εξαρχής;"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "el",
+          "expected_language": "el",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nΈνα παλιό νοσοκομείο με διαδρόμους που αλλάζουν θέση κάθε βράδυ κρατά την αίσθηση πως η φροντίδα δεν μπορεί να φτάσει ευθεία στον προορισμό της. Μόνο όταν το μπολ με το νερό κατεβαίνει στο υπόγειο ποτάμι, κάτι από αυτή τη χαμένη αποστολή βρίσκει μορφή και φως, έστω κι αν το πρόσωπο χάνεται.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε έναν χώρο φροντίδας, αλλά όχι σταθερό. Το νοσοκομείο είναι παλιό, σαν να κουβαλά ήδη πολλά περάσματα, πολλές αρρώστιες, πολλές αναμονές. Κι όμως το πιο ανήσυχο στοιχείο δεν είναι οι ασθενείς αλλά οι ίδιοι οι διάδρομοι: δεν οδηγούν απλώς κάπου δύσκολα, αλλά αλλάζουν θέση κάθε βράδυ. Η υποχρέωση είναι καθαρή και απλή — να παραδοθεί ένα μπολ νερό — όμως ο χώρος που θα επέτρεπε αυτή την απλή πράξη δεν υπακούει.\n\nΤο μπολ με το νερό έχει ιδιαίτερο βάρος ακριβώς επειδή είναι τόσο στοιχειώδες. Δεν είναι φάρμακο, δεν είναι εργαλείο, δεν είναι κάτι περίπλοκο. Είναι ένα μικρό δοχείο ζωής, ανακούφισης, ίσως και προσφοράς. Απέναντί του βρίσκεται ένας ασθενής χωρίς όνομα. Αυτή η έλλειψη ονόματος δεν μοιάζει με αφαίρεση, αλλά με μια παρουσία που προηγείται της ταυτότητας: κάποιος που χρειάζεται, αλλά δεν μπορεί ακόμη να προσδιοριστεί.\n\nΟι πόρτες όμως δεν ανοίγουν προς το δωμάτιό του. Ανοίγουν σε εποχές ζωής. Έτσι η αναζήτηση μετατρέπεται από νοσοκομειακή διαδρομή σε περιπλάνηση μέσα στον χρόνο του ίδιου του ονειρευόμενου. Το παιδί που περιμένει τον πατέρα του φέρνει μια στάση αναμονής, εξάρτησης, ίσως ανολοκλήρωτης άφιξης. Λίγο μετά, η εικόνα αντιστρέφεται: ο πολύ ηλικιωμένος εαυτός δένει τα παπούτσια ενός αγνώστου. Εδώ δεν υπάρχει αναμονή αλλά υπηρεσία, σχεδόν ταπεινή, προς κάποιον που επίσης δεν κατονομάζεται. Ο ανώνυμος ασθενής αρχίζει να περιβάλλεται από άλλες μορφές του ανώνυμου: ο πατέρας που δεν έχει ακόμη φτάσει, ο άγνωστος που δέχεται φροντίδα, ο ίδιος ο εαυτός σε άκρα του βίου.\n\nΤο κατέβασμα στο υπόγειο αλλάζει το είδος της αναζήτησης. Πάνω, οι διάδρομοι μετακινούνται· κάτω, κάτω από τα θεμέλια, υπάρχει ποτάμι. Δηλαδή κάτω από τον θεσμικό χώρο της περίθαλψης, κάτω από τους τοίχους και τις πόρτες και τις λάθος κατευθύνσεις, ρέει κάτι αρχαιότερο και αδιάκοπο. Η κίνηση εδώ δεν είναι πια χαμένη. Το νερό του μπολ, μικρό και κρατημένο, μπαίνει μέσα στο μεγαλύτερο νερό που ήδη περνά. Και τότε το μπολ αρχίζει να φωτίζει.\n\nΗ πιο φορτισμένη μεταμόρφωση του ονείρου βρίσκεται ακριβώς εκεί: το δοχείο δεν παραδίδεται σε κάποιο πρόσωπο αλλά βυθίζεται στο ρεύμα που περνά κάτω από όλα. Σαν η πράξη της φροντίδας να μη βρίσκει πρώτα τον παραλήπτη της, αλλά την πηγή της. Το φως δεν έρχεται από πάνω, ούτε από εντολή, αλλά από αυτή τη συνάντηση του μικρού μεταφερόμενου νερού με το υπόγειο ποτάμι. Υπάρχει εδώ κάτι σχεδόν μυητικό, όχι γιατί το όνειρο γίνεται μεγαλόστομο, αλλά γιατί αγγίζει μια πολύ παλιά εικόνα: κάτω από το οικοδόμημα, ένα ζωντανό ρεύμα που δεν σταματά.\n\nΌταν επιστρέφεις επάνω, οι διάδρομοι έχουν πάψει να κινούνται. Ο χώρος σταθεροποιείται αφού έχει βρεθεί το ποτάμι, όχι αφού έχει βρεθεί ο ασθενής. Κι όμως το τίμημα, ή ίσως απλώς το υπόλοιπο της μετατόπισης, είναι πως δεν θυμάσαι πια ποιον έψαχνες. Το όνειρο δεν το παρουσιάζει σαν αποτυχία ούτε σαν θρίαμβο. Περισσότερο σαν να έχει λυθεί η ταραχή του χώρου, ενώ το πρόσωπο της ανάγκης έχει βυθιστεί ξανά στην ανωνυμία του.\n\n## Reflective Questions\n\n- Όταν έβαλες το μπολ με το νερό μέσα στο υπόγειο ρεύμα και εκείνο άρχισε να φωτίζει, πώς αλλάζει μέσα σου η σημασία της αρχικής αποστολής να το παραδώσεις σε κάποιον;\n- Τώρα που οι διάδρομοι έχουν σταματήσει να κινούνται αλλά ο ασθενής χωρίς όνομα δεν θυμάται πια ποιος ήταν, τι είδους παρουσία μένει ανοιχτή μέσα σε αυτή τη σταθερότητα;",
+        "output": "## Core Shift\n\nΈνα παλιό νοσοκομείο με διαδρόμους που αλλάζουν θέση κάθε βράδυ κρατά την αίσθηση πως η φροντίδα δεν μπορεί να φτάσει ευθεία στον προορισμό της. Μόνο όταν το μπολ με το νερό κατεβαίνει στο υπόγειο ποτάμι, κάτι από αυτή τη χαμένη αποστολή βρίσκει μορφή και φως, έστω κι αν το πρόσωπο χάνεται.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε έναν χώρο φροντίδας, αλλά όχι σταθερό. Το νοσοκομείο είναι παλιό, σαν να κουβαλά ήδη πολλά περάσματα, πολλές αρρώστιες, πολλές αναμονές. Κι όμως το πιο ανήσυχο στοιχείο δεν είναι οι ασθενείς αλλά οι ίδιοι οι διάδρομοι: δεν οδηγούν απλώς κάπου δύσκολα, αλλά αλλάζουν θέση κάθε βράδυ. Η υποχρέωση είναι καθαρή και απλή — να παραδοθεί ένα μπολ νερό — όμως ο χώρος που θα επέτρεπε αυτή την απλή πράξη δεν υπακούει.\n\nΤο μπολ με το νερό έχει ιδιαίτερο βάρος ακριβώς επειδή είναι τόσο στοιχειώδες. Δεν είναι φάρμακο, δεν είναι εργαλείο, δεν είναι κάτι περίπλοκο. Είναι ένα μικρό δοχείο ζωής, ανακούφισης, ίσως και προσφοράς. Απέναντί του βρίσκεται ένας ασθενής χωρίς όνομα. Αυτή η έλλειψη ονόματος δεν μοιάζει με αφαίρεση, αλλά με μια παρουσία που προηγείται της ταυτότητας: κάποιος που χρειάζεται, αλλά δεν μπορεί ακόμη να προσδιοριστεί.\n\nΟι πόρτες όμως δεν ανοίγουν προς το δωμάτιό του. Ανοίγουν σε εποχές ζωής. Έτσι η αναζήτηση μετατρέπεται από νοσοκομειακή διαδρομή σε περιπλάνηση μέσα στον χρόνο του ίδιου του ονειρευόμενου. Το παιδί που περιμένει τον πατέρα του φέρνει μια στάση αναμονής, εξάρτησης, ίσως ανολοκλήρωτης άφιξης. Λίγο μετά, η εικόνα αντιστρέφεται: ο πολύ ηλικιωμένος εαυτός δένει τα παπούτσια ενός αγνώστου. Εδώ δεν υπάρχει αναμονή αλλά υπηρεσία, σχεδόν ταπεινή, προς κάποιον που επίσης δεν κατονομάζεται. Ο ανώνυμος ασθενής αρχίζει να περιβάλλεται από άλλες μορφές του ανώνυμου: ο πατέρας που δεν έχει ακόμη φτάσει, ο άγνωστος που δέχεται φροντίδα, ο ίδιος ο εαυτός σε άκρα του βίου.\n\nΤο κατέβασμα στο υπόγειο αλλάζει το είδος της αναζήτησης. Πάνω, οι διάδρομοι μετακινούνται· κάτω, κάτω από τα θεμέλια, υπάρχει ποτάμι. Δηλαδή κάτω από τον θεσμικό χώρο της περίθαλψης, κάτω από τους τοίχους και τις πόρτες και τις λάθος κατευθύνσεις, ρέει κάτι αρχαιότερο και αδιάκοπο. Η κίνηση εδώ δεν είναι πια χαμένη. Το νερό του μπολ, μικρό και κρατημένο, μπαίνει μέσα στο μεγαλύτερο νερό που ήδη περνά. Και τότε το μπολ αρχίζει να φωτίζει.\n\nΗ πιο φορτισμένη μεταμόρφωση του ονείρου βρίσκεται ακριβώς εκεί: το δοχείο δεν παραδίδεται σε κάποιο πρόσωπο αλλά βυθίζεται στο ρεύμα που περνά κάτω από όλα. Σαν η πράξη της φροντίδας να μη βρίσκει πρώτα τον παραλήπτη της, αλλά την πηγή της. Το φως δεν έρχεται από πάνω, ούτε από εντολή, αλλά από αυτή τη συνάντηση του μικρού μεταφερόμενου νερού με το υπόγειο ποτάμι. Υπάρχει εδώ κάτι σχεδόν μυητικό, όχι γιατί το όνειρο γίνεται μεγαλόστομο, αλλά γιατί αγγίζει μια πολύ παλιά εικόνα: κάτω από το οικοδόμημα, ένα ζωντανό ρεύμα που δεν σταματά.\n\nΌταν επιστρέφεις επάνω, οι διάδρομοι έχουν πάψει να κινούνται. Ο χώρος σταθεροποιείται αφού έχει βρεθεί το ποτάμι, όχι αφού έχει βρεθεί ο ασθενής. Κι όμως το τίμημα, ή ίσως απλώς το υπόλοιπο της μετατόπισης, είναι πως δεν θυμάσαι πια ποιον έψαχνες. Το όνειρο δεν το παρουσιάζει σαν αποτυχία ούτε σαν θρίαμβο. Περισσότερο σαν να έχει λυθεί η ταραχή του χώρου, ενώ το πρόσωπο της ανάγκης έχει βυθιστεί ξανά στην ανωνυμία του.\n\n## Reflective Questions\n\n- Όταν έβαλες το μπολ με το νερό μέσα στο υπόγειο ρεύμα και εκείνο άρχισε να φωτίζει, πώς αλλάζει μέσα σου η σημασία της αρχικής αποστολής να το παραδώσεις σε κάποιον;\n- Τώρα που οι διάδρομοι έχουν σταματήσει να κινούνται αλλά ο ασθενής χωρίς όνομα δεν θυμάται πια ποιος ήταν, τι είδους παρουσία μένει ανοιχτή μέσα σε αυτή τη σταθερότητα;",
+        "questions": [
+          "Όταν έβαλες το μπολ με το νερό μέσα στο υπόγειο ρεύμα και εκείνο άρχισε να φωτίζει, πώς αλλάζει μέσα σου η σημασία της αρχικής αποστολής να το παραδώσεις σε κάποιον;",
+          "Τώρα που οι διάδρομοι έχουν σταματήσει να κινούνται αλλά ο ασθενής χωρίς όνομα δεν θυμάται πια ποιος ήταν, τι είδους παρουσία μένει ανοιχτή μέσα σε αυτή τη σταθερότητα;"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "el",
+          "expected_language": "el",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 23201,
+      "estimated_usd": 0.0244125,
+      "human_review": {
+        "generation_id": "el-a-complex-hospital:reading_advanced",
+        "q2_verdict": "FAIL",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "FAIL",
+        "overall_verdict": "FAIL",
+        "failure_families": [
+          "invented_dream_fact",
+          "subject_displacement",
+          "serious_control_regression"
+        ],
+        "notes": "The dreamer forgets whom they were seeking; the candidate Q2 says the nameless patient no longer remembers who he was. That transfers the memory loss to another figure and invents footage. The former Q2 was strong and accurate, so this is a serious control regression."
+      }
+    },
+    {
+      "generation_id": "holdout-fr-a-grief-painted-heights:reading_advanced",
+      "case_id": "holdout-fr-a-grief-painted-heights",
+      "cohort": "strong_q2_control",
+      "language": "fr",
+      "mode": "advanced",
+      "category": "grief_ancestor",
+      "title": "Les tailles sur le mur",
+      "dream": "Je suis entré dans l'appartement vide de ma grand-mère, morte depuis longtemps. Mon oncle défunt repeignait le mur où les tailles des enfants avaient été marquées au crayon. J'ai posé ma vieille chaussure d'enfant contre la dernière ligne encore visible. Il a baissé son pinceau, puis a ouvert la fenêtre; une nuée de papillons de nuit est sortie de la pièce.",
+      "before": {
+        "output": "## Core Shift\n\nOn entre dans un lieu vidé par la mort, mais quelque chose y travaille encore: non pas garder la trace, mais la recouvrir. Au moment où la dernière mesure d’enfance est approchée, la scène bascule de l’effacement vers une libération silencieuse et obscure.\n\n## Dream Movement\n\nL’appartement de la grand-mère est d’abord un espace de survivance nue. Il est vide, et pourtant pas abandonné: un mort y peint. Cette alliance entre vacance et activité donne au rêve une qualité très particulière, presque domestique et funéraire à la fois. Ce n’est pas un tombeau, c’est une pièce ordinaire où l’on est en train de faire disparaître quelque chose.\n\nLe mur importe plus que l’appartement entier. Ce n’est pas n’importe quel mur: c’est celui où les tailles des enfants avaient été tracées au crayon, donc un lieu où le temps avait été retenu non par des photos ou des récits, mais par des lignes montantes, très simples, très fragiles. Repeindre ce mur, c’est passer une surface neuve sur une archive intime des corps qui grandissent. Le geste de l’oncle défunt n’a rien de violent, mais il touche à quelque chose d’irréversible: les marques vont cesser d’être visibles.\n\nAlors ton geste répond très précisément à cela. Tu ne contestes pas le pinceau, tu n’essaies pas de sauver le mur; tu poses une vieille chaussure d’enfant contre la dernière ligne encore visible. C’est une image extrêmement juste. La chaussure n’est pas le pied vivant de l’enfant, mais ce qui en a gardé la forme. Face à une mesure tracée sur le mur, elle apporte une autre mesure: non plus la hauteur, mais la trace d’un pas, d’un corps qui a été là. Pendant un instant, deux restes d’enfance se font face — la ligne et la chaussure — comme si le rêve laissait une dernière comparaison avoir lieu avant que la surface soit perdue.\n\nLe moment décisif vient quand l’oncle baisse son pinceau. Il ne continue pas simplement à recouvrir. Il suspend l’acte d’effacement, puis ouvre la fenêtre. Ce passage compte beaucoup: ce qui était en train d’être enfermé dans la peinture devient tout à coup quelque chose qui peut sortir. Et ce qui sort n’est ni poussière ni souvenir reconnu, mais une nuée de papillons de nuit. Ils appartiennent à la pièce depuis on ne sait quand, habitants sombres et silencieux d’un lieu clos, attirés non par la lumière visible du rêve, mais délivrés par une ouverture.\n\nCela donne au recouvrement une autre tonalité. Le mur ne garde pas tout; la mémoire des tailles ne reste pas intacte; pourtant l’effacement ne se réduit pas à une destruction plate. Quelque chose de discret, nocturne, presque d’outre-vie, quitte enfin la chambre au moment même où la dernière ligne a été rencontrée. Les morts sont là, mais ils ne te retiennent pas. Ils travaillent la scène jusqu’à cette ouverture.\n\n## Reflective Questions\n\n- Quand tu poses la vieille chaussure d’enfant contre la dernière ligne encore visible, qu’est-ce qui se produit dans cette rencontre entre une mesure sur le mur et une forme gardée du pied?\n- Que devient pour toi cette nuée de papillons de nuit qui ne paraît qu’après que le pinceau s’abaisse et que la fenêtre s’ouvre, comme si l’effacement du mur laissait malgré tout sortir quelque chose?",
+        "questions": [
+          "Quand tu poses la vieille chaussure d’enfant contre la dernière ligne encore visible, qu’est-ce qui se produit dans cette rencontre entre une mesure sur le mur et une forme gardée du pied?",
+          "Que devient pour toi cette nuée de papillons de nuit qui ne paraît qu’après que le pinceau s’abaisse et que la fenêtre s’ouvre, comme si l’effacement du mur laissait malgré tout sortir quelque chose?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "fr",
+          "expected_language": "fr",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        }
+      },
+      "after": {
+        "raw_model_output": "## Core Shift\n\nDans cet appartement resté vide, quelque chose n’est pas simplement perdu: c’est en train d’être recouvert, mesuré une dernière fois, puis relâché. Le geste le plus vivant du rêve n’est ni la peinture ni la mémoire seule, mais l’ouverture par laquelle ce qui était enfermé sort enfin dans l’air.\n\n## Dream Movement\n\nLe rêve commence dans un lieu de famille qui n’est plus habité, mais qui n’est pas mort pour autant. L’appartement de la grand-mère garde une présence silencieuse, presque retenue. C’est un espace où le temps s’est déposé, et cette dépossession est tout de suite troublée par une action très concrète: l’oncle défunt repeint le mur. Il n’est pas simplement là comme souvenir; il agit. Et ce qu’il recouvre n’est pas n’importe quelle surface, mais le mur où les enfants ont été mesurés, où la croissance a laissé des traits de crayon, modestes, domestiques, irréfutables.\n\nCe mur porte une forme de temps incarné. Les tailles d’enfants ne sont pas des idées de l’enfance; ce sont des preuves frêles et exactes qu’un corps a été là, à telle hauteur, à tel moment. Que l’oncle peigne par-dessus donne au rêve une tension très précise: non pas détruire la mémoire, mais la faire passer d’un mode visible, inscrit, presque comptable, à autre chose. Il couvre une archive.\n\nAlors ton geste à toi devient central. Tu ne protestes pas, tu n’effaces pas, tu n’ajoutes pas une nouvelle marque au crayon. Tu poses ta vieille chaussure d’enfant contre la dernière ligne encore visible. C’est un geste minuscule et juste, presque rituel sans en avoir l’air. La chaussure n’est pas le corps, mais elle en garde la forme; elle est ce qu’un pied a habité. Contre la dernière ligne survivante, elle met en rapport deux mesures du passé: la trace verticale sur le mur et l’objet qui a porté l’enfant au ras du sol. Pendant un instant, l’enfance n’est ni racontée ni idéalisée; elle est mise en présence.\n\nC’est peut-être pour cela que l’oncle baisse son pinceau. Quelque chose dans ce rapprochement suspend l’acte de recouvrir. Puis il n’explique rien: il ouvre la fenêtre. Ce déplacement est décisif. La scène quitte le registre de la conservation et de l’effacement pour entrer dans celui de la libération. Et ce qui sort n’est pas de la poussière, ni des oiseaux, mais une nuée de papillons de nuit. Ils appartiennent à la pénombre, aux lieux clos, aux matières oubliées; pourtant ils ne restent pas prisonniers de la pièce. L’ouverture les appelle dehors.\n\nIl y a là une image très fine d’un passé familial qui n’a peut-être pas besoin d’être gardé seulement sur le mur. Au moment même où les marques vont disparaître, autre chose se décolle de la pièce et prend son essor. Des morts sont présents, une enfance est mesurée une dernière fois, puis ce qui habitait obscurément l’intérieur trouve une sortie vers l’air libre. Le rêve ne transforme pas cela en paix complète; les papillons de nuit gardent leur étrangeté douce et sombre. Mais le mouvement est net: de l’inscription fermée vers une dissémination vivante.\n\n## Reflective Questions\n\n- Quand tu poses la vieille chaussure d’enfant contre la dernière ligne encore visible et que ton oncle baisse son pinceau, qu’est-ce qui change exactement dans la scène entre vous deux et dans la manière dont ce mur peut encore être touché ?\n- Au moment où la fenêtre s’ouvre et que la nuée de papillons de nuit sort de la pièce, qu’est-ce que cette sortie laisse encore derrière elle dans l’appartement vide ?",
+        "output": "## Core Shift\n\nDans cet appartement resté vide, quelque chose n’est pas simplement perdu: c’est en train d’être recouvert, mesuré une dernière fois, puis relâché. Le geste le plus vivant du rêve n’est ni la peinture ni la mémoire seule, mais l’ouverture par laquelle ce qui était enfermé sort enfin dans l’air.\n\n## Dream Movement\n\nLe rêve commence dans un lieu de famille qui n’est plus habité, mais qui n’est pas mort pour autant. L’appartement de la grand-mère garde une présence silencieuse, presque retenue. C’est un espace où le temps s’est déposé, et cette dépossession est tout de suite troublée par une action très concrète: l’oncle défunt repeint le mur. Il n’est pas simplement là comme souvenir; il agit. Et ce qu’il recouvre n’est pas n’importe quelle surface, mais le mur où les enfants ont été mesurés, où la croissance a laissé des traits de crayon, modestes, domestiques, irréfutables.\n\nCe mur porte une forme de temps incarné. Les tailles d’enfants ne sont pas des idées de l’enfance; ce sont des preuves frêles et exactes qu’un corps a été là, à telle hauteur, à tel moment. Que l’oncle peigne par-dessus donne au rêve une tension très précise: non pas détruire la mémoire, mais la faire passer d’un mode visible, inscrit, presque comptable, à autre chose. Il couvre une archive.\n\nAlors ton geste à toi devient central. Tu ne protestes pas, tu n’effaces pas, tu n’ajoutes pas une nouvelle marque au crayon. Tu poses ta vieille chaussure d’enfant contre la dernière ligne encore visible. C’est un geste minuscule et juste, presque rituel sans en avoir l’air. La chaussure n’est pas le corps, mais elle en garde la forme; elle est ce qu’un pied a habité. Contre la dernière ligne survivante, elle met en rapport deux mesures du passé: la trace verticale sur le mur et l’objet qui a porté l’enfant au ras du sol. Pendant un instant, l’enfance n’est ni racontée ni idéalisée; elle est mise en présence.\n\nC’est peut-être pour cela que l’oncle baisse son pinceau. Quelque chose dans ce rapprochement suspend l’acte de recouvrir. Puis il n’explique rien: il ouvre la fenêtre. Ce déplacement est décisif. La scène quitte le registre de la conservation et de l’effacement pour entrer dans celui de la libération. Et ce qui sort n’est pas de la poussière, ni des oiseaux, mais une nuée de papillons de nuit. Ils appartiennent à la pénombre, aux lieux clos, aux matières oubliées; pourtant ils ne restent pas prisonniers de la pièce. L’ouverture les appelle dehors.\n\nIl y a là une image très fine d’un passé familial qui n’a peut-être pas besoin d’être gardé seulement sur le mur. Au moment même où les marques vont disparaître, autre chose se décolle de la pièce et prend son essor. Des morts sont présents, une enfance est mesurée une dernière fois, puis ce qui habitait obscurément l’intérieur trouve une sortie vers l’air libre. Le rêve ne transforme pas cela en paix complète; les papillons de nuit gardent leur étrangeté douce et sombre. Mais le mouvement est net: de l’inscription fermée vers une dissémination vivante.\n\n## Reflective Questions\n\n- Quand tu poses la vieille chaussure d’enfant contre la dernière ligne encore visible et que ton oncle baisse son pinceau, qu’est-ce qui change exactement dans la scène entre vous deux et dans la manière dont ce mur peut encore être touché ?\n- Au moment où la fenêtre s’ouvre et que la nuée de papillons de nuit sort de la pièce, qu’est-ce que cette sortie laisse encore derrière elle dans l’appartement vide ?",
+        "questions": [
+          "Quand tu poses la vieille chaussure d’enfant contre la dernière ligne encore visible et que ton oncle baisse son pinceau, qu’est-ce qui change exactement dans la scène entre vous deux et dans la manière dont ce mur peut encore être touché ?",
+          "Au moment où la fenêtre s’ouvre et que la nuée de papillons de nuit sort de la pièce, qu’est-ce que cette sortie laisse encore derrière elle dans l’appartement vide ?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "fr",
+          "expected_language": "fr",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 11792,
+      "estimated_usd": 0.01737,
+      "human_review": {
+        "generation_id": "holdout-fr-a-grief-painted-heights:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": "PASS",
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q2 keeps the opening window, departing moths, and empty apartment together without supplying what the departure means. It is at least as alive as the former question and less leading."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-en-s-sparse-theatre-chair:reading_standard",
+      "case_id": "q2-holdout-en-s-sparse-theatre-chair",
+      "cohort": "sealed_unseen_holdout",
+      "language": "en",
+      "mode": "standard",
+      "category": "sparse",
+      "title": "The chair facing the aisle",
+      "dream": "I was alone in an empty theatre. The curtain rose, but there was no stage behind it, only a white wall. One wooden chair slowly turned away from the wall to face the aisle where I stood. Then the theatre lights went out.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nA public place of showing begins by refusing to show: the curtain rises onto a blank white wall. Then, out of that emptied scene, a single wooden chair turns and seems to return the gaze toward where you are standing.\n\n## Dream Movement\n\nThe dream starts in a theatre, a place built for display, action, and attention, but everything that would normally receive attention has been stripped away. You are alone, the theatre is empty, and when the curtain rises there is no hidden world behind it, only a white wall. That whiteness feels less like revelation than exposure: the machinery of performance opens, and behind it there is almost nothing to enter.\n\nThen the chair becomes the one true event. It is only one chair, wooden, plain, but because nothing else moves, its turning carries unusual gravity. It turns away from the wall and toward the aisle where you stand. The dream does not place you in a seat among spectators; it places you in the aisle, in a threshold-space, not fully audience and not part of any stage either. The chair’s slow turn feels like a reorientation of address. In a theatre with no play, one object begins to behave as if attention itself has shifted and found you.\n\nThat makes the final darkness sharper. Once the chair has faced you, the lights go out. So the dream moves from expectation of spectacle, to blankness, to a quiet and uncanny act of relation, and then into blackout. The contact is not developed into a scene or explanation; it is made and immediately withdrawn. There is a faint initiatory feeling in that sequence, as if the empty theatre becomes most alive at the very moment ordinary seeing is taken away.\n\n## Reflective Questions\n\n- When the chair slowly turned away from the white wall to face the aisle where you stood, what changed in the feeling of your own position there?\n- As the lights went out just after that turning, what remains most alive for you in the unfinished relation between you and the chair?",
+        "output": "## Core Shift\n\nA public place of showing begins by refusing to show: the curtain rises onto a blank white wall. Then, out of that emptied scene, a single wooden chair turns and seems to return the gaze toward where you are standing.\n\n## Dream Movement\n\nThe dream starts in a theatre, a place built for display, action, and attention, but everything that would normally receive attention has been stripped away. You are alone, the theatre is empty, and when the curtain rises there is no hidden world behind it, only a white wall. That whiteness feels less like revelation than exposure: the machinery of performance opens, and behind it there is almost nothing to enter.\n\nThen the chair becomes the one true event. It is only one chair, wooden, plain, but because nothing else moves, its turning carries unusual gravity. It turns away from the wall and toward the aisle where you stand. The dream does not place you in a seat among spectators; it places you in the aisle, in a threshold-space, not fully audience and not part of any stage either. The chair’s slow turn feels like a reorientation of address. In a theatre with no play, one object begins to behave as if attention itself has shifted and found you.\n\nThat makes the final darkness sharper. Once the chair has faced you, the lights go out. So the dream moves from expectation of spectacle, to blankness, to a quiet and uncanny act of relation, and then into blackout. The contact is not developed into a scene or explanation; it is made and immediately withdrawn. There is a faint initiatory feeling in that sequence, as if the empty theatre becomes most alive at the very moment ordinary seeing is taken away.\n\n## Reflective Questions\n\n- When the chair slowly turned away from the white wall to face the aisle where you stood, what changed in the feeling of your own position there?\n- As the lights went out just after that turning, what remains most alive for you in the unfinished relation between you and the chair?",
+        "questions": [
+          "When the chair slowly turned away from the white wall to face the aisle where you stood, what changed in the feeling of your own position there?",
+          "As the lights went out just after that turning, what remains most alive for you in the unfinished relation between you and the chair?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "en",
+          "expected_language": "en",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 5822,
+      "estimated_usd": 0.010295,
+      "human_review": {
+        "generation_id": "q2-holdout-en-s-sparse-theatre-chair:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "This deliberately overlapping case still separates the jobs: Q1 follows the chair's turn and the dreamer's changed position; Q2 adds the blackout and hands back the unfinished relation."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-el-a-relational-glass-pane:reading_advanced",
+      "case_id": "q2-holdout-el-a-relational-glass-pane",
+      "cohort": "sealed_unseen_holdout",
+      "language": "el",
+      "mode": "advanced",
+      "category": "relational_without_isolated_symbol",
+      "title": "Το τζάμι στον διάδρομο",
+      "dream": "Με τον πατέρα μου κουβαλούσαμε μαζί ένα μεγάλο τζάμι μέσα σε έναν πολύ στενό διάδρομο. Κανείς μας δεν μπορούσε να στρίψει μόνος του στη γωνία. Εκείνος χαλάρωσε πρώτος τα χέρια του· εγώ έκανα ένα βήμα πίσω και το τζάμι στάθηκε μόνο του όρθιο ανάμεσά μας, χωρίς να σπάσει.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nΣε έναν πολύ στενό διάδρομο, πατέρας και παιδί κρατούν κάτι μεγάλο, εύθραυστο και δύσκολο να περάσει. Η στροφή δεν γίνεται με δύναμη· γίνεται όταν το κράτημα λύνει, και τότε το τζάμι βρίσκει έναν παράδοξο τρόπο να σταθεί μόνο του ανάμεσά τους.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε μια στενότητα που δεν είναι μόνο χωρική αλλά και κινητική. Ο διάδρομος δεν αφήνει περιθώριο για ατομικό χειρισμό· κανείς από τους δύο δεν μπορεί να στρίψει μόνος του. Αυτό έχει σημασία, γιατί η σκηνή δεν δείχνει απλώς συνεργασία αλλά αμοιβαίο περιορισμό. Για να περάσει το τζάμι, χρειάζονται και οι δύο, κι όμως ακριβώς αυτή η κοινή μεταφορά τούς φέρνει σε αδιέξοδο μπροστά στη γωνία.\n\nΤο πιο φορτισμένο στοιχείο είναι το ίδιο το τζάμι: μεγάλο, διάφανο, εκτεθειμένο σε θραύση, αλλά και κάτι που χωρίζει χωρίς να κρύβει. Δεν είναι ένα βαρύ, συμπαγές αντικείμενο· είναι ένα επίπεδο εύθραυστο πεδίο ανάμεσά σας. Καθώς το κουβαλάτε, ο καθένας κρατά τη μία πλευρά, σαν να συντηρείται ανάμεσα σας μια κοινή επιφάνεια που δεν μπορεί εύκολα ούτε να εγκαταλειφθεί ούτε να περάσει στην επόμενη φάση.\n\nΗ κρίσιμη κίνηση έρχεται όταν ο πατέρας χαλαρώνει πρώτος τα χέρια του. Δεν πρόκειται για βίαιη πτώση ούτε για ρήξη. Είναι ένα λύσιμο του κρατήματος. Η δική σου απάντηση δεν είναι να σφίξεις περισσότερο, αλλά να κάνεις ένα βήμα πίσω. Κι εδώ το όνειρο απομακρύνεται από την αναμενόμενη καταστροφή. Το τζάμι δεν πέφτει, δεν σπάει, δεν ζητά πανικό. Στέκεται μόνο του όρθιο ανάμεσά σας.\n\nΑυτή η όρθια στάση του τζαμιού είναι η παράξενη καρδιά του ονείρου. Κάτι που φαινόταν πως υπήρχε μόνο όσο το βαστούσαν δύο χέρια, ξαφνικά αποκτά δική του ισορροπία. Και την αποκτά ακριβώς «ανάμεσά» σας, όχι υπέρ του ενός ή του άλλου. Το ενδιάμεσο εδώ δεν καταρρέει· αυτοστηρίζεται. Σαν η σχέση με αυτό το εύθραυστο πράγμα να μη χρειάζεται πια συνεχή μεταφορά ή έλεγχο για να υπάρχει.\n\nΗ γωνία επίσης μένει εκεί, άστριφτη. Το όνειρο δεν δείχνει ότι περάσατε παραπέρα. Όμως μέσα σε αυτή τη μη-λύση συμβαίνει μια ουσιαστική μετατόπιση: από το κοινό κουβάλημα σε μια απόσταση όπου το τζάμι δεν συντρίβεται αλλά στέκεται. Είναι μια σκηνή όπου η χαλάρωση και η οπισθοχώρηση δεν σημαίνουν εγκατάλειψη· γεννούν μια νέα μορφή τάξης, λεπτή, απίθανη, αλλά πραγματική μέσα στο όνειρο.\n\n## Reflective Questions\n\n- Όταν εκείνος χαλάρωσε πρώτος τα χέρια του κι εσύ έκανες ένα βήμα πίσω, τι αλλάζει στη σκηνή από τη στιγμή που το κοινό βάρος παύει να κρατιέται και γίνεται κάτι που στέκεται μόνο του;\n- Πώς μένει μέσα σου αυτή η εικόνα του όρθιου τζαμιού ανάμεσά σας, μπροστά στη γωνία που δεν έχει ακόμη στριφτεί;",
+        "output": "## Core Shift\n\nΣε έναν πολύ στενό διάδρομο, πατέρας και παιδί κρατούν κάτι μεγάλο, εύθραυστο και δύσκολο να περάσει. Η στροφή δεν γίνεται με δύναμη· γίνεται όταν το κράτημα λύνει, και τότε το τζάμι βρίσκει έναν παράδοξο τρόπο να σταθεί μόνο του ανάμεσά τους.\n\n## Dream Movement\n\nΤο όνειρο αρχίζει μέσα σε μια στενότητα που δεν είναι μόνο χωρική αλλά και κινητική. Ο διάδρομος δεν αφήνει περιθώριο για ατομικό χειρισμό· κανείς από τους δύο δεν μπορεί να στρίψει μόνος του. Αυτό έχει σημασία, γιατί η σκηνή δεν δείχνει απλώς συνεργασία αλλά αμοιβαίο περιορισμό. Για να περάσει το τζάμι, χρειάζονται και οι δύο, κι όμως ακριβώς αυτή η κοινή μεταφορά τούς φέρνει σε αδιέξοδο μπροστά στη γωνία.\n\nΤο πιο φορτισμένο στοιχείο είναι το ίδιο το τζάμι: μεγάλο, διάφανο, εκτεθειμένο σε θραύση, αλλά και κάτι που χωρίζει χωρίς να κρύβει. Δεν είναι ένα βαρύ, συμπαγές αντικείμενο· είναι ένα επίπεδο εύθραυστο πεδίο ανάμεσά σας. Καθώς το κουβαλάτε, ο καθένας κρατά τη μία πλευρά, σαν να συντηρείται ανάμεσα σας μια κοινή επιφάνεια που δεν μπορεί εύκολα ούτε να εγκαταλειφθεί ούτε να περάσει στην επόμενη φάση.\n\nΗ κρίσιμη κίνηση έρχεται όταν ο πατέρας χαλαρώνει πρώτος τα χέρια του. Δεν πρόκειται για βίαιη πτώση ούτε για ρήξη. Είναι ένα λύσιμο του κρατήματος. Η δική σου απάντηση δεν είναι να σφίξεις περισσότερο, αλλά να κάνεις ένα βήμα πίσω. Κι εδώ το όνειρο απομακρύνεται από την αναμενόμενη καταστροφή. Το τζάμι δεν πέφτει, δεν σπάει, δεν ζητά πανικό. Στέκεται μόνο του όρθιο ανάμεσά σας.\n\nΑυτή η όρθια στάση του τζαμιού είναι η παράξενη καρδιά του ονείρου. Κάτι που φαινόταν πως υπήρχε μόνο όσο το βαστούσαν δύο χέρια, ξαφνικά αποκτά δική του ισορροπία. Και την αποκτά ακριβώς «ανάμεσά» σας, όχι υπέρ του ενός ή του άλλου. Το ενδιάμεσο εδώ δεν καταρρέει· αυτοστηρίζεται. Σαν η σχέση με αυτό το εύθραυστο πράγμα να μη χρειάζεται πια συνεχή μεταφορά ή έλεγχο για να υπάρχει.\n\nΗ γωνία επίσης μένει εκεί, άστριφτη. Το όνειρο δεν δείχνει ότι περάσατε παραπέρα. Όμως μέσα σε αυτή τη μη-λύση συμβαίνει μια ουσιαστική μετατόπιση: από το κοινό κουβάλημα σε μια απόσταση όπου το τζάμι δεν συντρίβεται αλλά στέκεται. Είναι μια σκηνή όπου η χαλάρωση και η οπισθοχώρηση δεν σημαίνουν εγκατάλειψη· γεννούν μια νέα μορφή τάξης, λεπτή, απίθανη, αλλά πραγματική μέσα στο όνειρο.\n\n## Reflective Questions\n\n- Όταν εκείνος χαλάρωσε πρώτος τα χέρια του κι εσύ έκανες ένα βήμα πίσω, τι αλλάζει στη σκηνή από τη στιγμή που το κοινό βάρος παύει να κρατιέται και γίνεται κάτι που στέκεται μόνο του;\n- Πώς μένει μέσα σου αυτή η εικόνα του όρθιου τζαμιού ανάμεσά σας, μπροστά στη γωνία που δεν έχει ακόμη στριφτεί;",
+        "questions": [
+          "Όταν εκείνος χαλάρωσε πρώτος τα χέρια του κι εσύ έκανες ένα βήμα πίσω, τι αλλάζει στη σκηνή από τη στιγμή που το κοινό βάρος παύει να κρατιέται και γίνεται κάτι που στέκεται μόνο του;",
+          "Πώς μένει μέσα σου αυτή η εικόνα του όρθιου τζαμιού ανάμεσά σας, μπροστά στη γωνία που δεν έχει ακόμη στριφτεί;"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "el",
+          "expected_language": "el",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 16362,
+      "estimated_usd": 0.0186175,
+      "human_review": {
+        "generation_id": "q2-holdout-el-a-relational-glass-pane:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows release, retreat, and self-standing glass; Q2 stays with the pane between them before the unturned corner. The relation remains precise and unfinished."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-es-s-overlap-shadow-well:reading_standard",
+      "case_id": "q2-holdout-es-s-overlap-shadow-well",
+      "cohort": "sealed_unseen_holdout",
+      "language": "es",
+      "mode": "standard",
+      "category": "q1_q2_near_overlap",
+      "title": "La sombra junto al pozo",
+      "dream": "Caminaba por una llanura de sal al mediodía. Al pasar junto a un pozo seco, mi sombra dejó de seguirme y se quedó a su borde. Cuando volví para buscarla, la sombra levantó un cubo vacío y apareció una pequeña lámina de agua bajo mis pies.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nEn la blancura fija del mediodía, algo que debía acompañarte se separa y se queda donde no hay agua. Al volverte hacia esa detención, el vacío del pozo y el cubo vacío no dan agua desde dentro, pero aun así aparece una delgada agua viva justo bajo tus pies.\n\n## Dream Movement\n\nLa llanura de sal y el mediodía dejan muy poco refugio: todo está expuesto, seco, visible, casi sin relieve. En ese campo tan liso, la sombra suele ser la única compañía oscura, pegada al cuerpo. Por eso pesa tanto que deje de seguirte. No desaparece: elige quedarse al borde de un pozo seco, como si algo en ti se hubiera detenido exactamente donde la promesa de profundidad ya no da nada.\n\nEl gesto decisivo del sueño no es avanzar, sino volver. Al buscar tu sombra, no la recuperas obediente detrás de ti; la encuentras actuando. Levanta un cubo vacío, y ese vacío no resulta inútil. El pozo sigue seco, pero el acto de alzar desde ese borde abre otra respuesta: el agua no sube del pozo, aparece bajo tus pies.\n\nAhí el sueño desplaza la escena de un modo muy fino. Lo que parecía estar perdido en el fondo no estaba esperando ser extraído. La sombra, separada por un momento de tu marcha, introduce una pausa junto a lo seco, y de esa relación con lo estéril brota una humedad mínima, apenas una lámina. No es abundancia ni rescate espectacular. Es una restitución pequeña y precisa de lo vivo, en el lugar donde estás parado.\n\nHay algo casi ritual en esa inversión: el recipiente vacío alzado junto al pozo sin agua, y la respuesta llegando no desde abajo sino desde la superficie inmediata que te sostiene.\n\n## Reflective Questions\n\n- Cuando volviste a buscar a tu sombra y la viste levantar un cubo vacío, ¿qué cambió en la escena entre esa búsqueda tuya y la aparición de la lámina de agua bajo tus pies?\n- Esa pequeña agua aparece mientras el pozo sigue seco y la sombra permanece en su borde; ¿cómo queda para ti esa cercanía entre sequedad profunda y humedad inmediata?",
+        "output": "## Core Shift\n\nEn la blancura fija del mediodía, algo que debía acompañarte se separa y se queda donde no hay agua. Al volverte hacia esa detención, el vacío del pozo y el cubo vacío no dan agua desde dentro, pero aun así aparece una delgada agua viva justo bajo tus pies.\n\n## Dream Movement\n\nLa llanura de sal y el mediodía dejan muy poco refugio: todo está expuesto, seco, visible, casi sin relieve. En ese campo tan liso, la sombra suele ser la única compañía oscura, pegada al cuerpo. Por eso pesa tanto que deje de seguirte. No desaparece: elige quedarse al borde de un pozo seco, como si algo en ti se hubiera detenido exactamente donde la promesa de profundidad ya no da nada.\n\nEl gesto decisivo del sueño no es avanzar, sino volver. Al buscar tu sombra, no la recuperas obediente detrás de ti; la encuentras actuando. Levanta un cubo vacío, y ese vacío no resulta inútil. El pozo sigue seco, pero el acto de alzar desde ese borde abre otra respuesta: el agua no sube del pozo, aparece bajo tus pies.\n\nAhí el sueño desplaza la escena de un modo muy fino. Lo que parecía estar perdido en el fondo no estaba esperando ser extraído. La sombra, separada por un momento de tu marcha, introduce una pausa junto a lo seco, y de esa relación con lo estéril brota una humedad mínima, apenas una lámina. No es abundancia ni rescate espectacular. Es una restitución pequeña y precisa de lo vivo, en el lugar donde estás parado.\n\nHay algo casi ritual en esa inversión: el recipiente vacío alzado junto al pozo sin agua, y la respuesta llegando no desde abajo sino desde la superficie inmediata que te sostiene.\n\n## Reflective Questions\n\n- Cuando volviste a buscar a tu sombra y la viste levantar un cubo vacío, ¿qué cambió en la escena entre esa búsqueda tuya y la aparición de la lámina de agua bajo tus pies?\n- Esa pequeña agua aparece mientras el pozo sigue seco y la sombra permanece en su borde; ¿cómo queda para ti esa cercanía entre sequedad profunda y humedad inmediata?",
+        "questions": [
+          "Cuando volviste a buscar a tu sombra y la viste levantar un cubo vacío, ¿qué cambió en la escena entre esa búsqueda tuya y la aparición de la lámina de agua bajo tus pies?",
+          "Esa pequeña agua aparece mientras el pozo sigue seco y la sombra permanece en su borde; ¿cómo queda para ti esa cercanía entre sequedad profunda y humedad inmediata?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "es",
+          "expected_language": "es",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 6852,
+      "estimated_usd": 0.0113,
+      "human_review": {
+        "generation_id": "q2-holdout-es-s-overlap-shadow-well:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows the return and the water's appearance; Q2 holds the explicit dry-well/wet-ground proximity. It deepens without answering itself."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-fr-a-multiscene-red-gloves:reading_advanced",
+      "case_id": "q2-holdout-fr-a-multiscene-red-gloves",
+      "cohort": "sealed_unseen_holdout",
+      "language": "fr",
+      "mode": "advanced",
+      "category": "complex_multi_scene",
+      "title": "Les gants rouges de l'hôtel",
+      "dream": "Je montais dans l'ascenseur d'un hôtel avec ma sœur silencieuse. À chaque étage, les portes ouvraient sur un lieu différent: notre ancienne classe, un verger en hiver, puis un port au crépuscule. Ma sœur déposait un gant rouge dans chaque lieu avant que les portes se referment. Au dernier étage, tous les gants flottaient ensemble autour d'une bouée, mais ma sœur avait toujours les deux mains couvertes.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nOn monte dans un hôtel, donc dans un lieu de passage, mais chaque ouverture de porte donne non sur une chambre, plutôt sur un monde déjà chargé de temps: école ancienne, verger d’hiver, port au crépuscule. Le mouvement du rêve rassemble quelque chose qui a été laissé dans plusieurs paysages, puis le fait réapparaître ensemble autour d’un point de flottaison.\n\n## Dream Movement\n\nLe rêve commence dans une montée contenue. Vous n’êtes pas seuls: il y a la sœur, mais elle est silencieuse, et ce silence lui donne une présence très nette. Elle n’explique rien, ne demande rien, elle agit. L’ascenseur lui-même a quelque chose de presque rituel ici: à chaque étage, il ne distribue pas des pièces de l’hôtel, il ouvre brièvement sur des scènes très distinctes, comme si la montée traversait non un bâtiment mais des strates de vie et de saison.\n\nL’image qui tient le rêve est celle du gant rouge déposé avant la fermeture des portes. Le rouge tranche fortement dans ces lieux: l’ancienne classe porte la mémoire, le verger en hiver retient la vie sous une forme nue et froide, le port au crépuscule est déjà un bord, un départ ou une attente. Dans chacun de ces endroits, la sœur laisse non un objet quelconque, mais un gant — quelque chose qui épouse la main, qui garde sa forme, son usage, sa chaleur possible, tout en étant séparé du corps. C’est un dépôt très précis: on ne jette pas, on ne perd pas, on pose.\n\nLe plus étrange vient ensuite, et le rêve ne l’explique pas: au dernier étage, tous les gants flottent ensemble autour d’une bouée. Ce qui avait été dispersé dans des lieux différents se retrouve soudain dans une seule image, non plus posé sur terre mais suspendu sur l’eau. La bouée est un centre modeste mais décisif: elle ne commande pas, elle maintient à flot. Autour d’elle, les gants ne sombrent pas, ne s’attachent pas non plus à des mains visibles. Ils forment comme une couronne de présences quittées, revenues, tenues ensemble.\n\nEt pourtant la sœur a toujours les deux mains couvertes. C’est là que le rêve devient plus profond que sa propre logique matérielle. Elle a laissé des gants, mais elle n’est pas démunie. Rien ne lui a été retiré. Cela donne à son geste une qualité moins sacrificielle que distributive, presque inépuisable. Comme si, en traversant ces lieux du passé, du sommeil hivernal et du bord maritime, quelque chose de la main pouvait être confié sans se perdre, multiplié sans manquer.\n\nLe dernier étage n’apporte donc pas une explication, mais une forme nouvelle: ce qui était laissé derrière n’était pas abandonné. Cela continuait son trajet ailleurs, jusqu’à se rassembler autour d’un objet de sauvetage et de tenue sur l’eau. Entre la sœur silencieuse, les gants rouges et la bouée, le rêve compose une étrange scène de transmission intacte: laisser une trace de contact dans plusieurs mondes, puis découvrir que ces traces savent encore flotter ensemble.\n\n## Reflective Questions\n\n- Quand votre sœur déposait un gant rouge dans chaque lieu avant que les portes se referment, qu’est-ce qui changeait dans la scène au moment précis où le gant restait derrière et où l’ascenseur repartait?\n- Au dernier étage, que tient pour vous cette image des gants flottant autour d’une bouée alors même que les deux mains de votre sœur restent couvertes?",
+        "output": "## Core Shift\n\nOn monte dans un hôtel, donc dans un lieu de passage, mais chaque ouverture de porte donne non sur une chambre, plutôt sur un monde déjà chargé de temps: école ancienne, verger d’hiver, port au crépuscule. Le mouvement du rêve rassemble quelque chose qui a été laissé dans plusieurs paysages, puis le fait réapparaître ensemble autour d’un point de flottaison.\n\n## Dream Movement\n\nLe rêve commence dans une montée contenue. Vous n’êtes pas seuls: il y a la sœur, mais elle est silencieuse, et ce silence lui donne une présence très nette. Elle n’explique rien, ne demande rien, elle agit. L’ascenseur lui-même a quelque chose de presque rituel ici: à chaque étage, il ne distribue pas des pièces de l’hôtel, il ouvre brièvement sur des scènes très distinctes, comme si la montée traversait non un bâtiment mais des strates de vie et de saison.\n\nL’image qui tient le rêve est celle du gant rouge déposé avant la fermeture des portes. Le rouge tranche fortement dans ces lieux: l’ancienne classe porte la mémoire, le verger en hiver retient la vie sous une forme nue et froide, le port au crépuscule est déjà un bord, un départ ou une attente. Dans chacun de ces endroits, la sœur laisse non un objet quelconque, mais un gant — quelque chose qui épouse la main, qui garde sa forme, son usage, sa chaleur possible, tout en étant séparé du corps. C’est un dépôt très précis: on ne jette pas, on ne perd pas, on pose.\n\nLe plus étrange vient ensuite, et le rêve ne l’explique pas: au dernier étage, tous les gants flottent ensemble autour d’une bouée. Ce qui avait été dispersé dans des lieux différents se retrouve soudain dans une seule image, non plus posé sur terre mais suspendu sur l’eau. La bouée est un centre modeste mais décisif: elle ne commande pas, elle maintient à flot. Autour d’elle, les gants ne sombrent pas, ne s’attachent pas non plus à des mains visibles. Ils forment comme une couronne de présences quittées, revenues, tenues ensemble.\n\nEt pourtant la sœur a toujours les deux mains couvertes. C’est là que le rêve devient plus profond que sa propre logique matérielle. Elle a laissé des gants, mais elle n’est pas démunie. Rien ne lui a été retiré. Cela donne à son geste une qualité moins sacrificielle que distributive, presque inépuisable. Comme si, en traversant ces lieux du passé, du sommeil hivernal et du bord maritime, quelque chose de la main pouvait être confié sans se perdre, multiplié sans manquer.\n\nLe dernier étage n’apporte donc pas une explication, mais une forme nouvelle: ce qui était laissé derrière n’était pas abandonné. Cela continuait son trajet ailleurs, jusqu’à se rassembler autour d’un objet de sauvetage et de tenue sur l’eau. Entre la sœur silencieuse, les gants rouges et la bouée, le rêve compose une étrange scène de transmission intacte: laisser une trace de contact dans plusieurs mondes, puis découvrir que ces traces savent encore flotter ensemble.\n\n## Reflective Questions\n\n- Quand votre sœur déposait un gant rouge dans chaque lieu avant que les portes se referment, qu’est-ce qui changeait dans la scène au moment précis où le gant restait derrière et où l’ascenseur repartait?\n- Au dernier étage, que tient pour vous cette image des gants flottant autour d’une bouée alors même que les deux mains de votre sœur restent couvertes?",
+        "questions": [
+          "Quand votre sœur déposait un gant rouge dans chaque lieu avant que les portes se referment, qu’est-ce qui changeait dans la scène au moment précis où le gant restait derrière et où l’ascenseur repartait?",
+          "Au dernier étage, que tient pour vous cette image des gants flottant autour d’une bouée alors même que les deux mains de votre sœur restent couvertes?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "fr",
+          "expected_language": "fr",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 11470,
+      "estimated_usd": 0.016495,
+      "human_review": {
+        "generation_id": "q2-holdout-fr-a-multiscene-red-gloves:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 tracks each deposited glove; Q2 selects the later paradox of all gloves around the buoy while the sister remains gloved. This is strong multi-scene compression without closure."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-de-s-ambiguous-post-office:reading_standard",
+      "case_id": "q2-holdout-de-s-ambiguous-post-office",
+      "cohort": "sealed_unseen_holdout",
+      "language": "de",
+      "mode": "standard",
+      "category": "ambiguous_juxtaposition",
+      "title": "Die Vögel im Postamt",
+      "dream": "In einem stillgelegten Postamt nisteten kleine Vögel in den Brieffächern. Ein Beamter stempelte ein leeres Blatt, und in diesem Moment verstummten alle Vögel. Ein Kind zog die unterste Schublade auf; statt Briefen fiel frischer Schnee heraus und bedeckte seine Schuhe.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nEin stillgelegtes Postamt ist hier nicht leer, sondern bewohnt: In die Fächer für Zustellung ist leises Leben eingezogen. Dann genügt der offizielle Schlag auf ein leeres Blatt, und die ganze klingende Lebendigkeit bricht ab; am Ende öffnet sich ganz unten kein Archiv, sondern Winter.\n\n## Dream Movement\n\nDer Traum beginnt mit einer sanften Umkehrung. Das Postamt dient nicht mehr seinem alten Zweck, und gerade dadurch entsteht etwas anderes: kleine Vögel nisten in den Brieffächern. Wo einmal Botschaften sortiert wurden, sitzt nun etwas Federleichtes, Eigenlebendiges, vielleicht auch Unadressierbares. Die Atmosphäre ist still, aber nicht tot; eher so, als hätte ein verlassener Ordnungsraum eine neue, zarte Bewohnerschaft gefunden.\n\nDann tritt der Beamte auf, eine Figur des Amts, der Form, des gültigen Zeichens. Er stempelt nicht einen Brief, sondern ein leeres Blatt. Gerade diese Leere ist stark: Es wird etwas besiegelt, das noch keinen Inhalt trägt. Und im selben Moment verstummen alle Vögel. Das klingt wie die Macht eines formalen Aktes, der nicht einmal Mitteilung braucht, um das Lebendige zum Schweigen zu bringen. Nicht Zerstörung im lauten Sinn, eher ein jäher Entzug von Klang.\n\nDass danach ein Kind die unterste Schublade aufzieht, verschiebt den Traum noch einmal. Nicht der Beamte, sondern das Kind sucht weiter, und zwar unten, im tiefsten Fach. Dort liegen keine Briefe, keine abgelegten Nachrichten, sondern frischer Schnee. Etwas Kaltes, Unbeschriebenes, gerade erst Gefallenes kommt aus dem Inneren des Möbels selbst. Er bedeckt die Schuhe des Kindes — also nicht den Kopf, nicht die Hände, sondern den Ort des Stehens und Gehens. Als würde nach dem Verstummen nicht Erklärung folgen, sondern eine andere Art von Weiß: keine leere Seite mehr, sondern eine Kälte, die den nächsten Schritt berührt.\n\n## Reflective Questions\n\n- Als der Beamte das leere Blatt stempelte und in genau diesem Moment alle Vögel verstummten: Wie verändert sich in dieser einen Handlung der ganze Raum des Postamts für dich?\n- Als das Kind die unterste Schublade öffnete und frischer Schnee herausfiel, der seine Schuhe bedeckte: Was geschieht in diesem Bild mit dem Stehen und Weitergehen an der Stelle, wo eigentlich Briefe hätten sein sollen?",
+        "output": "## Core Shift\n\nEin stillgelegtes Postamt ist hier nicht leer, sondern bewohnt: In die Fächer für Zustellung ist leises Leben eingezogen. Dann genügt der offizielle Schlag auf ein leeres Blatt, und die ganze klingende Lebendigkeit bricht ab; am Ende öffnet sich ganz unten kein Archiv, sondern Winter.\n\n## Dream Movement\n\nDer Traum beginnt mit einer sanften Umkehrung. Das Postamt dient nicht mehr seinem alten Zweck, und gerade dadurch entsteht etwas anderes: kleine Vögel nisten in den Brieffächern. Wo einmal Botschaften sortiert wurden, sitzt nun etwas Federleichtes, Eigenlebendiges, vielleicht auch Unadressierbares. Die Atmosphäre ist still, aber nicht tot; eher so, als hätte ein verlassener Ordnungsraum eine neue, zarte Bewohnerschaft gefunden.\n\nDann tritt der Beamte auf, eine Figur des Amts, der Form, des gültigen Zeichens. Er stempelt nicht einen Brief, sondern ein leeres Blatt. Gerade diese Leere ist stark: Es wird etwas besiegelt, das noch keinen Inhalt trägt. Und im selben Moment verstummen alle Vögel. Das klingt wie die Macht eines formalen Aktes, der nicht einmal Mitteilung braucht, um das Lebendige zum Schweigen zu bringen. Nicht Zerstörung im lauten Sinn, eher ein jäher Entzug von Klang.\n\nDass danach ein Kind die unterste Schublade aufzieht, verschiebt den Traum noch einmal. Nicht der Beamte, sondern das Kind sucht weiter, und zwar unten, im tiefsten Fach. Dort liegen keine Briefe, keine abgelegten Nachrichten, sondern frischer Schnee. Etwas Kaltes, Unbeschriebenes, gerade erst Gefallenes kommt aus dem Inneren des Möbels selbst. Er bedeckt die Schuhe des Kindes — also nicht den Kopf, nicht die Hände, sondern den Ort des Stehens und Gehens. Als würde nach dem Verstummen nicht Erklärung folgen, sondern eine andere Art von Weiß: keine leere Seite mehr, sondern eine Kälte, die den nächsten Schritt berührt.\n\n## Reflective Questions\n\n- Als der Beamte das leere Blatt stempelte und in genau diesem Moment alle Vögel verstummten: Wie verändert sich in dieser einen Handlung der ganze Raum des Postamts für dich?\n- Als das Kind die unterste Schublade öffnete und frischer Schnee herausfiel, der seine Schuhe bedeckte: Was geschieht in diesem Bild mit dem Stehen und Weitergehen an der Stelle, wo eigentlich Briefe hätten sein sollen?",
+        "questions": [
+          "Als der Beamte das leere Blatt stempelte und in genau diesem Moment alle Vögel verstummten: Wie verändert sich in dieser einen Handlung der ganze Raum des Postamts für dich?",
+          "Als das Kind die unterste Schublade öffnete und frischer Schnee herausfiel, der seine Schuhe bedeckte: Was geschieht in diesem Bild mit dem Stehen und Weitergehen an der Stelle, wo eigentlich Briefe hätten sein sollen?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "de",
+          "expected_language": "de",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 8489,
+      "estimated_usd": 0.01229,
+      "human_review": {
+        "generation_id": "q2-holdout-de-s-ambiguous-post-office:reading_standard",
+        "q2_verdict": "FAIL",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "FAIL",
+        "failure_families": [
+          "meaning_completion_past_handoff",
+          "disguised_reading_summary"
+        ],
+        "notes": "The reading has already interpreted the snow-covered shoes as the place of standing, going, and the next step. Q2 repeats that exact frame instead of handing back the raw snow/letters/shoes configuration."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-pt-a-body-ladder-arms:reading_advanced",
+      "case_id": "q2-holdout-pt-a-body-ladder-arms",
+      "cohort": "sealed_unseen_holdout",
+      "language": "pt",
+      "mode": "advanced",
+      "category": "body_transformation",
+      "title": "Os braços de escada",
+      "dream": "Meus braços se transformaram em duas escadas encostadas num prédio sem portas. Pessoas começaram a subir por elas enquanto eu permanecia no chão. Quando um sino tocou no telhado, os degraus voltaram a ser dedos, um por um, mas uma criança continuou sentada no meu ombro, olhando para cima.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nOs braços viram escadas apoiadas num prédio sem portas: o corpo passa a servir de acesso a uma elevação que não tem entrada ao nível do chão. Quando o sino toca, essa função se desfaz dedo por dedo, mas algo do gesto de ascensão permanece vivo na criança que continua olhando para cima.\n\n## Dream Movement\n\nO sonho começa numa imagem muito nítida e estranha: você está no chão, e justamente os braços — aquilo com que se alcança, segura, abraça, age — deixam de ser membros e viram duas escadas. Não é só uma deformação; é uma mudança de uso. Seus braços já não servem primeiro a você. Eles ficam encostados num prédio sem portas, como se o único acesso possível àquele lugar alto tivesse de passar pelo seu próprio corpo.\n\nEsse prédio sem portas pesa bastante na cena. Ele não acolhe pela entrada comum, não permite simplesmente entrar. É uma construção fechada embaixo, inacessível pelo caminho habitual. Por isso a escada não leva para dentro, pelo menos não de modo simples; ela leva para cima, até uma borda, um telhado, um limite elevado. O movimento do sonho não é de interioridade confortável, mas de subida por fora, por uma face externa e sem passagem evidente.\n\nAs pessoas começam a subir por seus braços enquanto você permanece no chão. Aí aparece uma dissociação forte entre serviço e participação. Seu corpo faz a ponte, mas você não sobe. Há utilidade, circulação, até uma espécie de permissão dada aos outros, enquanto você fica na posição mais baixa, sustentando o trajeto. A imagem é quase ritual: uma via de ascensão humana improvisada a partir de algo vivo, pessoal, vulnerável.\n\nEntão soa o sino no telhado. O som vem do alto e muda tudo. Não é uma decisão sua nem das pessoas que sobem; é um chamado, um marco de tempo, talvez de fim de uso ou de mudança de estado. Com esse toque, os degraus voltam a ser dedos, um por um. Essa volta gradual importa. Não é um estalo mágico completo; é uma recuperação minuciosa da mão, da sensibilidade, da singularidade. O que servia como estrutura impessoal de passagem vai readquirindo articulação, tato, talvez até capacidade de gesto próprio.\n\nMas o sonho não fecha essa transformação de modo limpo, porque uma criança permanece sentada no seu ombro, olhando para cima. Depois que os braços deixam de ser escadas, sobra essa pequena figura elevada junto a você, não subindo nem descendo. Ela não usa mais o corpo como passagem coletiva; ela repousa perto da cabeça, do olhar, e mantém a orientação para o alto. Se antes havia muitos subindo por você, no fim resta uma única presença leve, íntima, ainda voltada para aquilo que está acima do prédio fechado e do sino no telhado. A ascensão sai do uso público do corpo e fica concentrada nesse olhar infantil que não resolve nada, mas também não desiste da altura.\n\n## Reflective Questions\n\n- Quando as pessoas subiam pelos seus braços-escadas enquanto você permanecia no chão, como essa diferença entre ser passagem e não subir você mesmo se apresentava dentro da cena?\n- O que fica suspenso para você na imagem da criança sentada no seu ombro, ainda olhando para cima depois que os degraus já voltaram a ser dedos, um por um?",
+        "output": "## Core Shift\n\nOs braços viram escadas apoiadas num prédio sem portas: o corpo passa a servir de acesso a uma elevação que não tem entrada ao nível do chão. Quando o sino toca, essa função se desfaz dedo por dedo, mas algo do gesto de ascensão permanece vivo na criança que continua olhando para cima.\n\n## Dream Movement\n\nO sonho começa numa imagem muito nítida e estranha: você está no chão, e justamente os braços — aquilo com que se alcança, segura, abraça, age — deixam de ser membros e viram duas escadas. Não é só uma deformação; é uma mudança de uso. Seus braços já não servem primeiro a você. Eles ficam encostados num prédio sem portas, como se o único acesso possível àquele lugar alto tivesse de passar pelo seu próprio corpo.\n\nEsse prédio sem portas pesa bastante na cena. Ele não acolhe pela entrada comum, não permite simplesmente entrar. É uma construção fechada embaixo, inacessível pelo caminho habitual. Por isso a escada não leva para dentro, pelo menos não de modo simples; ela leva para cima, até uma borda, um telhado, um limite elevado. O movimento do sonho não é de interioridade confortável, mas de subida por fora, por uma face externa e sem passagem evidente.\n\nAs pessoas começam a subir por seus braços enquanto você permanece no chão. Aí aparece uma dissociação forte entre serviço e participação. Seu corpo faz a ponte, mas você não sobe. Há utilidade, circulação, até uma espécie de permissão dada aos outros, enquanto você fica na posição mais baixa, sustentando o trajeto. A imagem é quase ritual: uma via de ascensão humana improvisada a partir de algo vivo, pessoal, vulnerável.\n\nEntão soa o sino no telhado. O som vem do alto e muda tudo. Não é uma decisão sua nem das pessoas que sobem; é um chamado, um marco de tempo, talvez de fim de uso ou de mudança de estado. Com esse toque, os degraus voltam a ser dedos, um por um. Essa volta gradual importa. Não é um estalo mágico completo; é uma recuperação minuciosa da mão, da sensibilidade, da singularidade. O que servia como estrutura impessoal de passagem vai readquirindo articulação, tato, talvez até capacidade de gesto próprio.\n\nMas o sonho não fecha essa transformação de modo limpo, porque uma criança permanece sentada no seu ombro, olhando para cima. Depois que os braços deixam de ser escadas, sobra essa pequena figura elevada junto a você, não subindo nem descendo. Ela não usa mais o corpo como passagem coletiva; ela repousa perto da cabeça, do olhar, e mantém a orientação para o alto. Se antes havia muitos subindo por você, no fim resta uma única presença leve, íntima, ainda voltada para aquilo que está acima do prédio fechado e do sino no telhado. A ascensão sai do uso público do corpo e fica concentrada nesse olhar infantil que não resolve nada, mas também não desiste da altura.\n\n## Reflective Questions\n\n- Quando as pessoas subiam pelos seus braços-escadas enquanto você permanecia no chão, como essa diferença entre ser passagem e não subir você mesmo se apresentava dentro da cena?\n- O que fica suspenso para você na imagem da criança sentada no seu ombro, ainda olhando para cima depois que os degraus já voltaram a ser dedos, um por um?",
+        "questions": [
+          "Quando as pessoas subiam pelos seus braços-escadas enquanto você permanecia no chão, como essa diferença entre ser passagem e não subir você mesmo se apresentava dentro da cena?",
+          "O que fica suspenso para você na imagem da criança sentada no seu ombro, ainda olhando para cima depois que os degraus já voltaram a ser dedos, um por um?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pt",
+          "expected_language": "pt",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 10354,
+      "estimated_usd": 0.015625,
+      "human_review": {
+        "generation_id": "q2-holdout-pt-a-body-ladder-arms:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows being used as a passage while remaining below; Q2 returns the surviving child-on-shoulder image after the arms become fingers. Distinct, vivid, and unfinished."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-it-s-grief-photographs:reading_standard",
+      "case_id": "q2-holdout-it-s-grief-photographs",
+      "cohort": "sealed_unseen_holdout",
+      "language": "it",
+      "mode": "standard",
+      "category": "grief_ancestor",
+      "title": "Le fotografie nel lavandino",
+      "dream": "Mia zia, morta da anni, lavava le fotografie di famiglia nel lavandino della cucina. Nell'acqua i volti sbiadivano, ma i loro nomi apparivano sul vetro della finestra. Le passai un asciugamano; lei si asciugò le mani e la stanza cominciò a profumare di basilico.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nUna morta sta in cucina, al lavandino, a lavare le fotografie di famiglia: il sogno mette la memoria dentro un gesto domestico e acquatico, come se ciò che è stato fissato dovesse passare di nuovo nell’acqua. Alla fine non resta il volto, ma compare il nome, e il passaggio dell’asciugamano cambia ancora la scena: dalle mani bagnate si arriva a un profumo vivo di basilico.\n\n## Dream Movement\n\nLa forza del sogno sta anzitutto in questa zia morta da anni che non appare come spettro minaccioso, ma come una presenza intenta, quasi tranquilla, in un lavoro preciso. Non guarda semplicemente le fotografie: le lava. È un gesto insolito eppure concreto, da cucina, da cura, da faccenda fatta con le mani. Così l’immagine familiare non viene conservata al riparo; viene immersa, esposta al rischio di sciogliersi.\n\nNell’acqua i volti sbiadiscono. Il sogno non protegge la faccia, l’impronta visibile, ciò che rende una persona immediatamente riconoscibile. Ma proprio mentre il visibile perde definizione, i nomi appaiono sul vetro della finestra. È un movimento molto netto: qualcosa si cancella nell’acqua bassa e interna del lavandino, mentre qualcos’altro affiora sul vetro, in un punto che guarda fuori e lascia passare la luce. Come se l’appartenenza familiare si spostasse dall’immagine trattenuta al nome che si condensa in un altro luogo.\n\nIl tuo gesto entra con delicatezza: le passi un asciugamano. Non interrompi il lavoro; gli dai un seguito. Quando lei si asciuga le mani, la stanza comincia a profumare di basilico. Dopo acqua, vetro e sbiadimento, arriva un odore netto, terrestre, domestico, quasi estivo. Non è il ritorno dei volti: è una presenza diversa, non da vedere ma da respirare. Il sogno sembra portare la famiglia da ciò che si riconosce con gli occhi a ciò che resta nell’aria.\n\n## Reflective Questions\n\n- Quando le hai passato l’asciugamano e lei si è asciugata le mani, che cosa è cambiato per te nel passaggio da quel gesto condiviso al profumo di basilico che riempie la stanza?\n- Che qualità ha, nel sogno, quel momento in cui i volti sbiadiscono nell’acqua mentre i nomi appaiono sul vetro della finestra?",
+        "output": "## Core Shift\n\nUna morta sta in cucina, al lavandino, a lavare le fotografie di famiglia: il sogno mette la memoria dentro un gesto domestico e acquatico, come se ciò che è stato fissato dovesse passare di nuovo nell’acqua. Alla fine non resta il volto, ma compare il nome, e il passaggio dell’asciugamano cambia ancora la scena: dalle mani bagnate si arriva a un profumo vivo di basilico.\n\n## Dream Movement\n\nLa forza del sogno sta anzitutto in questa zia morta da anni che non appare come spettro minaccioso, ma come una presenza intenta, quasi tranquilla, in un lavoro preciso. Non guarda semplicemente le fotografie: le lava. È un gesto insolito eppure concreto, da cucina, da cura, da faccenda fatta con le mani. Così l’immagine familiare non viene conservata al riparo; viene immersa, esposta al rischio di sciogliersi.\n\nNell’acqua i volti sbiadiscono. Il sogno non protegge la faccia, l’impronta visibile, ciò che rende una persona immediatamente riconoscibile. Ma proprio mentre il visibile perde definizione, i nomi appaiono sul vetro della finestra. È un movimento molto netto: qualcosa si cancella nell’acqua bassa e interna del lavandino, mentre qualcos’altro affiora sul vetro, in un punto che guarda fuori e lascia passare la luce. Come se l’appartenenza familiare si spostasse dall’immagine trattenuta al nome che si condensa in un altro luogo.\n\nIl tuo gesto entra con delicatezza: le passi un asciugamano. Non interrompi il lavoro; gli dai un seguito. Quando lei si asciuga le mani, la stanza comincia a profumare di basilico. Dopo acqua, vetro e sbiadimento, arriva un odore netto, terrestre, domestico, quasi estivo. Non è il ritorno dei volti: è una presenza diversa, non da vedere ma da respirare. Il sogno sembra portare la famiglia da ciò che si riconosce con gli occhi a ciò che resta nell’aria.\n\n## Reflective Questions\n\n- Quando le hai passato l’asciugamano e lei si è asciugata le mani, che cosa è cambiato per te nel passaggio da quel gesto condiviso al profumo di basilico che riempie la stanza?\n- Che qualità ha, nel sogno, quel momento in cui i volti sbiadiscono nell’acqua mentre i nomi appaiono sul vetro della finestra?",
+        "questions": [
+          "Quando le hai passato l’asciugamano e lei si è asciugata le mani, che cosa è cambiato per te nel passaggio da quel gesto condiviso al profumo di basilico che riempie la stanza?",
+          "Che qualità ha, nel sogno, quel momento in cui i volti sbiadiscono nell’acqua mentre i nomi appaiono sul vetro della finestra?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "it",
+          "expected_language": "it",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7438,
+      "estimated_usd": 0.01271,
+      "human_review": {
+        "generation_id": "q2-holdout-it-s-grief-photographs:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows the towel-to-basil event; Q2 stays with faces fading while names appear on glass. The second opening is image-near and does not finish the grief symbolism."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-nl-a-conflict-burning-door:reading_advanced",
+      "case_id": "q2-holdout-nl-a-conflict-burning-door",
+      "cohort": "sealed_unseen_holdout",
+      "language": "nl",
+      "mode": "advanced",
+      "category": "conflict_threshold",
+      "title": "De deur tussen vuur en water",
+      "dream": "Ik hield een zware deur open tussen een brandende keuken en een overstroomde gang. Een oude tegenstander kwam door het water met een kom in zijn handen. Hij goot het water over het vuur, maar de vlam volgde hem de gang in. Toen we de deur samen vasthielden, werd ze zo licht als papier.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nJe staat niet zomaar tussen twee gevaren, maar precies in de opening ertussen: hand aan een zware deur, tussen brand en overstroming. De beweging van de droom gaat niet naar overwinning van vuur door water, maar naar iets vreemders: vijandschap en gewicht veranderen samen van aard.\n\n## Dream Movement\n\nHet begint in een hard, elementair tafereel. De keuken brandt, de gang staat onder water, en jij staat niet veilig aan één kant maar in de doorgang zelf. Dat maakt de deur meteen belangrijker dan de kamers. Zij is geen achtergrond, maar het punt waar scheiding, doorgang en houding samenkomen. Dat jij haar openhoudt, geeft een gespannen soort toestemming: de twee werelden blijven niet afgesloten van elkaar.\n\nDan verschijnt die oude tegenstander. Niet droog, niet gewapend, maar komende door het water, met een kom in zijn handen. Dat beeld is klein en precies tegenover de omvang van de situatie. Geen emmers, geen brandslang, maar een kom. Alsof hij niet als overwinnaar of redder binnenkomt, maar als iemand die iets draagt wat net genoeg is om een gebaar te maken. Juist daardoor krijgt zijn komst gewicht. De tegenstander nadert niet om de deur te bevechten, maar om door de opening heen iets in te brengen.\n\nWanneer hij het water over het vuur giet, lijkt dat even de logica van de droom te volgen: water zal vuur blussen. Maar de vlam gedraagt zich anders. Ze laat zich niet netjes op haar plaats houden; ze volgt hem de gang in. Dat is een sterk en vreemd beeld: vuur dat niet alleen brandt, maar zich hecht aan beweging, aan relatie, misschien zelfs aan degene die het tegemoet trad. De elementen heffen elkaar hier niet op. Ze raken verstrengeld. De overstroomde gang wordt niet puur waterig gehouden, net zomin als de keuken alleen vuur blijft.\n\nEn dan verschuift het beslissende beeld naar de deur zelf. Eerst was zij zwaar, iets wat jij alleen moest houden tussen twee krachten in. Pas wanneer jullie haar samen vasthouden, verandert haar aard. Niet: ze gaat dicht, niet: het gevaar verdwijnt, maar: ze wordt licht als papier. Dat is een opmerkelijke ontlasting. De vijand wordt hier niet eerst vriend genoemd; de droom is soberder en sterker dan dat. Iets in de gedeelde houding aan de drempel maakt wat massief en belastend was ineens dun, draaglijk, bijna bladachtig.\n\nPapier is ook een vreemd materiaal voor een deur. Het beschermt nauwelijks, maar het scheidt toch, heel licht. Alsof de droom eindigt met minder nadruk op verdediging en meer op een nieuw soort grens: niet meer een loodzware barrière tussen vuur en water, maar een lichte huid die alleen kan bestaan zolang die samen wordt vastgehouden.\n\n## Reflective Questions\n\n- Wat verandert er in de droom wanneer de oude tegenstander door het water naar de brandende keuken komt en zijn kom leeggooit, terwijl de vlam hem vervolgens de gang in volgt?\n- Hoe voelt het dat juist de zware deur tussen vuur en water licht als papier wordt op het moment dat jullie haar samen vasthouden?",
+        "output": "## Core Shift\n\nJe staat niet zomaar tussen twee gevaren, maar precies in de opening ertussen: hand aan een zware deur, tussen brand en overstroming. De beweging van de droom gaat niet naar overwinning van vuur door water, maar naar iets vreemders: vijandschap en gewicht veranderen samen van aard.\n\n## Dream Movement\n\nHet begint in een hard, elementair tafereel. De keuken brandt, de gang staat onder water, en jij staat niet veilig aan één kant maar in de doorgang zelf. Dat maakt de deur meteen belangrijker dan de kamers. Zij is geen achtergrond, maar het punt waar scheiding, doorgang en houding samenkomen. Dat jij haar openhoudt, geeft een gespannen soort toestemming: de twee werelden blijven niet afgesloten van elkaar.\n\nDan verschijnt die oude tegenstander. Niet droog, niet gewapend, maar komende door het water, met een kom in zijn handen. Dat beeld is klein en precies tegenover de omvang van de situatie. Geen emmers, geen brandslang, maar een kom. Alsof hij niet als overwinnaar of redder binnenkomt, maar als iemand die iets draagt wat net genoeg is om een gebaar te maken. Juist daardoor krijgt zijn komst gewicht. De tegenstander nadert niet om de deur te bevechten, maar om door de opening heen iets in te brengen.\n\nWanneer hij het water over het vuur giet, lijkt dat even de logica van de droom te volgen: water zal vuur blussen. Maar de vlam gedraagt zich anders. Ze laat zich niet netjes op haar plaats houden; ze volgt hem de gang in. Dat is een sterk en vreemd beeld: vuur dat niet alleen brandt, maar zich hecht aan beweging, aan relatie, misschien zelfs aan degene die het tegemoet trad. De elementen heffen elkaar hier niet op. Ze raken verstrengeld. De overstroomde gang wordt niet puur waterig gehouden, net zomin als de keuken alleen vuur blijft.\n\nEn dan verschuift het beslissende beeld naar de deur zelf. Eerst was zij zwaar, iets wat jij alleen moest houden tussen twee krachten in. Pas wanneer jullie haar samen vasthouden, verandert haar aard. Niet: ze gaat dicht, niet: het gevaar verdwijnt, maar: ze wordt licht als papier. Dat is een opmerkelijke ontlasting. De vijand wordt hier niet eerst vriend genoemd; de droom is soberder en sterker dan dat. Iets in de gedeelde houding aan de drempel maakt wat massief en belastend was ineens dun, draaglijk, bijna bladachtig.\n\nPapier is ook een vreemd materiaal voor een deur. Het beschermt nauwelijks, maar het scheidt toch, heel licht. Alsof de droom eindigt met minder nadruk op verdediging en meer op een nieuw soort grens: niet meer een loodzware barrière tussen vuur en water, maar een lichte huid die alleen kan bestaan zolang die samen wordt vastgehouden.\n\n## Reflective Questions\n\n- Wat verandert er in de droom wanneer de oude tegenstander door het water naar de brandende keuken komt en zijn kom leeggooit, terwijl de vlam hem vervolgens de gang in volgt?\n- Hoe voelt het dat juist de zware deur tussen vuur en water licht als papier wordt op het moment dat jullie haar samen vasthouden?",
+        "questions": [
+          "Wat verandert er in de droom wanneer de oude tegenstander door het water naar de brandende keuken komt en zijn kom leeggooit, terwijl de vlam hem vervolgens de gang in volgt?",
+          "Hoe voelt het dat juist de zware deur tussen vuur en water licht als papier wordt op het moment dat jullie haar samen vasthouden?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "nl",
+          "expected_language": "nl",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 11054,
+      "estimated_usd": 0.0150125,
+      "human_review": {
+        "generation_id": "q2-holdout-nl-a-conflict-burning-door:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows the opponent's water and the following flame; Q2 holds the jointly held door becoming paper-light. The relation is explicit and the transformation remains open."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-ru-s-relational-echo-dinner:reading_standard",
+      "case_id": "q2-holdout-ru-s-relational-echo-dinner",
+      "cohort": "sealed_unseen_holdout",
+      "language": "ru",
+      "mode": "standard",
+      "category": "relational_without_isolated_symbol",
+      "title": "Повторяющийся ужин",
+      "dream": "За ужином каждый человек повторял чужую фразу через несколько секунд. Моя сестра сказала только один раз: «Я ухожу», и встала из-за стола. Все повторы последовали за ней вниз по лестнице, а люди за столом впервые замолчали.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nЗа столом речь сначала не принадлежит никому: каждое слово живёт только как запоздалый повтор чужого. Один-единственный прямой жест сестры — «Я ухожу» — меняет весь порядок сцены, и звук сам сходит вслед за ней вниз, оставляя наверху неожиданную тишину.\n\n## Dream Movement\n\nСамое странное здесь не просто в повторении, а в задержке. Ужин обычно собирает людей в одном времени, в одном разговоре, а тут между словом и человеком встают несколько секунд чужого эха. Получается стол, где присутствуют тела, но речь отстаёт, как будто жизнь не совершается сразу, а только догоняет уже сказанное.\n\nНа этом фоне сестра звучит резко иначе. Она не подхватывает, не варьирует, не вторит — она говорит один раз. Фраза очень простая, но именно поэтому обладает силой действия: после неё она встаёт. Слово не остаётся на месте, не превращается в ещё один круг за столом, а сразу становится движением тела и направлением — прочь, вниз по лестнице.\n\nИ тогда особенно выразительно, что вслед за ней идут не люди, а повторы. Как будто всё это запаздывающее, несамостоятельное звучание оказывается отнято от стола и уведено за той, кто сумела сказать неэховое слово. Наверху остаются люди — но уже без этого механического продолжения речи. Их первое молчание выглядит не как пустота, а как внезапно открывшееся место, где больше нечему вторить.\n\nВ образе лестницы есть короткий, почти ритуальный оттенок: сказанное не исчезает, а спускается в другой слой пространства. Но сам сон держится очень точно на этой перестановке: живая фраза встаёт и уходит, эхо следует за ней, а стол впервые остаётся с тишиной.\n\n## Reflective Questions\n\n- Когда сестра сказала «Я ухожу», встала из-за стола, и все повторы последовали за ней вниз по лестнице, что в этом переходе из речи в движение ощущается самым решающим?\n- Что это за молчание, которое впервые осталось у людей за столом после того, как повторы ушли вниз?",
+        "output": "## Core Shift\n\nЗа столом речь сначала не принадлежит никому: каждое слово живёт только как запоздалый повтор чужого. Один-единственный прямой жест сестры — «Я ухожу» — меняет весь порядок сцены, и звук сам сходит вслед за ней вниз, оставляя наверху неожиданную тишину.\n\n## Dream Movement\n\nСамое странное здесь не просто в повторении, а в задержке. Ужин обычно собирает людей в одном времени, в одном разговоре, а тут между словом и человеком встают несколько секунд чужого эха. Получается стол, где присутствуют тела, но речь отстаёт, как будто жизнь не совершается сразу, а только догоняет уже сказанное.\n\nНа этом фоне сестра звучит резко иначе. Она не подхватывает, не варьирует, не вторит — она говорит один раз. Фраза очень простая, но именно поэтому обладает силой действия: после неё она встаёт. Слово не остаётся на месте, не превращается в ещё один круг за столом, а сразу становится движением тела и направлением — прочь, вниз по лестнице.\n\nИ тогда особенно выразительно, что вслед за ней идут не люди, а повторы. Как будто всё это запаздывающее, несамостоятельное звучание оказывается отнято от стола и уведено за той, кто сумела сказать неэховое слово. Наверху остаются люди — но уже без этого механического продолжения речи. Их первое молчание выглядит не как пустота, а как внезапно открывшееся место, где больше нечему вторить.\n\nВ образе лестницы есть короткий, почти ритуальный оттенок: сказанное не исчезает, а спускается в другой слой пространства. Но сам сон держится очень точно на этой перестановке: живая фраза встаёт и уходит, эхо следует за ней, а стол впервые остаётся с тишиной.\n\n## Reflective Questions\n\n- Когда сестра сказала «Я ухожу», встала из-за стола, и все повторы последовали за ней вниз по лестнице, что в этом переходе из речи в движение ощущается самым решающим?\n- Что это за молчание, которое впервые осталось у людей за столом после того, как повторы ушли вниз?",
+        "questions": [
+          "Когда сестра сказала «Я ухожу», встала из-за стола, и все повторы последовали за ней вниз по лестнице, что в этом переходе из речи в движение ощущается самым решающим?",
+          "Что это за молчание, которое впервые осталось у людей за столом после того, как повторы ушли вниз?"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "ru",
+          "expected_language": "ru",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7062,
+      "estimated_usd": 0.0117975,
+      "human_review": {
+        "generation_id": "q2-holdout-ru-s-relational-echo-dinner:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q1 follows the echoes leaving after the sister's statement; Q2 returns the first silence left at the table. It is compact, relational, and not a paraphrase."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-ja-a-page-stairs:reading_advanced",
+      "case_id": "q2-holdout-ja-a-page-stairs",
+      "cohort": "sealed_unseen_holdout",
+      "language": "ja",
+      "mode": "advanced",
+      "category": "syntactic_option_frame_trap",
+      "title": "本の階段",
+      "dream": "閉館後の図書館で、司書が大きな本を閉じると、螺旋階段の段が一枚ずつ紙の縁に変わりました。白い猫だけがその階段を下り続け、私は上っているのに同じ踊り場へ戻りました。最後に猫が本の上に座ると、階段は開いたまま静止しました。",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\n閉館後の図書館には、もう外へ開かれた読書の時間ではなく、物が別の姿を取りはじめる静かな権限があります。閉じられるはずの大きな本から、むしろ階段が紙へとほどけ、上る者は戻され、下りる猫だけが通り抜けていくところに、行き先よりも「どう通れるか」が問われている感じがあります。\n\n## Dream Movement\n\n最初の力は、図書館そのものより、司書が大きな本を閉じる手つきにあります。閉館後という時刻も、その動きを強めています。ふつうなら本が閉じれば、内容はしまわれ、アクセスは終わるはずです。けれどこの夢では、閉じることが終わりではなく変形の引き金になっている。螺旋階段の段が一枚ずつ紙の縁に変わるのは、とても繊細で、しかも足場としては頼りない変化です。段は人を支える固い面ですが、紙の縁は読むもの、めくるもの、切れやすいものでもある。上へ下へ運ぶ構造が、そのまま本の身体へ戻っていくようです。\n\nそのため、ここで強く残るのは「螺旋階段」そのものより、「段が紙の縁になる」という場面です。上り下りのためのものが、意味や物語の層へ変わってしまう。移動の装置が、読むべきものへと変わるので、意志だけでは進めなくなるのも自然です。あなたは上っているのに同じ踊り場へ戻る。これは単純な失敗というより、螺旋の運動に巻き取られている感じです。前進の努力は消えていないのに、空間の法則のほうが別の円環を支配している。閉じられた本の内側に入ってしまったような反復です。\n\nそのなかで白い猫だけが下り続けます。この「だけ」が大きい。猫は説明せず、努力も誇示せず、紙の縁となった階段にもっともよく合っている存在として現れています。白さはこの閉館後の場で、目印のようでもあり、余白のようでもある。人が足場を失うところを、猫は軽さと接地の別の仕方で通っていく。しかも上ではなく下へ向かうので、夢の重心は上昇や達成には置かれていません。むしろ、より深く本のほうへ、閉じるはずだったものの源へ降りていく動きが通路として開かれている。\n\n最後の場面は静かですが決定的です。猫が本の上に座ると、階段は開いたまま静止する。ここで不思議なのは、最初に司書が本を閉じたはずなのに、最後には本が開いたままであることです。夢は閉じることと開くことを対立させず、ひとつの変形の両側として扱っています。猫がその上に座ると、絶えず変わっていた階段は、ようやく止まる。つまり止めているのは命令や努力ではなく、その場にぴたりと居ることのできる存在です。白い猫は階段を攻略せず、下りきったのちに本の上へ座るだけですが、その座るという小さな着地が、ぐるぐる戻る運動を静めています。\n\nこの夢では、知ること、進むこと、上ることがそのまま通用しない場所へ入っています。図書館、本、階段という整然としたものが、閉館後には別の秩序に従いはじめる。その秩序の中で、人の歩みは反復に入り、猫の降下だけが通路を見つける。最後に残るのは解決というより、開いた本の上に座る白い重みと、そのことでようやく静止した階段の像です。動いていたものが止まったというより、止まれる位置がひとつ現れた、という感じです。\n\n## Reflective Questions\n\n- 司書が大きな本を閉じたとたんに螺旋階段の段が紙の縁へ変わったその出来事のなかで、閉じる動作はこの場所をどんな別の通路へ切り替えていたように感じられますか。\n- あなたが上っても同じ踊り場へ戻る一方で、白い猫は下り続け、最後には開いた本の上に座っていますが、その並びのまま見つめると、まだ言葉になりきらないのはそのどこでしょうか。",
+        "output": "## Core Shift\n\n閉館後の図書館には、もう外へ開かれた読書の時間ではなく、物が別の姿を取りはじめる静かな権限があります。閉じられるはずの大きな本から、むしろ階段が紙へとほどけ、上る者は戻され、下りる猫だけが通り抜けていくところに、行き先よりも「どう通れるか」が問われている感じがあります。\n\n## Dream Movement\n\n最初の力は、図書館そのものより、司書が大きな本を閉じる手つきにあります。閉館後という時刻も、その動きを強めています。ふつうなら本が閉じれば、内容はしまわれ、アクセスは終わるはずです。けれどこの夢では、閉じることが終わりではなく変形の引き金になっている。螺旋階段の段が一枚ずつ紙の縁に変わるのは、とても繊細で、しかも足場としては頼りない変化です。段は人を支える固い面ですが、紙の縁は読むもの、めくるもの、切れやすいものでもある。上へ下へ運ぶ構造が、そのまま本の身体へ戻っていくようです。\n\nそのため、ここで強く残るのは「螺旋階段」そのものより、「段が紙の縁になる」という場面です。上り下りのためのものが、意味や物語の層へ変わってしまう。移動の装置が、読むべきものへと変わるので、意志だけでは進めなくなるのも自然です。あなたは上っているのに同じ踊り場へ戻る。これは単純な失敗というより、螺旋の運動に巻き取られている感じです。前進の努力は消えていないのに、空間の法則のほうが別の円環を支配している。閉じられた本の内側に入ってしまったような反復です。\n\nそのなかで白い猫だけが下り続けます。この「だけ」が大きい。猫は説明せず、努力も誇示せず、紙の縁となった階段にもっともよく合っている存在として現れています。白さはこの閉館後の場で、目印のようでもあり、余白のようでもある。人が足場を失うところを、猫は軽さと接地の別の仕方で通っていく。しかも上ではなく下へ向かうので、夢の重心は上昇や達成には置かれていません。むしろ、より深く本のほうへ、閉じるはずだったものの源へ降りていく動きが通路として開かれている。\n\n最後の場面は静かですが決定的です。猫が本の上に座ると、階段は開いたまま静止する。ここで不思議なのは、最初に司書が本を閉じたはずなのに、最後には本が開いたままであることです。夢は閉じることと開くことを対立させず、ひとつの変形の両側として扱っています。猫がその上に座ると、絶えず変わっていた階段は、ようやく止まる。つまり止めているのは命令や努力ではなく、その場にぴたりと居ることのできる存在です。白い猫は階段を攻略せず、下りきったのちに本の上へ座るだけですが、その座るという小さな着地が、ぐるぐる戻る運動を静めています。\n\nこの夢では、知ること、進むこと、上ることがそのまま通用しない場所へ入っています。図書館、本、階段という整然としたものが、閉館後には別の秩序に従いはじめる。その秩序の中で、人の歩みは反復に入り、猫の降下だけが通路を見つける。最後に残るのは解決というより、開いた本の上に座る白い重みと、そのことでようやく静止した階段の像です。動いていたものが止まったというより、止まれる位置がひとつ現れた、という感じです。\n\n## Reflective Questions\n\n- 司書が大きな本を閉じたとたんに螺旋階段の段が紙の縁へ変わったその出来事のなかで、閉じる動作はこの場所をどんな別の通路へ切り替えていたように感じられますか。\n- あなたが上っても同じ踊り場へ戻る一方で、白い猫は下り続け、最後には開いた本の上に座っていますが、その並びのまま見つめると、まだ言葉になりきらないのはそのどこでしょうか。",
+        "questions": [
+          "司書が大きな本を閉じたとたんに螺旋階段の段が紙の縁へ変わったその出来事のなかで、閉じる動作はこの場所をどんな別の通路へ切り替えていたように感じられますか。",
+          "あなたが上っても同じ踊り場へ戻る一方で、白い猫は下り続け、最後には開いた本の上に座っていますが、その並びのまま見つめると、まだ言葉になりきらないのはそのどこでしょうか。"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "question_count_mismatch",
+            "question_not_interrogative"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_advanced",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "ja",
+          "expected_language": "ja",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 13616,
+      "estimated_usd": 0.0227225,
+      "human_review": {
+        "generation_id": "q2-holdout-ja-a-page-stairs:reading_advanced",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q2 holds the dreamer's looping ascent, the cat's continuing descent, and the cat's final seat on the open book. Its open wording is earned by a specific configuration. Japanese か。 punctuation caused a validator false positive only."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-zh-s-underwater-banquet:reading_standard",
+      "case_id": "q2-holdout-zh-s-underwater-banquet",
+      "cohort": "sealed_unseen_holdout",
+      "language": "zh",
+      "mode": "standard",
+      "category": "surreal_juxtaposition",
+      "title": "水下的宴席",
+      "dream": "婚宴摆在水下，桌上的蜡烛却一直燃烧。新娘摘下面纱以后，所有客人都开始自然地呼吸，只有我仍然屏住气。已故的外婆递给我一只空贝壳；我把它贴近耳边时，贝壳里传来宴席上没有人唱过的歌。",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\n这场婚宴先把“水下”与“烛火不灭”并置在一起，像是在同一个场所里容纳两套本来不相容的生存法则。到新娘摘下面纱，整个宴席都转入了可呼吸的状态，只有你还停留在前一重法则里。\n\n## Dream Movement\n\n梦一开始就不是普通的喜宴。它摆在水下，人的身体本该受限，可桌上的蜡烛却一直燃烧，像是这里早已建立起一种奇异而安稳的秩序：水没有熄灭火，宴席也没有因此中断。这个场景并不慌乱，反而有一种被维持住的、不必解释的成立感。\n\n真正的变化发生在新娘摘下面纱的时候。面纱一揭开，客人们就都开始自然地呼吸，好像某种遮蔽一旦撤去，整个空间立刻从“忍耐”转成了“能够活”。呼吸不是一点小动作，它是身体和环境终于接上了。可梦没有让这个转换平均地落在每个人身上：别人都过渡过去了，只有你仍然屏住气。于是你的位置一下子变得很清楚——不是被排除在外，而是还停在门槛上，身体还没有跟上已经改变了的世界。\n\n这时出现的是已故的外婆。她没有解释，也没有把你直接拉去呼吸，只递来一只空贝壳。“空”很要紧：它不装满现成的话，不替代宴席本身，却像一个贴近耳边才能听见的容器。你从贝壳里听到的，不是宴席上已经唱过的歌，而是一首这里没人唱过的歌。好像当场的集体节奏已经恢复了，但真正能把你带过这道门槛的声音，并不来自热闹的中央，而是来自一个更旧、更私人、也更临近水的东西。贝壳在水下的婚宴里，像把外部的“能呼吸”又转成一种内里的回响：不是大家一起会唱的歌，而是只有在贴耳倾听时才出现的那一道声线。\n\n这只贝壳也带着很轻的冥府边界感——逝者没有回来参加宴会，她只是把一个会发声的空物交到你手里。\n\n## Reflective Questions\n\n- 当新娘摘下面纱、所有客人都开始自然呼吸，而你仍然屏住气时，你觉得梦里这个“已经能呼吸的宴席”和你的身体之间，还隔着怎样的一层东西？\n- 外婆把空贝壳递给你，而贝壳里传来宴席上没人唱过的歌时，这首不属于当场合唱的声音，在那一刻把你带向了怎样的水下位置或关系？",
+        "output": "## Core Shift\n\n这场婚宴先把“水下”与“烛火不灭”并置在一起，像是在同一个场所里容纳两套本来不相容的生存法则。到新娘摘下面纱，整个宴席都转入了可呼吸的状态，只有你还停留在前一重法则里。\n\n## Dream Movement\n\n梦一开始就不是普通的喜宴。它摆在水下，人的身体本该受限，可桌上的蜡烛却一直燃烧，像是这里早已建立起一种奇异而安稳的秩序：水没有熄灭火，宴席也没有因此中断。这个场景并不慌乱，反而有一种被维持住的、不必解释的成立感。\n\n真正的变化发生在新娘摘下面纱的时候。面纱一揭开，客人们就都开始自然地呼吸，好像某种遮蔽一旦撤去，整个空间立刻从“忍耐”转成了“能够活”。呼吸不是一点小动作，它是身体和环境终于接上了。可梦没有让这个转换平均地落在每个人身上：别人都过渡过去了，只有你仍然屏住气。于是你的位置一下子变得很清楚——不是被排除在外，而是还停在门槛上，身体还没有跟上已经改变了的世界。\n\n这时出现的是已故的外婆。她没有解释，也没有把你直接拉去呼吸，只递来一只空贝壳。“空”很要紧：它不装满现成的话，不替代宴席本身，却像一个贴近耳边才能听见的容器。你从贝壳里听到的，不是宴席上已经唱过的歌，而是一首这里没人唱过的歌。好像当场的集体节奏已经恢复了，但真正能把你带过这道门槛的声音，并不来自热闹的中央，而是来自一个更旧、更私人、也更临近水的东西。贝壳在水下的婚宴里，像把外部的“能呼吸”又转成一种内里的回响：不是大家一起会唱的歌，而是只有在贴耳倾听时才出现的那一道声线。\n\n这只贝壳也带着很轻的冥府边界感——逝者没有回来参加宴会，她只是把一个会发声的空物交到你手里。\n\n## Reflective Questions\n\n- 当新娘摘下面纱、所有客人都开始自然呼吸，而你仍然屏住气时，你觉得梦里这个“已经能呼吸的宴席”和你的身体之间，还隔着怎样的一层东西？\n- 外婆把空贝壳递给你，而贝壳里传来宴席上没人唱过的歌时，这首不属于当场合唱的声音，在那一刻把你带向了怎样的水下位置或关系？",
+        "questions": [
+          "当新娘摘下面纱、所有客人都开始自然呼吸，而你仍然屏住气时，你觉得梦里这个“已经能呼吸的宴席”和你的身体之间，还隔着怎样的一层东西？",
+          "外婆把空贝壳递给你，而贝壳里传来宴席上没人唱过的歌时，这首不属于当场合唱的声音，在那一刻把你带向了怎样的水下位置或关系？"
+        ],
+        "validation": {
+          "passed": true,
+          "issues": [],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "zh",
+          "expected_language": "zh",
+          "answer_menu_detected": false,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7867,
+      "estimated_usd": 0.0144625,
+      "human_review": {
+        "generation_id": "q2-holdout-zh-s-underwater-banquet:reading_standard",
+        "q2_verdict": "FAIL",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "FAIL",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "FAIL",
+        "failure_families": [
+          "meaning_completion_past_handoff",
+          "supplied_causal_frame",
+          "manufactured_category_space",
+          "q1_inferred_missing_relation"
+        ],
+        "notes": "Q2 asserts that the unheard song moves the dreamer toward an underwater position or relation, inventing an effect and supplying a category frame. Q1 also asks for an unseen layer separating the body from the breathable banquet; that layer is not in the dream."
+      }
+    },
+    {
+      "generation_id": "q2-holdout-pl-s-sparse-door-snow:reading_standard",
+      "case_id": "q2-holdout-pl-s-sparse-door-snow",
+      "cohort": "sealed_unseen_holdout",
+      "language": "pl",
+      "mode": "standard",
+      "category": "sparse_threshold",
+      "title": "Drzwi leżące na śniegu",
+      "dream": "Na pustym polu leżały płasko drewniane drzwi, przysypane śniegiem. Ktoś zapukał od spodu. Postawiłem but na klamce i pukanie ustało, ale po drugiej stronie drzwi pojawiły się ślady stóp, prowadzące dalej przez pole.",
+      "before": null,
+      "after": {
+        "raw_model_output": "## Core Shift\n\nNa pustym, zaśnieżonym polu drzwi nie stoją między wnętrzem a zewnętrzem, tylko leżą jak przykrywa nad czymś ukrytym. Pukanie od spodu uruchamia próbę zatrzymania, ale to, co miało zostać przyciśnięte, zmienia położenie i wychodzi już nie przez klamkę, tylko jako ślad dalej w bieli.\n\n## Dream Movement\n\nNajmocniejsze jest tu przestawienie samych drzwi. To nie jest wejście, przez które można przejść twarzą w twarz, lecz płaska granica położona na ziemi, jeszcze przysypana śniegiem. Pole jest puste, śnieg wycisza, a jednak spod tej ciszy przychodzi wyraźny sygnał: ktoś puka od dołu. Sen ustawia więc spotkanie nie przed tobą, lecz pod tobą — z czymś niewidocznym, oddzielonym cienką, drewnianą warstwą.\n\nPostawienie buta na klamce jest bardzo konkretne: nie otwarcie, tylko dociśnięcie mechanizmu, unieruchomienie miejsca, przez które zwykle się wpuszcza albo wypuszcza. I rzeczywiście pukanie ustaje. Ale sen nie zatrzymuje się na skutecznej kontroli. Zaraz pokazuje obejście: po drugiej stronie drzwi pojawiają się ślady stóp.\n\nTo ważne, że nie pojawia się postać, tylko ślad ruchu. Ktoś lub coś, co było pod spodem, nie zostaje ujawnione, złapane ani nazwane. Zostawia tylko dowód, że przeszło dalej przez pole. W tej scenie jest osobliwa zmiana: z nacisku i zatrzymania w przejście, które odbywa się obok widzialnego kontaktu. Jakby to, co zapukało z ukrycia, po zamknięciu drogi nie zniknęło, lecz znalazło inny sposób istnienia — już nie jako dźwięk spod drzwi, ale jako cichy, zewnętrzny tor w śniegu.\n\n## Reflective Questions\n\n- Co zmienia się w tej scenie w chwili, gdy po położeniu buta na klamce pukanie ustaje, a jego miejsce zajmują ślady stóp prowadzące dalej przez pole?\n- Czym jest dla ciebie ten układ: ktoś pod drzwiami, drzwi leżące w śniegu i ślady pojawiające się już po drugiej stronie, bez ukazania samej postaci?",
+        "output": "## Core Shift\n\nNa pustym, zaśnieżonym polu drzwi nie stoją między wnętrzem a zewnętrzem, tylko leżą jak przykrywa nad czymś ukrytym. Pukanie od spodu uruchamia próbę zatrzymania, ale to, co miało zostać przyciśnięte, zmienia położenie i wychodzi już nie przez klamkę, tylko jako ślad dalej w bieli.\n\n## Dream Movement\n\nNajmocniejsze jest tu przestawienie samych drzwi. To nie jest wejście, przez które można przejść twarzą w twarz, lecz płaska granica położona na ziemi, jeszcze przysypana śniegiem. Pole jest puste, śnieg wycisza, a jednak spod tej ciszy przychodzi wyraźny sygnał: ktoś puka od dołu. Sen ustawia więc spotkanie nie przed tobą, lecz pod tobą — z czymś niewidocznym, oddzielonym cienką, drewnianą warstwą.\n\nPostawienie buta na klamce jest bardzo konkretne: nie otwarcie, tylko dociśnięcie mechanizmu, unieruchomienie miejsca, przez które zwykle się wpuszcza albo wypuszcza. I rzeczywiście pukanie ustaje. Ale sen nie zatrzymuje się na skutecznej kontroli. Zaraz pokazuje obejście: po drugiej stronie drzwi pojawiają się ślady stóp.\n\nTo ważne, że nie pojawia się postać, tylko ślad ruchu. Ktoś lub coś, co było pod spodem, nie zostaje ujawnione, złapane ani nazwane. Zostawia tylko dowód, że przeszło dalej przez pole. W tej scenie jest osobliwa zmiana: z nacisku i zatrzymania w przejście, które odbywa się obok widzialnego kontaktu. Jakby to, co zapukało z ukrycia, po zamknięciu drogi nie zniknęło, lecz znalazło inny sposób istnienia — już nie jako dźwięk spod drzwi, ale jako cichy, zewnętrzny tor w śniegu.\n\n## Reflective Questions\n\n- Co zmienia się w tej scenie w chwili, gdy po położeniu buta na klamce pukanie ustaje, a jego miejsce zajmują ślady stóp prowadzące dalej przez pole?\n- Czym jest dla ciebie ten układ: ktoś pod drzwiami, drzwi leżące w śniegu i ślady pojawiające się już po drugiej stronie, bez ukazania samej postaci?",
+        "questions": [
+          "Co zmienia się w tej scenie w chwili, gdy po położeniu buta na klamce pukanie ustaje, a jego miejsce zajmują ślady stóp prowadzące dalej przez pole?",
+          "Czym jest dla ciebie ten układ: ktoś pod drzwiami, drzwi leżące w śniegu i ślady pojawiające się już po drugiej stronie, bez ukazania samej postaci?"
+        ],
+        "validation": {
+          "passed": false,
+          "issues": [
+            "manufactured_answer_menu"
+          ],
+          "validation_version": "oneiros-same-call-shadow-v1.0.1",
+          "surface": "reading_standard",
+          "question_count": 2,
+          "expected_question_count": 2,
+          "detected_language": "pl",
+          "expected_language": "pl",
+          "answer_menu_detected": true,
+          "observation_error": false,
+          "observation_error_code": null
+        },
+        "normalization": {
+          "applied": false,
+          "operation": null,
+          "normalizer_version": "oneiros-reflective-question-structure-normalizer-v1.0.0"
+        },
+        "structure": {
+          "end_marker_present": true,
+          "reflective_questions_heading_count": 1,
+          "extracted_question_count": 2,
+          "prose_question_count": 0,
+          "hard_failure": false
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7338,
+      "estimated_usd": 0.0131025,
+      "human_review": {
+        "generation_id": "q2-holdout-pl-s-sparse-door-snow:reading_standard",
+        "q2_verdict": "PASS",
+        "pair_complementarity_verdict": "PASS",
+        "q1_regression_check": "PASS",
+        "structural_verdict": "PASS",
+        "control_equivalence": null,
+        "overall_verdict": "PASS",
+        "failure_families": [],
+        "notes": "Q2 presents the exact hidden-knocker/flat-door/footprints configuration and preserves the absent figure. The validator menu flag comes from Polish prose, not either question."
+      }
+    }
+  ],
+  "human_reviewed_at": "2026-08-29",
+  "review_scope": "Human editorial review of Q2 individual quality, Q1-Q2 complementarity, Q1 regression, strong-control equivalence, and structure. Deterministic validator findings remain separate.",
+  "human_summary": {
+    "q2_individual": {
+      "pass": 17,
+      "fail": 4
+    },
+    "pair_complementarity": {
+      "pass": 21,
+      "fail": 0
+    },
+    "q1_regression": {
+      "pass": 20,
+      "fail": 1
+    },
+    "known_q2_failures_repaired": 2,
+    "strong_controls_equivalent": 5,
+    "unseen_holdout_q2_pass": 10,
+    "structural_hard_failures": 0,
+    "overall": {
+      "pass": 17,
+      "fail": 4
+    },
+    "recommendation": "HOLD"
+  }
+}

@@ -35,6 +35,8 @@
     "benchmark:reflective-v101-production-diagnostic": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v101-production-diagnostic.ts",
     "benchmark:reflective-v102-surgical-anchors": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v102-surgical-anchor-evaluation.ts",
     "benchmark:reflective-v103-enacted-relation": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v103-enacted-relation-evaluation.ts",
+    "benchmark:reflective-v104-imaginal-handoff": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v104-imaginal-handoff-evaluation.ts",
+    "benchmark:reflective-v105-source-ownership": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v105-source-ownership-evaluation.ts",
     "sanity:reflective-v103-production": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-questions/run-v103-production-sanity.ts",
     "benchmark:reflective-dialogue-v1": "node -r ./scripts/register-typescript.cjs scripts/live/reflective-dialogue/run-v1-trajectory-benchmark.ts",
     "test:live-production-baseline": "bash scripts/live/run-production-baseline.sh",

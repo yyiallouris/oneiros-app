@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-v1.0.5-source-ownership-evaluation-2026-08-29",
+  "source": "synthetic_and_frozen_v104_evidence",
+  "frozen_at": "2026-08-29",
+  "candidate": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.5-candidate",
+    "bundle_sha256": "16da1d13fb480dd57ef013a7e8241a8309ec06c67d3e1d071089cb24f54cf67a",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.5-candidate"
+  },
+  "production_identity": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.3-candidate"
+  },
+  "evaluated_predecessor": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.4-candidate",
+    "bundle_sha256": "a4f972c00bbde525ad3f39db160afd18e3a1c18f8a92090e0eb7078b137e277d",
+    "reviewed_artifact": "testing/reflective-questions/artifacts/v1.0.4-imaginal-handoff-evaluation-2026-08-29/REVIEWED_RESULTS.json",
+    "reviewed_artifact_sha256": "b2eaea9f804838419589b7f1ac2c463e6d6696609a09317c0c6866db5ddcca96"
+  },
+  "scope": {
+    "surfaces": ["reading_standard", "reading_advanced"],
+    "excluded_surfaces": [
+      "reading_quick",
+      "chat_followup",
+      "chat_closing",
+      "essays",
+      "recent_dream_field"
+    ],
+    "planned_calls": 22,
+    "model_retries_for_quality": 0,
+    "semantic_judge_calls": 0,
+    "question_only_calls": 0,
+    "deployments": 0,
+    "hard_cost_cap_usd": 1,
+    "reserved_cost_per_call_usd": 0.045,
+    "conservative_reserved_packet_cost_usd": 0.99
+  },
+  "human_q2_pass_criteria": [
+    "The selected imaginal configuration is explicitly present in the dream.",
+    "Every action or condition remains attributed to the figure or element that carries it in the dream.",
+    "The reading selects salience but does not supply the question's semantic premise.",
+    "The question supplies no manufactured A/B or X/Y/Z answer space.",
+    "The question supplies no conceptual or causal frame that effectively answers itself.",
+    "The symbolic direction remains genuinely open to the dreamer.",
+    "The question remains vivid, specific, and Oneiros-like rather than generic or therapeutic.",
+    "The question is not a disguised summary of the reading."
+  ],
+  "human_pair_pass_criteria": [
+    "Q2 performs a genuinely different psychological operation from Q1.",
+    "Q2 does not paraphrase or merely abstract Q1.",
+    "Q1 follows what happened and Q2 returns what remains unfinished.",
+    "Together they feel like two distinct openings into the same dream."
+  ],
+  "structural_pass_criteria": [
+    "Exactly one required ## Reflective Questions heading after completed-output normalization.",
+    "Exactly two bullet questions in the section.",
+    "No extra rhetorical question in the reading prose.",
+    "Correct output language."
+  ],
+  "acceptance_gate": {
+    "recovery_anchor_min_q2_pass": 3,
+    "recovery_anchor_total": 4,
+    "controls_required_equivalent": 6,
+    "controls_total": 6,
+    "serious_control_regressions_allowed": 0,
+    "hospital_must_recover_v104_fact_error": true,
+    "hospital_must_match_or_exceed_v103_baseline": true,
+    "holdout_min_q2_pass": 10,
+    "holdout_min_pair_pass": 10,
+    "holdout_total": 12,
+    "q1_serious_regressions_allowed": 0,
+    "structural_hard_failures_allowed": 0,
+    "recurring_failure_family_threshold": 2,
+    "no_automatic_further_candidate": true
+  },
+  "v104_failure_recovery_anchors": [
+    "holdout-zh-s-copresence-clock-fountain:reading_standard",
+    "el-a-complex-hospital:reading_advanced",
+    "q2-holdout-de-s-ambiguous-post-office:reading_standard",
+    "q2-holdout-zh-s-underwater-banquet:reading_standard"
+  ],
+  "protected_v104_pass_controls": [
+    "en-s-body-glass-hands:reading_standard",
+    "el-a-surreal-moon-kitchen:reading_advanced",
+    "pt-s-body-feathers:reading_standard",
+    "en-a-surreal-whale-library:reading_advanced",
+    "q2-holdout-ja-a-page-stairs:reading_advanced",
+    "q2-holdout-pl-s-sparse-door-snow:reading_standard"
+  ],
+  "protected_historical_baseline": {
+    "generation_id": "el-a-complex-hospital:reading_advanced",
+    "source": "v1.0.4 reviewed result before field containing the strong v1.0.3 production output",
+    "requirements": [
+      "The v1.0.5 Q2 must not transfer the dreamer's forgetting to the patient or any other figure.",
+      "The v1.0.5 Q2 must be at least equivalent to the strong v1.0.3 hospital Q2."
+    ]
+  },
+  "sealed_unseen_holdout": [
+    {
+      "id": "q2-ownership-holdout-en-s-upward-rain-moth",
+      "language": "en",
+      "mode": "standard",
+      "category": "sparse_juxtaposition",
+      "title": "The moth and the upward rain",
+      "dream": "On an empty windowsill I found a wet matchbox. When I opened it, one dry moth flew out and settled on the glass. The rain outside stopped, but the drops already on the window began moving upward."
+    },
+    {
+      "id": "q2-ownership-holdout-el-a-brothers-bell-voice",
+      "language": "el",
+      "mode": "advanced",
+      "category": "relational_subject_ownership",
+      "title": "Η καμπάνα και η φωνή",
+      "dream": "Ο αδελφός μου κρατούσε μια μικρή χάλκινη καμπάνα, αλλά εγώ ήμουν αυτός που δεν μπορούσε να μιλήσει. Όταν εκείνος άφησε την καμπάνα στο πάτωμα, η δική μου φωνή ακούστηκε μέσα από αυτήν. Ο αδελφός μου συνέχισε να μιλά κανονικά, ενώ η καμπάνα επαναλάμβανε μόνο τις δικές μου λέξεις."
+    },
+    {
+      "id": "q2-ownership-holdout-es-s-museum-shadow-tree",
+      "language": "es",
+      "mode": "standard",
+      "category": "object_juxtaposition",
+      "title": "Las dos vitrinas",
+      "dream": "En un museo había dos vitrinas frente a frente. La primera estaba vacía, pero proyectaba la sombra de un árbol. En la segunda crecía un árbol pequeño que no proyectaba ninguna sombra. Un guardia cerró solamente la vitrina vacía."
+    },
+    {
+      "id": "q2-ownership-holdout-fr-a-grandfather-map-bowl",
+      "language": "fr",
+      "mode": "advanced",
+      "category": "grief_ancestor",
+      "title": "La carte sous le bol",
+      "dream": "Mon grand-père décédé pliait une carte routière dans la cuisine de mon enfance. Il l'a glissée sous un bol retourné, puis il est sorti sans son manteau. J'ai ouvert la fenêtre et j'ai entendu un train, bien qu'il n'y ait jamais eu de voie ferrée près de la maison."
+    },
+    {
+      "id": "q2-ownership-holdout-de-s-finger-keys-coat",
+      "language": "de",
+      "mode": "standard",
+      "category": "body_transformation_attribution",
+      "title": "Die Schlüssel an meiner Hand",
+      "dream": "Meine Finger wurden nacheinander zu kleinen Schlüsseln. Meine Freundin hielt meinen Mantel, und jeder Schlüssel öffnete eine andere Tasche darin. Aus der letzten Tasche fiel ein warmer Stein in ihre Hand, nicht in meine."
+    },
+    {
+      "id": "q2-ownership-holdout-pt-a-half-gate-shadow",
+      "language": "pt",
+      "mode": "advanced",
+      "category": "conflict_threshold",
+      "title": "O portão em duas metades",
+      "dream": "Dois guardas discutiam diante de um portão fechado. Cada um abriu apenas a metade que segurava. Eu atravessei pelo espaço entre as duas metades, mas a minha sombra ficou do lado de fora, deitada entre os guardas. Nenhum deles percebeu que eu já tinha passado."
+    },
+    {
+      "id": "q2-ownership-holdout-it-a-blue-bowl-rooms",
+      "language": "it",
+      "mode": "advanced",
+      "category": "complex_multiscene",
+      "title": "La ciotola azzurra",
+      "dream": "Su un treno tenevo una ciotola azzurra piena di terra. Nella scena successiva la stessa ciotola era sul tavolo di mia nonna, piena di biglietti ferroviari. Alla fine ero su un tetto: lasciai cadere la ciotola e ogni frammento rifletteva una stanza diversa, ma nessuna mostrava il tetto."
+    },
+    {
+      "id": "q2-ownership-holdout-nl-s-blank-newspaper-print",
+      "language": "nl",
+      "mode": "standard",
+      "category": "ambiguous_condition",
+      "title": "De lege krant",
+      "dream": "Een man las een krant zonder letters aan een ronde tafel. Een vrouw deed de lamp uit. In het donker verschenen de woorden op het tafelblad, terwijl de krant in de handen van de man leeg bleef. De vrouw ging zitten zonder de woorden te lezen."
+    },
+    {
+      "id": "q2-ownership-holdout-ru-a-brother-mirror-cloth",
+      "language": "ru",
+      "mode": "advanced",
+      "category": "subject_attribution_trap",
+      "title": "Отражение на ткани",
+      "dream": "Мой брат не видел своего отражения в зеркале, хотя я ясно видел и его, и себя. Мать накрыла зеркало белой тканью. После этого моё отражение исчезло, а отражение брата осталось двигаться на ткани, пока сам брат стоял неподвижно."
+    },
+    {
+      "id": "q2-ownership-holdout-ja-s-garden-umbrella-fox",
+      "language": "ja",
+      "mode": "standard",
+      "category": "copresence_without_relation",
+      "title": "傘を閉じた庭",
+      "dream": "庭の池のそばに赤い傘と眠っている狐がありました。私が傘を閉じると、池の水だけが地面の下へ消えました。狐は目を覚まさず、傘の内側には濡れた石が一つ残っていました。"
+    },
+    {
+      "id": "q2-ownership-holdout-zh-a-feather-stairs-lantern",
+      "language": "zh",
+      "mode": "advanced",
+      "category": "surreal_high_imagery",
+      "title": "长出羽毛的楼梯",
+      "dream": "一位老妇人每向楼梯上走一步，她身后的台阶就长出白色羽毛。我站在楼下没有移动，手里的灯笼却慢慢灌满了水。她到达楼顶时，羽毛全部脱落，只有我的灯笼开始发光。"
+    },
+    {
+      "id": "q2-ownership-holdout-pl-a-drawer-lake",
+      "language": "pl",
+      "mode": "advanced",
+      "category": "q1_q2_near_overlap",
+      "title": "Szuflada przez jezioro",
+      "dream": "Niosłem zamkniętą szufladę przez płytkie jezioro. Z każdym krokiem woda w jeziorze opadała, ale szuflada stawała się cięższa. Gdy dotarłem na drugi brzeg, szuflada otworzyła się sama i w środku nadal znajdowało się całe jezioro."
+    }
+  ]
+}

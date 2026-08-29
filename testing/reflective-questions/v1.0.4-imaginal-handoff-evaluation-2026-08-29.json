@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-v1.0.4-imaginal-handoff-evaluation-2026-08-29",
+  "source": "synthetic_and_frozen_prior_synthetic",
+  "frozen_at": "2026-08-29",
+  "candidate": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.4-candidate",
+    "bundle_sha256": "a4f972c00bbde525ad3f39db160afd18e3a1c18f8a92090e0eb7078b137e277d",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.4-candidate"
+  },
+  "production_predecessor": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.3-candidate",
+    "baseline_artifact": "testing/reflective-questions/artifacts/v1.0.3-enacted-relation-evaluation-2026-08-29/RAW_EVALUATION.json",
+    "baseline_artifact_sha256": "1019bad7aabb8eb69515ad7d4dcf6d97bd4e7f0cb29942609048bbd2b51a94d3"
+  },
+  "scope": {
+    "surfaces": ["reading_standard", "reading_advanced"],
+    "excluded_surfaces": [
+      "reading_quick",
+      "chat_followup",
+      "chat_closing",
+      "essays",
+      "recent_dream_field"
+    ],
+    "planned_calls": 21,
+    "model_retries_for_quality": 0,
+    "semantic_judge_calls": 0,
+    "question_only_calls": 0,
+    "deployments": 0,
+    "hard_cost_cap_usd": 1,
+    "historical_reader_mean_cost_usd": 0.01593417,
+    "historical_reader_max_cost_usd": 0.0242325,
+    "projected_cost_usd": 0.3346175,
+    "reserved_cost_per_call_usd": 0.045,
+    "conservative_reserved_packet_cost_usd": 0.945
+  },
+  "human_q2_pass_criteria": [
+    "The imaginal configuration is explicitly grounded in the dream.",
+    "The question supplies no manufactured A/B or X/Y/Z answer space.",
+    "The question supplies no conceptual frame that effectively answers itself.",
+    "No interpretation is smuggled in as a fact the dreamer must accept.",
+    "The symbolic remainder stays genuinely unfinished.",
+    "The question remains vivid, specific, and Oneiros-like.",
+    "The question is not a generic journaling or therapy shell.",
+    "The question is not a disguised summary of the reading."
+  ],
+  "human_pair_pass_criteria": [
+    "Q2 performs a genuinely different psychological operation from Q1.",
+    "Q2 does not paraphrase Q1.",
+    "Q2 does not merely escalate Q1 into a more abstract version.",
+    "Together the questions feel like two distinct openings into the same dream."
+  ],
+  "structural_pass_criteria": [
+    "Exactly one required ## Reflective Questions heading after completed-output normalization.",
+    "Exactly two bullet questions in the section.",
+    "No extra rhetorical question in the reading prose.",
+    "Correct output language."
+  ],
+  "acceptance_gate": {
+    "known_failure_min_q2_pass": 2,
+    "known_failure_total": 3,
+    "controls_required_equivalent": 6,
+    "controls_total": 6,
+    "serious_control_regressions_allowed": 0,
+    "holdout_min_q2_pass": 10,
+    "holdout_min_pair_pass": 10,
+    "holdout_total": 12,
+    "q1_serious_regressions_allowed": 0,
+    "structural_hard_failures_allowed": 0,
+    "recurring_failure_family_threshold": 2,
+    "automatic_hold_if_control_regressions_at_least": 2,
+    "no_automatic_second_candidate": true
+  },
+  "known_q2_failures": [
+    "en-s-conflict-bridge:reading_standard",
+    "pl-a-conflict-stairs:reading_advanced",
+    "holdout-zh-s-copresence-clock-fountain:reading_standard"
+  ],
+  "strong_q2_controls": [
+    "en-s-body-glass-hands:reading_standard",
+    "el-a-surreal-moon-kitchen:reading_advanced",
+    "pt-s-body-feathers:reading_standard",
+    "en-a-surreal-whale-library:reading_advanced",
+    "el-a-complex-hospital:reading_advanced",
+    "holdout-fr-a-grief-painted-heights:reading_advanced"
+  ],
+  "sealed_unseen_holdout": [
+    {
+      "id": "q2-holdout-en-s-sparse-theatre-chair",
+      "language": "en",
+      "mode": "standard",
+      "category": "sparse",
+      "title": "The chair facing the aisle",
+      "dream": "I was alone in an empty theatre. The curtain rose, but there was no stage behind it, only a white wall. One wooden chair slowly turned away from the wall to face the aisle where I stood. Then the theatre lights went out."
+    },
+    {
+      "id": "q2-holdout-el-a-relational-glass-pane",
+      "language": "el",
+      "mode": "advanced",
+      "category": "relational_without_isolated_symbol",
+      "title": "Το τζάμι στον διάδρομο",
+      "dream": "Με τον πατέρα μου κουβαλούσαμε μαζί ένα μεγάλο τζάμι μέσα σε έναν πολύ στενό διάδρομο. Κανείς μας δεν μπορούσε να στρίψει μόνος του στη γωνία. Εκείνος χαλάρωσε πρώτος τα χέρια του· εγώ έκανα ένα βήμα πίσω και το τζάμι στάθηκε μόνο του όρθιο ανάμεσά μας, χωρίς να σπάσει."
+    },
+    {
+      "id": "q2-holdout-es-s-overlap-shadow-well",
+      "language": "es",
+      "mode": "standard",
+      "category": "q1_q2_near_overlap",
+      "title": "La sombra junto al pozo",
+      "dream": "Caminaba por una llanura de sal al mediodía. Al pasar junto a un pozo seco, mi sombra dejó de seguirme y se quedó a su borde. Cuando volví para buscarla, la sombra levantó un cubo vacío y apareció una pequeña lámina de agua bajo mis pies."
+    },
+    {
+      "id": "q2-holdout-fr-a-multiscene-red-gloves",
+      "language": "fr",
+      "mode": "advanced",
+      "category": "complex_multi_scene",
+      "title": "Les gants rouges de l'hôtel",
+      "dream": "Je montais dans l'ascenseur d'un hôtel avec ma sœur silencieuse. À chaque étage, les portes ouvraient sur un lieu différent: notre ancienne classe, un verger en hiver, puis un port au crépuscule. Ma sœur déposait un gant rouge dans chaque lieu avant que les portes se referment. Au dernier étage, tous les gants flottaient ensemble autour d'une bouée, mais ma sœur avait toujours les deux mains couvertes."
+    },
+    {
+      "id": "q2-holdout-de-s-ambiguous-post-office",
+      "language": "de",
+      "mode": "standard",
+      "category": "ambiguous_juxtaposition",
+      "title": "Die Vögel im Postamt",
+      "dream": "In einem stillgelegten Postamt nisteten kleine Vögel in den Brieffächern. Ein Beamter stempelte ein leeres Blatt, und in diesem Moment verstummten alle Vögel. Ein Kind zog die unterste Schublade auf; statt Briefen fiel frischer Schnee heraus und bedeckte seine Schuhe."
+    },
+    {
+      "id": "q2-holdout-pt-a-body-ladder-arms",
+      "language": "pt",
+      "mode": "advanced",
+      "category": "body_transformation",
+      "title": "Os braços de escada",
+      "dream": "Meus braços se transformaram em duas escadas encostadas num prédio sem portas. Pessoas começaram a subir por elas enquanto eu permanecia no chão. Quando um sino tocou no telhado, os degraus voltaram a ser dedos, um por um, mas uma criança continuou sentada no meu ombro, olhando para cima."
+    },
+    {
+      "id": "q2-holdout-it-s-grief-photographs",
+      "language": "it",
+      "mode": "standard",
+      "category": "grief_ancestor",
+      "title": "Le fotografie nel lavandino",
+      "dream": "Mia zia, morta da anni, lavava le fotografie di famiglia nel lavandino della cucina. Nell'acqua i volti sbiadivano, ma i loro nomi apparivano sul vetro della finestra. Le passai un asciugamano; lei si asciugò le mani e la stanza cominciò a profumare di basilico."
+    },
+    {
+      "id": "q2-holdout-nl-a-conflict-burning-door",
+      "language": "nl",
+      "mode": "advanced",
+      "category": "conflict_threshold",
+      "title": "De deur tussen vuur en water",
+      "dream": "Ik hield een zware deur open tussen een brandende keuken en een overstroomde gang. Een oude tegenstander kwam door het water met een kom in zijn handen. Hij goot het water over het vuur, maar de vlam volgde hem de gang in. Toen we de deur samen vasthielden, werd ze zo licht als papier."
+    },
+    {
+      "id": "q2-holdout-ru-s-relational-echo-dinner",
+      "language": "ru",
+      "mode": "standard",
+      "category": "relational_without_isolated_symbol",
+      "title": "Повторяющийся ужин",
+      "dream": "За ужином каждый человек повторял чужую фразу через несколько секунд. Моя сестра сказала только один раз: «Я ухожу», и встала из-за стола. Все повторы последовали за ней вниз по лестнице, а люди за столом впервые замолчали."
+    },
+    {
+      "id": "q2-holdout-ja-a-page-stairs",
+      "language": "ja",
+      "mode": "advanced",
+      "category": "syntactic_option_frame_trap",
+      "title": "本の階段",
+      "dream": "閉館後の図書館で、司書が大きな本を閉じると、螺旋階段の段が一枚ずつ紙の縁に変わりました。白い猫だけがその階段を下り続け、私は上っているのに同じ踊り場へ戻りました。最後に猫が本の上に座ると、階段は開いたまま静止しました。"
+    },
+    {
+      "id": "q2-holdout-zh-s-underwater-banquet",
+      "language": "zh",
+      "mode": "standard",
+      "category": "surreal_juxtaposition",
+      "title": "水下的宴席",
+      "dream": "婚宴摆在水下，桌上的蜡烛却一直燃烧。新娘摘下面纱以后，所有客人都开始自然地呼吸，只有我仍然屏住气。已故的外婆递给我一只空贝壳；我把它贴近耳边时，贝壳里传来宴席上没有人唱过的歌。"
+    },
+    {
+      "id": "q2-holdout-pl-s-sparse-door-snow",
+      "language": "pl",
+      "mode": "standard",
+      "category": "sparse_threshold",
+      "title": "Drzwi leżące na śniegu",
+      "dream": "Na pustym polu leżały płasko drewniane drzwi, przysypane śniegiem. Ktoś zapukał od spodu. Postawiłem but na klamce i pukanie ustało, ale po drugiej stronie drzwi pojawiły się ślady stóp, prowadzące dalej przez pole."
+    }
+  ]
+}

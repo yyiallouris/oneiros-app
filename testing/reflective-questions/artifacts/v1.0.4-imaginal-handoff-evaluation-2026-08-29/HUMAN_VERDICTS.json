@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "candidate_method": "oneiros-same-call-reflective-questions-v1.0.4-candidate",
+  "candidate_sha256": "a4f972c00bbde525ad3f39db160afd18e3a1c18f8a92090e0eb7078b137e277d",
+  "fixture_sha256": "ec7becc8f382399c1bab1d50edbce4c3568b468e17ab5edd124131987147a211",
+  "reviewed_at": "2026-08-29",
+  "review_scope": "Human editorial review of Q2 individual quality, Q1-Q2 complementarity, Q1 regression, strong-control equivalence, and structure. Deterministic validator findings remain separate.",
+  "verdicts": [
+    {
+      "generation_id": "en-s-conflict-bridge:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The former threat/concealment/ripening menu is gone. Q2 holds the orchard-town-river configuration without selecting its meaning; Q1 follows the calls arriving at the bridge."
+    },
+    {
+      "generation_id": "pl-a-conflict-stairs:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The prior not-a-riddle-but-a-forming-place frame is removed. Q2 returns the exact family-below/own-voice-above arrangement and leaves its connection open."
+    },
+    {
+      "generation_id": "holdout-zh-s-copresence-clock-fountain:reading_standard",
+      "q2_verdict": "FAIL",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "FAIL",
+      "failure_families": [
+        "meaning_completion_past_handoff",
+        "supplied_conceptual_frame"
+      ],
+      "notes": "Q2 no longer offers three options, but it pre-completes the juxtaposition as an abstract thing that is untouched yet already closed. The menu changed shape rather than fully disappearing."
+    },
+    {
+      "generation_id": "en-s-body-glass-hands:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "PASS",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q2 preserves the living red-thread image and unfinished mending without flattening it. It is less interpretively explicit than the former mirrored-inside/outside wording but remains equivalently vivid and open."
+    },
+    {
+      "generation_id": "el-a-surreal-moon-kitchen:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "PASS",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the oven-cloud transformation; Q2 stays with the young father, hand, floating fruit, and absent landing. The pair is distinct and the Q2 remains fully alive."
+    },
+    {
+      "generation_id": "pt-s-body-feathers:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "PASS",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The suspension between the two fears is explicit in the dream rather than manufactured. Q1 follows weight changing in the scene; Q2 holds the unresolved threshold."
+    },
+    {
+      "generation_id": "en-a-surreal-whale-library:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "PASS",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q2 preserves the breathing-title/one-book/sleeping-whale configuration without completing its meaning. Q1 owns the entrusted return task, so the pair does different work."
+    },
+    {
+      "generation_id": "el-a-complex-hospital:reading_advanced",
+      "q2_verdict": "FAIL",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "FAIL",
+      "overall_verdict": "FAIL",
+      "failure_families": [
+        "invented_dream_fact",
+        "subject_displacement",
+        "serious_control_regression"
+      ],
+      "notes": "The dreamer forgets whom they were seeking; the candidate Q2 says the nameless patient no longer remembers who he was. That transfers the memory loss to another figure and invents footage. The former Q2 was strong and accurate, so this is a serious control regression."
+    },
+    {
+      "generation_id": "holdout-fr-a-grief-painted-heights:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "PASS",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q2 keeps the opening window, departing moths, and empty apartment together without supplying what the departure means. It is at least as alive as the former question and less leading."
+    },
+    {
+      "generation_id": "q2-holdout-en-s-sparse-theatre-chair:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "This deliberately overlapping case still separates the jobs: Q1 follows the chair's turn and the dreamer's changed position; Q2 adds the blackout and hands back the unfinished relation."
+    },
+    {
+      "generation_id": "q2-holdout-el-a-relational-glass-pane:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows release, retreat, and self-standing glass; Q2 stays with the pane between them before the unturned corner. The relation remains precise and unfinished."
+    },
+    {
+      "generation_id": "q2-holdout-es-s-overlap-shadow-well:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the return and the water's appearance; Q2 holds the explicit dry-well/wet-ground proximity. It deepens without answering itself."
+    },
+    {
+      "generation_id": "q2-holdout-fr-a-multiscene-red-gloves:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 tracks each deposited glove; Q2 selects the later paradox of all gloves around the buoy while the sister remains gloved. This is strong multi-scene compression without closure."
+    },
+    {
+      "generation_id": "q2-holdout-de-s-ambiguous-post-office:reading_standard",
+      "q2_verdict": "FAIL",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "FAIL",
+      "failure_families": [
+        "meaning_completion_past_handoff",
+        "disguised_reading_summary"
+      ],
+      "notes": "The reading has already interpreted the snow-covered shoes as the place of standing, going, and the next step. Q2 repeats that exact frame instead of handing back the raw snow/letters/shoes configuration."
+    },
+    {
+      "generation_id": "q2-holdout-pt-a-body-ladder-arms:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows being used as a passage while remaining below; Q2 returns the surviving child-on-shoulder image after the arms become fingers. Distinct, vivid, and unfinished."
+    },
+    {
+      "generation_id": "q2-holdout-it-s-grief-photographs:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the towel-to-basil event; Q2 stays with faces fading while names appear on glass. The second opening is image-near and does not finish the grief symbolism."
+    },
+    {
+      "generation_id": "q2-holdout-nl-a-conflict-burning-door:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the opponent's water and the following flame; Q2 holds the jointly held door becoming paper-light. The relation is explicit and the transformation remains open."
+    },
+    {
+      "generation_id": "q2-holdout-ru-s-relational-echo-dinner:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the echoes leaving after the sister's statement; Q2 returns the first silence left at the table. It is compact, relational, and not a paraphrase."
+    },
+    {
+      "generation_id": "q2-holdout-ja-a-page-stairs:reading_advanced",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q2 holds the dreamer's looping ascent, the cat's continuing descent, and the cat's final seat on the open book. Its open wording is earned by a specific configuration. Japanese か。 punctuation caused a validator false positive only."
+    },
+    {
+      "generation_id": "q2-holdout-zh-s-underwater-banquet:reading_standard",
+      "q2_verdict": "FAIL",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "FAIL",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "FAIL",
+      "failure_families": [
+        "meaning_completion_past_handoff",
+        "supplied_causal_frame",
+        "manufactured_category_space",
+        "q1_inferred_missing_relation"
+      ],
+      "notes": "Q2 asserts that the unheard song moves the dreamer toward an underwater position or relation, inventing an effect and supplying a category frame. Q1 also asks for an unseen layer separating the body from the breathable banquet; that layer is not in the dream."
+    },
+    {
+      "generation_id": "q2-holdout-pl-s-sparse-door-snow:reading_standard",
+      "q2_verdict": "PASS",
+      "pair_complementarity_verdict": "PASS",
+      "q1_regression_check": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q2 presents the exact hidden-knocker/flat-door/footprints configuration and preserves the absent figure. The validator menu flag comes from Polish prose, not either question."
+    }
+  ]
+}
