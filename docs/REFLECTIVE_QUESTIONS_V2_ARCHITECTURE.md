@@ -1,9 +1,14 @@
 # Oneiros reflective intelligence architecture
 
-Status: launch same-call production `oneiros-same-call-reflective-questions-v1.0.0` approved  
-Reading prompt: `oneiros-dream-reflection-v3.2.0`  
-Chat: `oneiros-followup-chat-v2.0.0`  
-Approved local default: `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c`
+Status: canonical release `v1.0.3` / alias `oneiros-same-call-reflective-questions-v1.0.3`, PO-approved and production with no current blocker
+Evaluated prompt artifact: `oneiros-same-call-reflective-questions-v1.0.3-candidate` / `f5399a49…`
+Reader alias: `oneiros-dream-reflection-v3.2.3`
+Evaluated Reader artifact: `oneiros-dream-reflection-v3.2.3-candidate`
+Chat: `oneiros-followup-chat-v2.0.1`
+Approved prompt SHA: `f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7`
+Production completed-output normalizer: `oneiros-reflective-question-structure-normalizer-v1.0.0`
+Runtime bundle: `oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`
+Production deployment: `ai-entitlements-gateway` function version `113`, ACTIVE since `2026-08-29 18:17:32 UTC`
 
 ## Product boundary
 
@@ -27,9 +32,19 @@ Three safeguards only: no manufactured either/or; no missing dream footage; do n
 
 Chat continues the existing conversation. It is not a second interpretation engine.
 
-Extraction, `display_distillation`, Archetypal Echoes, Mythic Echoes, `archetypes`, `amplifications`, quota semantics, and the locked partial reveal / `PhasedTypingText` experience are unchanged.
+Before generation, `src/ai/reflectiveLanguage.ts` resolves the 12-language contract from the initial dream or the latest detectable/established conversation language. After generation completes, `src/ai/reflectiveQuestionExtract.ts` may first insert exact `## Reflective Questions` only when a Standard/Advanced response has one end marker and exactly two unambiguous terminal question bullets. `oneiros-reflective-question-structure-normalizer-v1.0.0` is pure, idempotent at the content boundary, and fail-safe; ambiguity is a byte-identical no-op, and it never enters streaming `onProgress`. `src/ai/reflectiveContractObservation.ts` then observes the completion marker where required, exact question cardinality, detected language, and a conservative lexical/syntax firewall against manufactured answer menus in all 12 languages. `safeObserveReflectiveContract` makes the versioned telemetry fail-open: a validator exception becomes `passed: null` plus compact observer-error metadata and a safe log. Observation never delays streaming, blocks delivery, rejects output, or triggers a contract retry. There is no question-only regeneration, semantic judge, Gate, Repair, or Premise Check.
 
-Closed historical R&D (Director/Composer, v1.2 orchestration, Gate/Repair, v5 initial, editorial arc, Inviter v1/v2.0.1) is not a selectable production identity. Records: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md), [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+Exploring's no-manufactured-choice safeguard remains a prompt contract because deciding whether an `or` is a legitimate dream-staged choice is semantic. Runtime enforcement does not smuggle a new semantic judge into chat. The post-patch smoke is the release check for that feel behavior.
+
+Extraction, `display_distillation`, Archetypal Echoes, Mythic Echoes, `archetypes`, `amplifications`, quota semantics, and the locked ~15-second partial reveal / `PhasedTypingText` experience are unchanged. `quota_events.result_context.contract_validation` contains no duplicate raw user/model text or exception messages; separate `question_structure_normalization` records only `applied`, `operation`, and `normalizer_version`, while `reflective_question_runtime` records compact approved identities.
+
+V1 app chrome remains English-only until the Oneiros v2 localization phase.
+Standard/Advanced and essays use exact `## Reflective Questions`; the shared
+DreamDetail action is exact `Continue the conversation` for every content language;
+navigation, structural headings, and metadata titles are not translated.
+Generated reading and question content still follows the resolved dream language.
+
+Closed historical R&D (Director/Composer, v1.2 orchestration, Gate/Repair, v5 initial, editorial arc, Inviter v1/v2.0.1) and the failed v1.0.2 surgical prompt are not selectable production identities. The promoted v1.0.3 enacted-relation prompt (`f5399a49…`) completed one frozen Q1 evaluation with human Q1 `21/21`; its one missing-heading failure is repaired by deterministic frozen replay and production normalizer v1.0.0. Q2 quality remains separate. Records: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md), [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md), [`ONEIROS_V102_SURGICAL_ROOT_CAUSE_2026-08-29.md`](./ONEIROS_V102_SURGICAL_ROOT_CAUSE_2026-08-29.md), [`ONEIROS_V103_ENACTED_RELATION_CANDIDATE_2026-08-29.md`](./ONEIROS_V103_ENACTED_RELATION_CANDIDATE_2026-08-29.md), [`ONEIROS_V103_ENACTED_RELATION_EVALUATION_REVIEW_2026-08-29.md`](./ONEIROS_V103_ENACTED_RELATION_EVALUATION_REVIEW_2026-08-29.md).
 
 ## Combined initial flow (historical, denied)
 
@@ -146,16 +161,17 @@ provide evidence.
 
 ## Deployment boundary
 
-`APPROVED_REFLECTIVE_QUESTION_PRODUCTION` remains `null`. No Edge Function or
-database deployment was performed. If human gates later approve this exact SHA,
-rollout is client-first and gateway deployment must use only:
+`APPROVED_REFLECTIVE_QUESTION_PRODUCTION` is pinned to the PO-approved
+`v1.0.3-candidate` / `f5399a49…` prompt, with separately pinned runtime bundle
+`oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`. Gateway
+deployments must use only:
 
 ```bash
 npm run deploy:ai-entitlements-gateway
 ```
 
 No `supabase db push` is required. `openai-proxy` routing is unchanged, so it does
-not require deployment for this candidate.
+not require deployment for the replay-only gateway patch.
 
 Historical v1 failure evidence remains in
 [`ONEIROS_REFLECTION_EDITORIAL_ARC_GATE1_REVIEW_2026-08-28.md`](./ONEIROS_REFLECTION_EDITORIAL_ARC_GATE1_REVIEW_2026-08-28.md).

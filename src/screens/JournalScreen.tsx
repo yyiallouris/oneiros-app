@@ -6,7 +6,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -16,9 +15,10 @@ import { PaperBackground, MysticHeader, LinoSkeletonCard, DesignExportForeground
 import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
+import { buildJournalSlipCopy } from '../utils/journalSlipCopy';
 import { normalizeSymbolKey } from '../services/insightsService';
 import Svg, { Circle, Path } from 'react-native-svg';
-const calendarActionIcon = require('../assets/icons/action_icons/calendar_icon.png');
+import { CalendarActionIcon } from '../components/icons/ActionIcons';
 
 const JOURNAL_MOUNTAIN_HEIGHT = 300;
 
@@ -33,52 +33,31 @@ const SearchIcon = ({ size = 20, color = colors.textSecondary }) => (
   </Svg>
 );
 
-// Legacy inline calendar icon kept as a fallback reference while the PNG asset is active.
-const LegacyCalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const CalendarIcon = ({ size = 24, color = colors.buttonPrimary }) => {
-  if (!calendarActionIcon) {
-    return <LegacyCalendarIcon size={size} color={color} />;
-  }
-
-  return (
-    <Image
-      source={calendarActionIcon}
-      style={{ width: size, height: size }}
-      resizeMode="contain"
-      accessibilityIgnoresInvertColors
-    />
-  );
-};
-
 interface DreamCardProps {
   dream: Dream;
   interpretation?: Interpretation;
   onPress: () => void;
 }
 
+interface DreamMarkerProps {
+  label: 'Image' | 'Place' | 'Atmosphere';
+  value: string;
+}
+
+const DreamMarker = ({ label, value }: DreamMarkerProps) => (
+  <View style={styles.markerPill}>
+    <Text style={styles.markerText} numberOfLines={1}>
+      <Text style={styles.markerLabel}>{label}: </Text>
+      {value}
+    </Text>
+  </View>
+);
+
 const compactList = (items?: string[], count = 1): string[] =>
   (items ?? []).map((item) => item.trim()).filter(Boolean).slice(0, count);
 
 const DreamCard = React.memo<DreamCardProps>(({ dream, interpretation, onPress }) => {
-  const preview = dream.content.replace(/\s+/g, ' ').trim();
-
-  const displayTitle = dream.title || preview.split('\n')[0].slice(0, 50) + (preview.length > 50 ? '...' : '');
-  const excerpt = dream.title
-    ? preview
-    : preview.length > displayTitle.length
-      ? preview.slice(displayTitle.length).trim()
-      : preview;
+  const { heading, excerpt, hasExplicitTitle } = buildJournalSlipCopy(dream.title, dream.content);
   const symbolMarker = compactList(interpretation?.symbols ?? dream.symbols, 1)[0] ?? dream.symbol;
   const placeMarker = compactList(interpretation?.landscapes ?? dream.landscapes, 1)[0];
   const atmosphereMarker = compactList(interpretation?.affects, 1)[0];
@@ -91,18 +70,22 @@ const DreamCard = React.memo<DreamCardProps>(({ dream, interpretation, onPress }
           <Text style={styles.dreamDate}>{formatDateShort(dream.date)}</Text>
         </View>
       </View>
-      <Text style={styles.dreamTitle} numberOfLines={1}>
-        {displayTitle}
+      <Text
+        style={[styles.dreamTitle, !hasExplicitTitle && styles.dreamTitleContinuing]}
+        numberOfLines={1}
+        ellipsizeMode={hasExplicitTitle ? 'tail' : 'clip'}
+      >
+        {heading}
       </Text>
-      <Text style={styles.dreamPreview} numberOfLines={2}>
-        {excerpt}
-      </Text>
+      {excerpt ? (
+        <Text style={styles.dreamPreview} numberOfLines={2}>
+          {excerpt}
+        </Text>
+      ) : null}
       <View style={styles.markerRow}>
-        {symbolMarker ? <Text style={styles.markerText} numberOfLines={1}>image / {symbolMarker}</Text> : null}
-        {placeMarker ? <Text style={styles.markerText} numberOfLines={1}>place / {placeMarker}</Text> : null}
-        {atmosphereMarker ? (
-          <Text style={styles.markerText} numberOfLines={1}>atmosphere / {atmosphereMarker}</Text>
-        ) : null}
+        {symbolMarker ? <DreamMarker label="Image" value={symbolMarker} /> : null}
+        {placeMarker ? <DreamMarker label="Place" value={placeMarker} /> : null}
+        {atmosphereMarker ? <DreamMarker label="Atmosphere" value={atmosphereMarker} /> : null}
         {!symbolMarker && !placeMarker && !atmosphereMarker ? (
           <Text style={styles.markerTextMuted}>awaiting symbols</Text>
         ) : null}
@@ -282,7 +265,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
           subtitle="Dreams remembered and ready to return."
           right={
             <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-              <CalendarIcon size={30} />
+              <CalendarActionIcon size={32} testID="journal-calendar-icon" />
             </TouchableOpacity>
           }
         />
@@ -461,6 +444,9 @@ const styles = StyleSheet.create({
     color: colors.textTitle,
     marginBottom: spacing.xs,
   },
+  dreamTitleContinuing: {
+    marginBottom: 2,
+  },
   dreamPreview: {
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
@@ -472,9 +458,20 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: spacing.sm,
   },
+  markerPill: {
+    maxWidth: '100%',
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.buttonPrimaryLight12,
+  },
   markerText: {
-    maxWidth: '48%',
+    flexShrink: 1,
     fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
+  },
+  markerLabel: {
+    fontFamily: typography.medium,
     color: colors.textMuted,
   },
   markerTextMuted: {

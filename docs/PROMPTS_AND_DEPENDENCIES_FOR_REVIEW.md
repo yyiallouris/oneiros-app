@@ -820,14 +820,15 @@ Both:
 
 The live prompt family is shared from `src/ai/reflectiveEssayPrompt.ts`:
 
-- Period: `oneiros-period-reflection-v2` / `2.0.3-phase1`
-- Recent: `oneiros-recent-dream-field-v2` / `2.0.3-phase1`
+- Period: `oneiros-period-reflection-v2` / `2.0.4-phase1`
+- Recent: `oneiros-recent-dream-field-v2` / `2.0.4-phase1`
 - production essay context: Phase 1 metadata-heavy version `1`
 - research-only narrative-first context: version `2`
-- frozen variables: prompt `2.0.3-phase1`, model routing, temperatures, sections, length policy, and compact retry remain unchanged
+- accepted intelligence baseline: `2.0.3-phase1`; runtime `2.0.4-phase1` changes the same-call two-question prompt cardinality, while post-completion structural validation is shadow-only and the existing retry remains incomplete/length-only
+- frozen variables: metadata-heavy context version `1`, model routing, temperatures, topology, sections, length policy, and single compact whole-essay retry remain unchanged
 - objective: articulate what is most psychologically alive or generative; conflict is one possible organizing quality, never the default
 - evidence: select only the 2–3 images, contrasts, or shifts that carry the reading
-- output: semantically distinct sections, no standalone `Thresholds and Conflicts` obligation, exactly one reflective question under the compatibility heading
+- output: semantically distinct sections, no standalone `Thresholds and Conflicts` obligation, exactly two reflective questions under `## Reflective Questions`
 - Period scope: weekly and monthly headings follow the resolved scope instead of always claiming a month
 - operational retry: one full compact rewrite on incomplete output or initial hard-cap overflow; small post-retry tolerance; never string truncation
 - topology-first gate: privately choose one supported field, parallel/local clusters, or a loose field before interpretation, then preserve that choice through every section and reflective question

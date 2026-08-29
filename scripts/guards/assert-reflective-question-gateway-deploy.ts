@@ -9,6 +9,9 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
+  APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE,
+  CANONICAL_REFLECTIVE_QUESTION_RELEASE,
+  REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY,
   REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV,
   REFLECTIVE_QUESTION_RUNTIME_FILES,
   SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
@@ -48,7 +51,18 @@ function readLocalBundledMethod(): { methodId: string; promptSha256: string } {
     );
   }
   if (
-    !readerSource.includes('oneiros-same-call-reflective-questions-v1.0.0') ||
+    CANONICAL_REFLECTIVE_QUESTION_RELEASE.evaluatedMethodArtifact !==
+      SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID ||
+    CANONICAL_REFLECTIVE_QUESTION_RELEASE.promptSha256 !== localSha ||
+    CANONICAL_REFLECTIVE_QUESTION_RELEASE.evaluatedReaderArtifact !==
+      APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE.readerPromptId
+  ) {
+    throw new ReflectiveQuestionGatewayDeployBlockedError(
+      'Blocked ai-entitlements-gateway deploy: canonical release alias no longer maps to the evaluated artifacts.'
+    );
+  }
+  if (
+    !readerSource.includes(SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID) ||
     !readerSource.includes('## Reflective Questions') ||
     !readerSource.includes('End with exactly one natural reflective question') ||
     !readerSource.includes('Exactly 2 questions as markdown bullets')
@@ -73,6 +87,17 @@ function readLocalBundledMethod(): { methodId: string; promptSha256: string } {
   if (!billingAi.includes('buildInitialReflectionRequest') || !billingAi.includes('extractSameCallReflectiveQuestions')) {
     throw new ReflectiveQuestionGatewayDeployBlockedError(
       'Blocked ai-entitlements-gateway deploy: same-call Reader extraction is missing from billing-ai.'
+    );
+  }
+  if (
+    !billingAi.includes('normalizeCompletedReflectiveQuestionStructure') ||
+    !billingAi.includes('questionStructureNormalization') ||
+    !gateway.includes('question_structure_normalization') ||
+    !billingAi.includes('REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY') ||
+    !gateway.includes('reflective_question_runtime')
+  ) {
+    throw new ReflectiveQuestionGatewayDeployBlockedError(
+      'Blocked ai-entitlements-gateway deploy: versioned completed-output structure normalization or runtime identity telemetry is missing.'
     );
   }
 
@@ -108,6 +133,9 @@ try {
     [
       'Reflective-question deploy guard passed.',
       `Local: ${local.methodId} / ${local.promptSha256}`,
+      `Structure normalizer: ${REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY.normalizerVersion}`,
+      `Runtime bundle: ${APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE.identity}`,
+      `Canonical release: ${CANONICAL_REFLECTIVE_QUESTION_RELEASE.methodAlias} -> ${CANONICAL_REFLECTIVE_QUESTION_RELEASE.evaluatedMethodArtifact}`,
       `Approved production: ${APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId} / ${APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256}`,
     ].join('\n')
   );

@@ -11,7 +11,11 @@ import {
   ONEIROS_LANGUAGE_CODES,
   type OneirosLanguageCode,
 } from '../src/constants/oneirosLanguages';
-import { REFLECTIVE_QUESTION_COPY } from '../src/constants/reflectiveQuestionCopy';
+import {
+  CONTINUE_CONVERSATION_LABEL,
+  REFLECTIVE_QUESTION_COPY,
+  REFLECTIVE_QUESTION_UI_COPY,
+} from '../src/constants/reflectiveQuestionCopy';
 
 function questionArtifact(question: string, languageCode: OneirosLanguageCode = 'en') {
   return createReflectiveQuestionArtifact({
@@ -36,13 +40,13 @@ describe('ReflectiveQuestionCard', () => {
       />
     );
 
-    expect(view.getByText('A question to carry')).toBeTruthy();
+    expect(view.getByText('Reflective Questions')).toBeTruthy();
     expect(view.getByText(/Where does the fox seem to be going/)).toBeTruthy();
-    fireEvent.press(view.getByLabelText('Continue exploring'));
+    fireEvent.press(view.getByLabelText(CONTINUE_CONVERSATION_LABEL));
     expect(onContinue).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the Greek reading voice when the question is Greek', () => {
+  it('keeps Greek reflective content inside shared English app chrome', () => {
     const view = render(
       <ReflectiveQuestionCard
         artifact={questionArtifact(
@@ -53,8 +57,8 @@ describe('ReflectiveQuestionCard', () => {
       />
     );
 
-    expect(view.getByText('Μια ερώτηση να κρατήσεις')).toBeTruthy();
-    expect(view.getByLabelText('Συνέχισε την εξερεύνηση')).toBeTruthy();
+    expect(view.getByText('Reflective Questions')).toBeTruthy();
+    expect(view.getByLabelText(CONTINUE_CONVERSATION_LABEL)).toBeTruthy();
   });
 
   it.each(ONEIROS_LANGUAGE_CODES)(
@@ -67,14 +71,17 @@ describe('ReflectiveQuestionCard', () => {
         />
       );
 
-      expect(view.getByText(REFLECTIVE_QUESTION_COPY[languageCode].eyebrow)).toBeTruthy();
+      expect(REFLECTIVE_QUESTION_COPY[languageCode]).toMatchObject(
+        REFLECTIVE_QUESTION_UI_COPY
+      );
+      expect(view.getByText('Reflective Questions')).toBeTruthy();
       expect(
-        view.getByLabelText(REFLECTIVE_QUESTION_COPY[languageCode].continueLabel)
+        view.getByLabelText(CONTINUE_CONVERSATION_LABEL)
       ).toBeTruthy();
     }
   );
 
-  it('keeps longer localized actions inside the card width', () => {
+  it('keeps the shared product action inside the card width', () => {
     const view = render(
       <ReflectiveQuestionCard
         artifact={questionArtifact('С каким движением сна ты хотел бы остаться?', 'ru')}
@@ -82,8 +89,8 @@ describe('ReflectiveQuestionCard', () => {
       />
     );
 
-    const action = view.getByLabelText('Продолжить исследование');
-    const label = view.getByText('Продолжить исследование');
+    const action = view.getByLabelText(CONTINUE_CONVERSATION_LABEL);
+    const label = view.getByText(CONTINUE_CONVERSATION_LABEL);
 
     expect(StyleSheet.flatten(action.props.style)).toMatchObject({ maxWidth: '100%' });
     expect(StyleSheet.flatten(label.props.style)).toMatchObject({ flexShrink: 1 });
@@ -146,15 +153,15 @@ describe('ReflectiveQuestionCard', () => {
 
     expect(model.getByText(question)).toBeTruthy();
     expect(fallback.getByText(question)).toBeTruthy();
-    expect(model.getByLabelText('Continue exploring')).toBeTruthy();
-    expect(fallback.getByLabelText('Continue exploring')).toBeTruthy();
+    expect(model.getByLabelText(CONTINUE_CONVERSATION_LABEL)).toBeTruthy();
+    expect(fallback.getByLabelText(CONTINUE_CONVERSATION_LABEL)).toBeTruthy();
     expect(model.getByPlaceholderText('Write what comes…')).toBeTruthy();
     expect(fallback.getByPlaceholderText('Write what comes…')).toBeTruthy();
     expect(model.queryByText('image')).toBeNull();
     expect(fallback.queryByText('fallback')).toBeNull();
   });
 
-  it('answers from the preview field without blocking Continue exploring', () => {
+  it('answers from the preview field without blocking Continue the conversation', () => {
     const onContinue = jest.fn();
     const onAnswer = jest.fn();
     const view = render(
@@ -175,7 +182,7 @@ describe('ReflectiveQuestionCard', () => {
     fireEvent.changeText(view.getByTestId('reflective-question-card-answer'), 'The gate still feels open.');
     fireEvent.press(view.getByLabelText('Answer'));
     expect(onAnswer).toHaveBeenCalledWith('The gate still feels open.');
-    fireEvent.press(view.getByLabelText('Continue exploring'));
+    fireEvent.press(view.getByLabelText(CONTINUE_CONVERSATION_LABEL));
     expect(onContinue).toHaveBeenCalled();
   });
 });

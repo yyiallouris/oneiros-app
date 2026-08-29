@@ -50,3 +50,9 @@ Before finalizing user-facing copy, ask:
 
 - For app changes, pair this with `.codex/skills/oneiros-repo/SKILL.md`.
 - When copy changes behavior or a documented surface, update the matching flow docs.
+- Oneiros v1 app chrome is English-only: keep navigation, shared buttons,
+  structural headings, and metadata titles in English. UI localization begins
+  in Oneiros v2. Generated dream/reflection/question content may still follow
+  the resolved user-content language.
+- Reflective surfaces use exact `Reflective Questions` and exact
+  `Continue the conversation` in every content language.

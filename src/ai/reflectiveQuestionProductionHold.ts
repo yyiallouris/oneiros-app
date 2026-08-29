@@ -8,18 +8,25 @@
  */
 import { createHash } from 'crypto';
 import {
+  DREAM_REFLECTION_PROMPT_ID,
   SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE,
   SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256,
 } from './dreamReflectionPrompt';
 import { REFLECTION_EDITORIAL_ARC_METHOD_ID } from './reflectionEditorialArc';
+import {
+  REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_OPERATION,
+  REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_VERSION,
+  REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY,
+} from './reflectiveQuestionExtract';
 
 export const REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVAL_ENV =
   'REFLECTIVE_QUESTION_PRODUCTION_DEPLOY_APPROVED';
 
 export const REFLECTIVE_QUESTION_DEPLOYED_FUNCTION = 'ai-entitlements-gateway';
 export const REFLECTIVE_QUESTION_DEPLOYED_PROJECT_REF = 'xacdawttvtfrdbcwhcqn';
-export const REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION = 105;
-export const REFLECTIVE_QUESTION_DEPLOYED_UPDATED_AT_UTC = '2026-08-26T11:50:26Z';
+export const REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION = 113;
+export const REFLECTIVE_QUESTION_DEPLOYED_UPDATED_AT_UTC = '2026-08-29T18:17:32Z';
 
 export const RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_METHOD_ID =
   'reflective-question-psychological-aliveness-v1.4.0';
@@ -38,16 +45,55 @@ export type ReflectiveQuestionProductionIdentity = {
   promptSha256: string;
 };
 
-/**
- * Launch production: same-call Reader + questions. No second question inference.
- */
+/** Exact approved local same-call production bundle. */
 export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256 =
-  '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c' as const;
+  SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256;
 
 export const APPROVED_REFLECTIVE_QUESTION_PRODUCTION: ReflectiveQuestionProductionIdentity = {
-  methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
-  promptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
+  methodId: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+  promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
 };
+
+/**
+ * Canonical release aliases point to the immutable evaluated artifacts.
+ * They are release metadata only: runtime telemetry continues to report the
+ * exact artifact ids and the prompt bytes/SHA remain unchanged.
+ */
+export const REFLECTIVE_QUESTION_RELEASE_VERSION = '1.0.3' as const;
+export const REFLECTIVE_QUESTION_RELEASE_METHOD_ALIAS =
+  'oneiros-same-call-reflective-questions-v1.0.3' as const;
+export const DREAM_REFLECTION_RELEASE_ALIAS =
+  'oneiros-dream-reflection-v3.2.3' as const;
+
+export const APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE = {
+  identity: REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY,
+  readerPromptId: DREAM_REFLECTION_PROMPT_ID,
+  questionMethodId: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
+  questionPromptSha256: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+  normalizerVersion: REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_VERSION,
+} as const;
+
+export const CANONICAL_REFLECTIVE_QUESTION_RELEASE = {
+  version: REFLECTIVE_QUESTION_RELEASE_VERSION,
+  methodAlias: REFLECTIVE_QUESTION_RELEASE_METHOD_ALIAS,
+  evaluatedMethodArtifact: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId,
+  promptSha256: APPROVED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256,
+  readerAlias: DREAM_REFLECTION_RELEASE_ALIAS,
+  evaluatedReaderArtifact: DREAM_REFLECTION_PROMPT_ID,
+  normalizerVersion: REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_VERSION,
+  runtimeBundleIdentity: REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY,
+  gatewayFunction: REFLECTIVE_QUESTION_DEPLOYED_FUNCTION,
+  gatewayVersion: REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION,
+} as const;
+
+/**
+ * Runtime formatting identity, versioned separately from every prompt SHA.
+ * It may insert only the literal heading after an unambiguous completed output.
+ */
+export const REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY = {
+  normalizerVersion: REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_VERSION,
+  permittedOperation: REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_OPERATION,
+} as const;
 
 /** Mechanically valid, but explicitly revoked after the 20-dream human review. */
 export const REVOKED_REFLECTIVE_QUESTION_PRODUCTION = {
@@ -63,13 +109,18 @@ export const REVOKED_REFLECTIVE_QUESTION_PRODUCTION = {
 export const PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE = {
   methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
   promptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
-  dialoguePromptId: 'oneiros-followup-chat-v2.0.0',
+  dialoguePromptId: 'oneiros-followup-chat-v2.0.1',
   chatQuestionMethodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
   chatQuestionPromptSha256: SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE_SHA256,
 } as const;
 
 /** Local Oneiros Reader candidate. Never deploy this SHA. */
 export const DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES = [
+  {
+    methodId: 'oneiros-same-call-reflective-questions-v1.0.2-candidate',
+    promptSha256:
+      '94d4a92a4a88d4104fa3dcc5790209a4fd3b34cec56dc1724eade78255798b96',
+  },
   {
     methodId: 'oneiros-reflective-question-production-v1.0.0',
     promptSha256:
@@ -219,6 +270,8 @@ export const FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256 =
 export const REFLECTIVE_QUESTION_RD_ROOT = 'src/ai/rd/reflective-questions';
 
 export const REFLECTIVE_QUESTION_RUNTIME_FILES = [
+  'src/ai/reflectiveQuestionExtract.ts',
+  'src/ai/reflectiveQuestionPrompt.ts',
   'src/services/ai.ts',
   'supabase/functions/_shared/billing-ai.ts',
   'supabase/functions/ai-entitlements-gateway/index.ts',
@@ -283,7 +336,7 @@ export function assertReflectiveQuestionGatewayDeployAllowed(input: {
         'Blocked ai-entitlements-gateway deploy: local reflective-question source is a denied candidate.',
         `Local: ${input.localMethodId} / ${localSha}`,
         `Denied: ${deniedCandidate.methodId} / ${deniedCandidate.promptSha256}`,
-        'Approved production: oneiros-same-call-reflective-questions-v1.0.0',
+        `Approved production: ${APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId}`,
         'Do not deploy a reflective-question identity that failed human-quality review.',
       ].join('\n')
     );

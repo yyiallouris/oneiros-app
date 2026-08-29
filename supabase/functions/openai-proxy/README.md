@@ -19,7 +19,7 @@ OpenAI or Anthropic.
 
 The proxy forwards OpenAI-compatible `response_format` when present. Metadata
 extraction uses this to request JSON
-responses from OpenAI. Launch follow-up chat is prose (`oneiros-followup-chat-v2.0.0`) and does not send a question `json_schema`. Historical Dialogue / Questions v5 formats remain in `src/ai/reflectiveQuestionResponseFormat.ts` for archived R&D. Anthropic fallbacks
+responses from OpenAI. Launch follow-up chat is prose (`oneiros-followup-chat-v2.0.1`) and does not send a question `json_schema`. Historical Dialogue / Questions v5 formats remain in `src/ai/reflectiveQuestionResponseFormat.ts` for archived R&D. Anthropic fallbacks
 still rely on the compact field contract in the prompt and are converted back
 into the OpenAI-compatible response shape. Gateway parsers and commit checks
 remain the final provider-neutral boundary.

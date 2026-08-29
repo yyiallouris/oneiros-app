@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
 const mockSetOptions = jest.fn();
 const mockGetDreamById = jest.fn();
@@ -281,9 +281,9 @@ describe('DreamDetail offline message flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
 
-    fireEvent.press(screen.getByText('Continue exploring'));
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     const input = await screen.findByPlaceholderText('Ask about an image, feeling, or pattern...');
     fireEvent.changeText(input, 'What is this dream asking of me?');
@@ -348,32 +348,51 @@ describe('DreamDetail offline message flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await screen.findByText('Explore symbolic layers');
+    const toggle = await screen.findByTestId('symbolic-layers-toggle');
+    const section = screen.getByTestId('symbolic-layers-section');
+    const toggleStyle = StyleSheet.flatten(toggle.props.style);
+    const sectionStyle = StyleSheet.flatten(section.props.style);
+    expect(toggle.props.accessibilityRole).toBe('button');
+    expect(toggle.props.accessibilityLabel).toBe('Explore symbolic layers');
+    expect(toggle.props.accessibilityState).toEqual({ expanded: false });
+    expect(toggleStyle.minHeight).toBe(60);
+    expect(sectionStyle.backgroundColor).toBe('transparent');
+    expect(sectionStyle.borderWidth).toBeUndefined();
+    expect(sectionStyle.borderRadius).toBeUndefined();
+    expect(screen.queryByText('✦')).toBeNull();
     expect(screen.queryByText('Emotional Atmosphere')).toBeNull();
     expect(screen.queryByText('Dream Fabric')).toBeNull();
 
-    fireEvent.press(screen.getByText('Explore symbolic layers'));
+    fireEvent.press(toggle);
 
     expect(await screen.findByText('Dream Fabric')).toBeTruthy();
     expect(screen.getByText('Emotional Atmosphere')).toBeTruthy();
     expect(screen.getByText('wonder')).toBeTruthy();
+    expect(screen.getByTestId('symbolic-layers-toggle').props.accessibilityState).toEqual({
+      expanded: true,
+    });
+
+    fireEvent.press(screen.getByTestId('symbolic-layers-toggle'));
+    expect(screen.getByTestId('symbolic-layers-toggle').props.accessibilityState).toEqual({
+      expanded: false,
+    });
   });
 
-  it('places Continue exploring after Explore symbolic layers in the dream details flow', async () => {
+  it('separates symbolic expansion from continuing the conversation', async () => {
     mockGetInterpretationByDreamId.mockResolvedValue(interpretation);
 
     const screen = render(<DreamDetailScreen />);
 
     await screen.findByText('Explore symbolic layers');
     await screen.findByText('A first reflection on the dream.');
-    await screen.findByText('Continue exploring');
+    await screen.findByText('Continue the conversation');
 
     const renderedText = collectRenderedText(screen.toJSON()).join(' ');
     const previewTitleIndex = renderedText.lastIndexOf('Symbolic reflection');
     expect(renderedText.indexOf('Explore symbolic layers')).toBeGreaterThan(-1);
     expect(previewTitleIndex).toBeGreaterThan(-1);
     expect(renderedText.indexOf('A first reflection on the dream.')).toBeGreaterThan(-1);
-    expect(renderedText.indexOf('Continue exploring')).toBeGreaterThan(-1);
+    expect(renderedText.indexOf('Continue the conversation')).toBeGreaterThan(-1);
     expect(renderedText.indexOf('Explore symbolic layers')).toBeLessThan(
       previewTitleIndex
     );
@@ -381,7 +400,7 @@ describe('DreamDetail offline message flow', () => {
       renderedText.indexOf('A first reflection on the dream.')
     );
     expect(renderedText.indexOf('A first reflection on the dream.')).toBeLessThan(
-      renderedText.indexOf('Continue exploring')
+      renderedText.indexOf('Continue the conversation')
     );
   });
 
@@ -393,7 +412,7 @@ describe('DreamDetail offline message flow', () => {
     const screen = render(<DreamDetailScreen />);
 
     expect(await screen.findByText('Dream essence')).toBeTruthy();
-    fireEvent.press(screen.getByText('Continue exploring'));
+    fireEvent.press(screen.getByText('Continue the conversation'));
     expect(screen.getByText('Exploring the dream')).toBeTruthy();
     expect(screen.queryByText('Symbolic reflection')).toBeNull();
     expect(screen.getByPlaceholderText('Ask about an image, feeling, or pattern...')).toBeTruthy();

@@ -1,6 +1,10 @@
 # Oneiros AI prompts inventory
 
-> **Launch same-call questions (2026-08-29):** approved identity `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114a…`. Reader `oneiros-dream-reflection-v3.2.0`. Follow-up chat `oneiros-followup-chat-v2.0.0`. One inference writes reading + questions. Quick 1; Standard/Advanced 2; chat open 1 / close 0; essays 2. No Composer, Gate, Repair, or Premise Check in runtime. Canonical sources: `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`. Hold: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+> **Launch same-call questions (2026-08-29):** canonical release `v1.0.3` / alias `oneiros-same-call-reflective-questions-v1.0.3` maps to immutable evaluated prompt artifact `oneiros-same-call-reflective-questions-v1.0.3-candidate` / SHA `f5399a49…`; Reader alias `oneiros-dream-reflection-v3.2.3` maps to artifact `oneiros-dream-reflection-v3.2.3-candidate`. Gateway function version `113` is live with that exact artifact, follow-up chat `oneiros-followup-chat-v2.0.1`, structure normalizer `oneiros-reflective-question-structure-normalizer-v1.0.0`, and runtime bundle `oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`. The clean aliases do not replace runtime ids or alter prompt bytes. One inference writes reading + questions. Q1 uses the enacted-relation composition job; Q2 is unchanged. Quick 1; Standard/Advanced 2; chat open 1 / close 0; essays 2. The normalizer may insert only exact `## Reflective Questions` after a completed, unambiguous Standard/Advanced terminal pair. It does not change prompt bytes, prose/questions, model calls, or partial streaming; ambiguity is a byte-identical no-op. Deterministic validation remains fail-open shadow-only. No question-only call, Composer, Gate, Repair, or Premise Check in runtime. Canonical sources: `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`, `src/ai/reflectiveContractObservation.ts`. Record: [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md).
+
+> **Archived surgical candidate (2026-08-29):** `oneiros-same-call-reflective-questions-v1.0.2-candidate` / SHA `94d4a92a…`, Reader `oneiros-dream-reflection-v3.2.2-candidate`, Chat `oneiros-followup-chat-v2.0.2-candidate`. Its frozen 20-call evaluation cost `$0.23542850` and returned human 11 PASS / 9 FAIL: 7/14 selected failures repaired, 7 remaining, and 2/6 controls regressed. Decision HOLD; the prompt delta is removed from runtime and the identity is explicitly denied. The independent committed-follow-up replay repair remains preserved from the guarded v1.0.1 gateway release. Review: [`ONEIROS_V102_SURGICAL_ANCHOR_REVIEW_2026-08-29.md`](./ONEIROS_V102_SURGICAL_ANCHOR_REVIEW_2026-08-29.md). Root cause: [`ONEIROS_V102_SURGICAL_ROOT_CAUSE_2026-08-29.md`](./ONEIROS_V102_SURGICAL_ROOT_CAUSE_2026-08-29.md).
+
+> **Promoted enacted-relation evaluation (2026-08-29):** `oneiros-same-call-reflective-questions-v1.0.3-candidate` / SHA `f5399a49…`, Reader `oneiros-dream-reflection-v3.2.3-candidate`, Chat unchanged `oneiros-followup-chat-v2.0.1`. It replaces only the Standard/Advanced observational/somatic Q1 job with a general explicit-event/enacted-relation operation. Its single frozen 21-call Reader evaluation against fixture SHA `cc60ad8e…` cost `$0.33461750` and returned human Q1 `21/21`. Its one Chinese heading miss is repaired by the separate normalizer; frozen replay repaired both historical misses and left 39 other outputs byte-identical. Prompt SHA `f5399a49…` remains distinct from runtime bundle `oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`. Q2, Quick, chat, safeguards, prose, models, cardinality, streaming, and validation remain unchanged; no second candidate or further Q1 edit is authorized. Record: [`ONEIROS_V103_ENACTED_RELATION_CANDIDATE_2026-08-29.md`](./ONEIROS_V103_ENACTED_RELATION_CANDIDATE_2026-08-29.md). Review: [`ONEIROS_V103_ENACTED_RELATION_EVALUATION_REVIEW_2026-08-29.md`](./ONEIROS_V103_ENACTED_RELATION_EVALUATION_REVIEW_2026-08-29.md).
 
 > **Historical production orchestration v1.0.0 (2026-08-29, CLOSED R&D):** `oneiros-reflective-question-production-v1.0.0` / SHA `fc8b6304…`. Frozen Reader `oneiros-dream-reflection-v3.1.0-candidate` plus Generator v1.2 (`4506c898…`) → Integrity Gate (`c1d8090f…`) → Premise Check (`ceca4568…`) → at most one Repair (`0859fd54…`). Schema `11`. Not launch runtime. Museum: `src/ai/reflectiveQuestionPipeline.ts`. Record: [`ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md`](./ONEIROS_QUESTION_REPAIR_PHASE2_EDITORIAL_FAIL_2026-08-29.md).
 
@@ -49,16 +53,16 @@ Keep `prompt_id`, `prompt_version`, schema version, and any surfaced catalog ver
 | Archetype line highlights | polarity-neutral Mother/Father ids, Lover 1.7.1 calm-beloved wording, raw-dream evidence firewall, mechanism-tag hard gates |
 | Repair prompts | structured JSON repair in `src/ai/structuredTaskValidation.ts`; output-language field repair in `src/ai/dreamOutputLanguage.ts` |
 | Voice transcription strategy | `voice-transcription-v3.0.0-language-neutral` in `supabase/functions/whisper-transcription/index.ts` |
-| Period reflection essay | `oneiros-period-reflection-v2` / `2.0.3-phase1` |
-| Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.3-phase1` |
-| Initial dream reflection | `oneiros-dream-reflection-v3.2.0` / `3.2.0`; same-call questions in the reading |
-| Follow-up chat | `oneiros-followup-chat-v2.0.0`; `chat_followup` → `gpt-5.4-mini`; prose conversation; open 1 question / close 0 |
-| Reflective-question production | `oneiros-same-call-reflective-questions-v1.0.0`; Quick 1, Standard/Advanced 2, essays 2; deterministic extract; no second LLM |
-| Approved local reflective question | `oneiros-same-call-reflective-questions-v1.0.0` / SHA `25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c`; orchestration `fc8b6304…` and v2.0.1 / SHA `2e412879…` remain denied |
-| Same-call minimal Generator | `oneiros-same-call-minimal-v1.2.0-candidate`; SHA `4506c898…`; frozen after paired PASS 8/8 vs v1.1.0 `8e0edada…`; System 4 prompt R&D STOP; production import only via `reflectiveQuestionPipeline.ts` |
-| Question Integrity Gate | `oneiros-question-integrity-gate-v1.0.0-candidate`; SHA `c1d8090f…`; production component; standalone method denied |
-| Question Premise Check | `oneiros-question-premise-check-v1.0.0-candidate`; SHA `ceca4568…`; GPT-5.4 / temp `0`; `{decision}` only |
-| Question Repair | `oneiros-question-repair-v1.0.0-candidate`; SHA `0859fd54…`; at most one Repair; standalone method denied |
+| Period reflection essay | `oneiros-period-reflection-v2` / `2.0.4-phase1`; accepted `2.0.3` topology + two-question contract patch; context v1 |
+| Recent Dream Field essay | `oneiros-recent-dream-field-v2` / `2.0.4-phase1`; accepted `2.0.3` topology + two-question contract patch; context v1 |
+| Initial dream reflection | approved `oneiros-dream-reflection-v3.2.3-candidate`; archived failed `oneiros-dream-reflection-v3.2.2-candidate`; resolved output language; same-call questions in the reading |
+| Follow-up chat | deployed/local `oneiros-followup-chat-v2.0.1`; archived failed `oneiros-followup-chat-v2.0.2-candidate`; `chat_followup` → `gpt-5.4-mini`; open 1 / close 0 |
+| Reflective-question production | approved prompt `v1.0.3-candidate` / `f5399a49…`; normalizer `oneiros-reflective-question-structure-normalizer-v1.0.0`; runtime bundle `oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`; archived/denied `v1.0.2-candidate`; human Q1 `21/21`; Quick 1, Standard/Advanced 2, essays 2; shadow-only validation; no contract retry or second question LLM |
+| Approved reflective-question production | `oneiros-same-call-reflective-questions-v1.0.3-candidate` / SHA `f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7`; Q2 unchanged; orchestration `fc8b6304…` and v2.0.1 / SHA `2e412879…` remain denied |
+| Same-call minimal Generator | `oneiros-same-call-minimal-v1.2.0-candidate`; SHA `4506c898…`; frozen closed R&D after paired PASS 8/8 vs v1.1.0 `8e0edada…`; not a runtime import |
+| Question Integrity Gate | `oneiros-question-integrity-gate-v1.0.0-candidate`; SHA `c1d8090f…`; closed R&D; denied |
+| Question Premise Check | `oneiros-question-premise-check-v1.0.0-candidate`; SHA `ceca4568…`; closed R&D; denied |
+| Question Repair | `oneiros-question-repair-v1.0.0-candidate`; SHA `0859fd54…`; closed R&D; denied |
 | Reflective-question R&D | isolated at `src/ai/rd/reflective-questions/`; frozen Candidate B SHA `08cd3eaf…`; Candidate C SHA `c2b0f766…` closed `MIXED — STOP`; remainder-first SHA `a37426d1…` closed `MIXED — STOP`; local Oneiros Reader v1.4.0 SHA `0ea4b9a2…` is archived `DO NOT DEPLOY`; hold module is not a runtime import; [`REFLECTIVE_QUESTION_PRODUCTION_HOLD.md`](./REFLECTIVE_QUESTION_PRODUCTION_HOLD.md) |
 | Post-reading Inviter R&D | Reader `oneiros-frozen-reader-ceiling-v1.0.0-candidate` → Inviter `oneiros-post-reading-inviter-v1.0.0-candidate`; schema `1`; SHA `70c533e5…`; Gate 1 `1 PASS / 1 BORDERLINE / 6 FAIL`; denied and stopped |
 | Post-Jungian Inviter v2 R&D | `oneiros-post-jungian-inviter-v2.0.1-candidate`; schema `1`; SHA `09045bf1…`; eight frozen readings SHA `2a1a8bc3…`; `$0.043675`; mechanical `8/8`, blind human `0 PASS / 1 BORDERLINE / 7 FAIL`; denied and stopped |
@@ -970,12 +974,25 @@ Write revised user-facing string values in the same primary language as the drea
 
 **Prompt ids:** `oneiros-period-reflection-v2` and `oneiros-recent-dream-field-v2`
 
-**Prompt versions:** `2.0.3-phase1`
+**Prompt versions:** `2.0.4-phase1`
 **Production context version:** `1`
 
 **Research-only narrative context version:** `2`
 
-Both client and gateway keep the accepted `2.0.3-phase1` prompt, provider/model routing, temperatures (`0.48` Period, `0.46` Recent), sections, length policy, and compact-retry contract unchanged. Production uses metadata-heavy context version `1`: Core Mode, affects, symbols, symbol stances, landscapes, motifs, relational dynamics, thresholds, central conflicts, Archetypal/Mythic Echoes, and an interpretation excerpt. The shared `src/ai/reflectiveEssayContext.ts` keeps narrative-first version `2` only for reproducible offline evaluation.
+Both client and gateway use `2.0.4-phase1`, a narrow same-call question-contract patch over the accepted `2.0.3-phase1` baseline. Provider/model routing, temperatures (`0.48` Period, `0.46` Recent), topology, sections, length policy, and the single compact whole-essay retry remain unchanged. Production uses metadata-heavy context version `1`: Core Mode, affects, symbols, symbol stances, landscapes, motifs, relational dynamics, thresholds, central conflicts, Archetypal/Mythic Echoes, and an interpretation excerpt. The retry remains limited to incomplete or initially over-limit output; the required exactly-two bullet structure is observed after completion without retry or rejection. The shared `src/ai/reflectiveEssayContext.ts` keeps narrative-first version `2` only for reproducible offline evaluation.
+
+Current shared question block:
+
+```text
+## Reflective Questions
+Exactly 2 questions as markdown bullets.
+Questions invite noticing, not self-improvement.
+Do not ask the dreamer to rank, choose, or decide between field elements unless the supplied dreams explicitly contain that choice.
+Do not hide an answer menu inside one grammatical question by offering X or Y.
+Do not ask them to remember unreported footage.
+Do not state an inferred meaning as though the dreams literally established it.
+Do not use a question to invent a cross-dream relation the essay did not already support.
+```
 
 Each Phase 2 dream block contains `date`, `dream narrative excerpt`, `affects`, up to five `key symbols`, `symbol stances`, up to three `landscapes`, `relational dynamics`, and a secondary interpretation note. It excludes Core Mode, motifs, thresholds, central conflicts, Archetypal Echoes, and Mythic Echoes from default essay injection. This does not change extraction, validation, persistence, or Dream Detail rendering of those fields.
 

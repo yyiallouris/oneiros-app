@@ -58,8 +58,8 @@ describe('CLOSED R&D reflective question pipeline (not launch runtime)', () => {
       REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID
     );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
-      methodId: 'oneiros-same-call-reflective-questions-v1.0.0',
-      promptSha256: '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c',
+      methodId: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
     });
   });
 

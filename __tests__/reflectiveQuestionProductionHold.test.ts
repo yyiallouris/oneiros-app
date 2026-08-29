@@ -1,5 +1,7 @@
 import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
+  APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE,
+  CANONICAL_REFLECTIVE_QUESTION_RELEASE,
   DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES,
   FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256,
   PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE,
@@ -17,7 +19,7 @@ import {
 describe('reflective question production deploy hold', () => {
   it('records the recovered deployed gateway identity', () => {
     expect(REFLECTIVE_QUESTION_DEPLOYED_FUNCTION).toBe('ai-entitlements-gateway');
-    expect(REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION).toBe(105);
+    expect(REFLECTIVE_QUESTION_DEPLOYED_FUNCTION_VERSION).toBe(113);
     expect(RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_METHOD_ID).toBe(
       'reflective-question-psychological-aliveness-v1.4.0'
     );
@@ -25,8 +27,23 @@ describe('reflective question production deploy hold', () => {
       '4885e351ff6a20ceb8257c004aacd66e390e4c0902455a1cf5ff4d0df5a0238d'
     );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
-      methodId: 'oneiros-same-call-reflective-questions-v1.0.0',
-      promptSha256: '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c',
+      methodId: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
+    });
+    expect(APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE.identity).toBe(
+      'oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0'
+    );
+    expect(CANONICAL_REFLECTIVE_QUESTION_RELEASE).toEqual({
+      version: '1.0.3',
+      methodAlias: 'oneiros-same-call-reflective-questions-v1.0.3',
+      evaluatedMethodArtifact: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
+      readerAlias: 'oneiros-dream-reflection-v3.2.3',
+      evaluatedReaderArtifact: 'oneiros-dream-reflection-v3.2.3-candidate',
+      normalizerVersion: 'oneiros-reflective-question-structure-normalizer-v1.0.0',
+      runtimeBundleIdentity: 'oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0',
+      gatewayFunction: 'ai-entitlements-gateway',
+      gatewayVersion: 113,
     });
     expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
       'oneiros-reflective-question-v2.0.1'
@@ -36,13 +53,13 @@ describe('reflective question production deploy hold', () => {
       'human_quality_failed_sterile_literalism'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.chatQuestionMethodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.dialoguePromptId).toBe(
-      'oneiros-followup-chat-v2.0.0'
+      'oneiros-followup-chat-v2.0.1'
     );
     expect(FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256).toBe(
       '08cd3eaf6fd507d6eb19ba73714eecf6453ec8dd6a61f55068621c8ffd80f622'
@@ -78,7 +95,7 @@ describe('reflective question production deploy hold', () => {
       ).toThrow(/denied candidate/i);
     }
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
   });
 
@@ -209,7 +226,7 @@ describe('reflective question production deploy hold', () => {
     ).toThrow(/revoked/);
   });
 
-  it('denies the failed v2 editorial-arc identity even with an environment token', () => {
+  it('denies failed editorial-arc and surgical candidates while allowing approved production', () => {
     const denied = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
       (candidate) => candidate.methodId === 'oneiros-reflection-editorial-arc-v2.0.0-candidate'
     )!;
@@ -240,6 +257,20 @@ describe('reflective question production deploy hold', () => {
         localPromptSha256: PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.promptSha256,
       })
     ).not.toThrow();
+
+    const surgical = DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES.find(
+      (candidate) => candidate.methodId === 'oneiros-same-call-reflective-questions-v1.0.2-candidate'
+    )!;
+    expect(surgical.promptSha256).toBe(
+      '94d4a92a4a88d4104fa3dcc5790209a4fd3b34cec56dc1724eade78255798b96'
+    );
+    expect(() =>
+      assertReflectiveQuestionGatewayDeployAllowed({
+        localMethodId: surgical.methodId,
+        localPromptSha256: surgical.promptSha256,
+        approvalToken: `${surgical.methodId}:${surgical.promptSha256}`,
+      })
+    ).toThrow(/denied candidate/i);
   });
 
   it('rejects a malformed or non-matching approval token', () => {

@@ -262,8 +262,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
   it('opens Exploring chat with the full multi-section reflection still in the tree', async () => {
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
-    fireEvent.press(screen.getByText('Continue exploring'));
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     await waitFor(() => expect(screen.getByText('Exploring the dream')).toBeTruthy());
 
@@ -277,7 +277,7 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(screen.getByText(/What would it mean to step one pace closer tomorrow/)).toBeTruthy();
   });
 
-  it('keeps a quiet localized continuation after an intentional no-question ending', async () => {
+  it('keeps the shared product continuation after an intentional no-question ending', async () => {
     mockGetInterpretationByDreamId.mockResolvedValue({
       ...interpretation,
       messages: [{
@@ -293,7 +293,7 @@ describe('DreamDetail exploring chat scroll flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    const continuation = await screen.findByText('Συνέχισε την εξερεύνηση');
+    const continuation = await screen.findByText('Continue the conversation');
     expect(screen.queryByTestId('reflective-question-card')).toBeNull();
     fireEvent.press(continuation);
     expect(await screen.findByText('Exploring the dream')).toBeTruthy();
@@ -302,8 +302,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
   it('keeps the nested chat ScrollView scrollable (bounded height, nestedScroll, no overflow hidden)', async () => {
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
-    fireEvent.press(screen.getByText('Continue exploring'));
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     const chatSection = await screen.findByTestId('dream-detail-chat-section');
     const chatScroll = await screen.findByTestId(DREAM_DETAIL_CHAT_SCROLL_TEST_ID);
@@ -329,8 +329,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
-    fireEvent.press(screen.getByText('Continue exploring'));
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     fireEvent.changeText(
       screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),
@@ -385,8 +385,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
-    fireEvent.press(screen.getByText('Continue exploring'));
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     fireEvent.changeText(
       screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),
@@ -417,8 +417,8 @@ describe('DreamDetail exploring chat scroll flow', () => {
 
     const screen = render(<DreamDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText('Continue exploring')).toBeTruthy());
-    fireEvent.press(screen.getByText('Continue exploring'));
+    await waitFor(() => expect(screen.getByText('Continue the conversation')).toBeTruthy());
+    fireEvent.press(screen.getByText('Continue the conversation'));
 
     fireEvent.changeText(
       screen.getByPlaceholderText('Ask about an image, feeling, or pattern...'),

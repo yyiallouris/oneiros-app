@@ -1,9 +1,9 @@
 export const END_MARKER_DREAM_ESSAY = '<!--END_DREAM_ESSAY-->';
 
 export const PERIOD_REFLECTION_PROMPT_ID = 'oneiros-period-reflection-v2';
-export const PERIOD_REFLECTION_PROMPT_VERSION = '2.0.3-phase1';
+export const PERIOD_REFLECTION_PROMPT_VERSION = '2.0.4-phase1';
 export const RECENT_DREAM_FIELD_PROMPT_ID = 'oneiros-recent-dream-field-v2';
-export const RECENT_DREAM_FIELD_PROMPT_VERSION = '2.0.3-phase1';
+export const RECENT_DREAM_FIELD_PROMPT_VERSION = '2.0.4-phase1';
 
 /** Phase 1 deliberately keeps the June 9 metadata-heavy essay context unchanged. */
 export const ESSAY_CONTEXT_VERSION = 1;
@@ -112,6 +112,7 @@ They may be observational, symbolic, relational, or somatic.
 Questions invite noticing, not self-improvement.
 No advice verbs such as try, practice, breathe, relax, focus, improve, or work on.
 Do not ask the dreamer to rank, choose, or decide between field elements unless the supplied dreams explicitly contain that choice.
+Do not hide an answer menu inside one grammatical question by offering X or Y.
 Do not ask them to remember unreported footage.
 Do not state an inferred meaning as though the dreams literally established it.
 Do not use a question to invent a cross-dream relation the essay did not already support.`;
@@ -308,7 +309,7 @@ ${params.languageInstruction}`.trim();
 }
 
 export function buildEssayCompressionRetryPrompt(length: EssayLengthPolicy): string {
-  return `Your previous essay was too long, incomplete, or missing its completion marker.
+  return `Your previous essay was too long, incomplete, missing its completion marker, or violated the reflective-question structure.
 Rewrite the entire essay from scratch in a compact complete form.
 Do not continue the previous response.
 

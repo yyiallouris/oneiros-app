@@ -22,10 +22,10 @@ describe('edge reflection prompt flow', () => {
     const promptSource = readFileSync(path.join(repoRoot, 'src/ai/dreamReflectionPrompt.ts'), 'utf8');
     const editorialArcSource = readFileSync(path.join(repoRoot, 'src/ai/reflectionEditorialArc.ts'), 'utf8');
 
-    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.2.0');
-    expect(DREAM_REFLECTION_PROMPT_VERSION).toBe('3.2.0');
-    expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.0');
-    expect(REFLECTIVE_DIALOGUE_PROMPT_VERSION).toBe('2.0.0');
+    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.2.3-candidate');
+    expect(DREAM_REFLECTION_PROMPT_VERSION).toBe('3.2.3-candidate');
+    expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.1');
+    expect(REFLECTIVE_DIALOGUE_PROMPT_VERSION).toBe('2.0.1');
     expect(clientAi).toMatch(/buildInitialReflectionRequest/);
     expect(clientAi).toMatch(/buildChatFollowupRequest/);
     expect(billingAi).toMatch(/buildInitialReflectionRequest/);
@@ -45,7 +45,7 @@ describe('edge reflection prompt flow', () => {
       { title: 'Sea', date: '2026-08-27', content: 'I enter the sea and wake on the shore.' },
       'advanced'
     );
-    expect(advanced.messages).toHaveLength(4);
+    expect(advanced.messages).toHaveLength(5);
     expect(advanced.messages[2].content).toContain('Linger longer, not explain more');
     expect(advanced.messages[2].content).not.toContain('Return zero or one question');
     expect(advanced.temperature).toBe(0.6);
@@ -60,7 +60,7 @@ describe('edge reflection prompt flow', () => {
       .filter((message) => message.role === 'system')
       .map((message) => message.content)
       .join('\n');
-    expect(chatSystem).toContain('Follow-up chat — Oneiros method 2.0.0');
+    expect(chatSystem).toContain('Follow-up chat — Oneiros method 2.0.1');
     expect(chatSystem).toContain('exactly one natural reflective question');
     expect(chatSystem).not.toContain('Core Mode Logic');
     expect(billingAi).toMatch(/finalizeSameCallReading/);

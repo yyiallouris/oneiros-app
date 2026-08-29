@@ -1,4 +1,13 @@
-import { isWebContentConstrained, layout, resolveWebContentWidth } from '../src/theme/layout';
+import {
+  floatingTabBar,
+  isWebContentConstrained,
+  layout,
+  resolveFloatingTabBarBottom,
+  resolveFloatingTabBarContentInset,
+  resolveFloatingTabBarOccupancy,
+  resolveWebContentWidth,
+} from '../src/theme/layout';
+import { spacing } from '../src/theme/spacing';
 
 describe('web layout tokens', () => {
   it('keeps narrow phone browsers full-bleed up to the phone max', () => {
@@ -26,5 +35,31 @@ describe('web layout tokens', () => {
       layout.contentMaxWidthTablet
     );
     expect(resolveWebContentWidth(width)).toBe(expected);
+  });
+});
+
+describe('floating tab bar clearance', () => {
+  it('keeps occupancy and CTA inset aligned with the parchment shelf geometry', () => {
+    expect(floatingTabBar.contentGap).toBe(spacing.md);
+
+    expect(resolveFloatingTabBarBottom(0)).toBe(floatingTabBar.bottomOffset);
+    expect(resolveFloatingTabBarBottom(34)).toBe(34 + floatingTabBar.bottomOffset);
+    expect(resolveFloatingTabBarOccupancy(0)).toBe(
+      floatingTabBar.bottomOffset + floatingTabBar.height
+    );
+
+    const contentInset = resolveFloatingTabBarContentInset(0);
+    expect(contentInset).toBe(
+      floatingTabBar.bottomOffset + floatingTabBar.height + floatingTabBar.contentGap
+    );
+    expect(contentInset).toBeGreaterThan(resolveFloatingTabBarOccupancy(0));
+  });
+
+  it('treats invalid safe-area values as zero instead of drifting the shelf', () => {
+    expect(resolveFloatingTabBarBottom(Number.NaN)).toBe(floatingTabBar.bottomOffset);
+    expect(resolveFloatingTabBarBottom(-12)).toBe(floatingTabBar.bottomOffset);
+    expect(resolveFloatingTabBarContentInset(0, Number.NaN)).toBe(
+      resolveFloatingTabBarOccupancy(0) + floatingTabBar.contentGap
+    );
   });
 });

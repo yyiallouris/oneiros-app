@@ -25,11 +25,21 @@ import {
   buildChatFollowupRequest,
   buildInitialReflectionRequest,
   END_MARKER_DREAM_READING,
+  DREAM_REFLECTION_PROMPT_ID,
   SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+  SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256,
 } from '../../../src/ai/dreamReflectionPrompt.ts';
 import {
   extractSameCallReflectiveQuestions,
+  normalizeCompletedReflectiveQuestionStructure,
+  REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY,
+  type ReflectiveQuestionStructureNormalization,
 } from '../../../src/ai/reflectiveQuestionExtract.ts';
+import {
+  safeObserveReflectiveContract,
+  type ReflectiveContractObservation,
+  type ReflectiveContractObservationParams,
+} from '../../../src/ai/reflectiveContractObservation.ts';
 import {
   type ReflectiveQuestionArtifact,
 } from '../../../src/ai/reflectiveQuestionPrompt.ts';
@@ -55,6 +65,7 @@ import {
   type PeriodEssayScope,
 } from '../../../src/ai/reflectiveEssayPrompt.ts';
 import { buildMetadataFirstEssayContext } from '../../../src/ai/reflectiveEssayContext.ts';
+import { normalizeOneirosLanguageCode } from '../../../src/constants/oneirosLanguages.ts';
 import {
   auditDreamExtractionOutputLanguage,
   resolveDreamOutputLanguage,
@@ -197,6 +208,16 @@ type ReflectionProgressCallback = (progress: {
   done: boolean;
 }) => Promise<void> | void;
 
+function observeReflectiveContractFailOpen(
+  params: ReflectiveContractObservationParams
+): ReflectiveContractObservation {
+  return safeObserveReflectiveContract(params, {
+    onError: (diagnostic) => {
+      console.warn('[billing-ai] reflective contract shadow observer error', diagnostic);
+    },
+  });
+}
+
 const DEFAULT_AI_PROXY_TIMEOUT_MS = 60000;
 const AI_COST_FIELD = '__oneiros_ai_cost';
 const DEDICATED_ARCHETYPE_PIPELINE_MAX_ATTEMPTS = 2;
@@ -225,11 +246,6 @@ async function invokeOpenAiProxy(params: {
   tokenLimit: number;
   responseFormat?:
     | ReturnType<typeof buildDreamExtractionResponseFormat>
-    | ReflectiveQuestionResponseFormat
-    | ReflectiveDialogueResponseFormat
-    | ReturnType<typeof buildQuestionIntegrityGateResponseFormat>
-    | ReturnType<typeof buildQuestionRepairResponseFormat>
-    | ReturnType<typeof buildQuestionPremiseCheckResponseFormat>
     | { type: 'json_object' };
   timeoutMs?: number;
   skipStructuredValidation?: boolean;
@@ -1093,6 +1109,15 @@ export type DreamReflectionResult = {
   text: string;
   cost: AiCallCost | null;
   reflectiveQuestions: string[];
+  contractValidation: ReflectiveContractObservation;
+  questionStructureNormalization: ReflectiveQuestionStructureNormalization;
+  reflectiveQuestionRuntime: {
+    runtime_bundle_identity: typeof REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY;
+    method_id: typeof SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID;
+    prompt_sha256: typeof SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256;
+    reader_prompt_id: typeof DREAM_REFLECTION_PROMPT_ID;
+    normalizer_version: ReflectiveQuestionStructureNormalization['normalizer_version'];
+  };
 };
 /** @deprecated Use DreamReflectionResult. Kept for gateway log compatibility during restore. */
 export type DreamReflectionEditorialArcResult = DreamReflectionResult;
@@ -1127,6 +1152,11 @@ export async function generateDreamReflectionWithCost(params: {
   onProgress?: ReflectionProgressCallback;
 }): Promise<DreamReflectionResult> {
   const request = buildReflectionMessages(params.dream, params.depth);
+  const languageContext = request.reflectiveLanguageContext;
+  if (!languageContext) {
+    throw new HttpError(500, 'Initial reflection language contract was not resolved');
+  }
+
   const onProgress = params.onProgress
     ? async (progress: Parameters<NonNullable<ReflectionProgressCallback>>[0]) => {
         await params.onProgress?.({
@@ -1136,7 +1166,7 @@ export async function generateDreamReflectionWithCost(params: {
       }
     : undefined;
 
-  const streamedOrComplete = onProgress
+  const generated = onProgress
     ? await invokeOpenAiProxyStream({
         authHeader: params.authHeader,
         ...request,
@@ -1150,17 +1180,44 @@ export async function generateDreamReflectionWithCost(params: {
         cost: aiCallCostFromPayload(payload),
       }));
 
+  const normalized = normalizeCompletedReflectiveQuestionStructure({
+    content: generated.content,
+    surface: params.depth,
+    requiredEndMarker: END_MARKER_DREAM_READING,
+  });
+  const contractValidation = observeReflectiveContractFailOpen({
+    content: normalized.content,
+    contractSurface: params.depth,
+    telemetrySurface: `reading_${params.depth}`,
+    languageContext,
+    requiredEndMarker: END_MARKER_DREAM_READING,
+  });
+
   const reading = finalizeSameCallReading({
-    content: streamedOrComplete.content,
-    cost: streamedOrComplete.cost,
+    content: normalized.content,
+    cost: generated.cost,
     depth: params.depth,
   });
   console.log('[billing-ai] same-call reflective questions', {
     methodId: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
     depth: params.depth,
     questionCount: reading.reflectiveQuestions.length,
+    questionStructureNormalization: normalized.normalization,
+    contractValidation,
   });
-  return reading;
+  const reflectiveQuestionRuntime = {
+    runtime_bundle_identity: REFLECTIVE_QUESTION_RUNTIME_BUNDLE_IDENTITY,
+    method_id: SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
+    prompt_sha256: SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256,
+    reader_prompt_id: DREAM_REFLECTION_PROMPT_ID,
+    normalizer_version: normalized.normalization.normalizer_version,
+  } as const;
+  return {
+    ...reading,
+    contractValidation,
+    questionStructureNormalization: normalized.normalization,
+    reflectiveQuestionRuntime,
+  };
 }
 
 export async function generateDreamReflection(params: {
@@ -1756,7 +1813,12 @@ export async function generateFollowupReply(params: {
   userMessage: string;
   assistantRepliesUsed: number;
   assistantRepliesLimit: number;
-}): Promise<{ text: string; reflectiveQuestions: string[]; cost: AiCallCost | null }> {
+}): Promise<{
+  text: string;
+  reflectiveQuestions: string[];
+  cost: AiCallCost | null;
+  contractValidation: ReflectiveContractObservation;
+}> {
   const isFinalResponse = params.assistantRepliesUsed + 1 >= params.assistantRepliesLimit;
   const request = buildFollowupMessages(
     params.dream,
@@ -1769,15 +1831,25 @@ export async function generateFollowupReply(params: {
     ...request,
   });
   const text = extractContent(payload).trim();
+  const cost = aiCallCostFromPayload(payload);
   if (!text) {
     throw new HttpError(502, 'AI proxy returned empty follow-up reply');
   }
+  const contractValidation = observeReflectiveContractFailOpen({
+    content: text,
+    contractSurface: 'chat',
+    telemetrySurface: isFinalResponse ? 'chat_followup_close' : 'chat_followup',
+    languageContext: request.reflectiveLanguageContext,
+    isFinalChat: isFinalResponse,
+  });
+  console.log('[billing-ai] follow-up contract shadow observation', contractValidation);
   return {
     text,
     reflectiveQuestions: extractSameCallReflectiveQuestions(text, 'chat', {
       isFinalChat: isFinalResponse,
     }),
-    cost: aiCallCostFromPayload(payload),
+    cost,
+    contractValidation,
   };
 }
 
@@ -1801,7 +1873,27 @@ async function generateEssayWithOperationalRetry(params: {
   lengthPolicy: EssayLengthPolicy;
   language: string;
   essayKind: 'period' | 'recent';
-}): Promise<{ content: string; cost: AiCallCost | null }> {
+}): Promise<{
+  content: string;
+  cost: AiCallCost | null;
+  contractValidation: ReflectiveContractObservation;
+}> {
+  const expectedLanguageCode = normalizeOneirosLanguageCode(params.language);
+  const observeEssay = (content: string) => observeReflectiveContractFailOpen({
+    content,
+    contractSurface: 'essay',
+    telemetrySurface: params.essayKind === 'recent'
+      ? 'recent_dream_field'
+      : 'period_reflection',
+    languageContext: expectedLanguageCode
+      ? {
+          source: 'dream_narrative',
+          sourceText: '',
+          expectedLanguageCode,
+        }
+      : null,
+    requiredEndMarker: END_MARKER_DREAM_ESSAY,
+  });
   const primaryPayload = await invokeOpenAiProxy({
     authHeader: params.authHeader,
     ...params.request,
@@ -1816,9 +1908,12 @@ async function generateEssayWithOperationalRetry(params: {
   );
 
   if (!primaryIncomplete && !primaryTooLong) {
+    const contractValidation = observeEssay(primaryMarkedContent);
+    console.log('[billing-ai] pattern essay contract shadow observation', contractValidation);
     return {
       content: stripEndMarker(primaryMarkedContent, END_MARKER_DREAM_ESSAY),
       cost: aiCallCostFromPayload(primaryPayload),
+      contractValidation,
     };
   }
 
@@ -1843,7 +1938,6 @@ async function generateEssayWithOperationalRetry(params: {
   if (essayPayloadIsTruncated(retryPayload) || !retryMarkedContent.includes(END_MARKER_DREAM_ESSAY)) {
     throw new HttpError(502, 'AI proxy returned an incomplete compact essay');
   }
-
   const retryWordCount = countRenderedEssayWords(retryMarkedContent, params.language);
   const beyondTolerance = essayExceedsRetryTolerance(
     retryMarkedContent,
@@ -1859,12 +1953,15 @@ async function generateEssayWithOperationalRetry(params: {
     beyondTolerance,
   });
 
+  const contractValidation = observeEssay(retryMarkedContent);
+  console.log('[billing-ai] pattern essay contract shadow observation', contractValidation);
   return {
     content: stripEndMarker(retryMarkedContent, END_MARKER_DREAM_ESSAY),
     cost: sumAiCallCosts([
       aiCallCostFromPayload(primaryPayload),
       aiCallCostFromPayload(retryPayload),
     ]),
+    contractValidation,
   };
 }
 
@@ -1872,7 +1969,11 @@ export async function generateRecentReflection(
   authHeader: string,
   entries: PatternEntry[],
   language: string
-): Promise<{ content: string; cost: AiCallCost | null }> {
+): Promise<{
+  content: string;
+  cost: AiCallCost | null;
+  contractValidation: ReflectiveContractObservation;
+}> {
   return generateEssayWithOperationalRetry({
     authHeader,
     request: buildRecentEssayMessages(entries, language),
@@ -1888,7 +1989,11 @@ export async function generatePeriodReflection(
   entries: PatternEntry[],
   scope: PeriodReflectionPromptScope,
   language: string
-): Promise<{ content: string; cost: AiCallCost | null }> {
+): Promise<{
+  content: string;
+  cost: AiCallCost | null;
+  contractValidation: ReflectiveContractObservation;
+}> {
   const lengthPolicy = getPeriodEssayLengthPolicy(entries.length);
   return generateEssayWithOperationalRetry({
     authHeader,

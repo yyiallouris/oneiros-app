@@ -53,6 +53,10 @@ import {
 } from '../_shared/billing-db.ts';
 import { corsHeaders, handleError, HttpError, jsonResponse, readJson } from '../_shared/http.ts';
 import { createAdminClient, requireUser } from '../_shared/supabase.ts';
+import {
+  reconstructCommittedFollowupReplay,
+  type PersistedFollowupMessage,
+} from '../_shared/followup-replay.ts';
 
 type GatewayBody = {
   action: GatewayAction;
@@ -364,6 +368,9 @@ async function buildAndSaveReflection(params: {
     reflectionAiMs: params.timings.reflectionAiMs,
     aiCost: safeCostLog(reflectionCost),
     reflectiveQuestionCount: reflectiveQuestions.length,
+    questionStructureNormalization: reflectionResult.questionStructureNormalization,
+    reflectiveQuestionRuntime: reflectionResult.reflectiveQuestionRuntime,
+    contractValidation: reflectionResult.contractValidation,
   });
 
   const interpretationId = params.existing?.id ?? crypto.randomUUID();
@@ -422,6 +429,12 @@ async function buildAndSaveReflection(params: {
       save_reflection_ms: params.timings.saveReflectionMs,
       reflection_ai_cost: safeCostLog(reflectionCost),
       reflection_cost_usd: costUsd(reflectionCost),
+      contract_validation: {
+        ...reflectionResult.contractValidation,
+        observed_at: new Date().toISOString(),
+      },
+      question_structure_normalization: reflectionResult.questionStructureNormalization,
+      reflective_question_runtime: reflectionResult.reflectiveQuestionRuntime,
     },
   };
 }
@@ -651,7 +664,7 @@ serve(async (req: Request) => {
             extraction: {
               display_distillation: interpretation.display_distillation as DreamExtraction['display_distillation'],
               symbols: interpretation.symbols ?? [],
-              archetypes: interpretation.archetypes ?? [],
+              archetypes: (interpretation.archetypes ?? []) as DreamExtraction['archetypes'],
               landscapes: interpretation.landscapes ?? [],
               affects: interpretation.affects ?? [],
               motifs: interpretation.motifs ?? [],
@@ -659,7 +672,7 @@ serve(async (req: Request) => {
               thresholds: interpretation.thresholds ?? [],
               central_conflicts: interpretation.central_conflicts ?? [],
               core_mode: interpretation.core_mode ?? null,
-              amplifications: interpretation.amplifications ?? [],
+              amplifications: (interpretation.amplifications ?? []) as DreamExtraction['amplifications'],
               symbol_stances: interpretation.symbol_stances ?? [],
             },
             reflectionOrigin: interpretation.reflection_origin ?? 'paid_cycle',
@@ -1010,7 +1023,7 @@ serve(async (req: Request) => {
           reflection,
           reflectionCost,
           debugInterpretiveEchoes: body.debug_interpretive_echoes === true,
-          debugFaultInjectionCase: body.debug_fault_injection_case ?? null,
+          debugFaultInjectionCase: body.debug_fault_injection_case ?? undefined,
         });
         await finishMetadataExtraction(admin, userId, interpretation.id, 'completed');
       } catch (error) {
@@ -1097,6 +1110,7 @@ serve(async (req: Request) => {
           const conversation = asChatMessages(interpretation.messages ?? []);
           const assistantRepliesUsed = interpretation.chat_replies_used ?? 0;
           const assistantRepliesLimit = interpretation.chat_replies_limit ?? 5;
+          const followupStartedAt = measureStart();
           const followup = await generateFollowupReply({
             authHeader,
             dream,
@@ -1105,20 +1119,23 @@ serve(async (req: Request) => {
             assistantRepliesUsed,
             assistantRepliesLimit,
           });
+          const followupAiMs = measureSince(followupStartedAt);
 
           // Persist messages only after quota commit succeeds (see executeQuotaJob).
           // Saving before commit left orphan chat turns when billing_commit_quota failed
           // on text interpretation ids cast to uuid.
+          const userMessageId = crypto.randomUUID();
+          const assistantMessageId = crypto.randomUUID();
           const nextMessages = [
             ...((interpretation.messages ?? []) as Record<string, unknown>[]),
             {
-              id: crypto.randomUUID(),
+              id: userMessageId,
               role: 'user',
               content: body.message!.trim(),
               timestamp: new Date().toISOString(),
             },
             {
-              id: crypto.randomUUID(),
+              id: assistantMessageId,
               role: 'assistant',
               content: followup.text,
               timestamp: new Date().toISOString(),
@@ -1136,6 +1153,15 @@ serve(async (req: Request) => {
             },
             result: {
               interpretation_id: interpretation.id,
+              chat_followup_user_message_id: userMessageId,
+              chat_followup_assistant_message_id: assistantMessageId,
+              chat_followup_ai_ms: followupAiMs,
+              chat_followup_ai_cost: safeCostLog(followup.cost),
+              chat_followup_cost_usd: costUsd(followup.cost),
+              contract_validation: {
+                ...followup.contractValidation,
+                observed_at: new Date().toISOString(),
+              },
             },
           };
         },
@@ -1145,25 +1171,46 @@ serve(async (req: Request) => {
         return jsonResponse(normalizeReservation(result.reservation), 200, methods);
       }
 
-      const committed = result.value as {
+      const generated = result.value as {
         interpretation_id: string;
         assistant_reply: string;
         next_messages: Record<string, unknown>[];
+      } | undefined;
+      const replay = generated
+        ? null
+        : reconstructCommittedFollowupReplay({
+            interpretationId: interpretation.id,
+            requestMessage: body.message.trim(),
+            messages: asChatMessages(interpretation.messages ?? []) as PersistedFollowupMessage[],
+            quotaResult: result.reservation.result,
+          });
+      if (!generated && !replay) {
+        throw new HttpError(409, 'Committed follow-up response is unavailable');
+      }
+
+      const committed = generated ?? {
+        interpretation_id: replay!.interpretationId,
+        assistant_reply: replay!.assistantReply,
+        next_messages: replay!.messages,
       };
 
-      await saveInterpretation(admin, {
-        id: interpretation.id,
-        user_id: userId,
-        dream_id: interpretation.dream_id,
-        messages: committed.next_messages,
-        updated_at: new Date().toISOString(),
-      });
+      if (generated) {
+        await saveInterpretation(admin, {
+          id: interpretation.id,
+          user_id: userId,
+          dream_id: interpretation.dream_id,
+          messages: committed.next_messages,
+          updated_at: new Date().toISOString(),
+        });
+      }
 
       return jsonResponse(
         {
           status: 'committed',
           interpretation_id: committed.interpretation_id,
           assistant_reply: committed.assistant_reply,
+          messages: committed.next_messages,
+          cached: !generated,
         },
         200,
         methods
@@ -1237,6 +1284,10 @@ serve(async (req: Request) => {
               recent_dream_field_ai_ms: aiMs,
               recent_dream_field_ai_cost: safeCostLog(generated.cost),
               recent_dream_field_cost_usd: costUsd(generated.cost),
+              contract_validation: {
+                ...generated.contractValidation,
+                observed_at: new Date().toISOString(),
+              },
             },
           };
         },
@@ -1355,6 +1406,10 @@ serve(async (req: Request) => {
               period_reflection_ai_ms: aiMs,
               period_reflection_ai_cost: safeCostLog(generated.cost),
               period_reflection_cost_usd: costUsd(generated.cost),
+              contract_validation: {
+                ...generated.contractValidation,
+                observed_at: new Date().toISOString(),
+              },
             },
           };
         },

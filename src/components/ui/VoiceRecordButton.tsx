@@ -24,8 +24,8 @@ import {
 import { voiceTranscriptionQueueService } from '../../services/voiceTranscriptionQueueService';
 import { PendingVoiceTranscription, VoiceTranscriptionTarget } from '../../types/dream';
 import { isOnline } from '../../utils/network';
+import { MicrophoneActionIcon } from '../icons/ActionIcons';
 
-const micPlayIcon = require('../../assets/icons/action_icons/mic_play.png');
 const micStopIcon = require('../../assets/icons/action_icons/mic_stop.png');
 const MAX_RECORDING_MS = 5 * 60 * 1000;
 const LONG_RECORDING_NOTICE_MS = 4.5 * 60 * 1000;
@@ -515,7 +515,7 @@ export const VoiceRecordButton: React.FC<VoiceRecordButtonProps> = ({
         ) : isRecording ? (
           <Image source={micStopIcon} style={styles.stopIconImage} resizeMode="contain" testID="voice-record-stop-icon" />
         ) : (
-          <Image source={micPlayIcon} style={styles.playIconImage} resizeMode="contain" testID="voice-record-play-icon" />
+          <MicrophoneActionIcon testID="voice-record-play-icon" />
         )}
       </TouchableOpacity>
     </View>
@@ -528,7 +528,6 @@ const styles = StyleSheet.create({
   fieldRecordButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'transparent' },
   recordButtonActive: { opacity: 0.92 },
   recordButtonDisabled: { opacity: 0.45 },
-  playIconImage: { width: 29, height: 29 },
   stopIconImage: { width: 40, height: 40 },
   durationContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   durationText: {

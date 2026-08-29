@@ -20,9 +20,9 @@ import {
 describe('reflective essay v2 prompt contract', () => {
   it('freezes the accepted Phase 1 prompt and production context', () => {
     expect(PERIOD_REFLECTION_PROMPT_ID).toBe('oneiros-period-reflection-v2');
-    expect(PERIOD_REFLECTION_PROMPT_VERSION).toBe('2.0.3-phase1');
+    expect(PERIOD_REFLECTION_PROMPT_VERSION).toBe('2.0.4-phase1');
     expect(RECENT_DREAM_FIELD_PROMPT_ID).toBe('oneiros-recent-dream-field-v2');
-    expect(RECENT_DREAM_FIELD_PROMPT_VERSION).toBe('2.0.3-phase1');
+    expect(RECENT_DREAM_FIELD_PROMPT_VERSION).toBe('2.0.4-phase1');
     expect(ESSAY_CONTEXT_VERSION).toBe(1);
   });
 

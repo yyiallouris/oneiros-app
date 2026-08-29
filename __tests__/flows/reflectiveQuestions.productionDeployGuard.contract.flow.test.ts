@@ -1,6 +1,6 @@
 /**
  * Flow coverage: documentation/flows-06-jungian-ai-reflection.md
- * Locked contract: held Reflective Questions candidate identity + R&D isolation.
+ * Locked contract: approved Reflective Questions identity + R&D isolation.
  */
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
@@ -11,6 +11,8 @@ import { REFLECTIVE_QUESTION_LANGUAGE_OPERATOR_CANDIDATE_B_SHA256 } from '../../
 import { REFLECTION_EDITORIAL_ARC_METHOD_ID } from '../../src/ai/reflectionEditorialArc';
 import {
   APPROVED_REFLECTIVE_QUESTION_PRODUCTION,
+  APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE,
+  CANONICAL_REFLECTIVE_QUESTION_RELEASE,
   DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES,
   FROZEN_REFLECTIVE_QUESTION_RESEARCH_BASE_SHA256,
   PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE,
@@ -19,6 +21,7 @@ import {
   RECOVERED_DEPLOYED_REFLECTIVE_QUESTION_PROMPT_SHA256,
   REFLECTIVE_QUESTION_RD_ROOT,
   REFLECTIVE_QUESTION_RUNTIME_FILES,
+  REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY,
   assertReflectiveQuestionRuntimeHasNoRdImports,
 } from '../../src/ai/reflectiveQuestionProductionHold';
 import { ARCHIVED_REFLECTIVE_QUESTION_EXPERIMENT_ENV_FLAGS } from '../../src/ai/rd/reflective-questions/archivedFlags';
@@ -37,13 +40,34 @@ describe('reflective question production deploy guard contract', () => {
     }
   });
 
-  it('pins the launch same-call identity while keeping failed predecessors denied', () => {
+  it('pins the PO-approved v1.0.3 runtime while keeping failed predecessors denied', () => {
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION).toEqual({
-      methodId: 'oneiros-same-call-reflective-questions-v1.0.0',
-      promptSha256: '25b1114af6b9fea57897d504bc9cc8134c0d65392d9c9b561136071803f41e2c',
+      methodId: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
+    });
+    expect(REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY).toEqual({
+      normalizerVersion: 'oneiros-reflective-question-structure-normalizer-v1.0.0',
+      permittedOperation: 'insert_missing_reflective_questions_heading',
+    });
+    expect(APPROVED_REFLECTIVE_QUESTION_RUNTIME_BUNDLE).toEqual({
+      identity: 'oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0',
+      readerPromptId: 'oneiros-dream-reflection-v3.2.3-candidate',
+      questionMethodId: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      questionPromptSha256:
+        'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
+      normalizerVersion: 'oneiros-reflective-question-structure-normalizer-v1.0.0',
+    });
+    expect(CANONICAL_REFLECTIVE_QUESTION_RELEASE).toMatchObject({
+      version: '1.0.3',
+      methodAlias: 'oneiros-same-call-reflective-questions-v1.0.3',
+      evaluatedMethodArtifact: 'oneiros-same-call-reflective-questions-v1.0.3-candidate',
+      promptSha256: 'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7',
+      readerAlias: 'oneiros-dream-reflection-v3.2.3',
+      evaluatedReaderArtifact: 'oneiros-dream-reflection-v3.2.3-candidate',
+      gatewayVersion: 113,
     });
     expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.methodId).toBe(
       'oneiros-reflective-question-v2.0.1'
@@ -51,6 +75,10 @@ describe('reflective question production deploy guard contract', () => {
     expect(REVOKED_REFLECTIVE_QUESTION_PRODUCTION.promptSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          methodId: 'oneiros-same-call-reflective-questions-v1.0.2-candidate',
+          promptSha256: '94d4a92a4a88d4104fa3dcc5790209a4fd3b34cec56dc1724eade78255798b96',
+        }),
         expect.objectContaining({
           methodId: REFLECTION_EDITORIAL_ARC_METHOD_ID,
           promptSha256: '6cd304e1c246f237f21743232de32723e81656f9c8cb3c4f51ee49fe26249b49',
@@ -101,7 +129,7 @@ describe('reflective question production deploy guard contract', () => {
     const prompt = read('src/ai/dreamReflectionPrompt.ts');
     const composer = read('src/ai/reflectiveQuestionComposer.ts');
     const editorialArc = read('src/ai/reflectionEditorialArc.ts');
-    expect(prompt).toMatch(/oneiros-dream-reflection-v3\.2\.0/);
+    expect(prompt).toMatch(/oneiros-dream-reflection-v3\.2\.3-candidate/);
     expect(composer).toMatch(/oneiros-reflective-question-composer-v1\.1\.0-candidate/);
     expect(composer).toMatch(/living symbolic experience/);
     expect(editorialArc).toMatch(/Before writing the reading, decide whether this dream holds one honest opening/);
@@ -115,6 +143,9 @@ describe('reflective question production deploy guard contract', () => {
     expect(read('src/services/ai.ts')).not.toMatch(/from '\.\.\/ai\/rd\//);
     expect(read('supabase/functions/_shared/billing-ai.ts')).not.toMatch(
       /src\/ai\/reflectiveQuestionPipeline\.ts/
+    );
+    expect(read('src/ai/reflectiveQuestionPrompt.ts')).not.toMatch(
+      /from '\.\/reflectiveQuestionPipeline\.ts'/
     );
   });
 
@@ -141,7 +172,13 @@ describe('reflective question production deploy guard contract', () => {
     expect(pkg.scripts['review:reflective-questions']).toBeUndefined();
     expect(gatewayReadme).toMatch(/npm run deploy:ai-entitlements-gateway/);
     expect(guard).toMatch(/SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE/);
+    expect(guard).toMatch(/readerSource\.includes\(SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID\)/);
+    expect(guard).not.toMatch(/readerSource\.includes\('oneiros-same-call-reflective-questions-v1\.0\.0'\)/);
     expect(guard).toMatch(/assertReflectiveQuestionRuntimeHasNoRdImports/);
+    expect(guard).toMatch(/normalizeCompletedReflectiveQuestionStructure/);
+    expect(guard).toMatch(/question_structure_normalization/);
+    expect(guard).toMatch(/REFLECTIVE_QUESTION_STRUCTURE_NORMALIZER_IDENTITY/);
+    expect(guard).toMatch(/CANONICAL_REFLECTIVE_QUESTION_RELEASE/);
   });
 
   it('archives the mega-runner away from current R&D selection', () => {

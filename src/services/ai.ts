@@ -28,6 +28,10 @@ import {
   END_MARKER_DREAM_READING,
   type DreamReflectionDepth,
 } from '../ai/dreamReflectionPrompt';
+import type { ReflectiveLanguageContext } from '../ai/reflectiveLanguage';
+import { safeObserveReflectiveContract } from '../ai/reflectiveContractObservation';
+import { normalizeCompletedReflectiveQuestionStructure } from '../ai/reflectiveQuestionExtract';
+import { normalizeOneirosLanguageCode } from '../constants/oneirosLanguages';
 import { splitReflectionEditorialArc } from '../ai/reflectionEditorialArc';
 import {
   normalizeMainTensionAgainstCentralConflicts,
@@ -700,6 +704,7 @@ type InitialInterpretationRequest = {
   temperature: number;
   tokenLimit: number;
   interpretationStep: AiTask;
+  reflectiveLanguageContext: ReflectiveLanguageContext;
 };
 
 const buildInitialInterpretationRequest = (
@@ -708,6 +713,9 @@ const buildInitialInterpretationRequest = (
 ): InitialInterpretationRequest => {
   const depth = options?.depth ?? (options?.brief ? 'quick' : 'standard');
   const request = buildInitialReflectionRequest(dream, depth);
+  if (!request.reflectiveLanguageContext) {
+    throw new Error('Initial reflection language contract was not resolved.');
+  }
 
   return {
     depth,
@@ -715,6 +723,7 @@ const buildInitialInterpretationRequest = (
     temperature: request.temperature,
     tokenLimit: request.tokenLimit,
     interpretationStep: request.task,
+    reflectiveLanguageContext: request.reflectiveLanguageContext,
   };
 };
 
@@ -848,6 +857,7 @@ export const generateInitialInterpretation = async (
     temperature,
     tokenLimit: configuredTokenLimit,
     interpretationStep,
+    reflectiveLanguageContext,
   } = buildInitialInterpretationRequest(dream, options);
   const { requestId, model } = startRequest();
 
@@ -919,7 +929,10 @@ export const generateInitialInterpretation = async (
       });
     }
 
-    if (isTruncatedResponse(data) || !content.trim()) {
+    if (
+      isTruncatedResponse(data) ||
+      !content.trim()
+    ) {
       const retryTokenLimit = depth === 'quick' ? 620 : depth === 'advanced' ? 1900 : 1350;
       content = await retryCompressedInitialInterpretation({
         apiUrl,
@@ -933,6 +946,31 @@ export const generateInitialInterpretation = async (
         depth,
       });
     }
+
+    const structureNormalization = normalizeCompletedReflectiveQuestionStructure({
+      content,
+      surface: depth,
+      requiredEndMarker: END_MARKER_DREAM_READING,
+    });
+    content = structureNormalization.content;
+    logInfo('ai_reflective_question_structure_normalization', {
+      requestId,
+      dreamId: dream.id,
+      depth,
+      ...structureNormalization.normalization,
+    });
+
+    logInfo('ai_reflective_contract_shadow_observation', {
+      requestId,
+      dreamId: dream.id,
+      ...safeObserveReflectiveContract({
+        content,
+        contractSurface: depth,
+        telemetrySurface: `reading_${depth}`,
+        languageContext: reflectiveLanguageContext,
+        requiredEndMarker: END_MARKER_DREAM_READING,
+      }),
+    });
 
     if (!hasEndMarker(content, END_MARKER_DREAM_READING)) {
       logError('ai_missing_end_marker', new Error('Dream reading missing end marker'), {
@@ -1023,7 +1061,20 @@ export const sendChatMessage = async (
 
     recordDreamAiUsage(dream.id, 'chat_followup', data, aiResponseMeta(response, requestId));
 
-    return extractApiResponseContent(data);
+    const content = extractApiResponseContent(data);
+    logInfo('ai_reflective_contract_shadow_observation', {
+      requestId,
+      dreamId: dream.id,
+      ...safeObserveReflectiveContract({
+        content,
+        contractSurface: 'chat',
+        telemetrySurface: isFinalResponse ? 'chat_followup_close' : 'chat_followup',
+        languageContext: request.reflectiveLanguageContext,
+        isFinalChat: isFinalResponse,
+      }),
+    });
+
+    return content;
   } catch (error) {
     logError('ai_send_chat_error', error, { requestId, model });
     throw error;
@@ -2197,13 +2248,29 @@ Preserve extracted symbols in English only if needed, but explain them in the re
       const retryWordCount = countRenderedEssayWords(content, language);
       logInfo('ai_pattern_essay_compact_retry_result', {
         essayKind: 'period',
-        retryReason: initialIncomplete ? 'incomplete' : 'length_overflow',
+        retryReason: initialIncomplete
+          ? 'incomplete'
+          : 'length_overflow',
         wordCount: retryWordCount,
         hardMaximum: lengthPolicy.hardMaximum,
         retryToleranceCeiling: lengthPolicy.retryToleranceCeiling,
         beyondTolerance: essayExceedsRetryTolerance(content, lengthPolicy, language),
       });
     }
+
+    const expectedLanguageCode = normalizeOneirosLanguageCode(language);
+    logInfo('ai_reflective_contract_shadow_observation', {
+      requestId,
+      ...safeObserveReflectiveContract({
+        content,
+        contractSurface: 'essay',
+        telemetrySurface: 'period_reflection',
+        languageContext: expectedLanguageCode
+          ? { source: 'dream_narrative', sourceText: '', expectedLanguageCode }
+          : null,
+        requiredEndMarker: END_MARKER_DREAM_ESSAY,
+      }),
+    });
 
     return stripEndMarker(content, END_MARKER_DREAM_ESSAY);
   } catch (error) {
@@ -2337,7 +2404,9 @@ Preserve extracted symbols in English only if needed, but explain them in the re
       const retryWordCount = countRenderedEssayWords(content, language);
       logInfo('ai_pattern_essay_compact_retry_result', {
         essayKind: 'recent',
-        retryReason: initialIncomplete ? 'incomplete' : 'length_overflow',
+        retryReason: initialIncomplete
+          ? 'incomplete'
+          : 'length_overflow',
         wordCount: retryWordCount,
         hardMaximum: RECENT_DREAM_FIELD_LENGTH_POLICY.hardMaximum,
         retryToleranceCeiling: RECENT_DREAM_FIELD_LENGTH_POLICY.retryToleranceCeiling,
@@ -2348,6 +2417,20 @@ Preserve extracted symbols in English only if needed, but explain them in the re
         ),
       });
     }
+
+    const expectedLanguageCode = normalizeOneirosLanguageCode(language);
+    logInfo('ai_reflective_contract_shadow_observation', {
+      requestId,
+      ...safeObserveReflectiveContract({
+        content,
+        contractSurface: 'essay',
+        telemetrySurface: 'recent_dream_field',
+        languageContext: expectedLanguageCode
+          ? { source: 'dream_narrative', sourceText: '', expectedLanguageCode }
+          : null,
+        requiredEndMarker: END_MARKER_DREAM_ESSAY,
+      }),
+    });
 
     return stripEndMarker(content, END_MARKER_DREAM_ESSAY);
   } catch (error) {

@@ -51,6 +51,39 @@ function editorialArcResponse(reading: string, language: string = 'en'): string 
   ].join('\n');
 }
 
+function validReading(
+  label: string,
+  depth: 'quick' | 'standard' | 'advanced' = 'standard'
+): string {
+  const body = `${label}. The dream was held close to the image and its movement.`;
+  if (depth === 'quick') {
+    return `${body}\n\nWhat felt most alive in the dream?`;
+  }
+  return `${body}\n\n## Reflective Questions\n- What felt most alive in the dream?\n- Where was the pressure in your body?`;
+}
+
+function validFrenchStandardReading(): string {
+  return [
+    'Cette analyse reste dans la forêt avec une lumière douce.',
+    '',
+    '## Reflective Questions',
+    '- Que ressentez-vous dans cette lumière?',
+    '- Où le chemin reste-t-il vivant pour vous?',
+  ].join('\n');
+}
+
+function validEssay(label: string): string {
+  return [
+    `${label}. The dreams were held together through their recurring movement.`,
+    '',
+    '## Reflective Questions',
+    '- What pattern feels most alive across these dreams?',
+    '- Where does this movement meet your life now?',
+    '',
+    '<!--END_DREAM_ESSAY-->',
+  ].join('\n');
+}
+
 const dreamFixture = (overrides: Partial<Dream> = {}): Dream => ({
   id: 'dream-1',
   title: 'Test',
@@ -89,11 +122,12 @@ describe('ai service', () => {
   });
 
   it('returns interpretation when API succeeds', async () => {
+    const reading = validReading('Analysis result');
     mockFetch.mockImplementation(async () =>
       apiResponse({
         choices: [
           {
-            message: { content: editorialArcResponse('Analysis result') },
+            message: { content: editorialArcResponse(reading) },
             finish_reason: 'stop',
           },
         ],
@@ -110,7 +144,7 @@ describe('ai service', () => {
       updatedAt: '2024-01-01T00:00:00.000Z',
     });
 
-    expect(result).toBe('Analysis result');
+    expect(result).toBe(reading);
     expect(mockFetch.mock.calls.length).toBeGreaterThanOrEqual(1);
     const interpretationBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
     expect(interpretationBody.model).toBe('gpt-5.4-mini');
@@ -306,7 +340,7 @@ describe('ai service', () => {
       apiResponse({
         choices: [
           {
-            message: { content: editorialArcResponse('Analyse', 'fr') },
+            message: { content: editorialArcResponse(validFrenchStandardReading(), 'fr') },
             finish_reason: 'stop',
           },
         ],
@@ -337,7 +371,7 @@ describe('ai service', () => {
       apiResponse({
         choices: [
           {
-            message: { content: editorialArcResponse('Standard analysis') },
+            message: { content: editorialArcResponse(validReading('Standard analysis')) },
             finish_reason: 'stop',
           },
         ],
@@ -388,7 +422,7 @@ describe('ai service', () => {
       apiResponse({
         choices: [
           {
-            message: { content: editorialArcResponse('Quick analysis') },
+            message: { content: editorialArcResponse(validReading('Quick analysis', 'quick')) },
             finish_reason: 'stop',
           },
         ],
@@ -432,7 +466,7 @@ describe('ai service', () => {
       apiResponse({
         choices: [
           {
-            message: { content: editorialArcResponse('Advanced analysis') },
+            message: { content: editorialArcResponse(validReading('Advanced analysis', 'advanced')) },
             finish_reason: 'stop',
           },
         ],
@@ -509,6 +543,7 @@ describe('ai service', () => {
   });
 
   it('uses the compact advanced retry prompt when advanced output is truncated', async () => {
+    const compactReading = validReading('Compact advanced analysis', 'advanced');
     mockFetch
       .mockResolvedValueOnce(
         apiResponse({
@@ -524,7 +559,7 @@ describe('ai service', () => {
         apiResponse({
           choices: [
             {
-              message: { content: editorialArcResponse('Compact advanced analysis') },
+              message: { content: editorialArcResponse(compactReading) },
               finish_reason: 'stop',
             },
           ],
@@ -544,7 +579,7 @@ describe('ai service', () => {
       { depth: 'advanced' }
     );
 
-    expect(result).toBe('Compact advanced analysis');
+    expect(result).toBe(compactReading);
     const retryBody = JSON.parse(mockFetch.mock.calls.at(-1)?.[1]?.body as string);
     expect(retryBody.max_completion_tokens).toBe(1900);
     const retrySystemText = retryBody.messages
@@ -561,16 +596,58 @@ describe('ai service', () => {
     expect(retrySystemText).not.toMatch(/Never repair or reuse the\s+previous envelope/);
   });
 
+  it('delivers a complete reading with contract issues without a contract retry', async () => {
+    const completeButStructurallyInvalid = [
+      '## Core Shift',
+      '',
+      'The threshold stays visible without resolving.',
+      '',
+      '## Dream Movement',
+      '',
+      'The dream remains beside the closed door.',
+      '',
+      '<!--END_DREAM_READING-->',
+    ].join('\n');
+    mockFetch.mockResolvedValueOnce(
+      apiResponse({
+        choices: [{ message: { content: completeButStructurallyInvalid }, finish_reason: 'stop' }],
+      })
+    );
+
+    const result = await generateInitialInterpretation(dreamFixture(), { depth: 'standard' });
+
+    expect(result).toContain('The threshold stays visible without resolving.');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('delivers a follow-up with contract issues without retrying the reply', async () => {
+    mockFetch.mockResolvedValueOnce(
+      apiResponse({
+        choices: [{ message: { content: 'The doorway remains close to what you described.' }, finish_reason: 'stop' }],
+      })
+    );
+    const ai = await loadAiWithProxyEndpoint();
+
+    await expect(
+      ai.sendChatMessage(
+        dreamFixture(),
+        [{ id: 'm1', role: 'assistant', content: 'A reading.', timestamp: 't' }],
+        'What stays with the doorway?'
+      )
+    ).resolves.toBe('The doorway remains close to what you described.');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('attaches proxy task keys and dream headers for reflection depths and compact retry', async () => {
     mockFetch
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: editorialArcResponse('Quick') }, finish_reason: 'stop' }],
+          choices: [{ message: { content: editorialArcResponse(validReading('Quick', 'quick')) }, finish_reason: 'stop' }],
         })
       )
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: editorialArcResponse('Standard') }, finish_reason: 'stop' }],
+          choices: [{ message: { content: editorialArcResponse(validReading('Standard')) }, finish_reason: 'stop' }],
         })
       )
       .mockResolvedValueOnce(
@@ -580,7 +657,7 @@ describe('ai service', () => {
       )
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: editorialArcResponse('Retry') }, finish_reason: 'stop' }],
+          choices: [{ message: { content: editorialArcResponse(validReading('Retry', 'advanced')) }, finish_reason: 'stop' }],
         })
       );
     const ai = await loadAiWithProxyEndpoint();
@@ -644,11 +721,7 @@ describe('ai service', () => {
       .mockResolvedValueOnce(apiResponse({
         choices: [{
           message: {
-            content: JSON.stringify({
-              answer: 'The guarded door keeps the next movement close to its threshold.',
-              output_language: 'en',
-              reply_mode: 'meaning_request',
-            }),
+            content: 'The guarded door keeps the next movement close to its threshold. What changes when you stay near the door?',
           },
           finish_reason: 'stop',
         }],
@@ -676,12 +749,12 @@ describe('ai service', () => {
       )
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: 'Essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+          choices: [{ message: { content: validEssay('Essay') }, finish_reason: 'stop' }],
         })
       )
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: 'Recent\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+          choices: [{ message: { content: validEssay('Recent') }, finish_reason: 'stop' }],
         })
       )
       .mockResolvedValueOnce(
@@ -752,7 +825,7 @@ describe('ai service', () => {
       )
       .mockResolvedValueOnce(
         apiResponse({
-          choices: [{ message: { content: 'Compact essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+          choices: [{ message: { content: validEssay('Compact essay') }, finish_reason: 'stop' }],
         })
       );
     const ai = await loadAiWithProxyEndpoint();
@@ -767,8 +840,34 @@ describe('ai service', () => {
     expect(bodies.map((body) => body.task)).toEqual(['pattern_insights', 'pattern_insights_retry_compact']);
   });
 
+  it('does not retry a complete essay solely for question-structure observations', async () => {
+    const completeWithoutQuestions = [
+      '## The Month’s Dream Field',
+      '',
+      'The dreams remain separate rather than forming one field.',
+      '',
+      '<!--END_DREAM_ESSAY-->',
+    ].join('\n');
+    mockFetch.mockResolvedValueOnce(
+      apiResponse({
+        choices: [{ message: { content: completeWithoutQuestions }, finish_reason: 'stop' }],
+      })
+    );
+    const ai = await loadAiWithProxyEndpoint();
+
+    const result = await ai.generatePatternInsights(
+      [{ dreamId: 'dream-1', date: '2024-01-01', extracted: { symbols: ['door'], symbol_stances: [], archetypes: [], landscapes: [], affects: [], motifs: [], relational_dynamics: [], thresholds: [], central_conflicts: [], core_mode: null, amplifications: [] }, interpretation: 'A reading.' }],
+      'monthly',
+      'en'
+    );
+
+    expect(result).toContain('The dreams remain separate');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('runs one compact rewrite when a complete pattern essay exceeds its hard maximum', async () => {
     const overflowingEssay = `${Array.from({ length: 351 }, () => 'word').join(' ')}\n\n<!--END_DREAM_ESSAY-->`;
+    const compactEssay = validEssay('Compact complete essay');
     mockFetch
       .mockResolvedValueOnce(
         apiResponse({
@@ -779,7 +878,7 @@ describe('ai service', () => {
         apiResponse({
           choices: [
             {
-              message: { content: 'Compact complete essay\n\n<!--END_DREAM_ESSAY-->' },
+              message: { content: compactEssay },
               finish_reason: 'stop',
             },
           ],
@@ -801,7 +900,7 @@ describe('ai service', () => {
     expect(bodies[0].temperature).toBe(0.48);
     expect(bodies[1].temperature).toBe(0.35);
     expect(bodies[1].messages.at(-1)?.content).toMatch(/Rewrite the entire essay from scratch/);
-    expect(result).toBe('Compact complete essay');
+    expect(result).toBe(compactEssay.replace(/\n\n<!--END_DREAM_ESSAY-->/u, ''));
   });
 
   it('throws when API key missing', async () => {
@@ -827,7 +926,7 @@ describe('ai service', () => {
   it('formats rich archetypal and mythic echoes in the Phase 1 metadata context without object dumps', async () => {
     mockFetch.mockResolvedValueOnce(
       apiResponse({
-        choices: [{ message: { content: 'Essay\n\n<!--END_DREAM_ESSAY-->' }, finish_reason: 'stop' }],
+        choices: [{ message: { content: validEssay('Essay') }, finish_reason: 'stop' }],
       })
     );
     const ai = await loadAiWithProxyEndpoint();

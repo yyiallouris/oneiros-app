@@ -43,7 +43,7 @@ describe('same-call minimal Reader+question R&D', () => {
       depth: 'standard',
       outputLanguage: 'el',
     });
-    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.2.0');
+    expect(DREAM_REFLECTION_PROMPT_ID).toBe('oneiros-dream-reflection-v3.2.3-candidate');
     expect(SAME_CALL_MINIMAL_METHOD_ID).toBe('oneiros-same-call-minimal-v1.2.0-candidate');
     expect(SAME_CALL_MINIMAL_PROMPT_ID).toBe('oneiros-same-call-minimal-prompt-v1.2.0-candidate');
     expect(SAME_CALL_MINIMAL_V11_METHOD_ID).toBe('oneiros-same-call-minimal-v1.1.0-candidate');

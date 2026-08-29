@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-08-29",
+  "candidate_method": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+  "candidate_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+  "fixture_sha256": "cc60ad8ebe6e66a5982a6b20ef995e1c7687a51d9becdb0e2e9165d3672da1ce",
+  "review_scope": "Q1 human criteria plus separate structural and control-equivalence review; earned dream-grounded interpretation is valued as vitality and is not failed merely for carrying psychological risk. Validator verdict never substitutes for human review.",
+  "verdicts": [
+    {
+      "generation_id": "en-s-ancestor-coat:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The question follows the reported coat, rosemary, tickets, crying, and kind room without supplying options or asking for missing sensory footage."
+    },
+    {
+      "generation_id": "en-s-conflict-bridge:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 stays with the explicitly staged simultaneous address from both banks and leaves the response open. Q2 independently contains a real answer menu and is recorded outside the Q1 verdict."
+    },
+    {
+      "generation_id": "en-a-surreal-whale-library:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The visitor-to-entrusted movement is earned by the child librarian explicitly giving a candle, warning, and return task. It is a vivid provisional framing, not an answer menu or fabricated dream fact."
+    },
+    {
+      "generation_id": "en-a-complex-city-tide:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The planted key and the crowd stopping to listen are both reported events; the question opens their change without reconstructing omitted footage."
+    },
+    {
+      "generation_id": "el-s-body-bark:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Η ερώτηση μένει στη ρητά δοσμένη σχέση ανάμεσα στη συνέχιση της γραφής, τον φλοιό και τις πιο αργές, καθαρές λέξεις, χωρίς έτοιμο λεξιλόγιο απάντησης."
+    },
+    {
+      "generation_id": "el-s-conflict-house:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Η μετάβαση από υποδοχή σε πίεση κερδίζεται άμεσα από την πόρτα που ανοίγει για τους φίλους και το σπίτι που μικραίνει. Η ποιητική σύνθεση δίνει ζωντάνια χωρίς A/B menu ή επινοημένο footage."
+    },
+    {
+      "generation_id": "el-a-complex-hospital:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Καθαρή enacted relation: το μπολ μπαίνει στο ήδη υπάρχον ρεύμα και φωτίζει. Η ερώτηση δεν προσθέτει footage ή απάντηση."
+    },
+    {
+      "generation_id": "el-a-ancestor-olive-door:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Ο ρόλος κάποιου που πρέπει να αφήσει κάτι δικό του πριν μπει είναι ρητά σκηνοθετημένος από το όνειρο. Η μετάβαση είναι ζωντανή, earned σύνθεση και όχι αυθαίρετη βεβαιότητα."
+    },
+    {
+      "generation_id": "pl-a-conflict-stairs:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 develops the explicitly enacted tension between trying to stay still and moving stairs without asking for bodily reconstruction. Q2 separately supplies a not-riddle-but-scene frame."
+    },
+    {
+      "generation_id": "zh-a-ambiguous-ancestor-river:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 follows the reported action-response sequence of reaching for the fish and the room moving farther downstream; no spatial binary or missing footage remains."
+    },
+    {
+      "generation_id": "en-s-body-glass-hands:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "EQUIVALENT",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Although 'what feels most alive' is reusable language, the full question is tightly bound to needle, torn shirt, glass hands, fear, and reported steadiness. It preserves specificity while allowing more vitality than a purely somatic check."
+    },
+    {
+      "generation_id": "el-a-surreal-moon-kitchen:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "EQUIVALENT",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Η Q1 παραμένει ζωντανή και ειδική στη ρητή κίνηση φούρνος→σύννεφα. Η ποιητική διατύπωση για την ατμόσφαιρα δεν απαιτεί missing footage και δεν είναι κατώτερη από το control."
+    },
+    {
+      "generation_id": "pt-s-body-feathers:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": "EQUIVALENT",
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The question cleanly develops the reported simultaneous feather growth and suitcase weight and preserves the control's specificity."
+    },
+    {
+      "generation_id": "holdout-en-s-sparse-window-cup:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The sparse case remains specific to the cup's one reported rotation and the later covering action, with no invented scene detail."
+    },
+    {
+      "generation_id": "holdout-el-a-relational-red-thread:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Ισχυρή σχεσιακή Q1: ακολουθεί τις αμοιβαίες πράξεις κλωστή, δέσιμο, τράβηγμα και άνοιγμα χωρίς να εφευρίσκει σχέση από απλή συνύπαρξη."
+    },
+    {
+      "generation_id": "holdout-es-s-body-roots:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The question invites fresh imaginal noticing at the explicitly reported root-to-foot transformation. It does not pretend the dream already supplied a remembered sensation or offer candidate answers."
+    },
+    {
+      "generation_id": "holdout-fr-a-grief-painted-heights:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 stays with the explicitly reported meeting of the childhood shoe and the final visible height mark; it remains open and image-near."
+    },
+    {
+      "generation_id": "holdout-de-s-surreal-moon-scale:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "The coin gesture directly precedes grass growing from the scale; Q1 opens that enacted change without supplied alternatives."
+    },
+    {
+      "generation_id": "holdout-pt-a-conflict-sea-gate:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 accurately follows the dreamer's step, the friend's bell, and the water's response without reducing the conflict to an A/B choice."
+    },
+    {
+      "generation_id": "holdout-ja-a-complex-name-train:reading_advanced",
+      "q1_verdict": "PASS",
+      "structural_verdict": "PASS",
+      "control_equivalence": null,
+      "overall_verdict": "PASS",
+      "failure_families": [],
+      "notes": "Q1 remains with the envelope leaving, touching the lake, and being returned by water. Japanese でしょうか。 is a natural interrogative despite the deterministic validator's question-mark false positive."
+    },
+    {
+      "generation_id": "holdout-zh-s-copresence-clock-fountain:reading_standard",
+      "q1_verdict": "PASS",
+      "structural_verdict": "FAIL",
+      "control_equivalence": null,
+      "overall_verdict": "FAIL",
+      "failure_families": ["missing_reflective_questions_heading"],
+      "notes": "The visible Q1 correctly follows clock→water and avoids inventing a relation with the merely co-present sleeping woman. However, the required heading is absent, both questions remain in prose, and Q2 supplies a three-part option frame. This is a structural hard failure."
+    }
+  ]
+}

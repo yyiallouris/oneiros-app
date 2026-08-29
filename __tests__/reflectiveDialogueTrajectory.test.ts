@@ -63,7 +63,7 @@ describe('Oneiros follow-up chat trajectory contract', () => {
         .map((message) => message.content)
         .join('\n');
 
-      expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.0');
+      expect(REFLECTIVE_DIALOGUE_PROMPT_ID).toBe('oneiros-followup-chat-v2.0.1');
       expect(answerRequest.responseFormat).toBeUndefined();
       expect(joinedAnswerPrompt).toContain('Continue the conversation naturally');
       expect(joinedAnswerPrompt).toContain(opening.content);

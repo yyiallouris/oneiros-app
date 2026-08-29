@@ -13,7 +13,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, borderRadius } from '../theme';
+import { colors, spacing, typography, borderRadius, resolveFloatingTabBarContentInset } from '../theme';
 import { Button, PaperBackground, MysticHeader, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { supabase } from '../services/supabaseClient';
@@ -27,10 +27,11 @@ import { getRandomSymbol } from '../components/symbols';
 import { EditRevisionGuard } from '../utils/editRevisionGuard';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
-const MIN_FLOATING_TAB_BOTTOM_INSET = Platform.OS === 'android' ? 48 : 8;
-const FLOATING_TAB_BAR_HEIGHT = 86;
-const SAVE_BUTTON_NAV_GAP_OFFSET = Platform.OS === 'android' ? 44 : 8;
 const WRITE_MOUNTAIN_HEIGHT = 320;
+const WRITE_CARD_MIN_HEIGHT = 420;
+const WRITE_CARD_MIN_HEIGHT_COMPACT = 340;
+const WRITE_CONTENT_MIN_HEIGHT = 300;
+const WRITE_CONTENT_MIN_HEIGHT_COMPACT = 220;
 const SAVE_LOADING_REVEAL_DELAY_MS = 450;
 const WRITE_VOICE_TARGET = { surface: 'write', key: 'active' } as const;
 const writePalette = {
@@ -54,6 +55,7 @@ const WriteScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveLoading, setShowSaveLoading] = useState(false);
   const [mainCardBottom, setMainCardBottom] = useState<number | null>(null);
+  const [saveDockHeight, setSaveDockHeight] = useState(0);
   const autoSaveTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
   const saveLoadingTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const contentInputRef = useRef<TextInput>(null);
@@ -219,9 +221,10 @@ const WriteScreen: React.FC = () => {
     setIsMenuOpen(true);
   };
 
-  const floatingTabBarInset = Math.max(insets.bottom, MIN_FLOATING_TAB_BOTTOM_INSET);
-  const saveBarOffset = floatingTabBarInset + FLOATING_TAB_BAR_HEIGHT - SAVE_BUTTON_NAV_GAP_OFFSET;
+  const saveDockBottomInset = resolveFloatingTabBarContentInset(insets.bottom);
   const isCompactHeight = windowHeight < 760;
+  const cardMinHeight = isCompactHeight ? WRITE_CARD_MIN_HEIGHT_COMPACT : WRITE_CARD_MIN_HEIGHT;
+  const contentMinHeight = isCompactHeight ? WRITE_CONTENT_MIN_HEIGHT_COMPACT : WRITE_CONTENT_MIN_HEIGHT;
   const voiceButtonBottom = isCompactHeight ? spacing.xxl : spacing.lg;
   const contentInputBottomPadding = voiceButtonBottom + 84;
   const isSaveInactive = !content.trim();
@@ -229,9 +232,7 @@ const WriteScreen: React.FC = () => {
   const mountainTop = mainCardBottom == null ? undefined : Math.max(0, mainCardBottom - mountainHeight);
 
   return (
-    <View
-      style={[styles.container, { paddingBottom: insets.bottom }]}
-    >
+    <View style={styles.container}>
       <PaperBackground height={mountainHeight} top={mountainTop} lite />
       <DesignExportForeground fill>
         <ScrollView
@@ -254,7 +255,7 @@ const WriteScreen: React.FC = () => {
         <Text style={styles.entryRitual}>Take a breath. Let the dream come back.</Text>
 
         <View
-          style={styles.mainCard}
+          style={[styles.mainCard, { minHeight: cardMinHeight }]}
           onLayout={({ nativeEvent }) => {
             const { y, height } = nativeEvent.layout;
             setMainCardBottom(y + height);
@@ -277,10 +278,10 @@ const WriteScreen: React.FC = () => {
             onSubmitEditing={() => contentInputRef.current?.focus()}
           />
 
-          <View style={styles.contentInputContainer}>
+          <View style={[styles.contentInputContainer, { minHeight: contentMinHeight }]}>
             <TextInput
               ref={contentInputRef}
-              style={[styles.contentInput, { paddingBottom: contentInputBottomPadding }]}
+              style={[styles.contentInput, { minHeight: contentMinHeight, paddingBottom: contentInputBottomPadding }]}
               placeholder="Write it as you remember it, without correcting."
               placeholderTextColor={colors.textMuted}
               value={content}
@@ -307,17 +308,20 @@ const WriteScreen: React.FC = () => {
             </View>
           </View>
         </View>
-
-        {/* Spacer above Save dream button */}
-        <View style={{ height: spacing.lg }} />
         </ScrollView>
 
-        {/* Bottom Actions */}
         <View
+          testID="write-save-dock"
+          onLayout={({ nativeEvent }) => {
+            const nextHeight = Math.round(nativeEvent.layout.height);
+            if (nextHeight > 0 && nextHeight !== saveDockHeight) {
+              setSaveDockHeight(nextHeight);
+            }
+          }}
           style={[
-            styles.bottomActions,
+            styles.saveDock,
             {
-              bottom: saveBarOffset,
+              paddingBottom: saveDockBottomInset,
             },
           ]}
         >
@@ -344,7 +348,7 @@ const WriteScreen: React.FC = () => {
                 styles.menuContainer,
                 {
                   top: insets.top,
-                  bottom: saveBarOffset,
+                  bottom: saveDockHeight || saveDockBottomInset,
                   paddingTop: spacing.md,
                 },
               ]}
@@ -419,9 +423,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: spacing.md,
     paddingTop: 0,
-    paddingBottom: 220,
+    paddingBottom: spacing.md,
   },
   headerShell: {
     paddingHorizontal: spacing.xs,
@@ -447,7 +452,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   mainCard: {
-    minHeight: 420,
+    flexGrow: 1,
+    minHeight: WRITE_CARD_MIN_HEIGHT,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
@@ -504,13 +510,15 @@ const styles = StyleSheet.create({
   },
   contentInputContainer: {
     position: 'relative',
-    minHeight: 300,
+    flexGrow: 1,
+    minHeight: WRITE_CONTENT_MIN_HEIGHT,
   },
   contentInput: {
+    flexGrow: 1,
     fontSize: typography.sizes.md,
     color: writePalette.primaryInk,
     lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
-    minHeight: 300,
+    minHeight: WRITE_CONTENT_MIN_HEIGHT,
     padding: 0,
     paddingTop: spacing.xs,
     paddingRight: 64,
@@ -521,10 +529,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     maxWidth: 190,
   },
-  bottomActions: {
-    position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
+  saveDock: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   saveButton: {
     alignSelf: 'center',

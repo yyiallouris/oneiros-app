@@ -1,6 +1,9 @@
 import {
   buildChatReflectiveLanguageContext,
+  buildInitialReflectiveLanguageContext,
   buildReflectiveLanguageInstruction,
+  REFLECTIVE_LANGUAGE_CONTRACT_VERSION,
+  type ReflectiveLanguageContext,
 } from './reflectiveLanguage.ts';
 import {
   type ReflectiveDialogueResponseFormat,
@@ -20,16 +23,18 @@ import {
 } from './reflectiveEvidence.ts';
 
 export const DREAM_REFLECTION_PROMPT_ID =
-  'oneiros-dream-reflection-v3.2.0' as const;
-export const DREAM_REFLECTION_PROMPT_VERSION = '3.2.0' as const;
-export const FOLLOWUP_CHAT_PROMPT_ID = 'oneiros-followup-chat-v2.0.0' as const;
-export const FOLLOWUP_CHAT_PROMPT_VERSION = '2.0.0' as const;
+  'oneiros-dream-reflection-v3.2.3-candidate' as const;
+export const DREAM_REFLECTION_PROMPT_VERSION = '3.2.3-candidate' as const;
+export const FOLLOWUP_CHAT_PROMPT_ID = 'oneiros-followup-chat-v2.0.1' as const;
+export const FOLLOWUP_CHAT_PROMPT_VERSION = '2.0.1' as const;
 /** @deprecated Historical Dialogue identity; launch chat is FOLLOWUP_CHAT_PROMPT_ID. */
 export const REFLECTIVE_DIALOGUE_PROMPT_ID = FOLLOWUP_CHAT_PROMPT_ID;
 export const REFLECTIVE_DIALOGUE_PROMPT_VERSION = FOLLOWUP_CHAT_PROMPT_VERSION;
 export const SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID =
-  'oneiros-same-call-reflective-questions-v1.0.0' as const;
-export const SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_VERSION = '1.0.0' as const;
+  'oneiros-same-call-reflective-questions-v1.0.3-candidate' as const;
+export const SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_VERSION = '1.0.3-candidate' as const;
+export const SAME_CALL_REFLECTIVE_QUESTIONS_PROMPT_SHA256 =
+  'f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7' as const;
 export const END_MARKER_DREAM_READING = '<!--END_DREAM_READING-->' as const;
 export const REFLECTIVE_DIALOGUE_QUESTION_CONTEXT_TAG =
   'oneiros_visible_reflective_question' as const;
@@ -60,7 +65,7 @@ export type ReflectionPromptRequest = {
   temperature: number;
   tokenLimit: number;
   responseFormat?: ReflectiveDialogueResponseFormat;
-  reflectiveLanguageContext?: ReturnType<typeof buildChatReflectiveLanguageContext>;
+  reflectiveLanguageContext?: ReflectiveLanguageContext;
 };
 
 export type ReflectiveDialogueConversationMessage = {
@@ -113,6 +118,7 @@ the larger dream remains cohesive, playful, absurd, restorative, or numinous.
 export const SAME_CALL_QUESTION_SAFEGUARDS = `
 Reflective-question safeguards:
 - Do not ask the dreamer to rank, choose, compare, or decide between dream elements unless the dream itself explicitly contains that choice. Do not invent either/or structures.
+- A single grammatical question that offers the dreamer an answer menu (X or Y) is still a manufactured choice. Stay with one image, relation, or movement instead of supplying alternatives.
 - Do not ask the dreamer to remember an unreported visual, sensory, bodily, or factual detail as though that detail existed in the dream. Fresh noticing is fine; fabricated memory retrieval is not.
 - A symbolic or relational question may explore a possibility opened by the reading, but do not state an inferred meaning, motive, causal relation, or metaphor as though the dream itself literally established it. Keep questions invitational rather than confirmatory.
 - No advice verbs: try, practice, breathe, focus, work on, improve, regulate.
@@ -122,7 +128,10 @@ export const SAME_CALL_STANDARD_ADVANCED_QUESTIONS = `
 ## Reflective Questions
 
 - Exactly 2 questions as markdown bullets. No more. No fewer. Do not use 1–2. Do not default to one.
-- Question 1 — observational / somatic: prefer a concrete observational or remembered dream-body question when the dream supports it. Somatic means the body inside the remembered dream, never a present-time exercise. If a somatic question would be forced or uninteresting, use another concrete observational question instead.
+- Question 1 — enacted relation:
+  Begin from one complete event explicitly reported in the dream, where an action, response, or change connects two dream elements.
+  Ask one open question that stays with the change or movement already shown in that event.
+  Mere co-presence or an inferred connection does not qualify.
 - Question 2 — symbolic / relational / imaginal: open the dream symbolically, relationally, or imaginally. It may follow an image, relation, transformation, contradiction, recurring gesture, unresolved movement, symbolic tension, or surprising juxtaposition. Deepen or reopen the central movement already developed in the reading; do not start a new analytic thread. The second question may be more psychologically or symbolically suggestive than the first. Do not make it safe by reducing it to generic phenomenology.
 - No prose after the questions.
 ${SAME_CALL_QUESTION_SAFEGUARDS}
@@ -165,7 +174,9 @@ reply is short. Do not inflate every response into a mini essay.
 For ordinary ongoing replies, end with exactly one natural reflective question
 that follows from the current exchange. The question may be observational,
 somatic, relational, symbolic, or imaginal. Do not stack questions or hide
-multiple choices inside one sentence. Avoid generic therapy/coaching shells
+multiple choices inside one sentence. A single grammatical question that offers
+X or Y is still a manufactured choice, not an open invitation. Stay with one
+image, relation, or movement instead of supplying an answer menu. Avoid generic therapy/coaching shells
 such as “What comes up for you?”, “How does that land?”, or “Where do you feel
 that in your body?” unless the specific context genuinely earns them.
 
@@ -448,6 +459,12 @@ ${FULL_INITIAL_USER_DIRECTIVE}${outputLanguage}`;
     : depth === 'advanced'
       ? ADVANCED_INTERPRETATION_FORMAT_PROMPT
       : STANDARD_INTERPRETATION_FORMAT_PROMPT;
+  const languageContext = buildInitialReflectiveLanguageContext({
+    dreamContent: dream.content,
+  });
+  const languageInstruction = buildReflectiveLanguageInstruction(languageContext, {
+    includeOutputLanguageTag: false,
+  });
 
   return {
     task,
@@ -455,17 +472,19 @@ ${FULL_INITIAL_USER_DIRECTIVE}${outputLanguage}`;
       { role: 'system', content: DREAM_CONSTITUTION_PROMPT },
       { role: 'system', content: INTERPRETATION_ROLE_PROMPT },
       { role: 'system', content: format },
+      { role: 'system', content: languageInstruction },
       { role: 'user', content: userPrompt },
     ],
     temperature: depth === 'quick' ? 0.68 : depth === 'advanced' ? 0.6 : 0.55,
     tokenLimit: depth === 'quick' ? 560 : depth === 'advanced' ? 2700 : 1600,
+    reflectiveLanguageContext: languageContext,
   };
 }
 
 export function buildInitialReflectionRetryPrompt(depth: DreamReflectionDepth): string {
   const mode = INITIAL_RETRY_MODE_DIRECTIVES[depth];
 
-  return `Your previous response was cut off.
+  return `Your previous response was incomplete or violated the required language or question structure.
 ${mode}
 ${INITIAL_RETRY_PROTOCOL_DIRECTIVE}
 
@@ -475,6 +494,17 @@ ${END_MARKER_DREAM_READING}
 Emit nothing after the reading-end marker.`;
 }
 
+export function buildChatFollowupRetryPrompt(isFinalResponse: boolean): string {
+  const questionRule = isFinalResponse
+    ? 'Ask no question anywhere in the reply.'
+    : 'End with exactly one open reflective question. Do not place any other question in the reply and do not offer X-or-Y answers.';
+  return `Rewrite the entire previous follow-up reply from scratch because it violated the output-language or question-count contract.
+Respond to the user's latest message naturally; do not append or repair only the question.
+${questionRule}
+Use the output language already required by the conversation language contract.
+This is one whole-response rewrite, never a separate reflective-question call.`;
+}
+
 export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE = [
   SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_ID,
   SAME_CALL_REFLECTIVE_QUESTIONS_METHOD_VERSION,
@@ -482,6 +512,7 @@ export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE = [
   DREAM_REFLECTION_PROMPT_VERSION,
   FOLLOWUP_CHAT_PROMPT_ID,
   FOLLOWUP_CHAT_PROMPT_VERSION,
+  REFLECTIVE_LANGUAGE_CONTRACT_VERSION,
   DREAM_CONSTITUTION_PROMPT,
   INTERPRETATION_ROLE_PROMPT,
   DREAM_FIRST_READING_DIRECTIVE,
@@ -496,6 +527,8 @@ export const SAME_CALL_REFLECTIVE_QUESTIONS_BUNDLE = [
   FULL_INITIAL_USER_DIRECTIVE,
   ...Object.values(INITIAL_RETRY_MODE_DIRECTIVES),
   INITIAL_RETRY_PROTOCOL_DIRECTIVE,
+  'initial-output-language-resolved-from-dream',
+  'whole-response-structural-retry-only',
   'one-reader-call-reading-plus-questions',
   'quick-1-standard-2-advanced-2',
   'chat-nonfinal-1-final-0',

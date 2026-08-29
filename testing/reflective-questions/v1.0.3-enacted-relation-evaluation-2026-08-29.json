@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-v1.0.3-enacted-relation-evaluation-2026-08-29",
+  "source": "synthetic_and_frozen_prior_synthetic",
+  "frozen_at": "2026-08-29",
+  "candidate": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.3-candidate"
+  },
+  "production_predecessor": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.1",
+    "bundle_sha256": "e7e4ea4b8bfbb253912771f163f692980bbc677f051c72df4b49e5034f6fe8c7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.1",
+    "baseline_artifact": "testing/reflective-questions/artifacts/v1.0.1-production-diagnostic-2026-08-29/RAW_RESULTS.json",
+    "baseline_fixture_sha256": "5e821d2578e5e0f7e688b20b16755b56cabe73590d361429dbff9a0c2af7bbcc"
+  },
+  "scope": {
+    "surfaces": ["reading_standard", "reading_advanced"],
+    "excluded_surfaces": [
+      "reading_quick",
+      "chat_followup",
+      "chat_closing",
+      "essays",
+      "recent_dream_field"
+    ],
+    "planned_calls": 21,
+    "model_retries_for_quality": 0,
+    "semantic_judge_calls": 0,
+    "question_only_calls": 0,
+    "deployments": 0,
+    "hard_cost_cap_usd": 1,
+    "historical_reader_mean_cost_usd": 0.01483883,
+    "historical_reader_max_cost_usd": 0.0242325,
+    "projected_cost_usd": 0.33609636,
+    "reserved_cost_per_call_usd": 0.045,
+    "conservative_reserved_packet_cost_usd": 0.945
+  },
+  "human_q1_pass_criteria": [
+    "Begins from an event or relation actually present in the dream text.",
+    "Does not request reconstruction of unreported dream footage.",
+    "Does not supply candidate answers or an A/B/X/Y/Z menu.",
+    "Does not invent a relation from mere co-presence.",
+    "Remains specific, vivid, and imaginally alive.",
+    "Does not collapse into a generic therapy or coaching prompt.",
+    "Does not carry an interpretation into the question as dream fact."
+  ],
+  "structural_pass_criteria": [
+    "Exactly one required ## Reflective Questions heading.",
+    "Exactly two bullet questions in the section.",
+    "No extra rhetorical question in the reading prose.",
+    "Correct output language."
+  ],
+  "acceptance_gate": {
+    "known_failure_min_human_pass": 6,
+    "known_failure_total": 10,
+    "controls_required_equivalent": 3,
+    "controls_total": 3,
+    "serious_control_regressions_allowed": 0,
+    "holdout_min_human_pass": 7,
+    "holdout_total": 8,
+    "structural_hard_failures_allowed": 0,
+    "recurring_failure_family_threshold": 2,
+    "automatic_hold_if_control_regressions_at_least": 2,
+    "no_automatic_second_candidate": true
+  },
+  "known_failure_anchors": [
+    "en-s-ancestor-coat:reading_standard",
+    "en-s-conflict-bridge:reading_standard",
+    "en-a-surreal-whale-library:reading_advanced",
+    "en-a-complex-city-tide:reading_advanced",
+    "el-s-body-bark:reading_standard",
+    "el-s-conflict-house:reading_standard",
+    "el-a-complex-hospital:reading_advanced",
+    "el-a-ancestor-olive-door:reading_advanced",
+    "pl-a-conflict-stairs:reading_advanced",
+    "zh-a-ambiguous-ancestor-river:reading_advanced"
+  ],
+  "strong_controls": [
+    "en-s-body-glass-hands:reading_standard",
+    "el-a-surreal-moon-kitchen:reading_advanced",
+    "pt-s-body-feathers:reading_standard"
+  ],
+  "sealed_unseen_holdout": [
+    {
+      "id": "holdout-en-s-sparse-window-cup",
+      "language": "en",
+      "mode": "standard",
+      "category": "sparse",
+      "title": "The cup at the window",
+      "dream": "I set an empty blue cup on the windowsill. A gust turned it once without knocking it over. I put my palm over the rim, and the wind stopped."
+    },
+    {
+      "id": "holdout-el-a-relational-red-thread",
+      "language": "el",
+      "mode": "advanced",
+      "category": "relational",
+      "title": "Η κόκκινη κλωστή στην πύλη",
+      "dream": "Βρισκόμουν σε μια αυλή με την αδελφή μου, αλλά μια κλειδωμένη σιδερένια πύλη στεκόταν ανάμεσά μας. Εκείνη πέρασε μια κόκκινη κλωστή από την κλειδαρότρυπα. Την έδεσα γύρω από το δάχτυλό μου· η αδελφή μου τράβηξε απαλά και η πύλη άνοιξε προς τα έξω, χωρίς καμία μας να αγγίξει την κλειδαριά."
+    },
+    {
+      "id": "holdout-es-s-body-roots",
+      "language": "es",
+      "mode": "standard",
+      "category": "body_transformation",
+      "title": "Raíces en la acera",
+      "dream": "Caminaba a casa con dos bolsas de comida cuando mis piernas empezaron a echar raíces en la acera. Un perro pequeño tiró de una de las bolsas. Al intentar recuperarla, una raíz se soltó del cemento y volvió a ser mi pie, pero la otra siguió creciendo bajo la calle."
+    },
+    {
+      "id": "holdout-fr-a-grief-painted-heights",
+      "language": "fr",
+      "mode": "advanced",
+      "category": "grief_ancestor",
+      "title": "Les tailles sur le mur",
+      "dream": "Je suis entré dans l'appartement vide de ma grand-mère, morte depuis longtemps. Mon oncle défunt repeignait le mur où les tailles des enfants avaient été marquées au crayon. J'ai posé ma vieille chaussure d'enfant contre la dernière ligne encore visible. Il a baissé son pinceau, puis a ouvert la fenêtre; une nuée de papillons de nuit est sortie de la pièce."
+    },
+    {
+      "id": "holdout-de-s-surreal-moon-scale",
+      "language": "de",
+      "mode": "standard",
+      "category": "surreal_high_imagery",
+      "title": "Der Mond an der Kasse",
+      "dream": "In einem leeren Supermarkt schwebten die Regale knapp über dem Boden. Die Kassiererin legte einen kleinen Mond auf die Waage. Als ich ihr eine Münze reichte, wuchs Gras aus der Waagschale und der Mond wurde so schwer, dass die Kasse im Boden versank."
+    },
+    {
+      "id": "holdout-pt-a-conflict-sea-gate",
+      "language": "pt",
+      "mode": "advanced",
+      "category": "conflict_threshold",
+      "title": "O portão para o mar",
+      "dream": "Eu segurava aberto um portão de madeira que dava diretamente para o mar. Do outro lado, um antigo amigo tocava um sino sempre que eu dava um passo em sua direção, e a água recuava. Quando parei de avançar, ele largou o sino e a maré atravessou o portão, cobrindo nossos sapatos sem derrubar nenhum de nós."
+    },
+    {
+      "id": "holdout-ja-a-complex-name-train",
+      "language": "ja",
+      "mode": "advanced",
+      "category": "complex_multi_scene",
+      "title": "名前を運ぶ列車",
+      "dream": "夜の駅で、駅員が乗客から名前を集め、白い封筒に入れていました。私は自分の名前を渡さずに列車へ乗りました。最初の車両は昔の教室で、黒板には消したはずの約束が残っていました。次の車両では、母が湖の水を瓶に詰めていました。列車が橋の上で止まると、私の名前が書かれた封筒だけが窓の外を飛び、湖へ落ちました。母が瓶のふたを開けると、水が封筒を車内へ押し戻し、列車は再び動き始めました。"
+    },
+    {
+      "id": "holdout-zh-s-copresence-clock-fountain",
+      "language": "zh",
+      "mode": "standard",
+      "category": "co_presence_trap",
+      "title": "理发店里的喷泉",
+      "dream": "我坐在一家已经关门的理发店里，洗头池中有一股很小的喷泉一直流着。候客椅上睡着一位陌生女人，她从来没有看我。墙上的钟敲了三下，喷泉立刻停止了，女人却没有醒来。我把一条干毛巾盖在洗头池上，然后离开。"
+    }
+  ]
+}

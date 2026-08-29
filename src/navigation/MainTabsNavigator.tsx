@@ -6,7 +6,7 @@ import { MainTabsParamList } from './types';
 import WriteScreen from '../screens/WriteScreen';
 import JournalScreen from '../screens/JournalScreen';
 import InsightsScreen from '../screens/InsightsScreen';
-import { colors, typography } from '../theme';
+import { colors, floatingTabBar, resolveFloatingTabBarBottom, typography } from '../theme';
 import { IS_DESIGN_EXPORT_BACKGROUND_ONLY } from '../designExport';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
@@ -63,7 +63,7 @@ export interface MainTabsNavigatorProps {
 
 export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRouteName }) => {
   const insets = useSafeAreaInsets();
-  const bottomInset = insets.bottom + 14;
+  const bottomInset = resolveFloatingTabBarBottom(insets.bottom);
 
   return (
     <Tab.Navigator
@@ -72,14 +72,14 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          left: 24,
-          right: 24,
+          left: floatingTabBar.horizontalInset,
+          right: floatingTabBar.horizontalInset,
           bottom: bottomInset,
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           paddingTop: 8,
           paddingBottom: 10,
-          height: 82,
+          height: floatingTabBar.height,
           borderRadius: 35,
           elevation: 10,
           display: IS_DESIGN_EXPORT_BACKGROUND_ONLY ? 'none' : 'flex',

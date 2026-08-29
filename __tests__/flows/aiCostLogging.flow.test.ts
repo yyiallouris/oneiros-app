@@ -29,7 +29,7 @@ describe('AI cost logging flow', () => {
     expect(billingAi).toMatch(/generateDreamExtractionWithCost/);
     expect(billingAi).toMatch(/generateRecentReflection/);
     expect(billingAi).toMatch(/generatePeriodReflection/);
-    expect(billingAi).toMatch(/Promise<\{ content: string; cost: AiCallCost \| null \}>/);
+    expect(billingAi).toMatch(/contractValidation: ReflectiveContractObservation/);
     expect(billingAi).toMatch(/invokeOpenAiProxyStream/);
     expect(billingAi).toMatch(/stream_options: \{ include_usage: true \}/);
     expect(billingAi).toMatch(/delta\.content/);
@@ -129,6 +129,8 @@ describe('AI cost logging flow', () => {
     expect(gateway).toMatch(/period reflection ai done/);
     expect(gateway).toMatch(/period_reflection_ai_cost/);
     expect(gateway).toMatch(/period_reflection_cost_usd/);
+    expect(gateway).toMatch(/contract_validation/);
+    expect(gateway).toMatch(/chat_followup_ai_ms/);
 
     expect(service).toMatch(/reflectionCostUsd/);
     expect(service).toMatch(/REFLECTION_PARTIAL_REVEAL_AFTER_MS = 15000/);

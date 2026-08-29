@@ -74,7 +74,7 @@ describe('reflective-question composer v1.1 brutal-simple', () => {
     expect(REFLECTIVE_QUESTION_COMPOSER_TASK).toBe('reflective_question_generate');
     expect(REFLECTIVE_QUESTION_COMPOSER_FALLBACK_KEY).toBe('dream_reflective_question_fallback');
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.methodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
     expect(PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE.promptSha256).not.toBe(
       hashReflectiveQuestionPrompt(REFLECTIVE_QUESTION_COMPOSER_BUNDLE)
@@ -88,7 +88,7 @@ describe('reflective-question composer v1.1 brutal-simple', () => {
       '44a44cc43635d1939a10d3c3f70462b9e3576513a05af177350712903d49cbd2'
     );
     expect(APPROVED_REFLECTIVE_QUESTION_PRODUCTION?.methodId).toBe(
-      'oneiros-same-call-reflective-questions-v1.0.0'
+      'oneiros-same-call-reflective-questions-v1.0.3-candidate'
     );
   });
 
@@ -331,6 +331,6 @@ describe('reflective-question composer v1.1 brutal-simple', () => {
     expect(readFileSync(path.join(process.cwd(), 'supabase/functions/_shared/billing-ai.ts'), 'utf8'))
       .not.toMatch(/createEditorialArcQuestionArtifact/);
     expect(readFileSync(path.join(process.cwd(), 'src/ai/dreamReflectionPrompt.ts'), 'utf8'))
-      .toMatch(/oneiros-dream-reflection-v3\.2\.0/);
+      .toMatch(/oneiros-dream-reflection-v3\.2\.3-candidate/);
   });
 });

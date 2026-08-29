@@ -2,13 +2,14 @@ import {
   buildChatReflectiveLanguageContext,
   buildInitialReflectiveLanguageContext,
   buildReflectiveLanguageInstruction,
+  auditReflectiveOutputLanguage,
   detectOneirosLanguageCode,
   isSubstantiveReflectiveLanguageTurn,
   languageContextAcceptsOutput,
 } from '../src/ai/reflectiveLanguage';
 
 describe('Oneiros reflective language contract', () => {
-  it('uses the dream narrative for the initial surface without guessing from script', () => {
+  it('uses an explicit language code or conservatively detects the initial dream language', () => {
     const context = buildInitialReflectiveLanguageContext({
       dreamContent: 'Una puerta verde se abrió lentamente.',
       knownLanguageCode: 'es-MX',
@@ -21,6 +22,13 @@ describe('Oneiros reflective language contract', () => {
     });
     expect(languageContextAcceptsOutput(context, 'es')).toBe(true);
     expect(languageContextAcceptsOutput(context, 'en')).toBe(false);
+
+    expect(buildInitialReflectiveLanguageContext({
+      dreamContent: 'I was walking with my sister when the bridge opened.',
+    }).expectedLanguageCode).toBe('en');
+    expect(buildInitialReflectiveLanguageContext({
+      dreamContent: 'Στεκόμουν στην πόρτα και δεν φοβόμουν.',
+    }).expectedLanguageCode).toBe('el');
   });
 
   it('follows a substantive latest user turn and preserves code-switches as source text', () => {
@@ -36,13 +44,25 @@ describe('Oneiros reflective language contract', () => {
   });
 
   it('detects a substantive code-switch conservatively across supported scripts', () => {
-    expect(detectOneirosLanguageCode('Ahora estaba con mi hermana y no sentía nada.')).toBe('es');
-    expect(detectOneirosLanguageCode('Quand la porte était ouverte avec mon frère.')).toBe('fr');
-    expect(detectOneirosLanguageCode('Die Tür war offen, aber mein Zug blieb stehen.')).toBe('de');
-    expect(detectOneirosLanguageCode('Στεκόμουν στην πόρτα και δεν φοβόμουν.')).toBe('el');
-    expect(detectOneirosLanguageCode('Я стоял у двери и ничего не чувствовал.')).toBe('ru');
-    expect(detectOneirosLanguageCode('駅の光が静かに揺れていた。')).toBe('ja');
-    expect(detectOneirosLanguageCode('房间里的河向上流动。')).toBe('zh');
+    const supportedCases = [
+      ['en', 'I was standing with my sister when the open door moved in the wind.'],
+      ['el', 'Στεκόμουν στην πόρτα και δεν φοβόμουν.'],
+      ['es', 'Ahora estaba con mi hermana y no sentía nada.'],
+      ['fr', 'Quand la porte était ouverte avec mon frère.'],
+      ['de', 'Die Tür war offen, aber mein Zug blieb stehen.'],
+      ['it', 'Quando la porta era aperta con mia sorella e non sentivo niente.'],
+      ['pt', 'Quando eu estava com minha irmã e não sentia nada.'],
+      ['nl', 'Het was stil, maar ik bleef met mijn zus bij de deur.'],
+      ['pl', 'Kiedy byłam przy drzwiach, ale nic się nie poruszało.'],
+      ['ru', 'Я стоял у двери и ничего не чувствовал.'],
+      ['ja', '駅の光が静かに揺れていた。'],
+      ['zh', '房间里的河向上流动。'],
+    ] as const;
+    for (const [code, text] of supportedCases) {
+      expect(detectOneirosLanguageCode(text)).toBe(code);
+      expect(buildInitialReflectiveLanguageContext({ dreamContent: text }).expectedLanguageCode)
+        .toBe(code);
+    }
     expect(detectOneirosLanguageCode('Door sister memory')).toBeNull();
     expect(
       detectOneirosLanguageCode(
@@ -64,6 +84,31 @@ describe('Oneiros reflective language contract', () => {
 
     expect(context.source).toBe('established_conversation_language');
     expect(context.expectedLanguageCode).toBe('ja');
+  });
+
+  it('falls back to the dream language when a substantive short turn is ambiguous', () => {
+    const context = buildChatReflectiveLanguageContext({
+      dreamContent: 'I was standing with my sister while the open door moved in the wind.',
+      conversation: [{ role: 'assistant', content: 'La puerta parece sostener el cambio.' }],
+      latestUserMessage: 'Mostly relief in the throat.',
+    });
+
+    expect(context.source).toBe('latest_substantive_user_turn');
+    expect(context.expectedLanguageCode).toBe('en');
+  });
+
+  it('audits prose without letting fixed English headings override the body language', () => {
+    const context = buildInitialReflectiveLanguageContext({
+      dreamContent: 'Στεκόμουν στην πόρτα και δεν φοβόμουν.',
+    });
+    expect(auditReflectiveOutputLanguage(
+      '## Dream Movement\nΣτεκόσουν στην πόρτα και ο άνεμος περνούσε ήσυχα. Δεν υπήρχε φόβος, μόνο χώρος.',
+      context
+    )).toMatchObject({ valid: true, detectedLanguageCode: 'el' });
+    expect(auditReflectiveOutputLanguage(
+      '## Dream Movement\nThe door was open and the wind moved through the room while nothing felt dangerous.',
+      context
+    )).toMatchObject({ valid: false, detectedLanguageCode: 'en' });
   });
 
   it('separates source selection from language-specific psychological rules', () => {

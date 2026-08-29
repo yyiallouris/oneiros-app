@@ -29,7 +29,7 @@ const LATIN_LANGUAGE_MARKERS: Record<
   Extract<OneirosLanguageCode, 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'nl' | 'pl'>,
   ReadonlySet<string>
 > = {
-  en: new Set(['the', 'and', 'was', 'were', 'with', 'that', 'this', 'from', 'into', 'while', 'when', 'what', 'my', 'your', 'felt', 'nothing']),
+  en: new Set(['the', 'and', 'was', 'were', 'with', 'that', 'this', 'from', 'into', 'while', 'when', 'what', 'my', 'your', 'felt', 'nothing', 'i', 'a', 'is', 'in', 'on', 'at', 'as', 'to']),
   es: new Set(['el', 'la', 'los', 'las', 'del', 'una', 'con', 'para', 'pero', 'cuando', 'ahora', 'estaba', 'habia', 'mi', 'mis', 'nada']),
   fr: new Set(['le', 'la', 'les', 'des', 'une', 'avec', 'dans', 'mais', 'quand', 'alors', 'etait', 'avait', 'rien', 'mon', 'mes']),
   de: new Set(['der', 'die', 'das', 'und', 'mit', 'aber', 'als', 'wenn', 'war', 'waren', 'mein', 'meine', 'nichts', 'nicht']),
@@ -111,6 +111,15 @@ function latestEstablishedLanguageCode(
     );
     if (code) return code;
   }
+
+  for (let index = conversation.length - 1; index >= 0; index -= 1) {
+    const message = conversation[index];
+    if (message.role !== 'user' || !isSubstantiveReflectiveLanguageTurn(message.content)) {
+      continue;
+    }
+    const code = detectOneirosLanguageCode(message.content);
+    if (code) return code;
+  }
   return null;
 }
 
@@ -121,7 +130,9 @@ export function buildInitialReflectiveLanguageContext(params: {
   return {
     source: 'dream_narrative',
     sourceText: clean(params.dreamContent),
-    expectedLanguageCode: normalizeOneirosLanguageCode(params.knownLanguageCode),
+    expectedLanguageCode:
+      normalizeOneirosLanguageCode(params.knownLanguageCode) ??
+      detectOneirosLanguageCode(params.dreamContent),
   };
 }
 
@@ -133,10 +144,15 @@ export function buildChatReflectiveLanguageContext(params: {
 }): ReflectiveLanguageContext {
   const latest = clean(params.latestUserMessage);
   if (latest && isSubstantiveReflectiveLanguageTurn(latest)) {
+    const detectedLatest = detectOneirosLanguageCode(latest);
+    const established =
+      latestEstablishedLanguageCode(params.conversation) ??
+      normalizeOneirosLanguageCode(params.knownLanguageCode) ??
+      detectOneirosLanguageCode(params.dreamContent);
     return {
       source: 'latest_substantive_user_turn',
       sourceText: latest,
-      expectedLanguageCode: detectOneirosLanguageCode(latest),
+      expectedLanguageCode: detectedLatest ?? established,
     };
   }
 
@@ -183,4 +199,33 @@ export function languageContextAcceptsOutput(
   outputLanguage: OneirosLanguageCode
 ): boolean {
   return !context.expectedLanguageCode || context.expectedLanguageCode === outputLanguage;
+}
+
+export type ReflectiveOutputLanguageAudit = {
+  expectedLanguageCode: OneirosLanguageCode | null;
+  detectedLanguageCode: OneirosLanguageCode | null;
+  valid: boolean;
+};
+
+/**
+ * Runtime language check for prose responses that keep UI headings in English.
+ * A resolved contract fails closed when the response cannot be identified.
+ */
+export function auditReflectiveOutputLanguage(
+  content: string,
+  context: ReflectiveLanguageContext
+): ReflectiveOutputLanguageAudit {
+  const prose = content
+    .replace(/<!--END_DREAM_(?:READING|ESSAY)-->/gu, '')
+    .split(/\r?\n/u)
+    .filter((line) => !/^\s{0,3}#{1,6}\s+/u.test(line))
+    .join('\n')
+    .trim();
+  const detectedLanguageCode = detectOneirosLanguageCode(prose);
+  const expectedLanguageCode = context.expectedLanguageCode;
+  return {
+    expectedLanguageCode,
+    detectedLanguageCode,
+    valid: !expectedLanguageCode || detectedLanguageCode === expectedLanguageCode,
+  };
 }

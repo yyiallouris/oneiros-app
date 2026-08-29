@@ -1,6 +1,6 @@
 # Oneiros Reflective Essays v2 — Redesign Brief
 
-**Status:** Phase 1 accepted and frozen at `2.0.3-phase1` with production context version `1`; Phase 2 narrative-first and the single Field Map follow-up failed their rollout gates; Phase 2 R&D closed
+**Status:** production `2.0.4-phase1` preserves the accepted `2.0.3-phase1` Phase-1 intelligence with context version `1` and adds only the exactly-two same-call question contract; Phase 2 narrative-first and the single Field Map follow-up failed their rollout gates; Phase 2 R&D closed
 **Date:** 2026-08-26
 **Scope:** Period Reflection and Recent Dream Field
 **Primary principle:** *The model should notice more than it explains, and leave the dream larger than the essay.*
@@ -326,9 +326,8 @@ Replace the current broad question guidance with:
 
 ```text
 Reflective Questions:
-- Output exactly one reflective question through the existing canonical reflective-question method.
-- One strong question is complete.
-- Keep the question under 30 words.
+- Output exactly two reflective questions as markdown bullets in the same essay call.
+- Each question must open a distinct angle already earned by the essay.
 - Anchor the question in concrete field material and do not assume that the essay's interpretation is correct.
 - Do not embed the answer inside the question.
 - Avoid forced analogies such as "Where in your life is X like Y?" unless the dream itself strongly supports that metaphor.
@@ -508,9 +507,8 @@ Preserve the strongest unresolved ambiguity, tension, or unanswered question.
 Do not use this section as a conclusion or recap.
 
 ## Reflective Questions
-- Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field.
-- One strong question is complete.
-- Keep the question under 30 words.
+- Output exactly two reflective questions as markdown bullets in the same essay call.
+- Keep the two questions distinct and grounded in the supported field topology.
 - Preserve the chosen field topology in the question.
 - Never use the question to create a cross-dream relation the essay did not earn.
 - Anchor the question in concrete field material and do not assume that the essay's interpretation is correct.
@@ -624,9 +622,8 @@ Brief.
 Keep one unresolved pressure alive without turning it into a conclusion.
 
 ## Reflective Questions
-- Output exactly one reflective question selected through the canonical reflective-question method adapted to a multi-dream field.
-- One strong question is complete.
-- Keep the question under 30 words.
+- Output exactly two reflective questions as markdown bullets in the same essay call.
+- Keep the two questions distinct and grounded in the supported field topology.
 - Preserve the chosen field topology in the question.
 - Never use the question to create a cross-dream relation the essay did not earn.
 - Anchor the question in concrete field material and do not assume that the reflection's interpretation is correct.
@@ -756,10 +753,10 @@ The essay prompt family currently lacks the explicit prompt/schema version disci
 
 ```text
 PERIOD_REFLECTION_PROMPT_ID = oneiros-period-reflection-v2
-PERIOD_REFLECTION_PROMPT_VERSION = 2.0.3-phase1
+PERIOD_REFLECTION_PROMPT_VERSION = 2.0.4-phase1
 
 RECENT_DREAM_FIELD_PROMPT_ID = oneiros-recent-dream-field-v2
-RECENT_DREAM_FIELD_PROMPT_VERSION = 2.0.3-phase1
+RECENT_DREAM_FIELD_PROMPT_VERSION = 2.0.4-phase1
 
 FROZEN_PHASE_1_ESSAY_CONTEXT_VERSION = 1 // regression baseline only
 ESSAY_CONTEXT_VERSION = 1 // accepted production baseline
@@ -767,7 +764,7 @@ ESSAY_CONTEXT_VERSION = 1 // accepted production baseline
 
 Persist these values in artifact metadata where possible. This is an artifact metadata change, not a new database column requirement, because `ai_generation_artifacts.metadata` already accepts structured JSON.
 
-The original prompt-only baseline was `2.0.0-phase1`. Version `2.0.1-phase1` introduced the evidence gate; `2.0.2-phase1` narrowed the umbrella-paraphrase rule; `2.0.3-phase1` added the accepted topology-first whole-essay consistency contract. Production and Phase 1 regression artifacts record context version `1`. Phase 2 research deliberately kept the same `2.0.3-phase1` prompt and changed only context to version `2`; after that candidate and its one permitted architecture spike failed their gates, runtime selection returned to version `1`.
+The original prompt-only baseline was `2.0.0-phase1`. Version `2.0.1-phase1` introduced the evidence gate; `2.0.2-phase1` narrowed the umbrella-paraphrase rule; `2.0.3-phase1` added the accepted topology-first whole-essay consistency contract. Production and Phase 1 regression artifacts record context version `1`. Phase 2 research deliberately kept the same `2.0.3-phase1` prompt and changed only context to version `2`; after that candidate and its one permitted architecture spike failed their gates, runtime selection returned to version `1`. Version `2.0.4-phase1` keeps that accepted prompt intelligence/context selection and changes the launch cardinality to two same-call questions. Deterministic structural validation is shadow-only; the existing one-shot whole-essay retry remains limited to incomplete or initially over-limit output.
 
 ## 14. Implementation map
 
@@ -775,13 +772,13 @@ The original prompt-only baseline was `2.0.0-phase1`. Version `2.0.1-phase1` int
 
 | File | Required change |
 |---|---|
-| `src/ai/reflectiveEssayPrompt.ts` | Own the frozen `2.0.3-phase1` system/user prompts, ids, versions, scope copy, length policies, compact retry contract, and production context version `1`. |
+| `src/ai/reflectiveEssayPrompt.ts` | Own `2.0.4-phase1`: accepted `2.0.3` topology plus two-question same-call rules, ids, versions, scope copy, length policies, compact retry contract, and production context version `1`. |
 | `src/ai/reflectiveEssayContext.ts` | Own the accepted metadata-heavy production builder plus frozen narrative-first research builder and budgets. |
 | `src/ai/reflectiveEssayFieldMapSpike.ts` | Offline-only rejected architecture spike; never imported by client or gateway generation. |
-| `src/services/ai.ts` | Consume the shared prompt and context-v2 builder while keeping model, temperatures, sections, length, and retry unchanged. |
+| `src/services/ai.ts` | Consume the shared prompt and metadata-first context-v1 builder while keeping model, temperatures, sections, length, and retry topology unchanged; validate exactly two questions. |
 | `src/services/patternInsightsService.ts` | Carry original dream content into eligible, ordered, capped essay entries. |
 | `supabase/functions/_shared/billing-db.ts` | Carry `dreams.content` into gateway pattern entries; no schema or migration change. |
-| `supabase/functions/_shared/billing-ai.ts` | Consume the same shared context-v2 builder and frozen prompt as the client. |
+| `supabase/functions/_shared/billing-ai.ts` | Consume the same shared context-v1 builder and prompt as the client; use the existing bounded whole-essay retry for structural failures. |
 | `supabase/functions/ai-entitlements-gateway/index.ts` | Pass resolved period scope into the builder and persist prompt/context versions in artifact metadata. |
 | `supabase/functions/ai-entitlements-gateway/README.md` | Replace the June 9 parity note with the v2 selective-synthesis/context/version contract. |
 | `supabase/functions/openai-proxy/task-config.ts` | No first-pass model or temperature change. Change only if evaluation later approves routing/sampling changes. |
@@ -811,7 +808,7 @@ Update `__tests__/ai.test.ts` to verify:
 - anti-repetition and interpretive-restraint rules are present;
 - Period and Recent word targets/hard caps are present;
 - temperatures remain `0.48` and `0.46`;
-- exactly one reflective question is required and remains capped below 30 words by instruction;
+- exactly two same-call reflective questions are required as markdown bullets;
 - hidden marker remains required and stripped;
 - compact retry uses the v2 compression contract;
 - the frozen Phase 1 baseline remains available to the evaluation harness;
@@ -913,7 +910,7 @@ Field Map architecture-spike review: [`ONEIROS_REFLECTIVE_ESSAYS_FIELD_MAP_SPIKE
 - Apply the corrected v2 system/user prompt structure while keeping the old context, including every currently injected field.
 - Make weekly/monthly wording scope-aware.
 - Add one compact rewrite on incomplete output or initial length overflow, with post-retry tolerance and no string truncation.
-- Record the current prompt version (`2.0.3-phase1`) and context version `1` in artifact metadata.
+- Record the current prompt version (`2.0.4-phase1`) and context version `1` in artifact metadata.
 - Keep model and temperatures unchanged.
 - Measure whether selective synthesis and anti-repetition improve output independently.
 - Stop after the fixed-set v1/v2 regression and reviewer scoring. Do not include Phase 2 in the same implementation change.

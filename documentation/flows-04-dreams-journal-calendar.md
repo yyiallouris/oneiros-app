@@ -30,7 +30,7 @@ Detailed runbook: [`../docs/TRANSCRIPTION_RELIABILITY.md`](../docs/TRANSCRIPTION
    - `saveDream` via `StorageService` (local + sync queue).
    - Clears draft and navigates to **`DreamDetail`** with `dreamId`.
    - The save button disables immediately to prevent double taps, but the visible save loader is delayed for short local saves so the user does not see a reflection-style loading flash during normal Save → DreamDetail navigation.
-5. Visual treatment: the writing surface is a single notebook-like page with soft paper tint and hairline edges; nested dashboard cards are intentionally avoided on this screen.
+5. Visual treatment: the writing surface is a single notebook-like page with soft paper tint and hairline edges; nested dashboard cards are intentionally avoided on this screen. **Save dream** docks in the layout above the floating tab shelf, using the shared `floatingTabBar` clearance so the CTA stays fully visible on short viewports (web, iPhone SE, Android) instead of overlaying the nav. The notebook page grows to fill the paper between the greeting and that Save dock; compact min-heights only set a floor, they do not shrink the writing well into a stub.
 
 ## Regression — Write
 
@@ -44,13 +44,13 @@ Detailed runbook: [`../docs/TRANSCRIPTION_RELIABILITY.md`](../docs/TRANSCRIPTION
 - Loads all dreams from storage; sort by date then created/updated.
 - **Search** debounced over title + content.
 - **Filter params** from route: `filterSymbol`, `filterLandscape`, `filterMotif` (from Insights — see [flows-07-insights-reports.md](./flows-07-insights-reports.md)).
-- Dream entries render as lightweight archive slips, not heavy cards. Each slip shows a small date seal, strong title, two-line excerpt, tiny symbolic markers (image/place/atmosphere when available), and reflected/not-reflected state from stored interpretations.
+- Dream entries render as lightweight archive slips, not heavy cards. Each slip shows a small date seal, then copy: an explicit title stays a strong one-line heading plus a two-line excerpt. An untitled dream keeps that same hierarchy — a one-line title from the opening words, ending with `...` so it still reads as a title, then a two-line excerpt that continues those words on a word boundary, with no mid-word cut. Tiny symbolic markers (Image, Place, Atmosphere when available) follow as separate soft capsules using natural `Label: value` syntax, so adjacent metadata never runs together as slash-delimited text.
 - Tap dream → **`DreamDetail`**.
 - Header calendar icon → **`Calendar`**.
 
 ## Dream detail (`DreamDetailScreen`)
 
-- Shows the dream as an open page section with hairline edges rather than a heavy card; **Dream essence**, anchors, movement, and symbolic layers are presented as unboxed ritual text blocks/rows; **Jungian reflection** section (interpretation) — see [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md).
+- Shows the dream as an open page section with hairline edges rather than a heavy card; **Dream essence**, anchors, and movement remain unboxed ritual text blocks/rows. **Explore symbolic layers** continues that editorial rhythm as a transparent, borderless 60dp disclosure row directly after the preceding section hairline, with only its animated chevron identifying the interaction. It has no decorative leading icon or isolated whitespace island and remains distinct from the separate **Continue the conversation** chat action; **Jungian reflection** section (interpretation) — see [flows-06-jungian-ai-reflection.md](./flows-06-jungian-ai-reflection.md).
 - Initial load uses `DreamDetailSkeleton` — a layout-faithful placeholder for the dream page + reflection summary. Do **not** use journal-list `LinoSkeletonCard` rows here (those look like two small cards and do not match the loaded layout).
 - Header **Edit** → **`DreamEditor`** with `dreamId`.
 

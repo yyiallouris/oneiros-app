@@ -31,15 +31,20 @@ import {
   DREAM_REFLECTION_PROMPT_ID,
   DREAM_REFLECTION_PROMPT_VERSION,
 } from './dreamReflectionPrompt.ts';
-import {
-  REFLECTIVE_QUESTION_PRODUCTION_ARTIFACT_SCHEMA_VERSION,
-  REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID,
-  REFLECTIVE_QUESTION_PRODUCTION_METHOD_VERSION,
-  REFLECTIVE_QUESTION_PRODUCTION_PROMPT_ID,
-  REFLECTIVE_QUESTION_PRODUCTION_PROMPT_VERSION,
-  type IntegrityCheckDecision,
-  type ReflectiveQuestionSource,
-} from './reflectiveQuestionPipeline.ts';
+
+// Historical schema-v11 identity is frozen here so storage compatibility does
+// not import the closed Generator/Gate/Repair R&D graph into app or gateway
+// runtime. These constants describe old readable artifacts; they are not the
+// launch production method.
+const REFLECTIVE_QUESTION_PRODUCTION_METHOD_ID =
+  'oneiros-reflective-question-production-v1.0.0' as const;
+const REFLECTIVE_QUESTION_PRODUCTION_METHOD_VERSION = '1.0.0' as const;
+const REFLECTIVE_QUESTION_PRODUCTION_PROMPT_ID =
+  'oneiros-reflective-question-production-prompt-v1.0.0' as const;
+const REFLECTIVE_QUESTION_PRODUCTION_PROMPT_VERSION = '1.0.0' as const;
+const REFLECTIVE_QUESTION_PRODUCTION_ARTIFACT_SCHEMA_VERSION = 11 as const;
+type ReflectiveQuestionSource = 'generator' | 'repair' | 'fallback';
+type IntegrityCheckDecision = 'pass' | 'fail' | 'unavailable';
 
 export {
   buildDreamEvidenceSpans,
@@ -940,4 +945,4 @@ export function normalizeReflectiveQuestionArtifact(value: unknown): ReflectiveQ
 }
 
 export const REFLECTIVE_QUESTION_RETRY_REMINDER =
-  'Reflective Questions are generated separately; never append a question during reading retry.';
+  'Launch readings rewrite the complete same-call reading, including questions; never run a question-only retry.';

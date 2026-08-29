@@ -36,8 +36,8 @@ describe('edge pattern essay prompt flow', () => {
     expect(essayPrompt).toMatch(/No advice verbs such as try, practice, breathe, relax, focus, improve, or work on/);
     expect(billingAi).toMatch(/END_MARKER_DREAM_ESSAY/);
     expect(billingAi).toMatch(/stripEndMarker\((primary|retry)MarkedContent, END_MARKER_DREAM_ESSAY\)/);
-    expect(essayPrompt).toMatch(/PERIOD_REFLECTION_PROMPT_VERSION = '2\.0\.3-phase1'/);
-    expect(essayPrompt).toMatch(/RECENT_DREAM_FIELD_PROMPT_VERSION = '2\.0\.3-phase1'/);
+    expect(essayPrompt).toMatch(/PERIOD_REFLECTION_PROMPT_VERSION = '2\.0\.4-phase1'/);
+    expect(essayPrompt).toMatch(/RECENT_DREAM_FIELD_PROMPT_VERSION = '2\.0\.4-phase1'/);
     expect(essayPrompt).toMatch(/ESSAY_CONTEXT_VERSION = 1/);
     expect(essayPrompt).toMatch(/A shared field must be earned by concrete cross-dream evidence/);
     expect(essayPrompt).toMatch(/Quoting one concrete anchor from each dream does not make the bridge concrete/);
@@ -79,6 +79,10 @@ describe('edge pattern essay prompt flow', () => {
     expect(contextBuilder).toMatch(/buildNarrativeFirstEssayContext/);
     expect(billingAi).not.toMatch(/buildNarrativeFirstEssayContext/);
     expect(clientAi).not.toMatch(/buildNarrativeFirstEssayContext/);
+    expect(essayPrompt).toMatch(/PERIOD_REFLECTION_TEMPERATURE = 0\.48/);
+    expect(essayPrompt).toMatch(/RECENT_DREAM_FIELD_TEMPERATURE = 0\.46/);
+    expect(essayPrompt).toMatch(/## Recurring Images and Pressures/);
+    expect(essayPrompt).toMatch(/## What Keeps Returning/);
   });
 
   it('keeps the frozen prompt scope-aware and limits recovery to compact whole-essay rewriting', () => {
@@ -99,6 +103,10 @@ describe('edge pattern essay prompt flow', () => {
     expect(billingAi).toMatch(/primaryTooLong = essayExceedsHardMaximum/);
     expect(clientAi).toMatch(/pattern_insights_retry_compact/);
     expect(billingAi).toMatch(/task: 'pattern_insights_retry_compact'/);
+    expect(clientAi).toMatch(/safeObserveReflectiveContract/);
+    expect(billingAi).toMatch(/pattern essay contract shadow observation/);
+    expect(billingAi).toMatch(/if \(!primaryIncomplete && !primaryTooLong\)/);
+    expect(billingAi).not.toMatch(/same_call_essay_contract_invalid/);
     expect(essayPrompt).toMatch(/Rewrite the entire essay from scratch in a compact complete form/);
     expect(essayPrompt).toMatch(/Never cut a sentence or question to satisfy the word limit/);
     expect(clientAi).not.toMatch(/stripEndMarker\([^\n]+\)\.slice\(/);

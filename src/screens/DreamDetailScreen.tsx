@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
+  Animated,
   View,
   Text,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   StatusBar,
   Alert,
   Clipboard,
+  Easing,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -58,8 +60,7 @@ import { remoteGetInterpretationById } from '../services/remoteStorage';
 import { LocalStorage } from '../services/localStorage';
 import { logInfo } from '../services/logger';
 import type { BillingInterval, PremiumGateSource } from '../types/subscription';
-import { getReflectiveQuestionCopy } from '../constants/reflectiveQuestionCopy';
-import { resolveDreamOutputLanguage } from '../ai/dreamOutputLanguage';
+import { CONTINUE_CONVERSATION_LABEL } from '../constants/reflectiveQuestionCopy';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'DreamDetail'>;
 type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
@@ -70,6 +71,8 @@ type IconProps = {
   size?: number;
   color?: string;
 };
+
+const SYMBOLIC_LAYERS_ANIMATION_MS = 280;
 
 const buildInterpretationPreviewExcerpt = (text: string): string => {
   const paragraphs = text
@@ -134,6 +137,18 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
+      />
+    </Svg>
+  );
+
+  const ChevronDownIcon = ({ size = 22, color = colors.textSecondary }: IconProps) => (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 9l6 6 6-6"
+        stroke={color}
+        strokeWidth={2.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </Svg>
   );
@@ -361,6 +376,10 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
 
   const SymbolicLayersAccordion = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
     const [expanded, setExpanded] = useState(false);
+    const [contentMounted, setContentMounted] = useState(false);
+    const [contentHeight, setContentHeight] = useState(0);
+    const expansionProgress = useRef(new Animated.Value(0)).current;
+    const expandedRef = useRef(false);
     type TagRow = { kind: 'tags'; title: string; items: string[] };
     type EchoRow = {
       kind: 'echoes';
@@ -402,49 +421,145 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       { title: 'Interpretive Echoes', rows: echoRows },
     ].filter((group) => group.rows.length > 0);
 
+    useEffect(() => {
+      if (!expanded || !contentMounted || contentHeight <= 0) return;
+
+      expansionProgress.stopAnimation();
+      Animated.timing(expansionProgress, {
+        toValue: 1,
+        duration: SYMBOLIC_LAYERS_ANIMATION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }).start();
+    }, [contentHeight, contentMounted, expanded, expansionProgress]);
+
+    useEffect(
+      () => () => {
+        expansionProgress.stopAnimation();
+      },
+      [expansionProgress],
+    );
+
+    const toggleExpanded = useCallback(() => {
+      const nextExpanded = !expanded;
+      expandedRef.current = nextExpanded;
+      expansionProgress.stopAnimation();
+
+      if (nextExpanded) {
+        setContentMounted(true);
+        setExpanded(true);
+        return;
+      }
+
+      setExpanded(false);
+      Animated.timing(expansionProgress, {
+        toValue: 0,
+        duration: SYMBOLIC_LAYERS_ANIMATION_MS,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: false,
+      }).start(({ finished }) => {
+        if (finished && !expandedRef.current) setContentMounted(false);
+      });
+    }, [expanded, expansionProgress]);
+
     if (groups.length === 0) return null;
 
     return (
-      <View style={styles.symbolicLayersPanel}>
+      <View testID="symbolic-layers-section" style={styles.symbolicLayersPanel}>
         <TouchableOpacity
           style={styles.symbolicLayersHeader}
-          onPress={() => setExpanded((value) => !value)}
+          onPress={toggleExpanded}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Explore symbolic layers"
+          accessibilityHint="Reveals symbolic layers within this dream"
+          accessibilityState={{ expanded }}
+          testID="symbolic-layers-toggle"
         >
           <Text style={styles.symbolicLayersTitle}>Explore symbolic layers</Text>
-          <Text style={styles.symbolicLayersCaret}>{expanded ? '^' : 'v'}</Text>
+          <Animated.View
+            testID="symbolic-layers-chevron"
+            style={[
+              styles.symbolicLayersChevron,
+              {
+                transform: [
+                  {
+                    rotate: expansionProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '180deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <ChevronDownIcon />
+          </Animated.View>
         </TouchableOpacity>
-        {expanded && (
-          <View style={styles.symbolicLayersBody}>
-            {groups.map((group) => (
-              <View key={group.title} style={styles.layerGroup}>
-                <Text style={styles.layerGroupTitle}>{group.title}</Text>
-                {group.rows.map((row) => (
-                  <View key={row.title} style={styles.layerRow}>
-                    <Text style={styles.layerTitle}>{row.title}</Text>
-                    {row.kind === 'tags' ? (
-                      <Text style={styles.layerText}>{row.items.join(', ')}</Text>
-                    ) : (
-                      <View style={styles.layerEchoList}>
-                        {row.items.map((echo) => (
-                          <View
-                            key={`${row.title}-${echo.title}-${echo.subtitle ?? ''}`}
-                            style={styles.layerEchoItem}
-                          >
-                            <Text style={styles.layerEchoTitle}>{echo.title}</Text>
-                            {echo.subtitle ? (
-                              <Text style={styles.layerEchoSubtitle}>{echo.subtitle}</Text>
-                            ) : null}
-                            {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
-            ))}
-          </View>
+        {contentMounted && (
+          <Animated.View
+            style={[
+              styles.symbolicLayersReveal,
+              {
+                height:
+                  contentHeight > 0
+                    ? expansionProgress.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, contentHeight],
+                      })
+                    : 0,
+                opacity: expansionProgress,
+                transform: [
+                  {
+                    translateY: expansionProgress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-4, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+            pointerEvents={expanded ? 'auto' : 'none'}
+            accessibilityElementsHidden={!expanded}
+            importantForAccessibility={expanded ? 'auto' : 'no-hide-descendants'}
+          >
+            <View
+              style={styles.symbolicLayersBody}
+              onLayout={(event) => {
+                const nextHeight = event.nativeEvent.layout.height;
+                if (nextHeight > 0 && nextHeight !== contentHeight) setContentHeight(nextHeight);
+              }}
+            >
+              {groups.map((group) => (
+                <View key={group.title} style={styles.layerGroup}>
+                  <Text style={styles.layerGroupTitle}>{group.title}</Text>
+                  {group.rows.map((row) => (
+                    <View key={row.title} style={styles.layerRow}>
+                      <Text style={styles.layerTitle}>{row.title}</Text>
+                      {row.kind === 'tags' ? (
+                        <Text style={styles.layerText}>{row.items.join(', ')}</Text>
+                      ) : (
+                        <View style={styles.layerEchoList}>
+                          {row.items.map((echo) => (
+                            <View
+                              key={`${row.title}-${echo.title}-${echo.subtitle ?? ''}`}
+                              style={styles.layerEchoItem}
+                            >
+                              <Text style={styles.layerEchoTitle}>{echo.title}</Text>
+                              {echo.subtitle ? (
+                                <Text style={styles.layerEchoSubtitle}>{echo.subtitle}</Text>
+                              ) : null}
+                              {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </Animated.View>
         )}
       </View>
     );
@@ -1226,10 +1341,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       firstAssistantMessage?.content?.trim() ??
       interpretation?.messages?.[0]?.content?.trim() ??
       '';
-    const continuationLabel = getReflectiveQuestionCopy(
-      firstAssistantMessage?.reflectiveQuestion?.languageCode ??
-        resolveDreamOutputLanguage(dream.content).code
-    ).continueLabel;
+    const continuationLabel = CONTINUE_CONVERSATION_LABEL;
 
     const interpretationPreviewExcerpt = buildInterpretationPreviewExcerpt(firstAssistantInterpretationText);
 
@@ -1389,12 +1501,12 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                   {!showChat && (
                     <TouchableOpacity
                       onPress={animateChatOpen}
-                      style={styles.continueExploringButton}
+                      style={styles.continueConversationButton}
                       activeOpacity={0.7}
                       accessibilityRole="button"
                       accessibilityLabel={continuationLabel}
                     >
-                      <Text style={styles.continueExploringText}>{continuationLabel}</Text>
+                      <Text style={styles.continueConversationText}>{continuationLabel}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -1742,7 +1854,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     },
     fieldSummary: {
       gap: spacing.md,
-      marginBottom: spacing.md,
+      marginBottom: 0,
     },
     essenceBlock: {
       paddingVertical: spacing.md,
@@ -1832,29 +1944,34 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       marginTop: spacing.sm,
     },
     symbolicLayersPanel: {
-      marginTop: spacing.md,
-      paddingVertical: spacing.sm,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.contourLineFaint,
+      marginTop: 0,
+      backgroundColor: 'transparent',
     },
     symbolicLayersHeader: {
+      minHeight: 60,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingVertical: spacing.xs,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.xs,
     },
     symbolicLayersTitle: {
-      fontSize: typography.sizes.sm,
-      fontFamily: typography.medium,
-      color: colors.textSecondary,
-    },
-    symbolicLayersCaret: {
       fontSize: typography.sizes.md,
-      color: colors.textMuted,
+      fontFamily: typography.medium,
+      color: colors.textPrimary,
+    },
+    symbolicLayersChevron: {
+      marginLeft: spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    symbolicLayersReveal: {
+      overflow: 'hidden',
     },
     symbolicLayersBody: {
-      paddingTop: spacing.sm,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.md,
+      paddingHorizontal: spacing.xs,
       gap: spacing.md,
     },
     layerGroup: {
@@ -1950,12 +2067,12 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       width: '92%',
       marginTop: spacing.sm,
     },
-    continueExploringButton: {
+    continueConversationButton: {
       alignSelf: 'center',
       paddingVertical: spacing.sm,
       marginTop: spacing.xs,
     },
-    continueExploringText: {
+    continueConversationText: {
       fontSize: typography.sizes.md,
       color: colors.buttonPrimary,
       fontWeight: typography.weights.medium,

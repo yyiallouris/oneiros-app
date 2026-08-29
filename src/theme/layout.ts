@@ -1,3 +1,5 @@
+import { spacing } from './spacing';
+
 /**
  * Layout tokens for readable content width — especially Expo web on wide viewports.
  * Mobile native keeps full-bleed screens; web centers a phone-scale column.
@@ -13,6 +15,19 @@ export const layout = {
   tabletMinWidth: 700,
   /** Viewport width at/above which we lock to the phone-scale column. */
   desktopMinWidth: 960,
+} as const;
+
+/**
+ * Floating parchment tab shelf. Keep `MainTabsNavigator` and tab-screen
+ * footers/CTAs on these tokens so Save-style actions cannot slip under the nav.
+ */
+export const floatingTabBar = {
+  height: 82,
+  /** Extra lift above the safe-area inset (`tabBarStyle.bottom` beyond `insets.bottom`). */
+  bottomOffset: 14,
+  horizontalInset: 24,
+  /** Quiet paper gap between a tab-screen CTA and the top of the shelf. */
+  contentGap: spacing.md,
 } as const;
 
 /**
@@ -39,4 +54,23 @@ export function resolveWebContentWidth(windowWidth: number): number {
 
 export function isWebContentConstrained(windowWidth: number): boolean {
   return windowWidth > layout.contentMaxWidth;
+}
+
+export function resolveFloatingTabBarBottom(safeAreaBottom: number): number {
+  const inset = Number.isFinite(safeAreaBottom) ? Math.max(0, safeAreaBottom) : 0;
+  return inset + floatingTabBar.bottomOffset;
+}
+
+/** Distance from the screen bottom to the top of the floating tab shelf. */
+export function resolveFloatingTabBarOccupancy(safeAreaBottom: number): number {
+  return resolveFloatingTabBarBottom(safeAreaBottom) + floatingTabBar.height;
+}
+
+/** Padding so tab-screen content and CTAs sit fully above the shelf. */
+export function resolveFloatingTabBarContentInset(
+  safeAreaBottom: number,
+  extraGap: number = floatingTabBar.contentGap
+): number {
+  const gap = Number.isFinite(extraGap) ? Math.max(0, extraGap) : floatingTabBar.contentGap;
+  return resolveFloatingTabBarOccupancy(safeAreaBottom) + gap;
 }

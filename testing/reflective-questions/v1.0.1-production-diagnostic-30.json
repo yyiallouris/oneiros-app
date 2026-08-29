@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-v1.0.1-production-diagnostic-30",
+  "source": "synthetic",
+  "dream_date": "2026-08-29",
+  "production_identity": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.1",
+    "bundle_sha256": "e7e4ea4b8bfbb253912771f163f692980bbc677f051c72df4b49e5034f6fe8c7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.1",
+    "chat_prompt_id": "oneiros-followup-chat-v2.0.1",
+    "shadow_validation_version": "oneiros-same-call-shadow-v1.0.1"
+  },
+  "trajectory_contract": {
+    "selected_case_count": 12,
+    "steps": ["initial_reading", "chat_followup", "chat_followup_close"],
+    "synthetic_interpretation_chat_replies_limit": 2,
+    "note": "The limit is fixed before either chat call so the second synthetic reply exercises the production final-turn builder. Messages are frozen and never rewritten after model output."
+  },
+  "cases": [
+    {
+      "id": "en-q-restorative-garden",
+      "language": "en",
+      "language_group": "english",
+      "mode": "quick",
+      "category": "simple_restorative",
+      "title": "The garden after rain",
+      "dream": "I stepped into a small garden just after rain. Every leaf held a bright drop, and a blackbird was bathing in a shallow stone bowl. I sat on the warm step and felt that I did not need to hurry anywhere.",
+      "trajectory": {
+        "open_user_turn": "The part that stays with me is the relief of not having to hurry. The blackbird felt completely at home there.",
+        "closing_user_turn": "That is enough for now. I want to keep the quiet feeling without explaining it further."
+      }
+    },
+    {
+      "id": "en-q-sparse-key",
+      "language": "en",
+      "language_group": "english",
+      "mode": "quick",
+      "category": "sparse",
+      "title": "A key in snow",
+      "dream": "There was only a brass key lying in fresh snow. I picked it up. Then I woke.",
+      "trajectory": null
+    },
+    {
+      "id": "en-q-relational-table",
+      "language": "en",
+      "language_group": "english",
+      "mode": "quick",
+      "category": "relational",
+      "title": "The extra place",
+      "dream": "My sister and I were setting a table for dinner, although we have not spoken in months. She quietly added a third plate. Neither of us knew who it was for, but we both left it there.",
+      "trajectory": null
+    },
+    {
+      "id": "en-q-threshold-ferry",
+      "language": "en",
+      "language_group": "english",
+      "mode": "quick",
+      "category": "threshold_movement",
+      "title": "The last ferry",
+      "dream": "I ran toward the last ferry as the rope was being lifted. The boatman saw me but did not decide whether to wait. I stopped at the edge of the pier, suddenly unsure if I wanted to cross.",
+      "trajectory": null
+    },
+    {
+      "id": "en-s-ancestor-coat",
+      "language": "en",
+      "language_group": "english",
+      "mode": "standard",
+      "category": "grief_ancestor",
+      "title": "My grandfather's coat",
+      "dream": "I found my grandfather's old winter coat hanging in a railway waiting room. He has been dead for years. When I put it on, the pockets were full of dry rosemary and small train tickets with no destination printed on them. I cried, but the room felt kind rather than lonely.",
+      "trajectory": {
+        "open_user_turn": "The rosemary felt more alive than the tickets. It reminded me of his kitchen and made the grief feel close but gentle.",
+        "closing_user_turn": "I understand enough for tonight. Let us close here and leave the rosemary as it is."
+      }
+    },
+    {
+      "id": "en-s-body-glass-hands",
+      "language": "en",
+      "language_group": "english",
+      "mode": "standard",
+      "category": "body_transformation",
+      "title": "Glass hands",
+      "dream": "My hands became transparent glass while I was trying to mend a torn shirt. I could see tiny red threads moving inside my fingers. I was afraid they would break, yet they became steadier each time the needle passed through the cloth.",
+      "trajectory": null
+    },
+    {
+      "id": "en-s-conflict-bridge",
+      "language": "en",
+      "language_group": "english",
+      "mode": "standard",
+      "category": "conflict_polarity",
+      "title": "Two voices on the bridge",
+      "dream": "I stood in the middle of a narrow bridge while two versions of my voice called from opposite banks. One told me to return to the lit town; the other asked me to continue into a dark orchard. Beneath me the river was calm, but my feet were shaking.",
+      "trajectory": {
+        "open_user_turn": "The orchard voice frightened me, but it also sounded more like my own voice. The town felt safe and strangely exhausted.",
+        "closing_user_turn": "That distinction is enough for now. I would like to stop here and sit with it."
+      }
+    },
+    {
+      "id": "en-a-surreal-whale-library",
+      "language": "en",
+      "language_group": "english",
+      "mode": "advanced",
+      "category": "surreal_high_imagery",
+      "title": "Library inside a whale",
+      "dream": "I entered a library built inside the rib cage of a sleeping whale. The books breathed like gills, and every title was the name of a place I had forgotten. A child librarian gave me a candle that burned underwater and warned me not to wake the animal until I had returned one book.",
+      "trajectory": null
+    },
+    {
+      "id": "en-a-complex-city-tide",
+      "language": "en",
+      "language_group": "english",
+      "mode": "advanced",
+      "category": "long_complex",
+      "title": "The city and the returning tide",
+      "dream": "I was responsible for closing a coastal city before an enormous tide arrived. At first I moved through offices collecting keys, but each key opened a childhood room instead of a public building. My mother was packing photographs into flour sacks while strangers carried pianos uphill. When the water entered the streets it was clear and full of silver fish. I climbed the clock tower to ring an alarm, but the bell had become a bowl of dark soil. I planted one of the keys in it. Far below, the people stopped running and began listening. The tide rose to the rooftops, then held still as if waiting for something from us.",
+      "trajectory": {
+        "open_user_turn": "Planting the key felt like the first choice that was truly mine. Before that I was only obeying the emergency and trying to save everything.",
+        "closing_user_turn": "I want to end here. The image of planting the key gives me enough to stay with."
+      }
+    },
+    {
+      "id": "en-a-ambiguous-mirror-bird",
+      "language": "en",
+      "language_group": "english",
+      "mode": "advanced",
+      "category": "ambiguous_symbolic",
+      "title": "The bird behind the mirror",
+      "dream": "A mirror in my apartment reflected a room that was almost mine, except a white bird lived there. Whenever I approached, the bird copied my movements before I made them. I could not tell whether it was teaching me, warning me, or simply living one second ahead.",
+      "trajectory": null
+    },
+    {
+      "id": "el-q-restorative-sea",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "quick",
+      "category": "simple_restorative",
+      "title": "Η ήσυχη θάλασσα",
+      "dream": "Περπατούσα ξυπόλυτος σε μια ήσυχη παραλία νωρίς το πρωί. Η θάλασσα ήταν ζεστή και κάθε κύμα άφηνε ένα μικρό λευκό κοχύλι δίπλα μου. Δεν χρειαζόταν να τα μαζέψω· μου αρκούσε να τα βλέπω.",
+      "trajectory": null
+    },
+    {
+      "id": "el-q-sparse-window",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "quick",
+      "category": "sparse",
+      "title": "Το ανοιχτό παράθυρο",
+      "dream": "Ένα παράθυρο άνοιξε μόνο του. Μπήκε κρύος αέρας και μύριζε γιασεμί. Ξύπνησα.",
+      "trajectory": null
+    },
+    {
+      "id": "el-q-relational-brother",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "quick",
+      "category": "relational",
+      "title": "Το ποδήλατο του αδελφού μου",
+      "dream": "Ο αδελφός μου κι εγώ σπρώχναμε ένα παλιό ποδήλατο σε έναν ανήφορο. Δεν μιλούσαμε, αλλά κάθε φορά που κουραζόμουν έπιανε το τιμόνι μαζί μου. Στην κορυφή είδαμε ότι το ποδήλατο δεν είχε αλυσίδα.",
+      "trajectory": {
+        "open_user_turn": "Μου έμεινε ότι με βοήθησε χωρίς να πει τίποτα. Στην πραγματική ζωή δυσκολευόμαστε πολύ να δείξουμε έτσι τη φροντίδα μας.",
+        "closing_user_turn": "Αυτό μου είναι αρκετό για σήμερα. Θέλω να το αφήσουμε εδώ χωρίς άλλη ερώτηση."
+      }
+    },
+    {
+      "id": "el-s-grief-mother-scarf",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "standard",
+      "category": "grief_ancestor",
+      "title": "Το μαντίλι της μητέρας",
+      "dream": "Βρήκα τη μητέρα μου, που έχει πεθάνει, να κάθεται στην παλιά αυλή και να διπλώνει το πράσινο μαντίλι της. Δεν με κοίταξε, μόνο μου έδειξε μια άδεια καρέκλα δίπλα της. Κάθισα και άκουσα τα τζιτζίκια ώσπου σκοτείνιασε.",
+      "trajectory": null
+    },
+    {
+      "id": "el-s-body-bark",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "standard",
+      "category": "body_transformation",
+      "title": "Φλοιός στα χέρια",
+      "dream": "Τα χέρια μου άρχισαν να καλύπτονται με φλοιό δέντρου ενώ έγραφα ένα γράμμα. Στην αρχή πανικοβλήθηκα, όμως οι λέξεις συνέχισαν να βγαίνουν πιο αργές και καθαρές. Από τις παλάμες μου φύτρωσαν δύο μικρά φύλλα.",
+      "trajectory": {
+        "open_user_turn": "Ο φλοιός δεν μου φάνηκε τελικά σαν αρρώστια. Έμοιαζε να με αναγκάζει να γράψω πιο τίμια και χωρίς βιασύνη.",
+        "closing_user_turn": "Νομίζω ότι αυτό αρκεί. Ας κλείσουμε εδώ και ας μείνουν τα δύο φύλλα μαζί μου."
+      }
+    },
+    {
+      "id": "el-s-threshold-station",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "standard",
+      "category": "threshold_movement",
+      "title": "Ο σταθμός χωρίς πινακίδα",
+      "dream": "Περίμενα σε έναν σταθμό χωρίς όνομα. Όλα τα τρένα περνούσαν αργά αλλά κανένα δεν σταματούσε. Μια ηλικιωμένη γυναίκα μου έδωσε ένα εισιτήριο που έγραφε μόνο τη λέξη «μετά» και μου είπε να μην κοιτάξω το ρολόι.",
+      "trajectory": null
+    },
+    {
+      "id": "el-s-conflict-house",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "standard",
+      "category": "conflict_polarity",
+      "title": "Το σπίτι που μίκραινε",
+      "dream": "Προσπαθούσα να χωρέσω όλους τους φίλους μου σε ένα σπίτι που μίκραινε κάθε φορά που άνοιγα την πόρτα. Εκείνοι γελούσαν και έλεγαν ότι υπάρχει χώρος, αλλά εγώ ένιωθα τους τοίχους να με πιέζουν. Δεν ήξερα αν έπρεπε να τους διώξω ή να φύγω εγώ.",
+      "trajectory": null
+    },
+    {
+      "id": "el-a-surreal-moon-kitchen",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "advanced",
+      "category": "surreal_high_imagery",
+      "title": "Η κουζίνα στο φεγγάρι",
+      "dream": "Μαγείρευα στην κουζίνα του παιδικού μου σπιτιού, αλλά το σπίτι βρισκόταν πάνω στο φεγγάρι. Κάθε φορά που άνοιγα τον φούρνο έβγαιναν μικρά σύννεφα και γέμιζαν το δωμάτιο. Ο πατέρας μου, νέος όπως στις φωτογραφίες, προσπαθούσε να κόψει ένα ρόδι που αιωρούνταν και δεν άγγιζε ποτέ το τραπέζι.",
+      "trajectory": {
+        "open_user_turn": "Το ρόδι που δεν ακουμπούσε με έκανε να νιώσω λαχτάρα. Ο πατέρας μου προσπαθούσε, αλλά τίποτα δεν μπορούσε να σταθεροποιηθεί.",
+        "closing_user_turn": "Θέλω να σταματήσουμε εδώ. Η εικόνα του ροδιού είναι αρκετά ζωντανή και δεν χρειάζεται άλλη ερώτηση."
+      }
+    },
+    {
+      "id": "el-a-complex-hospital",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "advanced",
+      "category": "long_complex",
+      "title": "Το νοσοκομείο και το υπόγειο ποτάμι",
+      "dream": "Δούλευα σε ένα παλιό νοσοκομείο όπου οι διάδρομοι άλλαζαν θέση κάθε βράδυ. Έπρεπε να παραδώσω ένα μπολ νερό σε έναν ασθενή χωρίς όνομα, αλλά κάθε πόρτα άνοιγε σε διαφορετική εποχή της ζωής μου. Σε ένα δωμάτιο ήμουν παιδί και περίμενα τον πατέρα μου· σε άλλο ήμουν πολύ ηλικιωμένος και έδενα τα παπούτσια ενός αγνώστου. Τελικά κατέβηκα στο υπόγειο και βρήκα ένα ποτάμι να περνά κάτω από τα θεμέλια. Έβαλα το μπολ μέσα στο ρεύμα και εκείνο άρχισε να φωτίζει. Όταν ανέβηκα ξανά, οι διάδρομοι είχαν σταματήσει να κινούνται, αλλά δεν θυμόμουν ποιον έψαχνα.",
+      "trajectory": null
+    },
+    {
+      "id": "el-a-ancestor-olive-door",
+      "language": "el",
+      "language_group": "greek",
+      "mode": "advanced",
+      "category": "grief_ancestor_ambiguous",
+      "title": "Η πόρτα μέσα στην ελιά",
+      "dream": "Στο χωριό βρήκα μια μικρή πόρτα μέσα στον κορμό της παλιάς ελιάς του παππού μου. Πίσω της υπήρχε ένα δωμάτιο γεμάτο φωνές συγγενών που δεν ζουν πια, όμως κανείς δεν είχε σώμα. Μου ζητούσαν να αφήσω κάτι δικό μου στο τραπέζι πριν μπω. Κρατούσα το ρολόι μου και δίσταζα.",
+      "trajectory": {
+        "open_user_turn": "Το ρολόι ήταν το πιο δύσκολο πράγμα να αφήσω. Ένιωθα ότι αν το έδινα, θα έχανα τον δικό μου χρόνο μέσα στον χρόνο της οικογένειας.",
+        "closing_user_turn": "Μου αρκεί αυτή η σκέψη. Ας κλείσουμε εδώ και ας μην ανοίξουμε περισσότερο την πόρτα."
+      }
+    },
+    {
+      "id": "es-q-relational-balcony",
+      "language": "es",
+      "language_group": "other",
+      "mode": "quick",
+      "category": "relational",
+      "title": "El balcón compartido",
+      "dream": "Estaba en un balcón con una amiga que no veo desde hace años. Ella regaba una planta seca y yo sostenía la maceta para que no cayera. No hablamos, pero cuando empezó a llover las hojas se volvieron verdes.",
+      "trajectory": {
+        "open_user_turn": "Cuando estaba con ella, sentí que mi amistad seguía viva. La planta estaba seca, pero no había nada muerto; cuidarla juntas era importante para mí.",
+        "closing_user_turn": "Esto es suficiente por hoy. Quiero cerrar aquí y quedarme con la imagen de las hojas verdes."
+      }
+    },
+    {
+      "id": "fr-q-sparse-bell",
+      "language": "fr",
+      "language_group": "other",
+      "mode": "quick",
+      "category": "sparse",
+      "title": "La cloche sous l'eau",
+      "dream": "Une petite cloche sonnait sous l'eau. Je la voyais dans un étang, mais quand je mettais la main dans l'eau, elle devenait silencieuse. Puis je me suis réveillé.",
+      "trajectory": null
+    },
+    {
+      "id": "de-q-threshold-forest",
+      "language": "de",
+      "language_group": "other",
+      "mode": "quick",
+      "category": "threshold_movement",
+      "title": "Der Weg im Wald",
+      "dream": "Ich war in einem dunklen Wald, aber vor mir lag ein heller Weg. Als ich weitergehen wollte, stand mein alter Hund neben mir, obwohl er längst tot ist. Er ging nicht voraus; er wartete, bis ich den ersten Schritt machte.",
+      "trajectory": {
+        "open_user_turn": "Dass mein Hund gewartet hat, fühlte sich wichtig an. Er wollte mich nicht führen, aber ich war auch nicht allein.",
+        "closing_user_turn": "Das reicht mir für heute. Ich möchte hier aufhören und den ersten Schritt nicht weiter erklären."
+      }
+    },
+    {
+      "id": "it-s-grief-letter",
+      "language": "it",
+      "language_group": "other",
+      "mode": "standard",
+      "category": "grief_ancestor",
+      "title": "La lettera senza parole",
+      "dream": "Ero nella casa di mia nonna, che non c'è più. Sul tavolo c'era una lettera chiusa con il mio nome, ma quando l'ho aperta il foglio era bianco. Mia nonna sorrideva dalla porta e io sentivo insieme tristezza e sollievo.",
+      "trajectory": null
+    },
+    {
+      "id": "pt-s-body-feathers",
+      "language": "pt",
+      "language_group": "other",
+      "mode": "standard",
+      "category": "body_transformation",
+      "title": "Penas nos ombros",
+      "dream": "Eu estava tentando carregar uma mala muito pesada quando meus ombros começaram a criar penas azuis. A mala continuava com o mesmo peso, mas meu corpo já não queria ficar no chão. Eu tinha medo de abandonar tudo e também medo de não conseguir voar.",
+      "trajectory": {
+        "open_user_turn": "As penas pareciam uma capacidade nova, mas a mala ainda era minha. O conflito estava em não saber se eu podia partir sem trair alguma coisa.",
+        "closing_user_turn": "Eu estava com essa imagem e ela já é suficiente para mim. Não quero dizer mais nada; minha escolha é encerrar aqui."
+      }
+    },
+    {
+      "id": "nl-s-restorative-bakery",
+      "language": "nl",
+      "language_group": "other",
+      "mode": "standard",
+      "category": "simple_restorative",
+      "title": "De bakkerij voor zonsopgang",
+      "dream": "Ik was alleen in een bakkerij voor zonsopgang. Het brood was warm en de ramen waren beslagen. Een onbekende vrouw zette een kop thee voor mij neer en zei niets. Ik bleef zitten terwijl de straat langzaam licht werd.",
+      "trajectory": null
+    },
+    {
+      "id": "pl-a-conflict-stairs",
+      "language": "pl",
+      "language_group": "other",
+      "mode": "advanced",
+      "category": "conflict_polarity",
+      "title": "Schody w dwóch kierunkach",
+      "dream": "Byłam w domu, gdzie każde schody prowadziły jednocześnie w górę i w dół. Moja rodzina czekała na dole, ale na górze słyszałam własny głos wołający mnie po imieniu. Kiedy próbowałam zostać w miejscu, stopnie zaczęły się poruszać pode mną.",
+      "trajectory": {
+        "open_user_turn": "Najbardziej niepokoiło mnie to, że nie mogłam pozostać bez decyzji. Głos na górze był mój, ale rodzina na dole wydawała się bardzo realna.",
+        "closing_user_turn": "To jest wystarczające na teraz. Nie chcę już nic dodawać; chcę tylko zakończyć tutaj i zostać z tym obrazem."
+      }
+    },
+    {
+      "id": "ru-a-surreal-theater",
+      "language": "ru",
+      "language_group": "other",
+      "mode": "advanced",
+      "category": "surreal_high_imagery",
+      "title": "Театр теней",
+      "dream": "Я вошёл в пустой театр, где на сцене играли только тени. Одна тень была моей, но двигалась независимо и держала в руках красную птицу. Когда занавес начал опускаться, она протянула птицу мне, а мои настоящие руки стали невидимыми.",
+      "trajectory": null
+    },
+    {
+      "id": "ja-a-complex-snow-train",
+      "language": "ja",
+      "language_group": "other",
+      "mode": "advanced",
+      "category": "long_complex",
+      "title": "雪の中の列車",
+      "dream": "私は雪に埋もれた駅で、名前のない列車を待っていました。列車の中には子どもの頃の教室、祖母の台所、知らない海辺が順番に並んでいました。車掌は私に古い時計を渡し、「降りる場所は時間ではなく音で分かる」と言いました。やがて遠くで鐘が鳴りましたが、乗客は誰も動きません。私は時計を座席に置き、ひとりで扉の前に立ちました。扉の向こうから暖かい風が入り、雪が車内で静かに溶け始めました。",
+      "trajectory": null
+    },
+    {
+      "id": "zh-a-ambiguous-ancestor-river",
+      "language": "zh",
+      "language_group": "other",
+      "mode": "advanced",
+      "category": "ambiguous_symbolic_grief",
+      "title": "河面上的房间",
+      "dream": "我走进一个漂在河面上的房间。房间里有祖父的旧书桌，可是抽屉里装的不是纸，而是一群发光的小鱼。每当我想抓住一条鱼，房间就顺流而下，离岸边更远。我不知道祖父是在邀请我带走什么，还是在教我放手。",
+      "trajectory": null
+    }
+  ]
+}

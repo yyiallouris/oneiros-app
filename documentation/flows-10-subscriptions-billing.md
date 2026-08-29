@@ -128,6 +128,8 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - `recent_dream_field_generate`
   - `period_reflection_generate`
 - Every request must carry an idempotency key.
+- For `dream_followup_reply`, an already-committed idempotency replay returns the original persisted reply/messages. New commits store compact user/assistant message IDs in quota result context; legacy results use a constrained adjacent-message fallback. Replay never calls the model, commits quota, or persists the turn again. If the committed turn cannot be reconstructed, the gateway returns an explicit conflict instead of spending again.
+- This replay repair is live in guarded `ai-entitlements-gateway` function version `112`; a production synthetic check returned an identical cached replay while leaving persisted messages and the committed quota result unchanged.
 - The gateway owns:
   - quota reservation
   - quota commit / release
@@ -194,6 +196,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Free-origin reflections keep their 5 replies even after the weekly free gate closes.
 - Paid-origin reflections become read-only if paid access lapses.
 - `billing_commit_quota` must treat follow-up `interpretation_id` as **text** (same as `interpretations.id`). Casting to `uuid` breaks `dream_followup_reply` with `Failed to commit quota` after the AI reply runs. Contract: `__tests__/flows/billingCommitQuota.interpretationIdText.contract.flow.test.ts`.
+- A successful follow-up commit persists the user/assistant pair and stores both message IDs in compact quota result context. A repeated request with the same committed idempotency key reconstructs that pair from the persisted interpretation and returns it with `cached: true`; it does not invoke generation or quota commit again. Legacy rows without IDs may match only the persisted adjacent user/assistant pair. Contract: `__tests__/flows/dreamFollowupCommittedReplay.contract.flow.test.ts`.
 
 ### Recent Dream Field
 

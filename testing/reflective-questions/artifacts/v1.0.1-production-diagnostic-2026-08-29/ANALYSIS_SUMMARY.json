@@ -1,0 +1,148 @@
+{
+  "run_id": "oneiros-v101-production-diagnostic-2026-08-29T14-59-46-903Z",
+  "fixture_sha256": "5e821d2578e5e0f7e688b20b16755b56cabe73590d361429dbff9a0c2af7bbcc",
+  "generation_count": 54,
+  "validator": {
+    "pass": 29,
+    "fail": 25,
+    "issue_occurrences": {
+      "manufactured_answer_menu": 22,
+      "question_count_mismatch": 2,
+      "wrong_output_language:unknown": 2,
+      "question_not_interrogative": 1
+    }
+  },
+  "human_review_of_validator_failures": {
+    "harmless_structural_flag": 10,
+    "noticeable_but_acceptable": 11,
+    "real_oneiros_quality_problem": 4
+  },
+  "representative_pass_sample_reviewed": 12,
+  "exact_total_cost_usd": 0.42161125,
+  "generation_model_retries": 0,
+  "reader_generations_rerun_during_recovery": 0,
+  "open_generations_rerun_during_recovery": 0,
+  "by_surface": {
+    "chat_followup": {
+      "n": 12,
+      "pass": 7,
+      "fail": 5
+    },
+    "chat_followup_close": {
+      "n": 12,
+      "pass": 10,
+      "fail": 2
+    },
+    "reading_quick": {
+      "n": 10,
+      "pass": 9,
+      "fail": 1
+    },
+    "reading_standard": {
+      "n": 10,
+      "pass": 2,
+      "fail": 8
+    },
+    "reading_advanced": {
+      "n": 10,
+      "pass": 1,
+      "fail": 9
+    }
+  },
+  "by_mode": {
+    "quick": {
+      "n": 18,
+      "pass": 15,
+      "fail": 3
+    },
+    "standard": {
+      "n": 18,
+      "pass": 8,
+      "fail": 10
+    },
+    "advanced": {
+      "n": 18,
+      "pass": 6,
+      "fail": 12
+    }
+  },
+  "by_language_group": {
+    "english": {
+      "n": 18,
+      "pass": 11,
+      "fail": 7
+    },
+    "greek": {
+      "n": 18,
+      "pass": 10,
+      "fail": 8
+    },
+    "other": {
+      "n": 18,
+      "pass": 8,
+      "fail": 10
+    }
+  },
+  "by_language": {
+    "en": {
+      "n": 18,
+      "pass": 11,
+      "fail": 7
+    },
+    "el": {
+      "n": 18,
+      "pass": 10,
+      "fail": 8
+    },
+    "es": {
+      "n": 3,
+      "pass": 2,
+      "fail": 1
+    },
+    "fr": {
+      "n": 1,
+      "pass": 1,
+      "fail": 0
+    },
+    "de": {
+      "n": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "it": {
+      "n": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "pt": {
+      "n": 3,
+      "pass": 2,
+      "fail": 1
+    },
+    "nl": {
+      "n": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "pl": {
+      "n": 3,
+      "pass": 0,
+      "fail": 3
+    },
+    "ru": {
+      "n": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "ja": {
+      "n": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    "zh": {
+      "n": 1,
+      "pass": 0,
+      "fail": 1
+    }
+  }
+}
