@@ -10,8 +10,7 @@ describe('app config env projection', () => {
     process.env = originalEnv;
   });
 
-  it('projects support and subscription env vars into expo extra', () => {
-    process.env.EXPO_PUBLIC_CONTACT_EMAIL = 'support@oneirosjournal.com';
+  it('projects subscription env vars into expo extra without exposing support routing', () => {
     process.env.EXPO_PUBLIC_APPLE_DEEPER_SUBSCRIPTION_MONTHLY_PRODUCT_ID = 'apple.deeper.monthly';
     process.env.EXPO_PUBLIC_APPLE_DEEPER_SUBSCRIPTION_YEARLY_PRODUCT_ID = 'apple.deeper.yearly';
     process.env.EXPO_PUBLIC_GOOGLE_DEEPER_SUBSCRIPTION_PRODUCT_ID = 'google.deeper';
@@ -19,7 +18,7 @@ describe('app config env projection', () => {
     const configModule = require('../app.config.js');
     const config = configModule.default;
 
-    expect(config.extra.contactEmail).toBe('support@oneirosjournal.com');
+    expect(config.extra.contactEmail).toBeUndefined();
     expect(config.extra.appleDeeperSubscriptionMonthlyProductId).toBe('apple.deeper.monthly');
     expect(config.extra.appleDeeperSubscriptionYearlyProductId).toBe('apple.deeper.yearly');
     expect(config.extra.googleDeeperSubscriptionProductId).toBe('google.deeper');

@@ -41,9 +41,78 @@
           </p>
 
           <div class="actions">
-            <a class="button primary" href="mailto:support@oneirosjournal.com">Email support</a>
+            <a class="button primary" href="#support-form">Send a message</a>
+            <a class="button secondary" href="mailto:support@oneirosjournal.com">Email directly</a>
             <a class="button secondary" href="/privacy">Read Privacy Policy</a>
           </div>
+
+          <section class="support-form-card" aria-labelledby="support-form-title">
+            <p class="card-kicker">Write to us</p>
+            <h2 id="support-form-title">How can we help?</h2>
+            <p>
+              Tell us what happened and include the email connected to your Oneiros account when
+              possible. We’ll reply to the address you enter below.
+            </p>
+
+            <form id="support-form" class="support-form" novalidate>
+              <div class="support-field">
+                <label for="support-email">Email</label>
+                <input
+                  id="support-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  maxlength="320"
+                  required
+                />
+              </div>
+
+              <div class="support-field">
+                <label for="support-subject">Subject <span>(optional)</span></label>
+                <input
+                  id="support-subject"
+                  name="subject"
+                  type="text"
+                  autocomplete="off"
+                  maxlength="160"
+                />
+              </div>
+
+              <div class="support-field">
+                <label for="support-message">Message</label>
+                <textarea
+                  id="support-message"
+                  name="message"
+                  rows="7"
+                  maxlength="10000"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="support-honeypot" aria-hidden="true">
+                <label for="support-company">Company</label>
+                <input
+                  id="support-company"
+                  name="company"
+                  type="text"
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </div>
+
+              <button id="support-submit" class="button primary" type="submit">
+                Send message
+              </button>
+              <p id="support-status" class="support-status" role="status" aria-live="polite"></p>
+            </form>
+
+            <noscript>
+              <p>
+                To contact us without JavaScript, email
+                <a href="mailto:support@oneirosjournal.com">support@oneirosjournal.com</a>.
+              </p>
+            </noscript>
+          </section>
 
           <div class="summary-grid">
             <section class="summary-card">
@@ -110,5 +179,6 @@
         <span><a href="/terms">Terms of Use</a></span>
       </footer>
     </div>
+    <script src="/support/support.js" defer></script>
   </body>
 </html>

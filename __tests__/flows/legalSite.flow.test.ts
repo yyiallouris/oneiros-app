@@ -61,11 +61,16 @@ describe('public legal site', () => {
   it('provides a public support page for store listing and account data requests', () => {
     const support = readSiteFile('support/index.html');
 
+    expect(fs.existsSync(path.join(siteRoot, 'support/support.js'))).toBe(true);
     expect(support).toContain('email support');
     expect(support).toContain('account deletion');
     expect(support).toContain('data deletion');
     expect(support).toContain('export');
     expect(support).toContain('crisis support');
     expect(support).toContain('support@oneirosjournal.com');
+    expect(support).toContain('id="support-form"');
+    expect(support).toContain('send a message');
+    expect(support).toContain('/support/support.js');
+    expect(readSiteFile('support/support.js')).toContain("fetch('/api/support'");
   });
 });

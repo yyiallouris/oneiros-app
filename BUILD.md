@@ -28,10 +28,11 @@ requirements and public legal URLs:
 - Terms of Use: `https://oneirosjournal.com/terms`
 - Support URL: `https://oneirosjournal.com/support`
 
-Vercel is configured by `vercel.json` to serve the static `site/` directory.
-The static site is intentionally separate from the Expo app shell so Privacy
-Policy and Terms pages load quickly in any browser without authentication,
-JavaScript app state, or mobile navigation.
+Vercel is configured by `vercel.json` to serve the static `site/` directory and
+the root `api/` directory as serverless endpoints. The site is intentionally
+separate from the Expo app shell so Privacy Policy and Terms pages load quickly
+in any browser without authentication or mobile navigation. The Support page
+uses a small progressive-enhancement script and keeps direct email as fallback.
 
 Preview locally:
 
@@ -49,6 +50,11 @@ npm run site:preview
 4. Add domains:
    - `oneirosjournal.com`
    - `www.oneirosjournal.com`
+5. Add Vercel Production environment variables for the server-only support proxy:
+   - `SUPABASE_URL` — production Supabase project URL.
+   - `SUPABASE_ANON_KEY` — production legacy anon JWT used only by `/api/support` when invoking `support-request`.
+
+After the environment variables are saved, redeploy the Vercel project and verify one submission from `https://oneirosjournal.com/support`. The static browser bundle must not contain the Supabase key.
 
 ### Namecheap DNS
 
@@ -183,14 +189,15 @@ Production Android config expectations:
 - `android.versionCode`: increment for every Google Play upload.
 - `production.android.buildType`: `app-bundle` in `eas.json`.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
-- Support routing: set `EXPO_PUBLIC_CONTACT_EMAIL` so authenticated contact requests reach the correct inbox.
+- Support routing: deploy `support-request` with server-side `SUPPORT_EMAIL=support@oneirosjournal.com` and exact sender syntax `FROM_EMAIL=Oneiros Support <support@oneirosjournal.com>`; do not expose the destination through `EXPO_PUBLIC_CONTACT_EMAIL`.
+- Mail delivery: provision a real `support@oneirosjournal.com` mailbox with root MX records, while keeping Resend's return-path records on the `send` subdomain.
 - Microphone permission copy describes optional dream voice journaling and transcription.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
 
 Before Google Play review, complete these manual steps:
 
 - Create the Play Console app, enable Play App Signing, and confirm EAS Android credentials with `eas credentials`.
-- Complete Data Safety for account data, dream/user content, voice audio/transcription, support messages, AI processing, and processors such as Supabase, OpenAI/Anthropic, Google, Resend, and Postmark.
+- Complete Data Safety for account data, dream/user content, voice audio/transcription, support messages, AI processing, and processors such as Supabase, OpenAI/Anthropic, Google, and Resend.
 - Add the hosted Privacy Policy URL, support/contact details, age rating consistent with 18+ consent, screenshots, store listing copy, and content declarations.
 - Confirm Google OAuth release SHA-1 / Play App Signing certificate is registered wherever the OAuth client requires it.
 - Create the production Google Play subscription products `oneiros_premium` and `oneiros_deeper`, each with base plans `monthly` and `yearly`, matching the runtime config used by the app.
@@ -240,7 +247,8 @@ Production iOS config expectations:
 - `ios.usesAppleSignIn`: enabled, because the app offers Google/Discord social sign-in.
 - Microphone purpose string: describes optional dream voice journaling and transcription.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
-- Support routing: set `EXPO_PUBLIC_CONTACT_EMAIL` so authenticated contact requests reach the correct inbox.
+- Support routing: deploy `support-request` with server-side `SUPPORT_EMAIL=support@oneirosjournal.com` and exact sender syntax `FROM_EMAIL=Oneiros Support <support@oneirosjournal.com>`; do not expose the destination through `EXPO_PUBLIC_CONTACT_EMAIL`.
+- Mail delivery: provision a real `support@oneirosjournal.com` mailbox with root MX records, while keeping Resend's return-path records on the `send` subdomain.
 
 Before TestFlight/App Review, complete these manual steps:
 

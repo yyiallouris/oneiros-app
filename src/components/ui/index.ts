@@ -25,3 +25,5 @@ export { SymbolInfoModal } from './SymbolInfoModal';
 export { DesignExportForeground } from './DesignExportForeground';
 export { WebContentShell } from './WebContentShell';
 export { ReflectiveQuestionCard } from './ReflectiveQuestionCard';
+export { FormFeedback } from './FormFeedback';
+export type { FormFeedbackTone } from './FormFeedback';

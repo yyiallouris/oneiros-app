@@ -3,17 +3,26 @@ import { logEvent, logError } from './logger';
 
 export interface SupportRequestPayload {
   email: string;
+  subject?: string;
   message: string;
 }
 
 /**
- * Send a login/support request (no auth required).
- * Backend emails support and sends auto-reply from support@oneirosjournal.com.
+ * Send a support request. The backend accepts signed-in and signed-out callers,
+ * owns the destination address, and sends the support notification + auto-reply.
  */
-export async function sendSupportRequest({ email, message }: SupportRequestPayload): Promise<void> {
+export async function sendSupportRequest({
+  email,
+  subject,
+  message,
+}: SupportRequestPayload): Promise<void> {
   logEvent('support_request_invoke_start', {});
   const { data, error } = await supabase.functions.invoke('support-request', {
-    body: { email: email.trim(), message: message.trim() },
+    body: {
+      email: email.trim(),
+      subject: subject?.trim() || undefined,
+      message: message.trim(),
+    },
   });
 
   if (error) {

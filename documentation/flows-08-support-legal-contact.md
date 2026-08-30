@@ -4,7 +4,10 @@
 
 - Reachable from Write **menu** (authenticated).
 - Fields: optional subject, required message.
-- `sendContactMessage` → edge function; success clears form and shows thank-you alert; failure shows generic error.
+- `sendContactMessage` resolves the signed-in account email and invokes the shared `support-request` edge function; the client never writes `contact_messages` directly or selects the destination address.
+- The edge function resolves the bearer session when available, sends the request to the server-owned support inbox through Resend, and sends a best-effort acknowledgement to the user. Authenticated `contact_messages` persistence is a best-effort operational archive and cannot block email delivery.
+- Success clears the form, announces an inline confirmation, then returns to **Write** after a short readable delay.
+- Failure shows accessible inline feedback and keeps the subject/message draft untouched so the user can retry. This is deliberately not a native `Alert`: React Native Web does not surface that API reliably.
 
 ## Privacy & Legal (`PrivacyScreen`)
 
@@ -22,7 +25,7 @@
 - `site/index.html` is a calm entry layer for public trust information, not a dense legal wall.
 - `site/privacy/index.html` explains data handling in plain language, with a shorter section structure and explicit notes about sensitive dream content, AI providers, voice processing, and user controls.
 - `site/terms/index.html` explains adult-only use, reflective-not-clinical boundaries, AI-generated output, acceptable use, and the live Free / Premium / Deeper subscription reality.
-- `site/support/index.html` handles email support, billing help, account deletion, data deletion, export requests, and the crisis boundary.
+- `site/support/index.html` handles email support, billing help, account deletion, data deletion, export requests, and the crisis boundary. Its accessible web form posts to the same canonical `support-request` function through the same-origin Vercel `/api/support` proxy; a visible `mailto:` link remains as fallback.
 - Public pages should stay user-facing, current to the product, and free of internal rollout or setup wording.
 
 ## Account deletion (`AccountScreen`, `delete-account` edge function)
@@ -54,12 +57,28 @@
 ## Login support (`LoginSupportScreen`)
 
 - Reachable from **Auth** and **Biometric lock** (trouble signing in / locked out).
-- Requires email + message; calls `sendSupportRequest`; confirmation copy references support inbox; `goBack` after success.
+- Requires email + message and invokes the same `support-request` function without requiring a signed-in session.
+- The function sends the request to the support inbox and a best-effort acknowledgement to the supplied address.
+- Success announces an inline confirmation, then resets navigation to **Auth** after a short readable delay. Failure remains on the form with the entered email/message intact.
+
+## Shared support delivery
+
+- Production destination and sender identity are server-owned through `SUPPORT_EMAIL` and `FROM_EMAIL`; they are not shipped in Expo config.
+- The public website keeps Supabase credentials server-side in Vercel environment variables. `/api/support` validates input and origin, absorbs the hidden-field spam case, and forwards only email, optional subject, and message.
+- Resend handles automated sending for both support surfaces and Supabase Auth, but Resend domain verification alone does not create a mailbox.
+- `support@oneirosjournal.com` must be provisioned as a real receiving mailbox. Root `@` MX records belong to that mailbox provider, while Resend return-path records remain isolated on `send.oneirosjournal.com`.
+- The old `contact-email` / Postmark path is not canonical and must not be deployed.
+- Direct client inserts remain denied by RLS. Authenticated persistence is attempted only inside the Edge Function and is best-effort; archive failure must not prevent the support inbox from receiving the request.
+- Edge failures emit privacy-safe structured logs with `request_id`, processing stage/status, and no support-message body. Supabase Function logs are the current diagnostic record; proactive paging requires a separately configured monitoring/log-drain integration and must not be assumed to exist.
 
 ## Regression
 
 - Submit contact with empty message → validation.
-- Support form network failure → error alert, stays on screen.
-- Back navigation from LoginSupport returns to Auth or Lock screen as expected.
+- Authenticated contact submission → one backend delivery; archive row persists when the table is available, while archive failure remains non-blocking; direct client insert remains RLS-denied.
+- Signed-out Login Support submission → inbox delivery and acknowledgement without requiring auth.
+- Support form network failure → inline error, entered draft remains, no navigation.
+- Signed-in success → inline confirmation then `MainTabs/Write`.
+- Signed-out success → inline confirmation then navigation reset to `Auth`.
+- Back navigation before submission from LoginSupport returns to Auth or Lock screen as expected.
 - Legal consent is isolated per user and does not leak across accounts.
 - Legal copy flow test protects the core consent/privacy boundaries without locking the app to exact phrasing.

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,37 +7,75 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PaperBackground, Button, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
+import {
+  PaperBackground,
+  Button,
+  DesignExportForeground,
+  ActionLoadingSlot,
+  FormFeedback,
+  type FormFeedbackTone,
+} from '../components/ui';
 import { sendSupportRequest } from '../services/supportRequest';
 import { logEvent, logError } from '../services/logger';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
+type Feedback = { tone: FormFeedbackTone; title: string; message: string };
+
+const SUCCESS_REDIRECT_DELAY_MS = 1200;
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 const LoginSupportScreen: React.FC = () => {
   const navigation = useNavigation<NavProp>();
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (redirectTimer.current) clearTimeout(redirectTimer.current);
+  }, []);
+
+  const updateEmail = (value: string) => {
+    setEmail(value);
+    if (feedback?.tone === 'error') setFeedback(null);
+  };
+
+  const updateMessage = (value: string) => {
+    setMessage(value);
+    if (feedback?.tone === 'error') setFeedback(null);
+  };
 
   const handleSubmit = async () => {
     const e = email.trim();
     const m = message.trim();
-    if (!e) {
-      logEvent('support_request_validation_fail', { reason: 'no_email' });
-      Alert.alert('Email required', 'Please enter your email so we can get back to you.');
+    if (!isValidEmail(e)) {
+      logEvent('support_request_validation_fail', { reason: 'invalid_email' });
+      setFeedback({
+        tone: 'error',
+        title: 'Check your email',
+        message: 'Enter a valid email address so we can get back to you.',
+      });
       return;
     }
     if (!m) {
       logEvent('support_request_validation_fail', { reason: 'no_message' });
-      Alert.alert('Message required', 'Please describe what’s going wrong so we can help.');
+      setFeedback({
+        tone: 'error',
+        title: 'Message needed',
+        message: 'Please describe what’s going wrong so we can help.',
+      });
       return;
     }
+    setFeedback(null);
     setIsSending(true);
     logEvent('support_request_submit', {});
     try {
@@ -45,14 +83,22 @@ const LoginSupportScreen: React.FC = () => {
       logEvent('support_request_success', {});
       setEmail('');
       setMessage('');
-      Alert.alert(
-        'Message sent',
-        "We've received your request. Check your inbox for a confirmation from support@oneirosjournal.com — we'll get back to you soon."
-      );
-      navigation.goBack();
+      setFeedback({
+        tone: 'success',
+        title: 'Message sent',
+        message: 'We’ve received your request and sent a confirmation email. Returning to sign in…',
+      });
+      redirectTimer.current = setTimeout(() => {
+        redirectTimer.current = null;
+        navigation.reset({ index: 0, routes: [{ name: 'Auth' }] });
+      }, SUCCESS_REDIRECT_DELAY_MS);
     } catch (err) {
       logError('support_request_error', err, {});
-      Alert.alert('Something went wrong', 'Please try again later or email us at support@oneirosjournal.com.');
+      setFeedback({
+        tone: 'error',
+        title: 'Message not sent',
+        message: 'Please try again. Your message is still here. If this continues, email support@oneirosjournal.com.',
+      });
     } finally {
       setIsSending(false);
     }
@@ -81,7 +127,7 @@ const LoginSupportScreen: React.FC = () => {
             placeholder="you@example.com"
             placeholderTextColor={colors.textMuted}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={updateEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             editable={!isSending}
@@ -95,7 +141,7 @@ const LoginSupportScreen: React.FC = () => {
             placeholder="e.g. Can’t reset password, didn’t receive verification email..."
             placeholderTextColor={colors.textMuted}
             value={message}
-            onChangeText={setMessage}
+            onChangeText={updateMessage}
             multiline
             textAlignVertical="top"
             editable={!isSending}
@@ -112,6 +158,15 @@ const LoginSupportScreen: React.FC = () => {
             disabled={!email.trim() || !message.trim()}
           />
         </ActionLoadingSlot>
+
+        {feedback && (
+          <FormFeedback
+            testID="login-support-feedback"
+            tone={feedback.tone}
+            title={feedback.title}
+            message={feedback.message}
+          />
+        )}
       </DesignExportForeground>
     </KeyboardAvoidingView>
   );

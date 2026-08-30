@@ -1,3 +1,5 @@
+// RETIRED LEGACY FUNCTION. Do not deploy.
+// Production support delivery is owned by ../support-request/index.ts.
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 type ContactRecord = {
@@ -69,4 +71,3 @@ serve(async (req: Request) => {
     return new Response("Internal error", { status: 500 });
   }
 });
-

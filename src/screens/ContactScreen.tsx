@@ -1,44 +1,89 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TextInput,
   KeyboardAvoidingView,
-  Alert,
 } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { colors, spacing, typography, borderRadius } from '../theme';
-import { PaperBackground, Button, DesignExportForeground, ActionLoadingSlot } from '../components/ui';
+import {
+  PaperBackground,
+  Button,
+  DesignExportForeground,
+  ActionLoadingSlot,
+  FormFeedback,
+  type FormFeedbackTone,
+} from '../components/ui';
 import { sendContactMessage } from '../services/contact';
 import { RootStackParamList } from '../navigation/types';
 
 type ContactRouteProp = RouteProp<RootStackParamList, 'Contact'>;
+type ContactNavigationProp = StackNavigationProp<RootStackParamList>;
+type Feedback = { tone: FormFeedbackTone; title: string; message: string };
+
+const SUCCESS_REDIRECT_DELAY_MS = 1200;
 
 const ContactScreen: React.FC = () => {
   const route = useRoute<ContactRouteProp>();
+  const navigation = useNavigation<ContactNavigationProp>();
   const [subject, setSubject] = useState(route.params?.initialSubject ?? '');
   const [message, setMessage] = useState(route.params?.initialMessage ?? '');
   const [isSending, setIsSending] = useState(false);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (route.params?.initialSubject) setSubject(route.params.initialSubject);
     if (route.params?.initialMessage) setMessage(route.params.initialMessage);
   }, [route.params?.initialMessage, route.params?.initialSubject]);
 
+  useEffect(() => () => {
+    if (redirectTimer.current) clearTimeout(redirectTimer.current);
+  }, []);
+
+  const updateSubject = (value: string) => {
+    setSubject(value);
+    if (feedback?.tone === 'error') setFeedback(null);
+  };
+
+  const updateMessage = (value: string) => {
+    setMessage(value);
+    if (feedback?.tone === 'error') setFeedback(null);
+  };
+
   const handleSubmit = async () => {
     if (!message.trim()) {
-      Alert.alert('Missing message', 'Please share a few words so we can help.');
+      setFeedback({
+        tone: 'error',
+        title: 'Message needed',
+        message: 'Please share a few words so we can help.',
+      });
       return;
     }
+    setFeedback(null);
     setIsSending(true);
     try {
       await sendContactMessage({ subject: subject.trim() || '(no subject)', message: message.trim() });
       setSubject('');
       setMessage('');
-      Alert.alert('Thank you', 'Your message has been sent. We will get back to you soon.');
+      setFeedback({
+        tone: 'success',
+        title: 'Message sent',
+        message: 'Thank you. We’ll reply by email. Returning to Write…',
+      });
+      redirectTimer.current = setTimeout(() => {
+        redirectTimer.current = null;
+        navigation.navigate('MainTabs', { screen: 'Write' });
+      }, SUCCESS_REDIRECT_DELAY_MS);
     } catch {
-      Alert.alert('Error', 'Something went wrong while sending your message. Please try again later.');
+      setFeedback({
+        tone: 'error',
+        title: 'Message not sent',
+        message: 'Please try again. Your message is still here. If this continues, email support@oneirosjournal.com.',
+      });
     } finally {
       setIsSending(false);
     }
@@ -64,7 +109,8 @@ const ContactScreen: React.FC = () => {
             placeholder="Optional"
             placeholderTextColor={colors.textMuted}
             value={subject}
-            onChangeText={setSubject}
+            onChangeText={updateSubject}
+            editable={!isSending}
           />
         </View>
 
@@ -75,9 +121,10 @@ const ContactScreen: React.FC = () => {
             placeholder="Write your message..."
             placeholderTextColor={colors.textMuted}
             value={message}
-            onChangeText={setMessage}
+            onChangeText={updateMessage}
             multiline
             textAlignVertical="top"
+            editable={!isSending}
           />
         </View>
 
@@ -91,6 +138,15 @@ const ContactScreen: React.FC = () => {
             disabled={!message.trim()}
           />
         </ActionLoadingSlot>
+
+        {feedback && (
+          <FormFeedback
+            testID="contact-feedback"
+            tone={feedback.tone}
+            title={feedback.title}
+            message={feedback.message}
+          />
+        )}
       </DesignExportForeground>
     </KeyboardAvoidingView>
   );

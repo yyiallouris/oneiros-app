@@ -11,6 +11,8 @@
   --line: rgba(58, 47, 42, 0.14);
   --line-soft: rgba(58, 47, 42, 0.08);
   --gold: #b58a4a;
+  --success: #3f6b55;
+  --error: #8c3f45;
   --max: 1120px;
 }
 
@@ -424,6 +426,110 @@ h3 {
   margin-top: 16px;
 }
 
+.support-form-card {
+  border-top: 1px solid var(--line);
+  margin-top: 36px;
+  padding-top: 30px;
+}
+
+.legal-card .support-form-card h2 {
+  border: 0;
+  font-size: 32px;
+  margin: 0;
+  padding: 0;
+}
+
+.support-form-card > p:not(.card-kicker) {
+  margin: 12px 0 0;
+  max-width: 680px;
+}
+
+.support-form {
+  display: grid;
+  gap: 20px;
+  margin-top: 26px;
+  position: relative;
+}
+
+.support-field {
+  display: grid;
+  gap: 8px;
+}
+
+.support-field label {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.support-field label span {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.support-field input,
+.support-field textarea {
+  appearance: none;
+  background: rgba(255, 253, 249, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+  outline: none;
+  padding: 14px 16px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  width: 100%;
+}
+
+.support-field textarea {
+  min-height: 168px;
+  resize: vertical;
+}
+
+.support-field input:focus-visible,
+.support-field textarea:focus-visible {
+  border-color: rgba(75, 49, 88, 0.58);
+  box-shadow: 0 0 0 3px var(--plum-soft);
+}
+
+.support-form .button {
+  cursor: pointer;
+  font: inherit;
+  justify-self: start;
+  min-width: 156px;
+}
+
+.support-form .button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+  transform: none;
+}
+
+.support-status {
+  color: var(--ink-soft);
+  margin: -4px 0 0;
+  min-height: 1.7em;
+}
+
+.support-status.success {
+  color: var(--success);
+}
+
+.support-status.error {
+  color: var(--error);
+}
+
+.support-honeypot {
+  height: 1px;
+  left: -10000px;
+  overflow: hidden;
+  position: absolute;
+  top: auto;
+  width: 1px;
+}
+
 @media (max-width: 960px) {
   .summary-grid {
     grid-template-columns: 1fr;
@@ -462,5 +568,10 @@ h3 {
 
   .legal-strip .actions {
     margin-top: 18px;
+  }
+
+  .support-form .button {
+    justify-self: stretch;
+    width: 100%;
   }
 }

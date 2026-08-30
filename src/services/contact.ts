@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { logEvent, logError } from './logger';
-import Constants from 'expo-constants';
+import { sendSupportRequest } from './supportRequest';
 
 interface ContactPayload {
   subject: string;
@@ -8,40 +8,26 @@ interface ContactPayload {
 }
 
 export const sendContactMessage = async ({ subject, message }: ContactPayload) => {
-  const targetEmail =
-    Constants.expoConfig?.extra?.contactEmail ||
-    (Constants.manifest as any)?.extra?.contactEmail ||
-    process.env.EXPO_PUBLIC_CONTACT_EMAIL;
-
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id ?? null;
-    const email = userData.user?.email ?? null;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) throw userError;
 
-    const { error } = await supabase.from('contact_messages').insert({
-      user_id: userId,
+    const userId = userData.user?.id ?? null;
+    const email = userData.user?.email?.trim() ?? '';
+    if (!userId || !email) {
+      throw new Error('A signed-in account with an email address is required.');
+    }
+
+    await sendSupportRequest({
       email,
-      target_email: targetEmail || null,
       subject,
       message,
     });
 
-    if (error) {
-      logError('contact_message_error', error);
-      throw error;
-    }
-
-    logEvent('contact_message_sent', { userId, hasEmail: !!email, targetEmailSet: !!targetEmail });
-
-    if (!targetEmail) {
-      console.warn(
-        '[Contact] No contactEmail configured. Set EXPO_PUBLIC_CONTACT_EMAIL in .env so backend can route messages.'
-      );
-    }
+    logEvent('contact_message_sent', { userId, hasEmail: true });
   } catch (error) {
     logError('contact_message_unhandled_error', error);
     throw error;
   }
 };
-
 

@@ -16,6 +16,9 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `legalCopy.flow.test.ts` | flows-08 (consent/privacy/AI disclaimer boundary wording) |
 | `legalSurfaces.flow.test.tsx` | flows-08 (calm consent entry and user-facing privacy screen copy) |
 | `legalSite.flow.test.ts` | flows-08 / release docs (public landing, privacy, and terms pages for store review) |
+| `supportContactDelivery.contract.flow.test.ts` | flows-08 (signed-in and signed-out support share the server-owned Resend path; authenticated persistence bypasses no client RLS; support routing is not exposed in Expo config) |
+| `supportSubmissionFeedback.flow.test.tsx` | flows-08 (cross-platform inline success/error feedback, failure draft retention, signed-in return to Write, and signed-out reset to Auth) |
+| `supportWebDelivery.flow.test.ts` | flows-08 / release docs (public support form validates input, absorbs honeypot spam, keeps credentials server-side, and proxies only to the canonical support function) |
 | `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
 | `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering, pending metadata skip) |
 | `dreamMetadataPrefetchService.flow.test.ts` | architecture-interpretation (extraction cache, dream content hashes, in-flight prefetch, offline prefetch skip) |

@@ -15,7 +15,7 @@ const baseExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'com.oneirosdreamjournal.app',
     icon: './assets/branding/icon-ios.png',
-    buildNumber: '3',
+    buildNumber: '4',
     usesAppleSignIn: true,
   },
   android: {
@@ -28,7 +28,7 @@ const baseExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: 'com.oneirosdreamjournal.app',
-    versionCode: 3,
+    versionCode: 4,
   },
   scheme: 'oneiros-dream-journal',
   web: {
@@ -107,7 +107,6 @@ const extraFromEnv = {
     ['EXPO_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY'],
     ''
   ),
-  contactEmail: getEnv(['EXPO_PUBLIC_CONTACT_EMAIL', 'CONTACT_EMAIL'], ''),
   privacyPolicyUrl: getEnv(['EXPO_PUBLIC_PRIVACY_POLICY_URL', 'PRIVACY_POLICY_URL'], ''),
   termsUrl: getEnv(['EXPO_PUBLIC_TERMS_URL', 'TERMS_URL'], ''),
   appleSubscriptionMonthlyProductId: getEnv(
