@@ -103,7 +103,7 @@ Use this as a **checklist** alongside per-area docs. Not every branch is listed;
 
 - [ ] Privacy screen opens hosted Privacy Policy and Terms URLs when configured.
 - [ ] App Store Connect privacy labels match account data, dream/user content, voice audio, support messages, and AI subprocessors.
-- [ ] iPad screenshots prepared if `ios.supportsTablet` stays true.
+- [x] v1 is intentionally iPhone-only (`ios.supportsTablet: false`); iPad support and screenshots are deferred until dedicated tablet QA.
 
 ## Automated tests today
 

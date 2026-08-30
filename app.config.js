@@ -12,7 +12,9 @@ const baseExpoConfig = {
   userInterfaceStyle: 'light',
   newArchEnabled: false,
   ios: {
-    supportsTablet: true,
+    // Oneiros v1 is iPhone-only. Re-enable only with dedicated iPad layout QA
+    // and App Store screenshot coverage.
+    supportsTablet: false,
     bundleIdentifier: 'com.oneirosdreamjournal.app',
     icon: './assets/branding/icon-ios.png',
     buildNumber: '4',

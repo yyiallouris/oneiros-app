@@ -23,4 +23,11 @@ describe('app config env projection', () => {
     expect(config.extra.appleDeeperSubscriptionYearlyProductId).toBe('apple.deeper.yearly');
     expect(config.extra.googleDeeperSubscriptionProductId).toBe('google.deeper');
   });
+
+  it('keeps the first App Store release iPhone-only', () => {
+    const configModule = require('../app.config.js');
+    const config = configModule.default;
+
+    expect(config.ios.supportsTablet).toBe(false);
+  });
 });

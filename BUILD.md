@@ -244,6 +244,7 @@ Production iOS config expectations:
 
 - `ios.bundleIdentifier`: `com.oneirosdreamjournal.app`
 - `ios.buildNumber`: increment for every App Store upload.
+- `ios.supportsTablet`: `false` for the first release; v1 is iPhone-only. Enable iPad only after dedicated layout/device QA and iPad screenshot preparation.
 - `ios.usesAppleSignIn`: enabled, because the app offers Google/Discord social sign-in.
 - Microphone purpose string: describes optional dream voice journaling and transcription.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
@@ -252,7 +253,7 @@ Production iOS config expectations:
 
 Before TestFlight/App Review, complete these manual steps:
 
-- App Store Connect app record, category, support URL (`https://oneirosjournal.com/support`), Privacy Policy URL, Terms URL, age rating, and screenshots. Because `ios.supportsTablet` is true, prepare iPad screenshots or disable tablet support before release.
+- App Store Connect app record, category, support URL (`https://oneirosjournal.com/support`), Privacy Policy URL, Terms URL, age rating, and iPhone screenshots. The v1 binary is iPhone-only, so iPad screenshots are not part of this release.
 - App Privacy nutrition labels for account data, dream/user content, voice audio/transcription, support messages, diagnostics if collected, and AI subprocessors.
 - Export compliance answers consistent with `ITSAppUsesNonExemptEncryption: false`.
 - Supabase Auth redirect allowlist includes `oneiros-dream-journal://auth/confirm`, `oneiros-dream-journal://auth/recovery`, and `oneiros-dream-journal://auth/callback`.
