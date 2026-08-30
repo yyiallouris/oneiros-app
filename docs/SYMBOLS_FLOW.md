@@ -1,5 +1,9 @@
 # Dream Metadata and Display Flow
 
+> **2026-08-30 R&D boundary:** the three-shot adaptive reflective-opening experiment ended HOLD / STOP. Its final v0.3.0 candidate `13eea607…` is offline and denied; it changed no extraction schema/prompt, Echo metadata, `display_distillation`, persistence, or production runtime. Production questions remain v1.0.3 / `f5399a49…` with fixed cardinality. Review: [`ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md`](./ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md).
+
+> **2026-08-30 blind-confirmation addendum:** one explicitly authorized exact-Shot-3 head-to-head used 20 fresh synthetic dreams / 40 calls and returned HOLD: preference `11–9`, would-ship `16/20` versus production `18/20`, and three serious Shot 3 answer menus despite earned cardinality `20/20`. Adaptive cardinality is parked for Oneiros v2. No extraction, Echo, metadata, persistence, runtime, or deploy change occurred. Review: [`ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md`](./ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md).
+
 ## Summary
 
 Dream reflection now separates two concerns:

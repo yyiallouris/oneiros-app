@@ -1,5 +1,7 @@
 # Interpretation architecture
 
+> **Adaptive-opening R&D closure (2026-08-30):** frozen v0.1.0 `da717215…`, v0.2.0 `ca2dbedb…`, and final v0.3.0 `13eea607…` are denied offline prompt experiments. A later explicitly authorized exact-Shot-3 blind confirmation used 20 new multilingual dreams / 40 calls: cardinality was earned `20/20`, but Shot 3 won only `11–9`, was shippable `16/20` versus production `18/20`, and produced three serious answer menus. The gate failed; adaptive `1–2` is parked for a future Oneiros v2 architecture/product decision, not another prompt clause. No runtime change is authorized. Production stays v1.0.3 / `f5399a49…`, normalizer v1.0.0, gateway v113. Reviews: [`../docs/ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md`](../docs/ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md), [`../docs/ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md`](../docs/ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md).
+
 This document explains the AI interpretation system: how a dream becomes a reflection, metadata, chat history, DreamDetail display, and Insights material.
 
 ## Primary flow

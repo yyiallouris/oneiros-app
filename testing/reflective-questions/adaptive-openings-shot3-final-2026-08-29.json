@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "experiment_id": "oneiros-adaptive-reflective-openings-shot3-final-2026-08-29",
+  "shot": 3,
+  "maximum_total_shots": 3,
+  "candidate": {
+    "method_id": "oneiros-adaptive-reflective-openings-v0.3.0-final-candidate",
+    "bundle_sha256": "13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab",
+    "reader_prompt_id": "oneiros-dream-reflection-adaptive-openings-v0.3.0-final-candidate"
+  },
+  "production_identity": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "gateway_version": 113
+  },
+  "frozen_dataset": {
+    "path": "testing/reflective-questions/adaptive-openings-feasibility-2026-08-29.json",
+    "sha256": "4b361245bc58ab7856d0ad48421f2b6f8c25a5d5e11fadb5275b83c6f1312d71",
+    "surfaces": ["standard", "advanced"],
+    "quick_reuse": "Shot 3 Quick prompt is byte-identical to Shot 2, so the ten Shot 2 Quick outputs are no-call controls."
+  },
+  "shot_2_evidence": {
+    "reviewed_path": "testing/reflective-questions/artifacts/adaptive-openings-shot2-2026-08-29/REVIEWED_RESULTS.json",
+    "reviewed_sha256": "45c8450d19fd6db3ce5e45b8cb2c0c7660867f4af07eb21b36217c0c20e3abc2",
+    "exact_cost_usd": 0.225755,
+    "root_cause": "Neutral labels did not create a stopping boundary; the private three-way choice defaulted to BOTH in 9/10 full outputs."
+  },
+  "only_semantic_delta_from_shot_2": [
+    "Replace the symmetric three-route decision with asymmetric minimum-sufficient selection.",
+    "Begin from one complete strongest opening and add the other only for a different explicit source and irreducibly different psychological work.",
+    "Give each question one explicit source and one direction of attention instead of fusing alternative formulations."
+  ],
+  "scope": {
+    "planned_calls": 10,
+    "quick_calls": 0,
+    "standard_calls": 5,
+    "advanced_calls": 5,
+    "retries": 0,
+    "semantic_judges": 0,
+    "repairs": 0,
+    "reranking": 0,
+    "deployments": 0
+  },
+  "cumulative_budget_from_shot_2": {
+    "hard_cap_usd": 1,
+    "exact_spend_before_shot_3_usd": 0.225755,
+    "remaining_before_shot_3_usd": 0.774245,
+    "reserve_by_surface_usd": {
+      "standard": 0.03,
+      "advanced": 0.04
+    },
+    "shot_3_reserved_packet_usd": 0.35
+  },
+  "gate": {
+    "standard_advanced_correct_min": 9,
+    "serious_invented_fact_or_menu_failures_allowed": 0,
+    "serious_vitality_failures_allowed": 0,
+    "structural_hard_failures_allowed": 0,
+    "strong_complementarity_required_when_two": true,
+    "absolute_stop_after_this_shot": true,
+    "no_fourth_candidate": true,
+    "no_deploy": true
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "candidate_method": "oneiros-adaptive-reflective-openings-v0.2.0-candidate",
+  "candidate_sha256": "ca2dbedbaaeedd822dd47fa1cdfe3b60d0bbb898fcad712b53d439f98b4af013",
+  "review_basis": "shot_2_output_with_pre_registered_targets_and_shot_1_comparison",
+  "results": [
+    {
+      "generation_id": "adaptive-el-s-cafe-seat:reading_quick",
+      "actual": "enacted",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-el-s-cafe-seat:reading_standard",
+      "actual": "both",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": false,
+      "restraint": false,
+      "serious_failure": false,
+      "failure_families": ["failed_to_stop_at_one", "weak_second_rephrases_enacted_movement"]
+    },
+    {
+      "generation_id": "adaptive-en-a-meeting-voice:reading_quick",
+      "actual": "enacted",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-en-a-meeting-voice:reading_advanced",
+      "actual": "both",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": false,
+      "restraint": false,
+      "serious_failure": false,
+      "failure_families": ["failed_to_stop_at_one", "weak_second_conceptualizes_enacted_movement"]
+    },
+    {
+      "generation_id": "adaptive-el-s-warm-sun:reading_quick",
+      "actual": "imaginal",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-el-s-warm-sun:reading_standard",
+      "actual": "both",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": false,
+      "restraint": false,
+      "serious_failure": true,
+      "failure_families": ["failed_to_stop_at_one", "manufactured_counterfactual_answer_menu", "invented_enacted_comparison"]
+    },
+    {
+      "generation_id": "adaptive-es-a-blue-bowl:reading_quick",
+      "actual": "imaginal",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-es-a-blue-bowl:reading_advanced",
+      "actual": "imaginal_only",
+      "target_match": true,
+      "product_pass": false,
+      "complementarity": false,
+      "restraint": false,
+      "serious_failure": true,
+      "failure_families": ["duplicate_imaginal_questions", "failed_to_stop_at_one", "manufactured_answer_menu"]
+    },
+    {
+      "generation_id": "adaptive-de-s-feather-coat:reading_quick",
+      "actual": "imaginal",
+      "target_match": false,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": ["pre_registered_strongest_disagreement"]
+    },
+    {
+      "generation_id": "adaptive-de-s-feather-coat:reading_standard",
+      "actual": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-fr-a-grandfather-map:reading_quick",
+      "actual": "enacted",
+      "target_match": false,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": ["pre_registered_strongest_disagreement"]
+    },
+    {
+      "generation_id": "adaptive-fr-a-grandfather-map:reading_advanced",
+      "actual": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-pt-s-half-gate:reading_quick",
+      "actual": "imaginal",
+      "target_match": false,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": ["pre_registered_strongest_disagreement"]
+    },
+    {
+      "generation_id": "adaptive-pt-s-half-gate:reading_standard",
+      "actual": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-it-a-bowl-scenes:reading_quick",
+      "actual": "imaginal",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-it-a-bowl-scenes:reading_advanced",
+      "actual": "both",
+      "target_match": true,
+      "product_pass": false,
+      "complementarity": true,
+      "restraint": true,
+      "serious_failure": true,
+      "failure_families": ["manufactured_answer_menu"]
+    },
+    {
+      "generation_id": "adaptive-ja-s-umbrella-pond:reading_quick",
+      "actual": "imaginal",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-ja-s-umbrella-pond:reading_standard",
+      "actual": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-zh-a-lantern-stairs:reading_quick",
+      "actual": "imaginal",
+      "target_match": true,
+      "product_pass": true,
+      "serious_failure": false,
+      "failure_families": []
+    },
+    {
+      "generation_id": "adaptive-zh-a-lantern-stairs:reading_advanced",
+      "actual": "imaginal_only",
+      "target_match": true,
+      "product_pass": false,
+      "complementarity": null,
+      "restraint": true,
+      "serious_failure": true,
+      "failure_families": ["manufactured_answer_menu"]
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "candidate_method": "oneiros-adaptive-reflective-openings-v0.3.0-final-candidate",
+  "candidate_sha256": "13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab",
+  "review_basis": "final_shot_output_against_pre_registered_selection_targets_and_product_quality_gate",
+  "results": [
+    {
+      "generation_id": "adaptive-el-s-cafe-seat:reading_standard",
+      "actual_selection": "enacted_only_with_redundant_second",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": false,
+      "restraint": false,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [
+        "failed_to_stop_at_one",
+        "weak_second_rephrases_resolved_enacted_movement"
+      ],
+      "notes": "The first question is sufficient. The second returns to the same restored-chair sequence and does not open a distinct imaginal remainder."
+    },
+    {
+      "generation_id": "adaptive-en-a-meeting-voice:reading_advanced",
+      "actual_selection": "enacted_only",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": null,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [],
+      "notes": "One precise relational question follows the interruption and restoration of speech without manufacturing a second opening."
+    },
+    {
+      "generation_id": "adaptive-el-s-warm-sun:reading_standard",
+      "actual_selection": "manufactured_enacted_only",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": null,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": true,
+      "structural_human_pass": true,
+      "failure_families": [
+        "invented_transition_from_static_state",
+        "wrong_source_job_selection"
+      ],
+      "notes": "The dream reports being happy under the warm sun. Asking how the sense of self changes because of it invents a transition and causal movement instead of staying with the explicit imaginal state."
+    },
+    {
+      "generation_id": "adaptive-es-a-blue-bowl:reading_advanced",
+      "actual_selection": "manufactured_enacted_only",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": null,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": true,
+      "structural_human_pass": true,
+      "failure_families": [
+        "inferred_relation_from_mere_looking",
+        "invented_flight_history",
+        "wrong_source_job_selection"
+      ],
+      "notes": "The question turns explicit stillness and looking into a relation that is created, then calls the feathers collected flight-material. Both additions exceed the dream."
+    },
+    {
+      "generation_id": "adaptive-de-s-feather-coat:reading_standard",
+      "actual_selection": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [],
+      "notes": "The feather transformation that does not carry and the sister holding the open threshold remain distinct, grounded, and alive."
+    },
+    {
+      "generation_id": "adaptive-fr-a-grandfather-map:reading_advanced",
+      "actual_selection": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [],
+      "observer_note": "The deterministic observer flags the quoted dream-language question ‘où aller ?’ in the prose. Human review confirms that it is reported dream content, not an additional reflective question.",
+      "notes": "The grandfather's handoff and opening of the door are distinct from the snow falling on absent trees. The pair remains vivid and complementary."
+    },
+    {
+      "generation_id": "adaptive-pt-s-half-gate:reading_standard",
+      "actual_selection": "imaginal_only",
+      "target_match": false,
+      "product_pass": false,
+      "complementarity": null,
+      "restraint": false,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [
+        "over_pruned_distinct_enacted_opening"
+      ],
+      "notes": "The shadow question is strong, but the minimum-sufficient rule suppresses the independently valuable crossing made through the guards' two partial openings."
+    },
+    {
+      "generation_id": "adaptive-it-a-bowl-scenes:reading_advanced",
+      "actual_selection": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [],
+      "notes": "The unreflected roof and the grandmother calling the dreamer by the father's name create two grounded and psychologically distinct openings."
+    },
+    {
+      "generation_id": "adaptive-ja-s-umbrella-pond:reading_standard",
+      "actual_selection": "both",
+      "target_match": true,
+      "product_pass": false,
+      "complementarity": true,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": true,
+      "structural_human_pass": true,
+      "failure_families": [
+        "supplied_interpretive_frame",
+        "manufactured_answer_vocabulary"
+      ],
+      "notes": "The two sources are complementary, but Q1 supplies ‘a withdrawing force’ / ‘a feeling of retreat’ as the frame through which the dreamer must answer."
+    },
+    {
+      "generation_id": "adaptive-zh-a-lantern-stairs:reading_advanced",
+      "actual_selection": "both",
+      "target_match": true,
+      "product_pass": true,
+      "complementarity": true,
+      "restraint": true,
+      "vitality_pass": true,
+      "serious_failure": false,
+      "structural_human_pass": true,
+      "failure_families": [],
+      "notes": "The timing of the water-filled lantern's light and the dreamer's stationary position create two related but distinct openings without closing the image."
+    }
+  ]
+}

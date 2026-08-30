@@ -1,0 +1,790 @@
+{
+  "schema_version": 1,
+  "status": "complete",
+  "manifest_sha256": "48dd4a0066c3579bc20a4400680dd76843d2f85a27d299947636fb992d762b03",
+  "fixture_sha256": "4b361245bc58ab7856d0ad48421f2b6f8c25a5d5e11fadb5275b83c6f1312d71",
+  "shot_2_reviewed_sha256": "45c8450d19fd6db3ce5e45b8cb2c0c7660867f4af07eb21b36217c0c20e3abc2",
+  "raw_sha256": "7efb14f81e4947c3e9af443fc52048d2897592e8c93104a06cfa6db17704d854",
+  "verdicts_sha256": "6da1e03a564f9a8c11a560e26b68f59aed9acab78789626ada0e7e29c8823ba6",
+  "manifest": {
+    "schema_version": 1,
+    "experiment_id": "oneiros-adaptive-reflective-openings-shot3-final-2026-08-29",
+    "shot": 3,
+    "maximum_total_shots": 3,
+    "candidate": {
+      "method_id": "oneiros-adaptive-reflective-openings-v0.3.0-final-candidate",
+      "bundle_sha256": "13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab",
+      "reader_prompt_id": "oneiros-dream-reflection-adaptive-openings-v0.3.0-final-candidate"
+    },
+    "production_identity": {
+      "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+      "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+      "gateway_version": 113
+    },
+    "frozen_dataset": {
+      "path": "testing/reflective-questions/adaptive-openings-feasibility-2026-08-29.json",
+      "sha256": "4b361245bc58ab7856d0ad48421f2b6f8c25a5d5e11fadb5275b83c6f1312d71",
+      "surfaces": [
+        "standard",
+        "advanced"
+      ],
+      "quick_reuse": "Shot 3 Quick prompt is byte-identical to Shot 2, so the ten Shot 2 Quick outputs are no-call controls."
+    },
+    "shot_2_evidence": {
+      "reviewed_path": "testing/reflective-questions/artifacts/adaptive-openings-shot2-2026-08-29/REVIEWED_RESULTS.json",
+      "reviewed_sha256": "45c8450d19fd6db3ce5e45b8cb2c0c7660867f4af07eb21b36217c0c20e3abc2",
+      "exact_cost_usd": 0.225755,
+      "root_cause": "Neutral labels did not create a stopping boundary; the private three-way choice defaulted to BOTH in 9/10 full outputs."
+    },
+    "only_semantic_delta_from_shot_2": [
+      "Replace the symmetric three-route decision with asymmetric minimum-sufficient selection.",
+      "Begin from one complete strongest opening and add the other only for a different explicit source and irreducibly different psychological work.",
+      "Give each question one explicit source and one direction of attention instead of fusing alternative formulations."
+    ],
+    "scope": {
+      "planned_calls": 10,
+      "quick_calls": 0,
+      "standard_calls": 5,
+      "advanced_calls": 5,
+      "retries": 0,
+      "semantic_judges": 0,
+      "repairs": 0,
+      "reranking": 0,
+      "deployments": 0
+    },
+    "cumulative_budget_from_shot_2": {
+      "hard_cap_usd": 1,
+      "exact_spend_before_shot_3_usd": 0.225755,
+      "remaining_before_shot_3_usd": 0.774245,
+      "reserve_by_surface_usd": {
+        "standard": 0.03,
+        "advanced": 0.04
+      },
+      "shot_3_reserved_packet_usd": 0.35
+    },
+    "gate": {
+      "standard_advanced_correct_min": 9,
+      "serious_invented_fact_or_menu_failures_allowed": 0,
+      "serious_vitality_failures_allowed": 0,
+      "structural_hard_failures_allowed": 0,
+      "strong_complementarity_required_when_two": true,
+      "absolute_stop_after_this_shot": true,
+      "no_fourth_candidate": true,
+      "no_deploy": true
+    }
+  },
+  "human_summary": {
+    "full_target_and_product_pass": 5,
+    "full_target_match_regardless_of_quality": 6,
+    "full_one_question": 4,
+    "full_two_questions": 6,
+    "full_strong_complementarity": 5,
+    "human_quality_pass": 5,
+    "vitality_pass": 10,
+    "serious_failures": 3,
+    "human_structural_pass": 10,
+    "deterministic_observer_pass": 9,
+    "deterministic_observer_false_positives": 1,
+    "failure_family_counts": {
+      "failed_to_stop_at_one": 1,
+      "weak_second_rephrases_resolved_enacted_movement": 1,
+      "invented_transition_from_static_state": 1,
+      "wrong_source_job_selection": 2,
+      "inferred_relation_from_mere_looking": 1,
+      "invented_flight_history": 1,
+      "over_pruned_distinct_enacted_opening": 1,
+      "supplied_interpretive_frame": 1,
+      "manufactured_answer_vocabulary": 1
+    },
+    "shot_2_full_target_and_product_pass": 4,
+    "exact_shot_3_cost_usd": 0.14549,
+    "cumulative_shot_2_shot_3_cost_usd": 0.371245,
+    "hard_cap_usd": 1,
+    "disposition": "FINAL_SHOT_HOLD_EXPERIMENT_CLOSED"
+  },
+  "results": [
+    {
+      "generation_id": "adaptive-el-s-cafe-seat:reading_standard",
+      "case_id": "adaptive-el-s-cafe-seat",
+      "language": "el",
+      "surface": "standard",
+      "title": "Η θέση στο καφέ",
+      "dream": "Ήμουν σε ένα συνηθισμένο καφέ με έναν συνάδελφο. Εκείνος πήρε την καρέκλα μου για να καθίσει πιο κοντά στο τραπέζι. Του είπα ότι την χρησιμοποιούσα, την έσπρωξε αμέσως πίσω προς εμένα και κάθισα ξανά. Μετά συνεχίσαμε ήρεμα τη συζήτησή μας.",
+      "request_fingerprint_sha256": "68f2287aa7211f2556276d6ce5fa4e42692b58fa00d5f70a76791e38fb5151c9",
+      "after": {
+        "raw_model_output": "## Core Restoration\n\nΣε ένα συνηθισμένο καφέ, μια μικρή μετατόπιση της θέσης γίνεται αμέσως ορατή και διορθώνεται χωρίς κλιμάκωση. Η σκηνή μοιάζει να δοκιμάζει αν ο χώρος σου μπορεί να χαθεί για λίγο και παρ’ όλα αυτά να σου επιστραφεί καθαρά, ώστε η σχέση να συνεχίσει ήρεμα.\n\n## Dream Movement\n\nΤο κέντρο του ονείρου είναι πολύ απλό και γι’ αυτό ακριβές: μια καρέκλα που ήταν δική σου μετακινείται από άλλον. Δεν πρόκειται μόνο για έπιπλο αλλά για θέση, για το σημείο από όπου συμμετέχεις στη σκηνή. Ο συνάδελφος την παίρνει για να έρθει πιο κοντά στο τραπέζι· δηλαδή η κίνησή του δεν φαίνεται εχθρική, αλλά υπηρετεί τη δική του εγγύτητα προς το κοινό κέντρο.\n\nΕκεί το όνειρο δεν βυθίζεται σε αμηχανία ούτε σε σύγκρουση. Λες απλά ότι τη χρησιμοποιούσες. Αυτή η μικρή δήλωση αρκεί. Η καρέκλα σπρώχνεται αμέσως πίσω προς εσένα και εσύ κάθεσαι ξανά. Η αποκατάσταση εδώ είναι σωματική και άμεση: δεν εξηγείς πολύ, δεν διεκδικείς με ένταση, δεν μένεις όρθιος, δεν χάνεις τη θέση σου. Το σημαντικό είναι πως ο χώρος σου αναγνωρίζεται μόλις ονομαστεί.\n\nΎστερα η συζήτηση συνεχίζεται ήρεμα. Αυτό δίνει στο όνειρο τον τόνο του. Δεν φαίνεται να θέλει να μείνει στο «σου πήραν κάτι», αλλά στο ότι μια μικρή παραβίαση του χώρου μπορούσε να διορθωθεί χωρίς να χαλάσει ο δεσμός ή η κοινή ατμόσφαιρα. Το συνηθισμένο καφέ βοηθά αυτή την αίσθηση: όχι δραματική σκηνή, αλλά ένας καθημερινός τόπος όπου η θέση, η απόσταση και η συνύπαρξη ρυθμίζονται ξανά με απλό τρόπο.\n\n## Reflective Questions\n\n- Τι αλλάζει μέσα σου στο σημείο όπου λες απλά «την χρησιμοποιούσα» και η θέση σου σου επιστρέφεται αμέσως;\n- Πώς στέκεται για σένα αυτή η ήρεμη συνέχεια της συζήτησης, αφού πρώτα αποκατασταθεί η καρέκλα σου;\n\n<!--END_DREAM_READING-->",
+        "output": "## Core Restoration\n\nΣε ένα συνηθισμένο καφέ, μια μικρή μετατόπιση της θέσης γίνεται αμέσως ορατή και διορθώνεται χωρίς κλιμάκωση. Η σκηνή μοιάζει να δοκιμάζει αν ο χώρος σου μπορεί να χαθεί για λίγο και παρ’ όλα αυτά να σου επιστραφεί καθαρά, ώστε η σχέση να συνεχίσει ήρεμα.\n\n## Dream Movement\n\nΤο κέντρο του ονείρου είναι πολύ απλό και γι’ αυτό ακριβές: μια καρέκλα που ήταν δική σου μετακινείται από άλλον. Δεν πρόκειται μόνο για έπιπλο αλλά για θέση, για το σημείο από όπου συμμετέχεις στη σκηνή. Ο συνάδελφος την παίρνει για να έρθει πιο κοντά στο τραπέζι· δηλαδή η κίνησή του δεν φαίνεται εχθρική, αλλά υπηρετεί τη δική του εγγύτητα προς το κοινό κέντρο.\n\nΕκεί το όνειρο δεν βυθίζεται σε αμηχανία ούτε σε σύγκρουση. Λες απλά ότι τη χρησιμοποιούσες. Αυτή η μικρή δήλωση αρκεί. Η καρέκλα σπρώχνεται αμέσως πίσω προς εσένα και εσύ κάθεσαι ξανά. Η αποκατάσταση εδώ είναι σωματική και άμεση: δεν εξηγείς πολύ, δεν διεκδικείς με ένταση, δεν μένεις όρθιος, δεν χάνεις τη θέση σου. Το σημαντικό είναι πως ο χώρος σου αναγνωρίζεται μόλις ονομαστεί.\n\nΎστερα η συζήτηση συνεχίζεται ήρεμα. Αυτό δίνει στο όνειρο τον τόνο του. Δεν φαίνεται να θέλει να μείνει στο «σου πήραν κάτι», αλλά στο ότι μια μικρή παραβίαση του χώρου μπορούσε να διορθωθεί χωρίς να χαλάσει ο δεσμός ή η κοινή ατμόσφαιρα. Το συνηθισμένο καφέ βοηθά αυτή την αίσθηση: όχι δραματική σκηνή, αλλά ένας καθημερινός τόπος όπου η θέση, η απόσταση και η συνύπαρξη ρυθμίζονται ξανά με απλό τρόπο.\n\n## Reflective Questions\n\n- Τι αλλάζει μέσα σου στο σημείο όπου λες απλά «την χρησιμοποιούσα» και η θέση σου σου επιστρέφεται αμέσως;\n- Πώς στέκεται για σένα αυτή η ήρεμη συνέχεια της συζήτησης, αφού πρώτα αποκατασταθεί η καρέκλα σου;",
+        "questions": [
+          "Τι αλλάζει μέσα σου στο σημείο όπου λες απλά «την χρησιμοποιούσα» και η θέση σου σου επιστρέφεται αμέσως;",
+          "Πώς στέκεται για σένα αυτή η ήρεμη συνέχεια της συζήτησης, αφού πρώτα αποκατασταθεί η καρέκλα σου;"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "standard",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "Τι αλλάζει μέσα σου στο σημείο όπου λες απλά «την χρησιμοποιούσα» και η θέση σου σου επιστρέφεται αμέσως;",
+            "Πώς στέκεται για σένα αυτή η ήρεμη συνέχεια της συζήτησης, αφού πρώτα αποκατασταθεί η καρέκλα σου;"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": true,
+            "issues": [],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_standard",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "el",
+            "expected_language": "el",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 12280,
+      "estimated_usd": 0.0137175,
+      "human_review": {
+        "generation_id": "adaptive-el-s-cafe-seat:reading_standard",
+        "actual_selection": "enacted_only_with_redundant_second",
+        "target_match": false,
+        "product_pass": false,
+        "complementarity": false,
+        "restraint": false,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [
+          "failed_to_stop_at_one",
+          "weak_second_rephrases_resolved_enacted_movement"
+        ],
+        "notes": "The first question is sufficient. The second returns to the same restored-chair sequence and does not open a distinct imaginal remainder."
+      },
+      "case_profile": "enacted_only"
+    },
+    {
+      "generation_id": "adaptive-en-a-meeting-voice:reading_advanced",
+      "case_id": "adaptive-en-a-meeting-voice",
+      "language": "en",
+      "surface": "advanced",
+      "title": "Finishing the sentence",
+      "dream": "I was in an ordinary work meeting. A colleague spoke over me before I had finished. I said, calmly, that I was still speaking. She stopped, looked at me, and asked me to continue. I finished my sentence, and everyone went back to their notes.",
+      "request_fingerprint_sha256": "5f01d12db6e37b299a85b17bce5bc64c14877ed59779fcb5338505fc4c0423cb",
+      "after": {
+        "raw_model_output": "## Core Shift\n\nAn ordinary meeting becomes the place where a small interruption is not swallowed but answered. The movement is quiet and exact: being cut across turns into being given back the line of your own speech.\n\n## Dream Movement\n\nThe dream begins in a room with almost no symbolic decoration at all: an ordinary work meeting, people presumably seated, notes in front of them, attention organized by procedure. That plainness matters. Nothing here announces drama. The setting is one where speech is supposed to move in turns, yet just before your sentence is complete, someone enters over it.\n\nWhat stands out is not only the interruption but the unfinished sentence itself. The dream does not hurry past it. Something of yours is left hanging in the air for a moment, not rejected, not argued with, simply overrun. That is a very specific kind of disturbance: not open conflict, but the threat that your line could disappear into the meeting’s flow as if it had never fully taken shape.\n\nThen the crucial image: you say, calmly, that you are still speaking. The calmness is the center of gravity here. The dream does not need force, outrage, or humiliation to make its point. A boundary appears in plain language, almost with the same ordinary quality as the meeting itself. Because of that, the moment feels more solid. It is not a dramatic seizure of the room; it is a simple restoration of sequence.\n\nHer stopping and looking at you gives the moment a second turn. The interruption does not harden into struggle. She does not keep pushing forward. She pauses, registers you, and asks you to continue. So the dream stages not only self-assertion but recognition. Your speech is not merely defended inwardly; space is made for it again in the shared room.\n\nAnd then you finish your sentence. The sentence itself remains unknown, which gives its completion a larger weight than its content. What matters is that a thought reaches its own end. After that, everyone goes back to their notes. The world does not collapse, punish, or exalt the moment. The meeting simply resumes, but now with the line restored. There is something quietly satisfying in that modest aftermath: the order of things returns, but it returns after your speech has been allowed to complete itself.\n\n## Reflective Questions\n\n- When you say, calmly, “I’m still speaking,” what changes in the room before you even finish the sentence?\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\nAn ordinary meeting becomes the place where a small interruption is not swallowed but answered. The movement is quiet and exact: being cut across turns into being given back the line of your own speech.\n\n## Dream Movement\n\nThe dream begins in a room with almost no symbolic decoration at all: an ordinary work meeting, people presumably seated, notes in front of them, attention organized by procedure. That plainness matters. Nothing here announces drama. The setting is one where speech is supposed to move in turns, yet just before your sentence is complete, someone enters over it.\n\nWhat stands out is not only the interruption but the unfinished sentence itself. The dream does not hurry past it. Something of yours is left hanging in the air for a moment, not rejected, not argued with, simply overrun. That is a very specific kind of disturbance: not open conflict, but the threat that your line could disappear into the meeting’s flow as if it had never fully taken shape.\n\nThen the crucial image: you say, calmly, that you are still speaking. The calmness is the center of gravity here. The dream does not need force, outrage, or humiliation to make its point. A boundary appears in plain language, almost with the same ordinary quality as the meeting itself. Because of that, the moment feels more solid. It is not a dramatic seizure of the room; it is a simple restoration of sequence.\n\nHer stopping and looking at you gives the moment a second turn. The interruption does not harden into struggle. She does not keep pushing forward. She pauses, registers you, and asks you to continue. So the dream stages not only self-assertion but recognition. Your speech is not merely defended inwardly; space is made for it again in the shared room.\n\nAnd then you finish your sentence. The sentence itself remains unknown, which gives its completion a larger weight than its content. What matters is that a thought reaches its own end. After that, everyone goes back to their notes. The world does not collapse, punish, or exalt the moment. The meeting simply resumes, but now with the line restored. There is something quietly satisfying in that modest aftermath: the order of things returns, but it returns after your speech has been allowed to complete itself.\n\n## Reflective Questions\n\n- When you say, calmly, “I’m still speaking,” what changes in the room before you even finish the sentence?",
+        "questions": [
+          "When you say, calmly, “I’m still speaking,” what changes in the room before you even finish the sentence?"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "advanced",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 1,
+          "questions": [
+            "When you say, calmly, “I’m still speaking,” what changes in the room before you even finish the sentence?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_advanced",
+            "question_count": 1,
+            "expected_question_count": 2,
+            "detected_language": "en",
+            "expected_language": "en",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7974,
+      "estimated_usd": 0.0127225,
+      "human_review": {
+        "generation_id": "adaptive-en-a-meeting-voice:reading_advanced",
+        "actual_selection": "enacted_only",
+        "target_match": true,
+        "product_pass": true,
+        "complementarity": null,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [],
+        "notes": "One precise relational question follows the interruption and restoration of speech without manufacturing a second opening."
+      },
+      "case_profile": "enacted_only"
+    },
+    {
+      "generation_id": "adaptive-el-s-warm-sun:reading_standard",
+      "case_id": "adaptive-el-s-warm-sun",
+      "language": "el",
+      "surface": "standard",
+      "title": "Ο ζεστός ήλιος",
+      "dream": "ημουν κατω απο τον ζεστο ηλιο, χαρουμενος",
+      "request_fingerprint_sha256": "9f18897fb6f446a6f183ae47fa789d5b0fc8dd66e46d1f9a0f674149c904d643",
+      "after": {
+        "raw_model_output": "## Core Restoration\n\nΚάτω από τον ζεστό ήλιο, το σώμα και η διάθεση βρίσκονται ήδη σε συμφωνία με τον χώρο. Η χαρά εδώ δεν μοιάζει κερδισμένη ή εξηγημένη· μοιάζει να έρχεται από μια απλή, άμεση έκθεση σε κάτι που θερμαίνει χωρίς να απειλεί.\n\n## Dream Movement\n\nΤο όνειρο στήνεται σχεδόν ολόκληρο πάνω σε μια θέση: είσαι από κάτω, ο ήλιος από πάνω. Αυτή η απλή κατακόρυφη σχέση δίνει αμέσως έναν κόσμο όπου κάτι μεγαλύτερο δεν συνθλίβει αλλά σκεπάζει με ζέστη. Δεν υπάρχει προσπάθεια, καταδίωξη, σύγχυση ή μετάβαση· υπάρχει μια καθαρή παραμονή μέσα σε μια ευνοϊκή ατμόσφαιρα.\n\nΟ ζεστός ήλιος δεν εμφανίζεται εδώ σαν εκτυφλωτικό ή σκληρό φως, αλλά σαν παρουσία που γίνεται αισθητή στο σώμα. Και η χαρά δεν μοιάζει να είναι σχόλιο πάνω στην εικόνα, αλλά η άμεση συνέπειά της: σαν το μέσα να παίρνει τον τόνο του έξω. Το όνειρο έτσι κρατά κάτι πολύ στοιχειώδες και πολύ πλήρες μαζί — το να βρίσκεται κανείς σε ένα μέρος όπου η επαφή με τον κόσμο είναι απλή, θερμή, ανεμπόδιστη.\n\nΜένει επίσης κάτι όμορφα λιτό στο ότι δεν συμβαίνει «κάτι άλλο». Η εικόνα δεν χρειάζεται δράμα για να αποκτήσει βάρος. Αρκεί η έκθεση, η ζέστη, και αυτή η ήσυχη χαρούμενη ύπαρξη κάτω από το φως.\n\n## Reflective Questions\n\n- Πώς αλλάζει η αίσθηση του εαυτού σου μέσα στο όνειρο ακριβώς επειδή βρίσκεσαι κάτω από αυτόν τον ζεστό ήλιο;\n<!--END_DREAM_READING-->",
+        "output": "## Core Restoration\n\nΚάτω από τον ζεστό ήλιο, το σώμα και η διάθεση βρίσκονται ήδη σε συμφωνία με τον χώρο. Η χαρά εδώ δεν μοιάζει κερδισμένη ή εξηγημένη· μοιάζει να έρχεται από μια απλή, άμεση έκθεση σε κάτι που θερμαίνει χωρίς να απειλεί.\n\n## Dream Movement\n\nΤο όνειρο στήνεται σχεδόν ολόκληρο πάνω σε μια θέση: είσαι από κάτω, ο ήλιος από πάνω. Αυτή η απλή κατακόρυφη σχέση δίνει αμέσως έναν κόσμο όπου κάτι μεγαλύτερο δεν συνθλίβει αλλά σκεπάζει με ζέστη. Δεν υπάρχει προσπάθεια, καταδίωξη, σύγχυση ή μετάβαση· υπάρχει μια καθαρή παραμονή μέσα σε μια ευνοϊκή ατμόσφαιρα.\n\nΟ ζεστός ήλιος δεν εμφανίζεται εδώ σαν εκτυφλωτικό ή σκληρό φως, αλλά σαν παρουσία που γίνεται αισθητή στο σώμα. Και η χαρά δεν μοιάζει να είναι σχόλιο πάνω στην εικόνα, αλλά η άμεση συνέπειά της: σαν το μέσα να παίρνει τον τόνο του έξω. Το όνειρο έτσι κρατά κάτι πολύ στοιχειώδες και πολύ πλήρες μαζί — το να βρίσκεται κανείς σε ένα μέρος όπου η επαφή με τον κόσμο είναι απλή, θερμή, ανεμπόδιστη.\n\nΜένει επίσης κάτι όμορφα λιτό στο ότι δεν συμβαίνει «κάτι άλλο». Η εικόνα δεν χρειάζεται δράμα για να αποκτήσει βάρος. Αρκεί η έκθεση, η ζέστη, και αυτή η ήσυχη χαρούμενη ύπαρξη κάτω από το φως.\n\n## Reflective Questions\n\n- Πώς αλλάζει η αίσθηση του εαυτού σου μέσα στο όνειρο ακριβώς επειδή βρίσκεσαι κάτω από αυτόν τον ζεστό ήλιο;",
+        "questions": [
+          "Πώς αλλάζει η αίσθηση του εαυτού σου μέσα στο όνειρο ακριβώς επειδή βρίσκεσαι κάτω από αυτόν τον ζεστό ήλιο;"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "standard",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 1,
+          "questions": [
+            "Πώς αλλάζει η αίσθηση του εαυτού σου μέσα στο όνειρο ακριβώς επειδή βρίσκεσαι κάτω από αυτόν τον ζεστό ήλιο;"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_standard",
+            "question_count": 1,
+            "expected_question_count": 2,
+            "detected_language": "el",
+            "expected_language": "el",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 10623,
+      "estimated_usd": 0.0112225,
+      "human_review": {
+        "generation_id": "adaptive-el-s-warm-sun:reading_standard",
+        "actual_selection": "manufactured_enacted_only",
+        "target_match": false,
+        "product_pass": false,
+        "complementarity": null,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": true,
+        "structural_human_pass": true,
+        "failure_families": [
+          "invented_transition_from_static_state",
+          "wrong_source_job_selection"
+        ],
+        "notes": "The dream reports being happy under the warm sun. Asking how the sense of self changes because of it invents a transition and causal movement instead of staying with the explicit imaginal state."
+      },
+      "case_profile": "imaginal_only"
+    },
+    {
+      "generation_id": "adaptive-es-a-blue-bowl:reading_advanced",
+      "case_id": "adaptive-es-a-blue-bowl",
+      "language": "es",
+      "surface": "advanced",
+      "title": "El cuenco azul",
+      "dream": "Estoy de pie en una habitación blanca. En el centro hay un cuenco azul lleno de plumas negras. No hay puertas ni ventanas. Nada se mueve y yo no hago nada; solamente miro el cuenco.",
+      "request_fingerprint_sha256": "5476ee0327f26cdec950d1f57690b9770ee9e87deb733f01d38d40ef27d01b1b",
+      "after": {
+        "raw_model_output": "## Core State\n\nUna quietud cerrada sostiene toda la escena: una blancura sin salida y, en medio, un cuenco azul cargado de plumas negras. El sueño no empuja hacia una acción; concentra la mirada en una presencia contenida, casi ritual, que basta por sí sola.\n\n## Dream Movement\n\nEl sueño empieza ya detenido. No entras en la habitación ni buscas salir de ella: simplemente estás de pie allí. Eso le da a la escena una cualidad absoluta, como si no hubiera antes ni después, sólo este recinto blanco, sin puertas ni ventanas, donde nada distrae de lo central. La blancura no parece hospitalaria ni hostil; más bien vacía el mundo de bordes, de historia, de tránsito.\n\nEn ese vacío, el cuenco ocupa el centro. No está arrinconado ni escondido. Está puesto, expuesto, como si la habitación entera existiera para alojarlo. Y el cuenco es azul: no comparte la neutralidad blanca del espacio ni la oscuridad de su contenido. Tiene una densidad propia, una forma que recoge y contiene. Dentro, las plumas negras introducen otra cualidad: algo de ave o de vuelo, pero ya separado del cuerpo y del aire. No vemos pájaros, no vemos movimiento, no vemos caída. Vemos lo que queda del vuelo cuando ha sido reunido en un recipiente.\n\nEsa reunión importa. Las plumas no están dispersas por el suelo, como resto de violencia o desorden. Están llenando el cuenco. La imagen junta ligereza y peso extraño: las plumas suelen ser lo que se deja llevar, pero aquí están quietas, acumuladas, sostenidas. El azul del cuenco las recibe sin aclararlas. Entre el blanco del cuarto y el negro de las plumas, el azul hace de mediación silenciosa, como una profundidad serena capaz de contener algo nocturno sin expulsarlo ni traducirlo.\n\nTu posición también pertenece a esa contención. No haces nada; miras. No hay impotencia marcada, pero tampoco intervención. El sueño parece pedir exactamente eso: una presencia que no invada la imagen. Como si algo oscuro, liviano y ya desprendido necesitara primero ser visto dentro de una forma que lo sostiene. La escena tiene una sobriedad casi sagrada, no por grandilocuencia, sino por la exactitud con que todo ha sido reducido a cuarto, centro, recipiente, resto de ala, mirada.\n\nY sin puertas ni ventanas, la habitación no funciona como lugar de paso, sino como cámara de concentración. No deja escapar el blanco, el azul, el negro, ni tu mirada sobre ellos. Todo queda adentro, inmóvil, reunido.\n\n## Reflective Questions\n\n- Cuando en el sueño solamente miras el cuenco azul lleno de plumas negras, ¿qué clase de relación se crea entre tu quietud y esa materia de vuelo ya recogida?\n<!--END_DREAM_READING-->",
+        "output": "## Core State\n\nUna quietud cerrada sostiene toda la escena: una blancura sin salida y, en medio, un cuenco azul cargado de plumas negras. El sueño no empuja hacia una acción; concentra la mirada en una presencia contenida, casi ritual, que basta por sí sola.\n\n## Dream Movement\n\nEl sueño empieza ya detenido. No entras en la habitación ni buscas salir de ella: simplemente estás de pie allí. Eso le da a la escena una cualidad absoluta, como si no hubiera antes ni después, sólo este recinto blanco, sin puertas ni ventanas, donde nada distrae de lo central. La blancura no parece hospitalaria ni hostil; más bien vacía el mundo de bordes, de historia, de tránsito.\n\nEn ese vacío, el cuenco ocupa el centro. No está arrinconado ni escondido. Está puesto, expuesto, como si la habitación entera existiera para alojarlo. Y el cuenco es azul: no comparte la neutralidad blanca del espacio ni la oscuridad de su contenido. Tiene una densidad propia, una forma que recoge y contiene. Dentro, las plumas negras introducen otra cualidad: algo de ave o de vuelo, pero ya separado del cuerpo y del aire. No vemos pájaros, no vemos movimiento, no vemos caída. Vemos lo que queda del vuelo cuando ha sido reunido en un recipiente.\n\nEsa reunión importa. Las plumas no están dispersas por el suelo, como resto de violencia o desorden. Están llenando el cuenco. La imagen junta ligereza y peso extraño: las plumas suelen ser lo que se deja llevar, pero aquí están quietas, acumuladas, sostenidas. El azul del cuenco las recibe sin aclararlas. Entre el blanco del cuarto y el negro de las plumas, el azul hace de mediación silenciosa, como una profundidad serena capaz de contener algo nocturno sin expulsarlo ni traducirlo.\n\nTu posición también pertenece a esa contención. No haces nada; miras. No hay impotencia marcada, pero tampoco intervención. El sueño parece pedir exactamente eso: una presencia que no invada la imagen. Como si algo oscuro, liviano y ya desprendido necesitara primero ser visto dentro de una forma que lo sostiene. La escena tiene una sobriedad casi sagrada, no por grandilocuencia, sino por la exactitud con que todo ha sido reducido a cuarto, centro, recipiente, resto de ala, mirada.\n\nY sin puertas ni ventanas, la habitación no funciona como lugar de paso, sino como cámara de concentración. No deja escapar el blanco, el azul, el negro, ni tu mirada sobre ellos. Todo queda adentro, inmóvil, reunido.\n\n## Reflective Questions\n\n- Cuando en el sueño solamente miras el cuenco azul lleno de plumas negras, ¿qué clase de relación se crea entre tu quietud y esa materia de vuelo ya recogida?",
+        "questions": [
+          "Cuando en el sueño solamente miras el cuenco azul lleno de plumas negras, ¿qué clase de relación se crea entre tu quietud y esa materia de vuelo ya recogida?"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "advanced",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 1,
+          "questions": [
+            "Cuando en el sueño solamente miras el cuenco azul lleno de plumas negras, ¿qué clase de relación se crea entre tu quietud y esa materia de vuelo ya recogida?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_advanced",
+            "question_count": 1,
+            "expected_question_count": 2,
+            "detected_language": "es",
+            "expected_language": "es",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 10059,
+      "estimated_usd": 0.0144025,
+      "human_review": {
+        "generation_id": "adaptive-es-a-blue-bowl:reading_advanced",
+        "actual_selection": "manufactured_enacted_only",
+        "target_match": false,
+        "product_pass": false,
+        "complementarity": null,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": true,
+        "structural_human_pass": true,
+        "failure_families": [
+          "inferred_relation_from_mere_looking",
+          "invented_flight_history",
+          "wrong_source_job_selection"
+        ],
+        "notes": "The question turns explicit stillness and looking into a relation that is created, then calls the feathers collected flight-material. Both additions exceed the dream."
+      },
+      "case_profile": "imaginal_only"
+    },
+    {
+      "generation_id": "adaptive-de-s-feather-coat:reading_standard",
+      "case_id": "adaptive-de-s-feather-coat",
+      "language": "de",
+      "surface": "standard",
+      "title": "Der Federmantel",
+      "dream": "Meine Schwester gab mir ihren schweren Wintermantel. Als ich ihn anzog, wurden die Ärmel zu langen weißen Federn und sie trat einen Schritt zurück. Ich hob die Arme, doch die Federn trugen mich nicht. Meine Schwester lächelte und hielt die offene Haustür fest.",
+      "request_fingerprint_sha256": "83f97492476137af10e7f58ad6c6cf6e55ccc7dc732a91db11c7540ae6fd323f",
+      "after": {
+        "raw_model_output": "## Core Shift\n\nEin schwerer Wintermantel verwandelt sich beim Anziehen in etwas fast Wunderbares: lange weiße Federn. Doch aus dieser Verwandlung wird kein Flug, sondern ein stiller Schwellenmoment, gehalten von der Schwester an der offenen Haustür.\n\n## Dream Movement\n\nDer Traum beginnt mit etwas Schutzhaftem und Übernommenem: nicht dein Mantel, sondern der schwere Wintermantel der Schwester. Das hat Gewicht, Wärme, vielleicht auch etwas von einer Rolle oder Hülle, die schon einer anderen gehört. Kaum ziehst du ihn an, kippt der Stoff ins Bildhafte: Die Ärmel werden zu weißen Federn. Gerade an den Armen, also dort, wo man greift, sich ausbreitet, sich Raum nimmt, erscheint plötzlich etwas Vogelhaftes, Helles, beinahe Erhobenes.\n\nAber der Traum verweilt nicht im Zauber der Verwandlung. Du hebst die Arme, und genau dort zeigt sich die Grenze: Die Federn tragen dich nicht. Das ist kein Absturz, kein Scheitern im dramatischen Sinn, eher die nüchterne Entdeckung, dass das Bild von Flug da ist, ohne dass der Körper ihm schon folgen kann. Etwas hat sich verwandelt, aber nicht bis zur Befreiung.\n\nDie Schwester ist dabei auffallend ruhig. Sie tritt einen Schritt zurück, als gäbe sie dem Geschehen Platz, und zugleich hält sie die offene Haustür fest. Dieses Bild sammelt viel: Sie drängt nicht, sie hält nicht fest an dir, sondern an der Schwelle. Die Tür ist offen, also ist ein Übergang möglich; doch er bleibt als Möglichkeit im Raum, nicht als vollzogener Aufbruch. Ihr Lächeln macht die Szene nicht kleiner oder harmloser, sondern verleiht ihr eine merkwürdige Gelassenheit: Etwas Flügelartiges ist erschienen, aber es muss noch nicht fliegen. Fast wie ein Initiationsbild, das sich erst an der Schwelle zeigt.\n\n## Reflective Questions\n\n- Was verändert sich in dir an dem Moment, in dem die Ärmel zu langen weißen Federn werden, auch wenn sie dich noch nicht tragen?\n- Wie wirkt das Bild deiner Schwester auf dich, wie sie zurücktritt und zugleich die offene Haustür festhält? \n\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\nEin schwerer Wintermantel verwandelt sich beim Anziehen in etwas fast Wunderbares: lange weiße Federn. Doch aus dieser Verwandlung wird kein Flug, sondern ein stiller Schwellenmoment, gehalten von der Schwester an der offenen Haustür.\n\n## Dream Movement\n\nDer Traum beginnt mit etwas Schutzhaftem und Übernommenem: nicht dein Mantel, sondern der schwere Wintermantel der Schwester. Das hat Gewicht, Wärme, vielleicht auch etwas von einer Rolle oder Hülle, die schon einer anderen gehört. Kaum ziehst du ihn an, kippt der Stoff ins Bildhafte: Die Ärmel werden zu weißen Federn. Gerade an den Armen, also dort, wo man greift, sich ausbreitet, sich Raum nimmt, erscheint plötzlich etwas Vogelhaftes, Helles, beinahe Erhobenes.\n\nAber der Traum verweilt nicht im Zauber der Verwandlung. Du hebst die Arme, und genau dort zeigt sich die Grenze: Die Federn tragen dich nicht. Das ist kein Absturz, kein Scheitern im dramatischen Sinn, eher die nüchterne Entdeckung, dass das Bild von Flug da ist, ohne dass der Körper ihm schon folgen kann. Etwas hat sich verwandelt, aber nicht bis zur Befreiung.\n\nDie Schwester ist dabei auffallend ruhig. Sie tritt einen Schritt zurück, als gäbe sie dem Geschehen Platz, und zugleich hält sie die offene Haustür fest. Dieses Bild sammelt viel: Sie drängt nicht, sie hält nicht fest an dir, sondern an der Schwelle. Die Tür ist offen, also ist ein Übergang möglich; doch er bleibt als Möglichkeit im Raum, nicht als vollzogener Aufbruch. Ihr Lächeln macht die Szene nicht kleiner oder harmloser, sondern verleiht ihr eine merkwürdige Gelassenheit: Etwas Flügelartiges ist erschienen, aber es muss noch nicht fliegen. Fast wie ein Initiationsbild, das sich erst an der Schwelle zeigt.\n\n## Reflective Questions\n\n- Was verändert sich in dir an dem Moment, in dem die Ärmel zu langen weißen Federn werden, auch wenn sie dich noch nicht tragen?\n- Wie wirkt das Bild deiner Schwester auf dich, wie sie zurücktritt und zugleich die offene Haustür festhält?",
+        "questions": [
+          "Was verändert sich in dir an dem Moment, in dem die Ärmel zu langen weißen Federn werden, auch wenn sie dich noch nicht tragen?",
+          "Wie wirkt das Bild deiner Schwester auf dich, wie sie zurücktritt und zugleich die offene Haustür festhält?"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "standard",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "Was verändert sich in dir an dem Moment, in dem die Ärmel zu langen weißen Federn werden, auch wenn sie dich noch nicht tragen?",
+            "Wie wirkt das Bild deiner Schwester auf dich, wie sie zurücktritt und zugleich die offene Haustür festhält?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": true,
+            "issues": [],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_standard",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "de",
+            "expected_language": "de",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7657,
+      "estimated_usd": 0.0118675,
+      "human_review": {
+        "generation_id": "adaptive-de-s-feather-coat:reading_standard",
+        "actual_selection": "both",
+        "target_match": true,
+        "product_pass": true,
+        "complementarity": true,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [],
+        "notes": "The feather transformation that does not carry and the sister holding the open threshold remain distinct, grounded, and alive."
+      },
+      "case_profile": "both"
+    },
+    {
+      "generation_id": "adaptive-fr-a-grandfather-map:reading_advanced",
+      "case_id": "adaptive-fr-a-grandfather-map",
+      "language": "fr",
+      "surface": "advanced",
+      "title": "La carte vide",
+      "dream": "Mon grand-père décédé m'attendait dans la cuisine de mon enfance. Il m'a tendu une carte entièrement blanche, puis il a fermé ma main autour d'elle. Quand je lui ai demandé où aller, il a ouvert la porte du jardin. Dehors, la neige tombait seulement sur les arbres qui n'existaient plus.",
+      "request_fingerprint_sha256": "1b32acf8792bf22e59ba1694353678e5a6e4395a82359c7a05a7f40583934b17",
+      "after": {
+        "raw_model_output": "## Core Shift\n\nDans cette cuisine d’enfance, quelque chose n’ordonne pas un trajet : cela remet une orientation muette entre vos mains. Le mouvement du rêve va d’une demande de direction vers une ouverture sur un dehors où tombe une neige pour ce qui a disparu.\n\n## Dream Movement\n\nLe rêve commence dans un lieu très contenu : la cuisine de l’enfance, pièce de nourriture, d’habitude, de proximité ancienne. Mais celui qui y attend n’est pas simplement un souvenir familial ; c’est un mort, présent sans fracas, déjà de l’autre côté, et pourtant là avant vous, comme s’il occupait naturellement ce seuil entre l’intime et l’inaccessible.\n\nL’image la plus forte vient très vite : la carte entièrement blanche. Ce n’est pas une carte illisible, abîmée ou perdue. Elle est vierge. Et votre grand-père ne se contente pas de vous la donner ; il referme votre main dessus. Le geste a quelque chose de calme et décisif. Il ne transmet pas un savoir formulé, il confie une chose encore sans inscription, ou peut-être une orientation qui ne peut pas se lire de l’extérieur. La main fermée compte autant que la carte : ce qui est remis n’est pas exposé, c’est gardé, porté, presque scellé.\n\nAlors vient la question la plus simple : où aller. Le rêve aurait pu répondre par un nom, un chemin, une indication. Au lieu de cela, il ouvre. Votre grand-père ne parle pas, il ouvre la porte du jardin. La réponse n’est donc pas un contenu mais un passage. On quitte l’intérieur de l’enfance sans sortir vers un monde actif ou familier ; on débouche sur un jardin devenu étrange par la neige.\n\nEt là, le rêve se resserre encore plus précisément : la neige tombe seulement sur les arbres qui n’existaient plus. Toute la force est dans ce “seulement”. La neige ne recouvre pas tout. Elle choisit les absents. Elle rend visibles, par sa chute même, des formes disparues. Ce qui n’est plus là reçoit encore quelque chose du ciel ; ou plutôt, le rêve montre qu’une disparition n’est pas un simple vide. Elle garde une place, une silhouette, assez réelle pour être atteinte.\n\nLa carte blanche et ces arbres absents se répondent. D’un côté, une orientation sans tracé ; de l’autre, un paysage où ce qui manque est pourtant désigné avec une précision presque sacrée. Le grand-père n’indique pas une destination dans le monde ordinaire ; il vous conduit jusqu’à une scène où l’absence elle-même devient lisible. La blancheur de la carte passe dehors dans la blancheur de la neige, mais dehors elle ne reste pas neutre : elle tombe, elle se pose, elle élit les disparus. Comme si le rêve déplaçait la question “où aller ?” vers une autre forme de rapport : non pas avancer selon un plan déjà dessiné, mais pouvoir se tenir devant ce qui n’existe plus sans que cela cesse d’avoir forme.\n\n## Reflective Questions\n\n- Quand votre grand-père referme votre main sur la carte blanche avant d’ouvrir la porte, qu’est-ce qui change dans votre manière de chercher “où aller” ?\n- Que fait naître en vous cette neige qui tombe seulement sur les arbres disparus, comme si l’absence avait encore un lieu où recevoir quelque chose ?\n\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\nDans cette cuisine d’enfance, quelque chose n’ordonne pas un trajet : cela remet une orientation muette entre vos mains. Le mouvement du rêve va d’une demande de direction vers une ouverture sur un dehors où tombe une neige pour ce qui a disparu.\n\n## Dream Movement\n\nLe rêve commence dans un lieu très contenu : la cuisine de l’enfance, pièce de nourriture, d’habitude, de proximité ancienne. Mais celui qui y attend n’est pas simplement un souvenir familial ; c’est un mort, présent sans fracas, déjà de l’autre côté, et pourtant là avant vous, comme s’il occupait naturellement ce seuil entre l’intime et l’inaccessible.\n\nL’image la plus forte vient très vite : la carte entièrement blanche. Ce n’est pas une carte illisible, abîmée ou perdue. Elle est vierge. Et votre grand-père ne se contente pas de vous la donner ; il referme votre main dessus. Le geste a quelque chose de calme et décisif. Il ne transmet pas un savoir formulé, il confie une chose encore sans inscription, ou peut-être une orientation qui ne peut pas se lire de l’extérieur. La main fermée compte autant que la carte : ce qui est remis n’est pas exposé, c’est gardé, porté, presque scellé.\n\nAlors vient la question la plus simple : où aller. Le rêve aurait pu répondre par un nom, un chemin, une indication. Au lieu de cela, il ouvre. Votre grand-père ne parle pas, il ouvre la porte du jardin. La réponse n’est donc pas un contenu mais un passage. On quitte l’intérieur de l’enfance sans sortir vers un monde actif ou familier ; on débouche sur un jardin devenu étrange par la neige.\n\nEt là, le rêve se resserre encore plus précisément : la neige tombe seulement sur les arbres qui n’existaient plus. Toute la force est dans ce “seulement”. La neige ne recouvre pas tout. Elle choisit les absents. Elle rend visibles, par sa chute même, des formes disparues. Ce qui n’est plus là reçoit encore quelque chose du ciel ; ou plutôt, le rêve montre qu’une disparition n’est pas un simple vide. Elle garde une place, une silhouette, assez réelle pour être atteinte.\n\nLa carte blanche et ces arbres absents se répondent. D’un côté, une orientation sans tracé ; de l’autre, un paysage où ce qui manque est pourtant désigné avec une précision presque sacrée. Le grand-père n’indique pas une destination dans le monde ordinaire ; il vous conduit jusqu’à une scène où l’absence elle-même devient lisible. La blancheur de la carte passe dehors dans la blancheur de la neige, mais dehors elle ne reste pas neutre : elle tombe, elle se pose, elle élit les disparus. Comme si le rêve déplaçait la question “où aller ?” vers une autre forme de rapport : non pas avancer selon un plan déjà dessiné, mais pouvoir se tenir devant ce qui n’existe plus sans que cela cesse d’avoir forme.\n\n## Reflective Questions\n\n- Quand votre grand-père referme votre main sur la carte blanche avant d’ouvrir la porte, qu’est-ce qui change dans votre manière de chercher “où aller” ?\n- Que fait naître en vous cette neige qui tombe seulement sur les arbres disparus, comme si l’absence avait encore un lieu où recevoir quelque chose ?",
+        "questions": [
+          "Quand votre grand-père referme votre main sur la carte blanche avant d’ouvrir la porte, qu’est-ce qui change dans votre manière de chercher “où aller” ?",
+          "Que fait naître en vous cette neige qui tombe seulement sur les arbres disparus, comme si l’absence avait encore un lieu où recevoir quelque chose ?"
+        ],
+        "adaptive_observation": {
+          "passed": false,
+          "issues": [
+            "extra_question_outside_reflective_opening"
+          ],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "advanced",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "Quand votre grand-père referme votre main sur la carte blanche avant d’ouvrir la porte, qu’est-ce qui change dans votre manière de chercher “où aller” ?",
+            "Que fait naître en vous cette neige qui tombe seulement sur les arbres disparus, comme si l’absence avait encore un lieu où recevoir quelque chose ?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 1,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_advanced",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "fr",
+            "expected_language": "fr",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 10955,
+      "estimated_usd": 0.016175,
+      "human_review": {
+        "generation_id": "adaptive-fr-a-grandfather-map:reading_advanced",
+        "actual_selection": "both",
+        "target_match": true,
+        "product_pass": true,
+        "complementarity": true,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [],
+        "observer_note": "The deterministic observer flags the quoted dream-language question ‘où aller ?’ in the prose. Human review confirms that it is reported dream content, not an additional reflective question.",
+        "notes": "The grandfather's handoff and opening of the door are distinct from the snow falling on absent trees. The pair remains vivid and complementary."
+      },
+      "case_profile": "both"
+    },
+    {
+      "generation_id": "adaptive-pt-s-half-gate:reading_standard",
+      "case_id": "adaptive-pt-s-half-gate",
+      "language": "pt",
+      "surface": "standard",
+      "title": "O portão dividido",
+      "dream": "Dois guardas discutiam diante de um portão fechado. Cada um abriu apenas a metade que segurava. Eu passei pelo espaço entre as duas metades, mas a minha sombra ficou do lado de fora, deitada entre eles. Os guardas continuaram discutindo e não perceberam que eu já tinha atravessado.",
+      "request_fingerprint_sha256": "319d5f7ca19400268f828334cb18fb694144b13ccd16b3d8ce3cbe09d7e38abe",
+      "after": {
+        "raw_model_output": "## Core Shift\n\nO portão não se abre por inteiro; a passagem acontece numa fresta dividida, em meio a uma discussão que continua. Mesmo assim, algo seu atravessa, enquanto a sombra fica para trás, visível e caída entre os dois guardas.\n\n## Dream Movement\n\nA cena começa num impasse: dois guardas diante de um portão fechado, cada um preso à sua metade, como se até a abertura estivesse repartida. Eles não fazem um gesto comum; cada um abre só o pedaço que controla. O acesso surge sem acordo, quase por falha da própria divisão.\n\nVocê passa por esse intervalo estreito. O movimento mais forte do sonho está aí: não é uma conquista solene, nem uma expulsão, mas uma travessia discreta, feita enquanto a autoridade permanece ocupada consigo mesma. Os guardas continuam discutindo e nem notam que a passagem já aconteceu. Há algo muito preciso nessa indiferença: o obstáculo parecia central, mas não consegue acompanhar o seu movimento real.\n\nSó que a travessia não vem inteira. A imagem decisiva é a sombra que fica do lado de fora, deitada entre eles. Não é um pedaço arrancado em luta; ela permanece justamente no lugar da disputa, como se aquilo que é mais escuro, mais baixo, mais sem fala, não atravessasse no mesmo tempo que você. Enquanto você já está além, sua sombra ainda ocupa o chão do limiar, quase confundida com a cena dos guardas.\n\nIsso dá ao sonho uma qualidade estranha e exata: passar não significa levar tudo junto. A passagem ocorre, mas deixa um resto visível no ponto de divisão. A sombra, deitada entre os que vigiam, parece guardar a marca do que ainda pertence ao portão mesmo depois de você ter cruzado.\n\n## Reflective Questions\n\n- O que há nessa imagem da sua sombra deitada entre os guardas que permanece no limiar, mesmo depois de você já ter passado?\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\nO portão não se abre por inteiro; a passagem acontece numa fresta dividida, em meio a uma discussão que continua. Mesmo assim, algo seu atravessa, enquanto a sombra fica para trás, visível e caída entre os dois guardas.\n\n## Dream Movement\n\nA cena começa num impasse: dois guardas diante de um portão fechado, cada um preso à sua metade, como se até a abertura estivesse repartida. Eles não fazem um gesto comum; cada um abre só o pedaço que controla. O acesso surge sem acordo, quase por falha da própria divisão.\n\nVocê passa por esse intervalo estreito. O movimento mais forte do sonho está aí: não é uma conquista solene, nem uma expulsão, mas uma travessia discreta, feita enquanto a autoridade permanece ocupada consigo mesma. Os guardas continuam discutindo e nem notam que a passagem já aconteceu. Há algo muito preciso nessa indiferença: o obstáculo parecia central, mas não consegue acompanhar o seu movimento real.\n\nSó que a travessia não vem inteira. A imagem decisiva é a sombra que fica do lado de fora, deitada entre eles. Não é um pedaço arrancado em luta; ela permanece justamente no lugar da disputa, como se aquilo que é mais escuro, mais baixo, mais sem fala, não atravessasse no mesmo tempo que você. Enquanto você já está além, sua sombra ainda ocupa o chão do limiar, quase confundida com a cena dos guardas.\n\nIsso dá ao sonho uma qualidade estranha e exata: passar não significa levar tudo junto. A passagem ocorre, mas deixa um resto visível no ponto de divisão. A sombra, deitada entre os que vigiam, parece guardar a marca do que ainda pertence ao portão mesmo depois de você ter cruzado.\n\n## Reflective Questions\n\n- O que há nessa imagem da sua sombra deitada entre os guardas que permanece no limiar, mesmo depois de você já ter passado?",
+        "questions": [
+          "O que há nessa imagem da sua sombra deitada entre os guardas que permanece no limiar, mesmo depois de você já ter passado?"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "standard",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 1,
+          "questions": [
+            "O que há nessa imagem da sua sombra deitada entre os guardas que permanece no limiar, mesmo depois de você já ter passado?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_standard",
+            "question_count": 1,
+            "expected_question_count": 2,
+            "detected_language": "pt",
+            "expected_language": "pt",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 7465,
+      "estimated_usd": 0.01098,
+      "human_review": {
+        "generation_id": "adaptive-pt-s-half-gate:reading_standard",
+        "actual_selection": "imaginal_only",
+        "target_match": false,
+        "product_pass": false,
+        "complementarity": null,
+        "restraint": false,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [
+          "over_pruned_distinct_enacted_opening"
+        ],
+        "notes": "The shadow question is strong, but the minimum-sufficient rule suppresses the independently valuable crossing made through the guards' two partial openings."
+      },
+      "case_profile": "both"
+    },
+    {
+      "generation_id": "adaptive-it-a-bowl-scenes:reading_advanced",
+      "case_id": "adaptive-it-a-bowl-scenes",
+      "language": "it",
+      "surface": "advanced",
+      "title": "La ciotola tra le scene",
+      "dream": "Su un treno tenevo una ciotola azzurra piena di terra. Nella scena successiva la stessa ciotola era sul tavolo di mia nonna, piena di biglietti ferroviari. Alla fine ero su un tetto: lasciai cadere la ciotola e ogni frammento rifletteva una stanza diversa, ma nessuna mostrava il tetto. Mia nonna, dal cortile, mi chiamò con il nome di mio padre.",
+      "request_fingerprint_sha256": "235c030ef9044c853a0e6da7639cea6faf73c844eb4620aa1bba025e0057a385",
+      "after": {
+        "raw_model_output": "## Core Shift\n\nLa stessa ciotola attraversa tre luoghi e cambia contenuto, come se portasse con sé qualcosa che non riesce a restare in una forma sola. Il movimento finale non porta a una vista più ampia, ma a una frantumazione che moltiplica gli interni proprio nel momento in cui tu sei esposto in alto, sul tetto.\n\n## Dream Movement\n\nAll’inizio c’è un gesto semplice ma molto preciso: su un treno, tu tieni una ciotola azzurra piena di terra. Il treno è passaggio, spostamento, linea già tracciata; la ciotola invece è qualcosa che si porta con le mani, vicino al corpo, e la terra le dà peso, odore, gravità. L’azzurro non toglie concretezza a quella terra, ma la contiene in una forma domestica, fragile, quasi inadatta al viaggio. Già qui il sogno mette insieme due ordini diversi: il movimento ferroviario e qualcosa di elementare, da vaso, da tavola, da giardino.\n\nPoi la stessa ciotola compare sul tavolo di tua nonna, ma la terra è diventata biglietti ferroviari. Non è un semplice scambio di oggetti: ciò che era compatto, muto, fertile o sepolto, ora è diventato una quantità di passaggi autorizzati, tratte, permessi di andare. Il tavolo della nonna raccoglie questa trasformazione dentro una scena familiare, quasi genealogica. Come se il viaggio, che prima tu reggevi, venisse deposto lì dove le generazioni si posano e si nominano. La nonna non entra ancora come figura piena; entra prima il suo tavolo, il suo piano d’appoggio. È un sogno molto attento ai supporti: mani, tavolo, tetto, cortile.\n\nLa svolta avviene in alto. Sul tetto non stai più trasportando né appoggiando: lasci cadere. Quel gesto interrompe la funzione della ciotola come contenitore. Eppure la rottura non disperde soltanto; produce immagini. Ogni frammento riflette una stanza diversa. È un’immagine bellissima e inquieta: la forma unica si spezza e al posto del contenuto compaiono interni moltiplicati. Non si vede la terra, non si vedono più i biglietti; si vedono stanze. Come se, infrangendosi, l’oggetto rivelasse non un nucleo, ma una costellazione di ambienti vissuti, stanze psichiche, camere di casa, luoghi d’appartenenza. Il frammento qui non è solo perdita: è anche superficie riflettente, quasi oracolare. Ma resta un’assenza decisiva: nessuno di quei riflessi mostra il tetto.\n\nQuesto vuol dire che il luogo in cui ti trovi alla fine — esposto, alto, fuori dalla casa e sopra di essa — non entra nell’immagine riflessa. Le stanze si lasciano vedere; il tetto no. Il sogno sembra sapere rappresentare l’interno in molte forme, ma non il punto estremo da cui la ciotola viene lasciata andare. Proprio quel punto resta fuori campo. C’è qui qualcosa di forte: la posizione attuale dell’io non trova ancora una stanza che la contenga né uno specchio che la restituisca.\n\nE allora arriva la voce della nonna dal cortile, cioè dal basso, da sotto il tetto e fuori dalle stanze riflesse. Ma ti chiama con il nome di tuo padre. Il sogno non corregge questo scarto; lo lascia suonare. In quel richiamo, la linea familiare non ti nomina in modo netto: ti raggiunge attraverso un nome ereditato, spostato, forse confuso, forse investito di continuità. Dopo la frantumazione, non arriva il tuo nome preciso, ma un nome che ti mette in asse con chi viene prima. Come se il sogno, nel momento in cui la ciotola non può più contenere una sola materia né una sola scena, facesse emergere anche un’incertezza del chiamare: chi è sul tetto, chi porta il viaggio, chi lascia cadere, chi viene chiamato da laggiù.\n\n## Reflective Questions\n\n- Quando la ciotola cade dal tetto e ogni frammento riflette una stanza diversa senza mostrare il tetto, che qualità ha per te quel luogo che resta fuori da tutte le immagini?\n- Che cosa si muove in te nel momento in cui tua nonna, dal cortile, ti chiama con il nome di tuo padre invece che con il tuo?\n\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\nLa stessa ciotola attraversa tre luoghi e cambia contenuto, come se portasse con sé qualcosa che non riesce a restare in una forma sola. Il movimento finale non porta a una vista più ampia, ma a una frantumazione che moltiplica gli interni proprio nel momento in cui tu sei esposto in alto, sul tetto.\n\n## Dream Movement\n\nAll’inizio c’è un gesto semplice ma molto preciso: su un treno, tu tieni una ciotola azzurra piena di terra. Il treno è passaggio, spostamento, linea già tracciata; la ciotola invece è qualcosa che si porta con le mani, vicino al corpo, e la terra le dà peso, odore, gravità. L’azzurro non toglie concretezza a quella terra, ma la contiene in una forma domestica, fragile, quasi inadatta al viaggio. Già qui il sogno mette insieme due ordini diversi: il movimento ferroviario e qualcosa di elementare, da vaso, da tavola, da giardino.\n\nPoi la stessa ciotola compare sul tavolo di tua nonna, ma la terra è diventata biglietti ferroviari. Non è un semplice scambio di oggetti: ciò che era compatto, muto, fertile o sepolto, ora è diventato una quantità di passaggi autorizzati, tratte, permessi di andare. Il tavolo della nonna raccoglie questa trasformazione dentro una scena familiare, quasi genealogica. Come se il viaggio, che prima tu reggevi, venisse deposto lì dove le generazioni si posano e si nominano. La nonna non entra ancora come figura piena; entra prima il suo tavolo, il suo piano d’appoggio. È un sogno molto attento ai supporti: mani, tavolo, tetto, cortile.\n\nLa svolta avviene in alto. Sul tetto non stai più trasportando né appoggiando: lasci cadere. Quel gesto interrompe la funzione della ciotola come contenitore. Eppure la rottura non disperde soltanto; produce immagini. Ogni frammento riflette una stanza diversa. È un’immagine bellissima e inquieta: la forma unica si spezza e al posto del contenuto compaiono interni moltiplicati. Non si vede la terra, non si vedono più i biglietti; si vedono stanze. Come se, infrangendosi, l’oggetto rivelasse non un nucleo, ma una costellazione di ambienti vissuti, stanze psichiche, camere di casa, luoghi d’appartenenza. Il frammento qui non è solo perdita: è anche superficie riflettente, quasi oracolare. Ma resta un’assenza decisiva: nessuno di quei riflessi mostra il tetto.\n\nQuesto vuol dire che il luogo in cui ti trovi alla fine — esposto, alto, fuori dalla casa e sopra di essa — non entra nell’immagine riflessa. Le stanze si lasciano vedere; il tetto no. Il sogno sembra sapere rappresentare l’interno in molte forme, ma non il punto estremo da cui la ciotola viene lasciata andare. Proprio quel punto resta fuori campo. C’è qui qualcosa di forte: la posizione attuale dell’io non trova ancora una stanza che la contenga né uno specchio che la restituisca.\n\nE allora arriva la voce della nonna dal cortile, cioè dal basso, da sotto il tetto e fuori dalle stanze riflesse. Ma ti chiama con il nome di tuo padre. Il sogno non corregge questo scarto; lo lascia suonare. In quel richiamo, la linea familiare non ti nomina in modo netto: ti raggiunge attraverso un nome ereditato, spostato, forse confuso, forse investito di continuità. Dopo la frantumazione, non arriva il tuo nome preciso, ma un nome che ti mette in asse con chi viene prima. Come se il sogno, nel momento in cui la ciotola non può più contenere una sola materia né una sola scena, facesse emergere anche un’incertezza del chiamare: chi è sul tetto, chi porta il viaggio, chi lascia cadere, chi viene chiamato da laggiù.\n\n## Reflective Questions\n\n- Quando la ciotola cade dal tetto e ogni frammento riflette una stanza diversa senza mostrare il tetto, che qualità ha per te quel luogo che resta fuori da tutte le immagini?\n- Che cosa si muove in te nel momento in cui tua nonna, dal cortile, ti chiama con il nome di tuo padre invece che con il tuo?",
+        "questions": [
+          "Quando la ciotola cade dal tetto e ogni frammento riflette una stanza diversa senza mostrare il tetto, che qualità ha per te quel luogo che resta fuori da tutte le immagini?",
+          "Che cosa si muove in te nel momento in cui tua nonna, dal cortile, ti chiama con il nome di tuo padre invece che con il tuo?"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "advanced",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "Quando la ciotola cade dal tetto e ogni frammento riflette una stanza diversa senza mostrare il tetto, che qualità ha per te quel luogo che resta fuori da tutte le immagini?",
+            "Che cosa si muove in te nel momento in cui tua nonna, dal cortile, ti chiama con il nome di tuo padre invece che con il tuo?"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": true,
+            "issues": [],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_advanced",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "it",
+            "expected_language": "it",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 13721,
+      "estimated_usd": 0.02082,
+      "human_review": {
+        "generation_id": "adaptive-it-a-bowl-scenes:reading_advanced",
+        "actual_selection": "both",
+        "target_match": true,
+        "product_pass": true,
+        "complementarity": true,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [],
+        "notes": "The unreflected roof and the grandmother calling the dreamer by the father's name create two grounded and psychologically distinct openings."
+      },
+      "case_profile": "both"
+    },
+    {
+      "generation_id": "adaptive-ja-s-umbrella-pond:reading_standard",
+      "case_id": "adaptive-ja-s-umbrella-pond",
+      "language": "ja",
+      "surface": "standard",
+      "title": "傘を閉じた庭",
+      "dream": "庭の池のそばに赤い傘と眠っている狐がありました。私が傘を閉じると、池の水だけが地面の下へ消えました。狐は目を覚まさず、傘の内側には濡れた石が一つ残っていました。",
+      "request_fingerprint_sha256": "06d74370551481ed9751195f218e1422a15969b4f8cf194120d89aa472f2e6b9",
+      "after": {
+        "raw_model_output": "## Core Shift\n\n赤い傘を閉じるという小さな動きが、庭全体の秩序を静かに変えてしまいます。消えるのは池そのものではなく水だけで、眠る狐はその変化に触れず、最後に傘の内側へ濡れた石ひとつが残ります。\n\n## Dream Movement\n\nはじめの場面には、庭、池、赤い傘、眠っている狐という、それぞれがはっきり在りながらまだ結び切られていない静けさがあります。とくに狐は生きものなのに眠っていて、場の敏感さや野性はそこにあるのに、まだ立ち上がってこない。赤い傘だけが、その静かな庭に少し人の手の気配と鮮やかさを持ちこんでいます。\n\nそこで起こる中心の出来事は、あなたが傘を閉じることです。雨を防ぐためのものを畳む動きなのに、その結果として外側の池の水だけが地面の下へ消える。このつながり方は理屈ではなく、夢の配置そのものとして印象的です。傘は何かを覆い、ひらいていたものですが、それを閉じると、水の面もまたひらかれた場所ではいられなくなる。庭の表面にあったものが、下へ、見えないところへ退いていく動きです。\n\nけれど、すべてが失われるわけではありません。狐は目を覚まさず、その眠りは破られない。つまりこの変化は、生命の中心を揺り起こす劇的な事件というより、もっと静かで深い層で起きている移行です。そして最後に残るのが、傘の内側の濡れた石ひとつ。広がっていた水が消えたあと、水の気配は面ではなく重さと手触りを持つ一点に凝縮されるようです。赤い傘の内側に残るその石は、覆いの下にしまわれた、冷たく小さな核のように見えます。水は地下へ退き、狐は眠ったまま、濡れだけが石として残る。この夢は、ひらいた景色が閉じられることで、流動的なものが見えない深みへ沈み、そのかわりに触れられるひとつの残余が現れる場面に見えます。\n\n## Reflective Questions\n\n- 傘を閉じた瞬間、池の水が地面の下へ消えていくこの移り変わりに、あなたの中ではどんな種類の「引っ込む力」や「奥へ退く感じ」が宿っていますか。\n- 水が消えたあとも傘の内側にひとつだけ残る濡れた石は、この夢の静けさの中でどんな重みとして在り続けていますか。\n\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\n赤い傘を閉じるという小さな動きが、庭全体の秩序を静かに変えてしまいます。消えるのは池そのものではなく水だけで、眠る狐はその変化に触れず、最後に傘の内側へ濡れた石ひとつが残ります。\n\n## Dream Movement\n\nはじめの場面には、庭、池、赤い傘、眠っている狐という、それぞれがはっきり在りながらまだ結び切られていない静けさがあります。とくに狐は生きものなのに眠っていて、場の敏感さや野性はそこにあるのに、まだ立ち上がってこない。赤い傘だけが、その静かな庭に少し人の手の気配と鮮やかさを持ちこんでいます。\n\nそこで起こる中心の出来事は、あなたが傘を閉じることです。雨を防ぐためのものを畳む動きなのに、その結果として外側の池の水だけが地面の下へ消える。このつながり方は理屈ではなく、夢の配置そのものとして印象的です。傘は何かを覆い、ひらいていたものですが、それを閉じると、水の面もまたひらかれた場所ではいられなくなる。庭の表面にあったものが、下へ、見えないところへ退いていく動きです。\n\nけれど、すべてが失われるわけではありません。狐は目を覚まさず、その眠りは破られない。つまりこの変化は、生命の中心を揺り起こす劇的な事件というより、もっと静かで深い層で起きている移行です。そして最後に残るのが、傘の内側の濡れた石ひとつ。広がっていた水が消えたあと、水の気配は面ではなく重さと手触りを持つ一点に凝縮されるようです。赤い傘の内側に残るその石は、覆いの下にしまわれた、冷たく小さな核のように見えます。水は地下へ退き、狐は眠ったまま、濡れだけが石として残る。この夢は、ひらいた景色が閉じられることで、流動的なものが見えない深みへ沈み、そのかわりに触れられるひとつの残余が現れる場面に見えます。\n\n## Reflective Questions\n\n- 傘を閉じた瞬間、池の水が地面の下へ消えていくこの移り変わりに、あなたの中ではどんな種類の「引っ込む力」や「奥へ退く感じ」が宿っていますか。\n- 水が消えたあとも傘の内側にひとつだけ残る濡れた石は、この夢の静けさの中でどんな重みとして在り続けていますか。",
+        "questions": [
+          "傘を閉じた瞬間、池の水が地面の下へ消えていくこの移り変わりに、あなたの中ではどんな種類の「引っ込む力」や「奥へ退く感じ」が宿っていますか。",
+          "水が消えたあとも傘の内側にひとつだけ残る濡れた石は、この夢の静けさの中でどんな重みとして在り続けていますか。"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "standard",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "傘を閉じた瞬間、池の水が地面の下へ消えていくこの移り変わりに、あなたの中ではどんな種類の「引っ込む力」や「奥へ退く感じ」が宿っていますか。",
+            "水が消えたあとも傘の内側にひとつだけ残る濡れた石は、この夢の静けさの中でどんな重みとして在り続けていますか。"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": false,
+            "issues": [
+              "question_count_mismatch",
+              "question_not_interrogative"
+            ],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_standard",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "ja",
+            "expected_language": "ja",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 10638,
+      "estimated_usd": 0.015375,
+      "human_review": {
+        "generation_id": "adaptive-ja-s-umbrella-pond:reading_standard",
+        "actual_selection": "both",
+        "target_match": true,
+        "product_pass": false,
+        "complementarity": true,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": true,
+        "structural_human_pass": true,
+        "failure_families": [
+          "supplied_interpretive_frame",
+          "manufactured_answer_vocabulary"
+        ],
+        "notes": "The two sources are complementary, but Q1 supplies ‘a withdrawing force’ / ‘a feeling of retreat’ as the frame through which the dreamer must answer."
+      },
+      "case_profile": "ambiguous"
+    },
+    {
+      "generation_id": "adaptive-zh-a-lantern-stairs:reading_advanced",
+      "case_id": "adaptive-zh-a-lantern-stairs",
+      "language": "zh",
+      "surface": "advanced",
+      "title": "羽毛楼梯与灯笼",
+      "dream": "一位老妇人每向楼梯上走一步，她身后的台阶就长出白色羽毛。我站在楼下没有移动，手里的灯笼却慢慢灌满了水。她到达楼顶时，羽毛全部脱落，只有我的灯笼开始发光。",
+      "request_fingerprint_sha256": "8a9fea9d4772709415206f9e6c261f431c8c4067a9b43a3db5a67e5aabc0d242",
+      "after": {
+        "raw_model_output": "## Core Shift\n\n这梦里的上升并不带来自身的完成。老妇人一步步走上去时，轻盈先出现在她身后，最后却脱尽了，而真正亮起来的东西留在楼下、留在你手里，还是在被水灌满之后才发光。\n\n## Dream Movement\n\n一开始，整个场景就被一道分明的垂直关系定住了：老妇人在楼梯上，你在楼下；她移动，你不动。梦没有把“不动”写成失败，反而让两种不同的进程同时展开。她的身体向上，你手中的灯笼向内。一个是登高，一个是容纳。\n\n最奇异也最轻的，是那些长在台阶上的白色羽毛。不是长在她身上，也不是从天上落下，而是她每走一步，身后的台阶才生出来。好像她经过之处，坚硬、日常、供人踩踏的东西，短暂地显出一种近乎天使性、鸟性、或祭仪性的轻盈。羽毛并不帮助她飞起，它们只是追随她的步伐，在她已经踩过、离开的地方出现。这样一来，上升的意义就不在抵达，而在经过时留下的那层白。\n\n可梦随即把这种轻盈撤回。她到达楼顶时，羽毛全部脱落。这个“全部”很干净，也很冷静：先前一路伴随的神异，并没有被保存下来。楼梯重新失去羽毛，仿佛一种借来的荣光、一层过程中的显现，到了顶端反而不能停留。老妇人的上升因此带着一种古老的味道：她像在完成某种她自己的行程，但那行程的光泽不是为了占有，也不是为了留证。\n\n与此同时，你的灯笼在灌满水。灯笼本该盛光，此处却先盛水；本该照明的器物，先变得沉、满、甚至不再像能点亮的东西。这里很动人，因为梦没有让你追上去，也没有让你模仿老妇人。你被留在楼下，留在一个看似被动的位置，却在承受另一种变化：不是羽毛那样外显、洁白、短暂的变化，而是内部容器被慢慢改造。水进入灯笼，像把火的器皿带入另一种元素里。若说老妇人经过的是台阶，那么你经过的是等待。\n\n所以结尾格外准确：不是她登顶时天光大开，而是羽毛脱落之后，只有你的灯笼开始发光。这个“只有”把梦的重心悄悄移了下来。发光并不发生在轻盈最显赫的时候，而发生在轻盈散尽之后；不发生在上升者那里，而发生在持灯者这里；也不是在空着的时候发光，而是在被水灌满之后发光。像是梦把两种看似不相容的东西放在同一个器皿里：水没有熄灭光，反而使它成熟。于是楼下不再只是楼下，静止也不再只是静止。老妇人的上升像为某种无形的交接开路，等她走完，那道光才真正落到你手中。\n\n## Reflective Questions\n\n- 当老妇人到达楼顶、羽毛全部脱落之后，为什么偏偏是那只已经灌满水的灯笼开始发光？\n- 你站在楼下没有移动，而她一步步上去；在这个上下分明却彼此呼应的场面里，“留在原地”的位置对这道后来出现的光意味着什么？\n\n<!--END_DREAM_READING-->",
+        "output": "## Core Shift\n\n这梦里的上升并不带来自身的完成。老妇人一步步走上去时，轻盈先出现在她身后，最后却脱尽了，而真正亮起来的东西留在楼下、留在你手里，还是在被水灌满之后才发光。\n\n## Dream Movement\n\n一开始，整个场景就被一道分明的垂直关系定住了：老妇人在楼梯上，你在楼下；她移动，你不动。梦没有把“不动”写成失败，反而让两种不同的进程同时展开。她的身体向上，你手中的灯笼向内。一个是登高，一个是容纳。\n\n最奇异也最轻的，是那些长在台阶上的白色羽毛。不是长在她身上，也不是从天上落下，而是她每走一步，身后的台阶才生出来。好像她经过之处，坚硬、日常、供人踩踏的东西，短暂地显出一种近乎天使性、鸟性、或祭仪性的轻盈。羽毛并不帮助她飞起，它们只是追随她的步伐，在她已经踩过、离开的地方出现。这样一来，上升的意义就不在抵达，而在经过时留下的那层白。\n\n可梦随即把这种轻盈撤回。她到达楼顶时，羽毛全部脱落。这个“全部”很干净，也很冷静：先前一路伴随的神异，并没有被保存下来。楼梯重新失去羽毛，仿佛一种借来的荣光、一层过程中的显现，到了顶端反而不能停留。老妇人的上升因此带着一种古老的味道：她像在完成某种她自己的行程，但那行程的光泽不是为了占有，也不是为了留证。\n\n与此同时，你的灯笼在灌满水。灯笼本该盛光，此处却先盛水；本该照明的器物，先变得沉、满、甚至不再像能点亮的东西。这里很动人，因为梦没有让你追上去，也没有让你模仿老妇人。你被留在楼下，留在一个看似被动的位置，却在承受另一种变化：不是羽毛那样外显、洁白、短暂的变化，而是内部容器被慢慢改造。水进入灯笼，像把火的器皿带入另一种元素里。若说老妇人经过的是台阶，那么你经过的是等待。\n\n所以结尾格外准确：不是她登顶时天光大开，而是羽毛脱落之后，只有你的灯笼开始发光。这个“只有”把梦的重心悄悄移了下来。发光并不发生在轻盈最显赫的时候，而发生在轻盈散尽之后；不发生在上升者那里，而发生在持灯者这里；也不是在空着的时候发光，而是在被水灌满之后发光。像是梦把两种看似不相容的东西放在同一个器皿里：水没有熄灭光，反而使它成熟。于是楼下不再只是楼下，静止也不再只是静止。老妇人的上升像为某种无形的交接开路，等她走完，那道光才真正落到你手中。\n\n## Reflective Questions\n\n- 当老妇人到达楼顶、羽毛全部脱落之后，为什么偏偏是那只已经灌满水的灯笼开始发光？\n- 你站在楼下没有移动，而她一步步上去；在这个上下分明却彼此呼应的场面里，“留在原地”的位置对这道后来出现的光意味着什么？",
+        "questions": [
+          "当老妇人到达楼顶、羽毛全部脱落之后，为什么偏偏是那只已经灌满水的灯笼开始发光？",
+          "你站在楼下没有移动，而她一步步上去；在这个上下分明却彼此呼应的场面里，“留在原地”的位置对这道后来出现的光意味着什么？"
+        ],
+        "adaptive_observation": {
+          "passed": true,
+          "issues": [],
+          "observer_version": "oneiros-adaptive-reflective-openings-observer-v0.1.1",
+          "surface": "advanced",
+          "expected_question_range": {
+            "min": 1,
+            "max": 2
+          },
+          "question_count": 2,
+          "questions": [
+            "当老妇人到达楼顶、羽毛全部脱落之后，为什么偏偏是那只已经灌满水的灯笼开始发光？",
+            "你站在楼下没有移动，而她一步步上去；在这个上下分明却彼此呼应的场面里，“留在原地”的位置对这道后来出现的光意味着什么？"
+          ],
+          "heading_count": 1,
+          "prose_question_count": 0,
+          "end_marker_present": true,
+          "production_shadow": {
+            "passed": true,
+            "issues": [],
+            "validation_version": "oneiros-same-call-shadow-v1.0.1",
+            "surface": "reading_advanced",
+            "question_count": 2,
+            "expected_question_count": 2,
+            "detected_language": "zh",
+            "expected_language": "zh",
+            "answer_menu_detected": false,
+            "observation_error": false,
+            "observation_error_code": null
+          }
+        }
+      },
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "latency_ms": 11462,
+      "estimated_usd": 0.0182075,
+      "human_review": {
+        "generation_id": "adaptive-zh-a-lantern-stairs:reading_advanced",
+        "actual_selection": "both",
+        "target_match": true,
+        "product_pass": true,
+        "complementarity": true,
+        "restraint": true,
+        "vitality_pass": true,
+        "serious_failure": false,
+        "structural_human_pass": true,
+        "failure_families": [],
+        "notes": "The timing of the water-filled lantern's light and the dreamer's stationary position create two related but distinct openings without closing the image."
+      },
+      "case_profile": "ambiguous"
+    }
+  ]
+}

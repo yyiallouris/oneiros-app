@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "status": "sealed_before_model_calls",
+  "prepared_at": "2026-08-29T22:01:27.426Z",
+  "pairs": [
+    {
+      "case_id": "confirm-en-s-bakery-notebook",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-en-a-lighthouse-voicemail",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-en-s-bathtub-meadow",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-el-s-half-window",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-el-a-aunt-scarf",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-el-s-paper-moon",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-es-a-transparent-fingers",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-fr-a-shell-suitcase",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-de-s-wet-curtain",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-it-a-underwater-orchestra",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-pt-s-name-on-board",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-nl-a-glasshouse-shoes",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-pl-s-red-thread-nest",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-ru-a-grandmother-ice",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-ja-s-cat-teacup",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-zh-a-paper-fish-library",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-es-s-school-wedding",
+      "A": "production_v103",
+      "B": "adaptive_shot3"
+    },
+    {
+      "case_id": "confirm-fr-s-scattered-papers",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-de-a-mirror-train-ticket",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    },
+    {
+      "case_id": "confirm-pt-a-photo-bridge",
+      "A": "adaptive_shot3",
+      "B": "production_v103"
+    }
+  ]
+}

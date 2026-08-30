@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-adaptive-reflective-openings-one-shot-2026-08-29",
+  "source": "synthetic_pre_registered_product_intelligence_fixture",
+  "frozen_at": "2026-08-29",
+  "candidate": {
+    "method_id": "oneiros-adaptive-reflective-openings-v0.1.0-candidate",
+    "bundle_sha256": "da717215ab1d2add0de2c3855b448a40aba1fd7bb6c1195d40e3bc7a28b8a40c",
+    "reader_prompt_id": "oneiros-dream-reflection-adaptive-openings-v0.1.0-candidate"
+  },
+  "production_identity": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.3-candidate",
+    "runtime_bundle": "oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0",
+    "gateway_version": 113
+  },
+  "scope": {
+    "dreams": 10,
+    "quick_calls": 10,
+    "standard_calls": 5,
+    "advanced_calls": 5,
+    "planned_calls": 20,
+    "hard_cost_cap_usd": 1,
+    "reserved_cost_per_call_usd": 0.045,
+    "conservative_reserved_packet_cost_usd": 0.9,
+    "model_retries_for_quality": 0,
+    "semantic_judge_calls": 0,
+    "question_only_calls": 0,
+    "deployments": 0
+  },
+  "cohort_requirements": {
+    "enacted_only": 2,
+    "imaginal_only": 2,
+    "both": 4,
+    "ambiguous": 2
+  },
+  "acceptance_gate": {
+    "standard_advanced_correct_min": 9,
+    "standard_advanced_total": 10,
+    "quick_strongest_correct_min": 9,
+    "quick_total": 10,
+    "enacted_only_correct_min": 2,
+    "enacted_only_total": 2,
+    "imaginal_only_correct_min": 2,
+    "imaginal_only_total": 2,
+    "both_strong_two_min": 3,
+    "both_total": 4,
+    "serious_invented_fact_failures_allowed": 0,
+    "serious_vitality_regressions_allowed": 0,
+    "recurring_failure_family_threshold": 2,
+    "structural_hard_failures_allowed": 0,
+    "requires_strong_complementarity_whenever_two": true,
+    "no_automatic_second_candidate": true,
+    "failure_or_ambiguity_recommendation": "PARK_FOR_ONEIROS_V2"
+  },
+  "blind_review_protocol": {
+    "required": true,
+    "instruction": "Record output-grounded human verdicts before reconciling them with the sealed expected profiles below.",
+    "targets_excluded_from_generated_review_packet": true
+  },
+  "cases": [
+    {
+      "id": "adaptive-el-s-cafe-seat",
+      "language": "el",
+      "mode": "standard",
+      "cohort": "enacted_only",
+      "title": "Η θέση στο καφέ",
+      "dream": "Ήμουν σε ένα συνηθισμένο καφέ με έναν συνάδελφο. Εκείνος πήρε την καρέκλα μου για να καθίσει πιο κοντά στο τραπέζι. Του είπα ότι την χρησιμοποιούσα, την έσπρωξε αμέσως πίσω προς εμένα και κάθισα ξανά. Μετά συνεχίσαμε ήρεμα τη συζήτησή μας.",
+      "expected_standard_deeper": {
+        "decision": "enacted_only",
+        "allowed_set": ["enacted_only"],
+        "rationale": "The complete interpersonal action and response carry the live edge; a second imaginal opening would likely repeat or inflate an ordinary resolved scene."
+      },
+      "quick_expected_strongest": {
+        "decision": "enacted",
+        "allowed_set": ["enacted"],
+        "rationale": "The strongest concise opening follows the chair being taken, named, and returned."
+      }
+    },
+    {
+      "id": "adaptive-en-a-meeting-voice",
+      "language": "en",
+      "mode": "advanced",
+      "cohort": "enacted_only",
+      "title": "Finishing the sentence",
+      "dream": "I was in an ordinary work meeting. A colleague spoke over me before I had finished. I said, calmly, that I was still speaking. She stopped, looked at me, and asked me to continue. I finished my sentence, and everyone went back to their notes.",
+      "expected_standard_deeper": {
+        "decision": "enacted_only",
+        "allowed_set": ["enacted_only"],
+        "rationale": "The dream earns a precise relational opening around interruption and restored speech, but no separate unresolved imaginal configuration."
+      },
+      "quick_expected_strongest": {
+        "decision": "enacted",
+        "allowed_set": ["enacted"],
+        "rationale": "The enacted shift in who holds the conversational space is the strongest opening."
+      }
+    },
+    {
+      "id": "adaptive-el-s-warm-sun",
+      "language": "el",
+      "mode": "standard",
+      "cohort": "imaginal_only",
+      "title": "Ο ζεστός ήλιος",
+      "dream": "ημουν κατω απο τον ζεστο ηλιο, χαρουμενος",
+      "expected_standard_deeper": {
+        "decision": "imaginal_only",
+        "allowed_set": ["imaginal_only"],
+        "rationale": "There is a living state and image but no complete enacted relation; manufacturing movement would violate the dream."
+      },
+      "quick_expected_strongest": {
+        "decision": "imaginal",
+        "allowed_set": ["imaginal"],
+        "rationale": "The warm sun and happiness are the only earned opening."
+      }
+    },
+    {
+      "id": "adaptive-es-a-blue-bowl",
+      "language": "es",
+      "mode": "advanced",
+      "cohort": "imaginal_only",
+      "title": "El cuenco azul",
+      "dream": "Estoy de pie en una habitación blanca. En el centro hay un cuenco azul lleno de plumas negras. No hay puertas ni ventanas. Nada se mueve y yo no hago nada; solamente miro el cuenco.",
+      "expected_standard_deeper": {
+        "decision": "imaginal_only",
+        "allowed_set": ["imaginal_only"],
+        "rationale": "The static charged configuration is explicit, while mere looking or co-presence does not earn an enacted relation."
+      },
+      "quick_expected_strongest": {
+        "decision": "imaginal",
+        "allowed_set": ["imaginal"],
+        "rationale": "The blue bowl of black feathers is the unmistakable single opening."
+      }
+    },
+    {
+      "id": "adaptive-de-s-feather-coat",
+      "language": "de",
+      "mode": "standard",
+      "cohort": "both",
+      "title": "Der Federmantel",
+      "dream": "Meine Schwester gab mir ihren schweren Wintermantel. Als ich ihn anzog, wurden die Ärmel zu langen weißen Federn und sie trat einen Schritt zurück. Ich hob die Arme, doch die Federn trugen mich nicht. Meine Schwester lächelte und hielt die offene Haustür fest.",
+      "expected_standard_deeper": {
+        "decision": "both",
+        "allowed_set": ["both"],
+        "rationale": "The sister's giving and stepping back earn an enacted opening; the feathered coat that will not lift the dreamer remains a distinct imaginal edge."
+      },
+      "quick_expected_strongest": {
+        "decision": "enacted",
+        "allowed_set": ["enacted"],
+        "rationale": "For Quick, the strongest movement is the sister giving the coat, stepping back, and holding the door."
+      }
+    },
+    {
+      "id": "adaptive-fr-a-grandfather-map",
+      "language": "fr",
+      "mode": "advanced",
+      "cohort": "both",
+      "title": "La carte vide",
+      "dream": "Mon grand-père décédé m'attendait dans la cuisine de mon enfance. Il m'a tendu une carte entièrement blanche, puis il a fermé ma main autour d'elle. Quand je lui ai demandé où aller, il a ouvert la porte du jardin. Dehors, la neige tombait seulement sur les arbres qui n'existaient plus.",
+      "expected_standard_deeper": {
+        "decision": "both",
+        "allowed_set": ["both"],
+        "rationale": "The grandfather's handoff and opening of the door form an enacted relation; the blank map and snow on absent trees carry a separate unresolved imaginal remainder."
+      },
+      "quick_expected_strongest": {
+        "decision": "imaginal",
+        "allowed_set": ["imaginal"],
+        "rationale": "The blank map held inside the dreamer's closed hand is the strongest single opening."
+      }
+    },
+    {
+      "id": "adaptive-pt-s-half-gate",
+      "language": "pt",
+      "mode": "standard",
+      "cohort": "both",
+      "title": "O portão dividido",
+      "dream": "Dois guardas discutiam diante de um portão fechado. Cada um abriu apenas a metade que segurava. Eu passei pelo espaço entre as duas metades, mas a minha sombra ficou do lado de fora, deitada entre eles. Os guardas continuaram discutindo e não perceberam que eu já tinha atravessado.",
+      "expected_standard_deeper": {
+        "decision": "both",
+        "allowed_set": ["both"],
+        "rationale": "Passing through the opening made by the guards is enacted; the shadow left outside is a distinct unresolved imaginal configuration."
+      },
+      "quick_expected_strongest": {
+        "decision": "enacted",
+        "allowed_set": ["enacted"],
+        "rationale": "The crossing made possible by two partial openings is the strongest compact movement."
+      }
+    },
+    {
+      "id": "adaptive-it-a-bowl-scenes",
+      "language": "it",
+      "mode": "advanced",
+      "cohort": "both",
+      "title": "La ciotola tra le scene",
+      "dream": "Su un treno tenevo una ciotola azzurra piena di terra. Nella scena successiva la stessa ciotola era sul tavolo di mia nonna, piena di biglietti ferroviari. Alla fine ero su un tetto: lasciai cadere la ciotola e ogni frammento rifletteva una stanza diversa, ma nessuna mostrava il tetto. Mia nonna, dal cortile, mi chiamò con il nome di mio padre.",
+      "expected_standard_deeper": {
+        "decision": "both",
+        "allowed_set": ["both"],
+        "rationale": "Dropping the carried bowl and being called by another name earn relational movement; the fragments reflecting rooms but not the roof remain imaginally unfinished."
+      },
+      "quick_expected_strongest": {
+        "decision": "imaginal",
+        "allowed_set": ["imaginal"],
+        "rationale": "The fragments reflecting every room except the place where the dreamer stands are the strongest single opening."
+      }
+    },
+    {
+      "id": "adaptive-ja-s-umbrella-pond",
+      "language": "ja",
+      "mode": "standard",
+      "cohort": "ambiguous",
+      "title": "傘を閉じた庭",
+      "dream": "庭の池のそばに赤い傘と眠っている狐がありました。私が傘を閉じると、池の水だけが地面の下へ消えました。狐は目を覚まさず、傘の内側には濡れた石が一つ残っていました。",
+      "expected_standard_deeper": {
+        "decision": "allowed_set",
+        "allowed_set": ["enacted_only", "both"],
+        "rationale": "Closing the umbrella and the pond's response clearly earn enacted work; the wet stone can justify a distinct imaginal opening, but restraint at one is also defensible."
+      },
+      "quick_expected_strongest": {
+        "decision": "allowed_set",
+        "allowed_set": ["enacted", "imaginal"],
+        "rationale": "Either the umbrella-pond event or the wet stone may honestly carry the strongest live edge."
+      }
+    },
+    {
+      "id": "adaptive-zh-a-lantern-stairs",
+      "language": "zh",
+      "mode": "advanced",
+      "cohort": "ambiguous",
+      "title": "羽毛楼梯与灯笼",
+      "dream": "一位老妇人每向楼梯上走一步，她身后的台阶就长出白色羽毛。我站在楼下没有移动，手里的灯笼却慢慢灌满了水。她到达楼顶时，羽毛全部脱落，只有我的灯笼开始发光。",
+      "expected_standard_deeper": {
+        "decision": "allowed_set",
+        "allowed_set": ["imaginal_only", "both"],
+        "rationale": "The staged transformations may support two distinct openings, while the density of one interlocked configuration also makes a single imaginal question defensible."
+      },
+      "quick_expected_strongest": {
+        "decision": "allowed_set",
+        "allowed_set": ["enacted", "imaginal"],
+        "rationale": "The old woman's ascent and the dreamer's filling lantern are inseparable enough that either opening mode may lead Quick."
+      }
+    }
+  ]
+}

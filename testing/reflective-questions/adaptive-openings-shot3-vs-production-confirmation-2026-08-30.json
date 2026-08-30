@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "fixture_id": "oneiros-adaptive-openings-shot3-vs-production-blind-confirmation-2026-08-30",
+  "status": "sealed_before_model_calls",
+  "source": "synthetic_unseen_only",
+  "created_at": "2026-08-30",
+  "production": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "prompt_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "reader_prompt_id": "oneiros-dream-reflection-v3.2.3-candidate",
+    "cardinality": "exactly_2"
+  },
+  "candidate": {
+    "method_id": "oneiros-adaptive-reflective-openings-v0.3.0-final-candidate",
+    "prompt_sha256": "13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab",
+    "reader_prompt_id": "oneiros-dream-reflection-adaptive-openings-v0.3.0-final-candidate",
+    "cardinality": "earned_1_or_2",
+    "prompt_change_permitted": false
+  },
+  "scope": {
+    "dreams": 20,
+    "paired_calls": 40,
+    "standard_dreams": 10,
+    "advanced_dreams": 10,
+    "quick_calls": 0,
+    "retries": 0,
+    "semantic_judges": 0,
+    "repairs": 0,
+    "reranking": 0,
+    "deployments": 0,
+    "hard_cap_usd": 1
+  },
+  "review_contract": {
+    "pre_labelled_enacted_imaginal_targets_used": false,
+    "score_each_output_independently_before_pair_preference": true,
+    "full_reading_visible_for_context": true,
+    "ending_specific_preference_recorded_separately": true,
+    "blind_labels_randomized_and_sealed_before_calls": true,
+    "bold_dream_grounded_interpretation_is_allowed": true
+  },
+  "acceptance_gate": {
+    "adaptive_clear_ending_wins_min": 13,
+    "production_clear_ending_wins_max": 4,
+    "adaptive_independent_ship_yes_min": 15,
+    "adaptive_earned_cardinality_pass_min": 17,
+    "adaptive_serious_fabricated_fact_failures_max": 0,
+    "adaptive_serious_answer_menu_failures_max": 0,
+    "adaptive_structural_hard_failures_max": 0,
+    "adaptive_recurring_failure_family_max_occurrences": 1,
+    "production_clear_full_reading_wins_max": 3,
+    "inconclusive_or_gate_failure_disposition": "PARK_FOR_ONEIROS_V2",
+    "passing_disposition": "EDITORIAL_SHIP_CANDIDATE_ENGINEERING_REVIEW_REQUIRED"
+  },
+  "cases": [
+    {
+      "id": "confirm-en-s-bakery-notebook",
+      "language": "en",
+      "mode": "standard",
+      "design_profile": "ordinary_resolved_interpersonal_movement",
+      "title": "The notebook at the bakery",
+      "dream": "I was in a neighborhood bakery just before closing. The baker accidentally wrapped my small notebook inside a paper bag with a loaf of bread. I told her it was mine. She opened the bag, handed the notebook back, added a warm roll beside it, and we both laughed. Then she turned the sign on the door to Closed."
+    },
+    {
+      "id": "confirm-en-a-lighthouse-voicemail",
+      "language": "en",
+      "mode": "advanced",
+      "design_profile": "grief_ancestor_threshold",
+      "title": "The lighthouse voicemail",
+      "dream": "My late father left me a voicemail from the top of an old lighthouse. He said he could not remember the sea, although I could hear waves behind his voice. When I reached the lighthouse, he opened its red door onto a field of wheat instead of water. He walked into the field, and I found coarse salt filling both of my coat pockets."
+    },
+    {
+      "id": "confirm-en-s-bathtub-meadow",
+      "language": "en",
+      "mode": "standard",
+      "design_profile": "sparse_static_configuration",
+      "title": "The bathtub in the meadow",
+      "dream": "An old white bathtub stood in the middle of a green meadow, filled to the rim with dry brown leaves. A white goat stood beside it. I sat on the edge of the tub with my shoes in the grass. Nothing moved, and I felt calm."
+    },
+    {
+      "id": "confirm-el-s-half-window",
+      "language": "el",
+      "mode": "standard",
+      "design_profile": "ordinary_negotiated_relation",
+      "title": "Το μισάνοιχτο παράθυρο",
+      "dream": "Ήμουν σε ένα παλιό λεωφορείο και κρατούσα ανοιχτό το παράθυρο γιατί έκανε ζέστη. Η γυναίκα πίσω μου ζήτησε να το κλείσω επειδή φυσούσε πάνω της. Το κατέβασα μέχρι τη μέση και εκείνη ακούμπησε για λίγο το χέρι της πάνω στο δικό μου. Μετά χαμογελάσαμε και κοιτάξαμε και οι δύο τον δρόμο."
+    },
+    {
+      "id": "confirm-el-a-aunt-scarf",
+      "language": "el",
+      "mode": "advanced",
+      "design_profile": "grief_ancestor_surreal_handoff",
+      "title": "Το κασκόλ στην κατάψυξη",
+      "dream": "Η θεία μου που έχει πεθάνει καθόταν στην παλιά της κουζίνα και δίπλωνε ένα κόκκινο κασκόλ. Μου το έδωσε, αλλά όταν το πήρα ήταν ζεστό σαν να το φορούσε ακόμη. Ύστερα άνοιξε την κατάψυξη και μου ζήτησε να το αφήσω μέσα. Από το μπαλκόνι οι βασιλικοί ψιθύριζαν το παιδικό μου όνομα, ενώ εκείνη έσβηνε ένα ένα τα φώτα."
+    },
+    {
+      "id": "confirm-el-s-paper-moon",
+      "language": "el",
+      "mode": "standard",
+      "design_profile": "sparse_static_imaginal_tension",
+      "title": "Το χάρτινο φεγγάρι",
+      "dream": "Σε ένα λευκό δωμάτιο κρεμόταν από μια λεπτή κλωστή ένα χάρτινο φεγγάρι. Ακριβώς από κάτω υπήρχε ένα μπολ γεμάτο νερό, αλλά το φεγγάρι δεν καθρεφτιζόταν μέσα του. Καθόμουν στο πάτωμα και τα κοιτούσα χωρίς να συμβαίνει τίποτε άλλο."
+    },
+    {
+      "id": "confirm-es-a-transparent-fingers",
+      "language": "es",
+      "mode": "advanced",
+      "design_profile": "body_transformation_with_relation",
+      "title": "Los dedos transparentes",
+      "dream": "Estaba en el vestuario de una piscina vacía. Cada vez que sonaba una campana, uno de mis dedos se volvía transparente y podía ver una luz azul moviéndose dentro. Una amiga se arrodilló para atarme un cordón que yo no podía tocar. Cuando terminó, abrió mi taquilla y salieron polillas secas, pero mis manos seguían transparentes."
+    },
+    {
+      "id": "confirm-fr-a-shell-suitcase",
+      "language": "fr",
+      "mode": "advanced",
+      "design_profile": "multi_scene_family_transition",
+      "title": "La valise de coquillages",
+      "dream": "J’attendais un train avec ma sœur et une valise remplie de coquillages. Le train arrivait sans portes. Dans la scène suivante, nous étions dans la cuisine de notre enfance et la même valise débordait d’eau de mer sans mouiller le sol. Ma sœur m’a demandé mon billet. Je l’ai trouvé cousu dans la manche de son manteau, mais elle est montée seule dans le train."
+    },
+    {
+      "id": "confirm-de-s-wet-curtain",
+      "language": "de",
+      "mode": "standard",
+      "design_profile": "conflict_threshold_ambiguous_resolution",
+      "title": "Der nasse Vorhang",
+      "dream": "Zwei Nachbarn standen im Treppenhaus und hielten jeder eine Seite eines schweren nassen Vorhangs. Sie stritten darüber, wem er gehörte. Ich ging unter dem Vorhang hindurch, und ein einzelner Tropfen fiel auf meine offene Hand. Beide hörten sofort auf zu sprechen, ließen den Vorhang aber nicht los."
+    },
+    {
+      "id": "confirm-it-a-underwater-orchestra",
+      "language": "it",
+      "mode": "advanced",
+      "design_profile": "surreal_collective_transformation",
+      "title": "L’orchestra sott’acqua",
+      "dream": "Ero seduto in un teatro completamente pieno d’acqua, ma il pubblico respirava normalmente. Sul palco un’orchestra suonava senza strumenti, seguendo le bolle d’aria del direttore. Io tenevo un metronomo rotto sulle ginocchia. Quando il metronomo cominciò finalmente a battere, tutta la musica si fermò e i musicisti si voltarono verso di me."
+    },
+    {
+      "id": "confirm-pt-s-name-on-board",
+      "language": "pt",
+      "mode": "standard",
+      "design_profile": "ordinary_repair_and_continuation",
+      "title": "O nome no quadro",
+      "dream": "Eu estava numa sala de aula com um amigo. Ele escreveu meu nome errado no quadro e depois começou a apagar tudo. Eu disse apenas como meu nome era escrito. Ele parou, escreveu corretamente e me entregou o giz. A professora voltou, e a aula continuou como se nada tivesse acontecido."
+    },
+    {
+      "id": "confirm-nl-a-glasshouse-shoes",
+      "language": "nl",
+      "mode": "advanced",
+      "design_profile": "relational_surreal_configuration",
+      "title": "De schoenen in de kas",
+      "dream": "Ik stond met een onbekende vrouw in een glazen kas. Zij plantte een paar oude schoenen in de zwarte aarde en gaf mij een lege gieter. Toen begon het binnen in de kas te regenen, maar de aarde bleef droog. De vrouw ging onder de tafel zitten en ik bleef met de lege gieter naast de schoenen staan."
+    },
+    {
+      "id": "confirm-pl-s-red-thread-nest",
+      "language": "pl",
+      "mode": "standard",
+      "design_profile": "sparse_unresolved_image",
+      "title": "Gniazdo z czerwoną nicią",
+      "dream": "Na moim biurku było puste ptasie gniazdo, a w środku leżała tylko długa czerwona nić. Kiedy dotknęłam nici, usłyszałam za ścianą trzepot skrzydeł, ale nic się nie poruszyło. Moja dłoń została na brzegu gniazda i nie czułam strachu."
+    },
+    {
+      "id": "confirm-ru-a-grandmother-ice",
+      "language": "ru",
+      "mode": "advanced",
+      "design_profile": "ancestor_crossing_and_remainder",
+      "title": "Бабушка на чёрном льду",
+      "dream": "Моя умершая бабушка шла босиком по чёрному льду замёрзшей реки. Я стоял на берегу и держал её тёплые сапоги. На середине реки она обернулась, положила ладонь на лёд, и под ней появилась зелёная трава. Потом она пошла дальше, а сапоги в моих руках начали медленно наполняться речной водой."
+    },
+    {
+      "id": "confirm-ja-s-cat-teacup",
+      "language": "ja",
+      "mode": "standard",
+      "design_profile": "playful_event_with_imaginal_remainder",
+      "title": "窓辺の湯のみ",
+      "dream": "静かな茶室に三つの湯のみが並んでいました。黒い猫が真ん中の湯のみだけを窓辺へ押していきました。私がそれを元の場所に戻すと、湯気が小さな階段の形になりました。猫はその階段を見上げましたが、湯気はすぐに消えました。"
+    },
+    {
+      "id": "confirm-zh-a-paper-fish-library",
+      "language": "zh",
+      "mode": "advanced",
+      "design_profile": "transformation_multi_element_handoff",
+      "title": "图书馆里的纸鱼",
+      "dream": "一位穿灰衣的女人沿着图书馆的书架往上爬。她每碰到一本书，书脊就长出银色的鱼鳍。我站在下面接住从她袖口游出来的纸鱼，它们全都游进了天花板。最后只有一条留在我掌心，身上的墨水还是湿的，而女人已经坐在最高的书架上闭上了眼睛。"
+    },
+    {
+      "id": "confirm-es-s-school-wedding",
+      "language": "es",
+      "mode": "standard",
+      "design_profile": "ambiguous_juxtaposition_without_resolution",
+      "title": "La boda en la escuela",
+      "dream": "Volví a mi antigua escuela y el aula estaba preparada para una boda. Todas las sillas estaban vacías excepto una, que respiraba lentamente como un animal dormido. La maestra tocó la campana, pero nadie entró. Yo escondí un ramo de flores debajo de mi pupitre y esperé."
+    },
+    {
+      "id": "confirm-fr-s-scattered-papers",
+      "language": "fr",
+      "mode": "standard",
+      "design_profile": "ordinary_shared_repair",
+      "title": "Les feuilles à la fenêtre",
+      "dream": "Je travaillais tard avec un collègue. Il a ouvert la fenêtre et toutes nos feuilles se sont envolées dans la pièce. J’en ai rattrapé une juste avant qu’elle sorte. Je lui ai demandé de fermer la fenêtre, et nous l’avons refermée ensemble. Puis nous avons remis les feuilles dans l’ordre et terminé le travail en silence."
+    },
+    {
+      "id": "confirm-de-a-mirror-train-ticket",
+      "language": "de",
+      "mode": "advanced",
+      "design_profile": "multi_scene_identity_displacement",
+      "title": "Der Name im Zugspiegel",
+      "dream": "Ich saß allein in einem Zugabteil. Im Spiegel über dem Sitz erschien langsam der Spitzname, den nur meine Mutter in meiner Kindheit benutzt hatte. In der nächsten Szene stand der Zug auf einem zugefrorenen See, und der Schaffner gab mir eine völlig leere Fahrkarte. Als ich ausstieg, blieb mein Spiegelbild im Abteil sitzen und strich mit dem Finger über den alten Namen."
+    },
+    {
+      "id": "confirm-pt-a-photo-bridge",
+      "language": "pt",
+      "mode": "advanced",
+      "design_profile": "family_threshold_with_consequential_action",
+      "title": "A ponte de fotografias",
+      "dream": "Um rio corria pelo corredor da casa onde cresci. Meu irmão construía uma ponte usando fotografias da nossa família, colocando uma depois da outra sobre a água. Eu retirei uma foto em que nós dois éramos crianças, e a corrente mudou de direção. A porta do meu antigo quarto se abriu sozinha do outro lado. Eu atravessei, mas meu irmão ficou segurando a fotografia que eu havia tirado."
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Jungian AI: reflection, chat, and interpretation storage
 
+> **Adaptive-opening R&D closure (2026-08-30):** three isolated prompt-only shots tested variable one-versus-two Standard/Advanced openings. After the strict Shot 3 review, one explicitly authorized exact-prompt blind confirmation compared frozen v0.3.0 `13eea607…` with production on 20 fresh synthetic dreams / 40 calls. Shot 3 earned cardinality `20/20` but won only `11–9`, was less often independently shippable (`16/20` versus `18/20`), and produced three serious answer menus. It failed the pre-registered gate and is parked for Oneiros v2. No fourth prompt, runtime import, deploy, or flow change is authorized. Production stays v1.0.3 / `f5399a49…`, Quick exactly 1 and Standard/Advanced exactly 2, with streaming and the ~15s partial reveal unchanged. Reviews: [`../docs/ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md`](../docs/ONEIROS_ADAPTIVE_REFLECTIVE_OPENINGS_THREE_SHOT_REVIEW_2026-08-30.md), [`../docs/ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md`](../docs/ONEIROS_ADAPTIVE_OPENINGS_SHOT3_VS_PRODUCTION_CONFIRMATION_REVIEW_2026-08-30.md).
+
 Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack also registers **`InterpretationChat`** with the same conceptual flow, but **no in-app `navigation.navigate('InterpretationChat')` call** was found in the repo — treat it as a **maintained alternate route** (e.g. future linking or tests).
 
 ## Settings that affect AI output

@@ -1,0 +1,3 @@
+# Frozen generated review packets preserve the exact bytes and hashes evaluated.
+testing/reflective-questions/artifacts/**/BLIND_REVIEW_PACKET.md -whitespace
+testing/reflective-questions/artifacts/**/HUMAN_REVIEW_PACKET.md -whitespace

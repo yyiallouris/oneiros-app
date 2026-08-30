@@ -1,0 +1,548 @@
+{
+  "review_identity": "oneiros-adaptive-openings-shot3-vs-production-blind-human-review-2026-08-30",
+  "rubric_sha256": "30990b2fc7b0bea309c27f12af7ab41efecbe31bcf5ecd6829b94ae5e3a1fee1",
+  "blind_packet_sha256": "530706ec4ae2802a5c5f4a55627fca41ff13a361dc09455d1645c264ac3e432e",
+  "reviewer_accessed_blind_key_before_freeze": false,
+  "pairs": [
+    {
+      "pair_id": "confirm-en-s-bakery-notebook",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The single question gathers the reopening, return, and closing threshold cleanly; no obvious second opening is missing."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "FAIL",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["redundant_second_opening"],
+        "notes": "The first question completes the exchange; the second returns to the notebook-bread pairing without adding an equally necessary opening."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A knows where to stop after one sufficient question, while B slightly overfills an already resolved scene."
+    },
+    {
+      "pair_id": "confirm-en-a-lighthouse-voicemail",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The door-to-wheat crossing and the pocketed salt are distinct, dream-grounded openings."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "Both questions remain vivid and open, with the second placing the father's forgetting beside the dreamer's carried salt."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "Both are shippable, but B's final question returns the sea to the father-dreamer relation with greater emotional immediacy."
+    },
+    {
+      "pair_id": "confirm-en-s-bathtub-meadow",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The two openings are distinct, though the second partly supplies the frame that fallen things can be held without change."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The tub's altered use and the goat's nearness provide two simple, complementary openings without closing the image."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B is more spacious and less interpretively pre-filled while retaining the scene's calm vitality."
+    },
+    {
+      "pair_id": "confirm-el-s-half-window",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The questions distinguish the changed interpersonal distance from the shared orientation toward the road."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "FAIL",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["awkward_sensory_metaphor"],
+        "notes": "The Greek phrasing that asks how a brief touch 'sounds' is distractingly unnatural and weakens an otherwise grounded ending."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A keeps the compromise and shared road psychologically alive without B's awkward sensory turn."
+    },
+    {
+      "pair_id": "confirm-el-a-aunt-scarf",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The scarf's transfer and the simultaneous naming and extinguishing form two earned relational openings."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "Both questions earn their place, though the first pre-labels the movement as one from living contact to preservation."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A leaves the scarf's transformation and the aunt's fading presence more open to the dreamer."
+    },
+    {
+      "pair_id": "confirm-el-s-paper-moon",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "One question is enough for this sparse still image and holds the moon-water non-relation without forcing a second slot."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "FAIL",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["redundant_second_opening"],
+        "notes": "The second question redescribes the same absent-reflection tension after the first has already opened it sufficiently."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A's single precise question better respects the dream's deliberate sparseness and stillness."
+    },
+    {
+      "pair_id": "confirm-es-a-transparent-fingers",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_summary_frame"],
+        "notes": "The second question leans toward a left-behind versus still-to-be-seen reading, but it is not a bounded answer menu and the pair remains alive."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "SERIOUS_FAIL",
+        "structure_language": "PASS",
+        "failure_families": ["manufactured_either_or"],
+        "notes": "The first question supplies a bounded choice between loss of control and becoming visible from within."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A is the only shippable ending because B converts the transparent fingers into an explicit either-or answer space."
+    },
+    {
+      "pair_id": "confirm-fr-a-shell-suitcase",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The ticket in the sister's sleeve and the sea-filled suitcase in the childhood kitchen remain distinct and open."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The pair is strong, though it more firmly frames the ticket as something that should belong to the dreamer and the departure as occurring without them."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A keeps the sibling relation and impossible suitcase equally vivid with slightly less conceptual preloading."
+    },
+    {
+      "pair_id": "confirm-de-s-wet-curtain",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["abstract_second_opening"],
+        "notes": "The first question is exact; the second remains grounded but becomes more abstract around the curtain as an in-between."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The drop's interruption and the neighbours' continued grip are cleanly separated without overexplaining them."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B is more direct and lets the unresolved silence-and-grip image carry its own tension."
+    },
+    {
+      "pair_id": "confirm-it-a-underwater-orchestra",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The first question follows the metronome's reversal and the second preserves the bubble-led orchestra as a separate imaginal opening."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The questions are bold but dream-grounded, holding both the change of status and the clash of two rhythms."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B's contrast between the rising bubble rhythm and the imposing beat is the more vivid post-Jungian handoff."
+    },
+    {
+      "pair_id": "confirm-pt-s-name-on-board",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The first question pre-labels the simple correction as a kind of force, but both openings remain grounded and distinct."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The first tracks the full correction sequence and the second stays with receiving the chalk, without inflating the scene."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B is more exact about what changed and less inclined to name the dreamer's strength in advance."
+    },
+    {
+      "pair_id": "confirm-nl-a-glasshouse-shoes",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The dry earth under rain and the woman's movement under the table are two distinct, explicit dream tensions."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The second question supplies the interpretation that something old is buried but not truly received, rather than leaving that relation fully open."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A returns the impossible rain and the woman's retreat more directly, with less symbolic conclusion embedded in the question."
+    },
+    {
+      "pair_id": "confirm-pl-s-red-thread-nest",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "SERIOUS_FAIL",
+        "structure_language": "PASS",
+        "failure_families": ["manufactured_three_way_menu"],
+        "notes": "The first question supplies three explicit candidates: the touch, the sound, or their invisible linkage."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The single question naturally holds nest, wall, and hidden wings; it is sufficient without requiring a second taxonomic opening."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B leaves the invisible nearness open, whereas A turns it into a three-item answer menu."
+    },
+    {
+      "pair_id": "confirm-ru-a-grandmother-ice",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The grass under the grandmother's hand and the water filling her boots sustain two separate movements of the dream."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "Both questions are concrete and emotionally direct, preserving the grandmother's departure and the changing boots."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B asks the same two necessary openings in simpler, more intimate language."
+    },
+    {
+      "pair_id": "confirm-ja-s-cat-teacup",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "SERIOUS_FAIL",
+        "structure_language": "PASS",
+        "failure_families": ["manufactured_either_or"],
+        "notes": "The second question offers distance or hesitation as the frame for the cat's look, though hesitation was not dream-staged."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The restored cup's surprising effect and the vanishing stair's atmosphere remain distinct and specific."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B preserves the fleeting staircase without making the cat choose between supplied psychological explanations."
+    },
+    {
+      "pair_id": "confirm-zh-a-paper-fish-library",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "Catching without keeping and the single wet-ink fish are two vivid, unfinished openings."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "SERIOUS_FAIL",
+        "structure_language": "PASS",
+        "failure_families": ["manufactured_three_way_menu"],
+        "notes": "The second question supplies three interpretations for the woman's closed eyes: pausing, releasing, or withdrawing intervention."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A hands the still-wet image back to the dreamer; B closes the woman's gesture into a three-way conceptual menu."
+    },
+    {
+      "pair_id": "confirm-es-s-school-wedding",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The unanswered bell and the hidden bouquet beside the breathing chair are distinct and richly grounded."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["generic_question_shell"],
+        "notes": "Both questions earn space, but 'what kind of shelter' and 'what makes it intense' are more generic than the dream warrants."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A uses the dream's actual sequence and juxtaposition; B abstracts both openings into softer journaling shells."
+    },
+    {
+      "pair_id": "confirm-fr-s-scattered-papers",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The caught page and the shared silence after restoration are two earned moments in the completed action."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The second question gathers opening, shared closure, and silent work into a strong relational movement."
+      },
+      "ending_preference": "B",
+      "full_reading_preference": "B",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "B turns the completed sequence into a more relational and product-worthy second opening without manufacturing facts."
+    },
+    {
+      "pair_id": "confirm-de-a-mirror-train-ticket",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": [],
+        "notes": "The departing self versus seated reflection and the blank ticket beside the old name are precise complementary openings."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The pair is strong, though the second question names the old-name gesture as a form of belonging before the dreamer does."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A holds the blank ticket and intimate name in juxtaposition without assigning belonging as their answer."
+    },
+    {
+      "pair_id": "confirm-pt-a-photo-bridge",
+      "A": {
+        "would_ship_to_a_real_oneiros_user": "YES",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "NO",
+        "structure_language": "PASS",
+        "failure_families": ["leading_symbolic_frame"],
+        "notes": "The phrase linking memory and passage is interpretively assertive, but the two questions remain grounded, open, and distinct."
+      },
+      "B": {
+        "would_ship_to_a_real_oneiros_user": "NO",
+        "earned_cardinality": "PASS",
+        "vital_specific": "PASS",
+        "fabricated_dream_fact": "NO",
+        "manufactured_answer_menu": "SERIOUS_FAIL",
+        "structure_language": "PASS",
+        "failure_families": ["manufactured_three_way_menu"],
+        "notes": "Both questions end in explicit three-part candidate answer spaces rather than leaving the movement to the dreamer."
+      },
+      "ending_preference": "A",
+      "full_reading_preference": "A",
+      "preference_is_driven_by_reflective_ending": "YES",
+      "pair_reason": "A is the only shippable ending because B twice converts the dream's movement into a three-option interpretive menu."
+    }
+  ]
+}

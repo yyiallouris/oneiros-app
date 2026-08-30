@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "status": "sealed_before_model_calls",
+  "fixture_sha256": "6c6f9c59a294b5059b26c733f3a094e58e5273abdacfe86202207da0e002f953",
+  "rubric_sha256": "30990b2fc7b0bea309c27f12af7ab41efecbe31bcf5ecd6829b94ae5e3a1fee1",
+  "blind_key_sha256": "92b60442ced1e8d502f42fbe78bc35667dc7e82fb20e6cefca494ae783a8b063",
+  "production_method": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+  "production_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+  "adaptive_method": "oneiros-adaptive-reflective-openings-v0.3.0-final-candidate",
+  "adaptive_sha256": "13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab",
+  "cases": 20,
+  "calls": 40,
+  "retries": 0,
+  "cost_cap_usd": 1
+}

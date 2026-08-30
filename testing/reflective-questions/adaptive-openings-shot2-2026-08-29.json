@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "experiment_id": "oneiros-adaptive-reflective-openings-shot2-2026-08-29",
+  "shot": 2,
+  "maximum_total_shots": 3,
+  "candidate": {
+    "method_id": "oneiros-adaptive-reflective-openings-v0.2.0-candidate",
+    "bundle_sha256": "ca2dbedbaaeedd822dd47fa1cdfe3b60d0bbb898fcad712b53d439f98b4af013",
+    "reader_prompt_id": "oneiros-dream-reflection-adaptive-openings-v0.2.0-candidate"
+  },
+  "production_identity": {
+    "method_id": "oneiros-same-call-reflective-questions-v1.0.3-candidate",
+    "bundle_sha256": "f5399a4973fb84365a25967890169fc2475cb2e2a9f65f0dffd2a8993101d9e7",
+    "gateway_version": 113
+  },
+  "frozen_dataset": {
+    "path": "testing/reflective-questions/adaptive-openings-feasibility-2026-08-29.json",
+    "sha256": "4b361245bc58ab7856d0ad48421f2b6f8c25a5d5e11fadb5275b83c6f1312d71",
+    "reuse_reason": "Direct regression comparison against Shot 1; no dream or target may change."
+  },
+  "shot_1_evidence": {
+    "reviewed_path": "testing/reflective-questions/artifacts/adaptive-openings-feasibility-2026-08-29/REVIEWED_RESULTS.json",
+    "reviewed_sha256": "2d7b7ee34b6bfdd8a68294df1eeb7fe77ab639d0512ab92e07df707e0063d850",
+    "root_cause": "The numbered Question 1 / Question 2 composition labels overrode adaptive cardinality and produced two questions in 10/10 full readings."
+  },
+  "only_semantic_delta": [
+    "Replace numbered composition slots with neutral enacted and imaginal composition jobs.",
+    "Require one private ENACTED_ONLY, IMAGINAL_ONLY, or BOTH route decision before full question composition.",
+    "Require one private strongest-job selection before Quick question composition."
+  ],
+  "scope": {
+    "planned_calls": 20,
+    "quick_calls": 10,
+    "standard_calls": 5,
+    "advanced_calls": 5,
+    "retries": 0,
+    "semantic_judges": 0,
+    "repairs": 0,
+    "reranking": 0,
+    "deployments": 0
+  },
+  "cumulative_budget_from_shot_2": {
+    "hard_cap_usd": 1,
+    "shot_1_cost_excluded_by_owner_instruction": true,
+    "reserve_by_surface_usd": {
+      "quick": 0.02,
+      "standard": 0.03,
+      "advanced": 0.04
+    },
+    "shot_2_reserved_packet_usd": 0.55,
+    "shot_3_must_include_exact_shot_2_spend_before_any_call": true
+  },
+  "gate": {
+    "standard_advanced_correct_min": 9,
+    "quick_target_match_min": 9,
+    "serious_invented_fact_failures_allowed": 0,
+    "serious_vitality_failures_allowed": 0,
+    "structural_hard_failures_allowed": 0,
+    "strong_complementarity_required_when_two": true,
+    "shot_3_required_by_owner": true,
+    "no_fourth_candidate": true,
+    "no_deploy": true
+  }
+}

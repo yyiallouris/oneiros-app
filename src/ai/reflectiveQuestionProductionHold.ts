@@ -117,6 +117,21 @@ export const PENDING_REFLECTIVE_DIALOGUE_PRODUCTION_CANDIDATE = {
 /** Local Oneiros Reader candidate. Never deploy this SHA. */
 export const DENIED_REFLECTIVE_QUESTION_PRODUCTION_CANDIDATES = [
   {
+    methodId: 'oneiros-adaptive-reflective-openings-v0.3.0-final-candidate',
+    promptSha256:
+      '13eea6078f3885f5651f6bc8a3582be65b1a9e93ed658d7206a67cf68d2067ab',
+  },
+  {
+    methodId: 'oneiros-adaptive-reflective-openings-v0.2.0-candidate',
+    promptSha256:
+      'ca2dbedbaaeedd822dd47fa1cdfe3b60d0bbb898fcad712b53d439f98b4af013',
+  },
+  {
+    methodId: 'oneiros-adaptive-reflective-openings-v0.1.0-candidate',
+    promptSha256:
+      'da717215ab1d2add0de2c3855b448a40aba1fd7bb6c1195d40e3bc7a28b8a40c',
+  },
+  {
     methodId: 'oneiros-same-call-reflective-questions-v1.0.5-candidate',
     promptSha256:
       '16da1d13fb480dd57ef013a7e8241a8309ec06c67d3e1d071089cb24f54cf67a',
