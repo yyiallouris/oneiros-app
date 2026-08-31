@@ -4,10 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SubscriptionBillingSwitch } from './SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from './SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from './SubscriptionPlanCard';
+import { SubscriptionStoreNotice } from './SubscriptionStoreNotice';
 import { borderRadius, colors, spacing, text, typography } from '../../theme';
 import type { BillingInterval, PremiumGateSource, StoreSubscriptionPlan } from '../../types/subscription';
 import { DEEPER_PLAN_FEATURES, FREE_PLAN_FEATURES, PREMIUM_PLAN_FEATURES, getFreePlanCardModel, getPaidPlanCardPricing, getPremiumSourceCopy, getYearlySavingsBadgeForVisibleCard } from '../../services/subscriptionService';
 import type { PlanTier } from '../../billing/types';
+import { useSubscription } from '../../providers/SubscriptionProvider';
 
 const FREE_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_free.png');
 const PREMIUM_IMAGE = require('../../assets/icons/subscription/oneiros_glyph_premium.png');
@@ -47,6 +49,7 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   onUpgrade,
 }) => {
   const insets = useSafeAreaInsets();
+  const { refreshStoreProducts } = useSubscription();
   const copy = getPremiumSourceCopy(source);
   const freePlan = getFreePlanCardModel();
   const premiumPricing = getPaidPlanCardPricing(premiumPlan, { loading: storeProductsLoading });
@@ -65,6 +68,19 @@ export const PremiumUpsellModal: React.FC<Props> = ({
   const deeperTitle = !deeperPlan.storePriceAvailable
     ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
     : upgradeTitle?.deeper ?? 'Choose Deeper';
+  const premiumPriceState = premiumPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const deeperPriceState = deeperPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const hasStorePriceError =
+    !storeProductsLoading &&
+    (!premiumPlan.storePriceAvailable || !deeperPlan.storePriceAvailable);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -98,6 +114,14 @@ export const PremiumUpsellModal: React.FC<Props> = ({
               />
             )}
 
+            {hasStorePriceError ? (
+              <SubscriptionStoreNotice
+                onRetry={() => {
+                  void refreshStoreProducts();
+                }}
+              />
+            ) : null}
+
             <SubscriptionPlanCarousel
               initialIndex={isPremiumOnly ? 0 : 1}
               indicatorPosition="top"
@@ -112,7 +136,7 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                   priceDetail={freePlan.totalPriceLabel}
                   features={FREE_PLAN_FEATURES}
                   imageSource={FREE_IMAGE}
-                  actionTitle={currentPlanTier === 'free' ? 'Current plan' : 'Continue free'}
+                  actionTitle={currentPlanTier === 'free' ? 'Your plan' : 'Continue free'}
                   onPress={onClose}
                   variant="free"
                   current={currentPlanTier === 'free'}
@@ -132,7 +156,7 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 trialLabel={premiumPlan.trialLabel}
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
-                actionTitle={currentPlanTier === 'premium' ? 'Current plan' : premiumTitle}
+                actionTitle={currentPlanTier === 'premium' ? 'Your plan' : premiumTitle}
                 onPress={() => onUpgrade('premium')}
                 selected
                 variant="premium"
@@ -142,6 +166,8 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                   currentPlanTier === 'premium' ||
                   !premiumPlan.storePriceAvailable
                 }
+                priceState={premiumPriceState}
+                hideAction={premiumPriceState === 'unavailable'}
                 note="A balanced rhythm for regular dream work."
               />
 
@@ -155,7 +181,7 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                 trialLabel={deeperPlan.trialLabel}
                 features={DEEPER_PLAN_FEATURES}
                 imageSource={DEEPER_IMAGE}
-                actionTitle={currentPlanTier === 'deeper' ? 'Current plan' : deeperTitle}
+                actionTitle={currentPlanTier === 'deeper' ? 'Your plan' : deeperTitle}
                 onPress={() => onUpgrade('deeper')}
                 variant="deeper"
                 current={currentPlanTier === 'deeper'}
@@ -164,6 +190,8 @@ export const PremiumUpsellModal: React.FC<Props> = ({
                   currentPlanTier === 'deeper' ||
                   !deeperPlan.storePriceAvailable
                 }
+                priceState={deeperPriceState}
+                hideAction={deeperPriceState === 'unavailable'}
                 note="More room for a deeper ongoing practice."
               />
             </SubscriptionPlanCarousel>
@@ -211,7 +239,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.sizes.xl,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.screenTitle,
     color: text.primary,
     marginBottom: spacing.xs,
   },

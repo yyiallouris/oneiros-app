@@ -43,6 +43,7 @@ type SubscriptionContextValue = {
   products: StoreSubscriptionPlan[];
   storeProductsLoading: boolean;
   refreshStatus: () => Promise<void>;
+  refreshStoreProducts: () => Promise<void>;
   purchasePlan: (planTier: Exclude<PlanTier, 'free'>, interval: BillingInterval, source: PremiumGateSource) => Promise<boolean>;
   restorePurchases: () => Promise<void>;
   openManageSubscriptions: () => Promise<void>;
@@ -339,6 +340,7 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
         products,
         storeProductsLoading,
         refreshStatus,
+        refreshStoreProducts,
         purchasePlan,
         restorePurchases,
         openManageSubscriptions,

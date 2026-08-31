@@ -16,7 +16,7 @@ import { useFocusEffect, useRoute, useNavigation, RouteProp } from '@react-navig
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, text, borderRadius } from '../theme';
+import { colors, spacing, typography, text, borderRadius, iconography } from '../theme';
 import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground, Button } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
@@ -95,7 +95,7 @@ type Route = RouteProp<RootStackParamList, 'InsightsSection'>;
 type NavProp = StackNavigationProp<RootStackParamList, 'InsightsSection'>;
 type PeriodPreset = 'this_month' | 'last_month' | 'last_3_months' | 'last_6_months' | 'all_time';
 
-const SECTION_ICON_SIZE = 112;
+const SECTION_ICON_SIZE = iconography.insights.sectionSize;
 const SectionReturningImagesIcon = () => (
   <ReturningImagesIcon size={SECTION_ICON_SIZE} />
 );
@@ -1879,9 +1879,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   empty: {
-    fontSize: typography.sizes.sm,
+    alignSelf: 'center',
+    maxWidth: 286,
+    fontSize: typography.sizes.md,
+    fontFamily: typography.roles.innerVoice,
     color: text.secondary,
-    fontStyle: 'italic',
+    lineHeight: typography.sizes.md * typography.lineHeights.normal,
+    textAlign: 'center',
   },
   muted: {
     fontSize: typography.sizes.sm,

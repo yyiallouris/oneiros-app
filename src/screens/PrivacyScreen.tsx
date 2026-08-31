@@ -124,8 +124,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.sizes.xxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.screenTitle,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
   },

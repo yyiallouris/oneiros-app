@@ -19,6 +19,10 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
+import {
+  CopyActionIcon as CopyIcon,
+  SendActionIcon as SendIcon,
+} from '../components/icons/ActionIcons';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { VoiceComposerService } from '../services/voiceComposerService';
@@ -32,7 +36,6 @@ import { getInterpretationDepth } from '../services/userSettingsService';
 import { isOnline } from '../utils/network';
 import { MAX_FOLLOW_UP_RESPONSES } from '../constants/interpretation';
 import { OfflineMessage } from '../components/OfflineMessage';
-import Svg, { Path } from 'react-native-svg';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import {
   consumeGrantedQuotaBonus,
@@ -46,38 +49,6 @@ import type { BillingInterval, PremiumGateSource } from '../types/subscription';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'InterpretationChat'>;
 type ChatRouteProp = RouteProp<RootStackParamList, 'InterpretationChat'>;
-type IconProps = {
-  size?: number;
-  color?: string;
-};
-
-// Send icon
-const SendIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-// Copy icon
-const CopyIcon = ({ size = 20, color = colors.textSecondary }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-  </Svg>
-);
-
 interface ChatBubbleProps {
   message: ChatMessage;
   isUser: boolean;

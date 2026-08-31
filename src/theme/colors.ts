@@ -39,7 +39,7 @@ export const text = {
 
 export const tabBar = {
   iconActive: '#2D2430',
-  iconInactive: '#8C8290',
+  iconInactive: '#756A79',
 } as const;
 
 export const accent = {
@@ -83,16 +83,16 @@ export const subscriptionCards = {
   freeBorder: 'rgba(216, 206, 215, 0.52)',
   freeTextPrimary: '#1E191F',
   freeTextSecondary: '#5B525D',
-  premiumBackgroundTop: '#746078',
-  premiumBackgroundBottom: '#5F4D64',
+  premiumBackgroundTop: '#6F5D73',
+  premiumBackgroundBottom: '#6F5D73',
   premiumGlyph: '#F8F2E8',
   premiumBorder: 'rgba(255,255,255,0.18)',
   premiumTextPrimary: '#FFF9F2',
-  premiumTextSecondary: 'rgba(255, 249, 242, 0.76)',
+  premiumTextSecondary: 'rgba(255, 249, 242, 0.92)',
   premiumBadgeBackground: '#F4E7C9',
   premiumBadgeText: '#56465B',
   deeperBackground: '#2B2633',
-  deeperBackgroundUndertone: '#32283A',
+  deeperBackgroundUndertone: '#2B2633',
   deeperGlyph: '#EDE3F2',
   deeperBorder: 'rgba(199, 173, 211, 0.22)',
   deeperTextPrimary: '#F7F1F8',

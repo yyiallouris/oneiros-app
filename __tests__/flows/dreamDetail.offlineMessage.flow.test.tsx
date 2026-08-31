@@ -388,7 +388,7 @@ describe('DreamDetail offline message flow', () => {
     await screen.findByText('Continue the conversation');
 
     const renderedText = collectRenderedText(screen.toJSON()).join(' ');
-    const previewTitleIndex = renderedText.lastIndexOf('Symbolic reflection');
+    const previewTitleIndex = renderedText.lastIndexOf('A deeper reading');
     expect(renderedText.indexOf('Explore symbolic layers')).toBeGreaterThan(-1);
     expect(previewTitleIndex).toBeGreaterThan(-1);
     expect(renderedText.indexOf('A first reflection on the dream.')).toBeGreaterThan(-1);

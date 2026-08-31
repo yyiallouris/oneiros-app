@@ -146,25 +146,25 @@ export const FREE_PLAN_FEATURES: SubscriptionFeatureRow[] = [
   { label: '1 reflection every 7 days', included: true },
   { label: '5 follow-up replies on that free reflection', included: true },
   { label: 'Recent Dream Field reports', included: false },
-  { label: 'Monthly or weekly essays', included: false },
+  { label: 'Monthly or weekly period reflections', included: false },
   { label: 'Paid regenerate and premium continuity', included: false },
 ];
 
 export const PREMIUM_PLAN_FEATURES: SubscriptionFeatureRow[] = [
-  { label: '35 reflections each month', included: true, emphasis: true },
+  { label: '35 symbolic reflections each month', included: true, emphasis: true },
   { label: 'Oneiros deep pattern recognition', included: true },
   { label: '10 Recent Dream Field reports each month', included: true },
-  { label: '1 monthly essay', included: true },
-  { label: '5 follow-up replies per reflected dream', included: true },
+  { label: '1 monthly period reflection', included: true },
+  { label: 'Up to 5 follow-up exchanges with each reflected dream', included: true },
   { label: '7-day free trial when eligible', included: true },
 ];
 
 export const DEEPER_PLAN_FEATURES: SubscriptionFeatureRow[] = [
-  { label: '80 reflections each month', included: true, emphasis: true },
+  { label: '80 symbolic reflections each month', included: true, emphasis: true },
   { label: 'Oneiros deep pattern recognition', included: true },
   { label: 'Unlimited Recent Dream Field reports', included: true },
-  { label: 'Weekly essays', included: true },
-  { label: '5 follow-up replies per reflected dream', included: true },
+  { label: '1 period reflection each week', included: true },
+  { label: 'Up to 5 follow-up exchanges with each reflected dream', included: true },
   { label: '7-day free trial when eligible', included: true },
 ];
 
@@ -186,13 +186,11 @@ function getPlanTierForPaidCode(planCode: PaidPlanCode): Exclude<PlanTier, 'free
 export function getPlanTitle(planCode: PlanCode): string {
   switch (planCode) {
     case 'paid_monthly':
-      return 'Premium Monthly';
     case 'paid_yearly':
-      return 'Premium Yearly';
+      return 'Premium';
     case 'deeper_monthly':
-      return 'Deeper Monthly';
     case 'deeper_yearly':
-      return 'Deeper Yearly';
+      return 'Deeper';
     default:
       return 'Free';
   }
@@ -228,8 +226,8 @@ export function getPremiumSourceCopy(source: PremiumGateSource): { title: string
       };
     case 'period_reflection':
       return {
-        title: 'Essays and long-form patterns',
-        body: 'Premium includes one monthly essay. Deeper opens the weekly rhythm for people who want to stay closer to the material.',
+        title: 'Period reflections and long-form patterns',
+        body: 'Premium includes one monthly period reflection. Deeper opens a weekly period reflection for people who want to stay closer to the material.',
       };
     case 'onboarding':
       return {
@@ -239,7 +237,7 @@ export function getPremiumSourceCopy(source: PremiumGateSource): { title: string
     case 'account':
       return {
         title: 'Choose your paid depth',
-        body: 'Premium is the clear default. Deeper is there when you want more reflections, weekly essays, and unlimited recent-field reports.',
+        body: 'Premium is the clear default. Deeper is there when you want more reflections, weekly period reflections, and unlimited recent-field reports.',
       };
     case 'subscription':
       return {

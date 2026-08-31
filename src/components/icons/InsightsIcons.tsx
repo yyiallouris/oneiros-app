@@ -6,7 +6,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-
 type IconProps = Omit<ImageProps, 'source'> & {
   size?: number;
   color?: string;
@@ -28,6 +27,8 @@ type IconAsset = {
   source: ImageSourcePropType;
   bounds: IconBounds;
   canvas?: IconCanvas;
+  /** Keeps a visually dense glyph in family without changing its source artwork. */
+  opticalScale?: number;
 };
 
 const DEFAULT_ICON_CANVAS: IconCanvas = { width: 900, height: 900 };
@@ -44,14 +45,17 @@ const ICON_SOURCES = {
   thresholds: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_thresholds_sheet_extract_rgba_900.png'),
     bounds: { left: 273, top: 192, width: 354, height: 568 },
+    opticalScale: 0.92,
   },
   innerTensions: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_inner_tensions_sheet_extract_rgba_900.png'),
     bounds: { left: 232, top: 200, width: 436, height: 560 },
+    opticalScale: 0.94,
   },
   dreamPlaces: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_dream_places_sheet_extract_rgba_900.png'),
     bounds: { left: 162, top: 288, width: 554, height: 367 },
+    opticalScale: 0.88,
   },
   archetypalEnergies: {
     source: require('../../assets/icons/insights_section_icons/oneiros_isnights_archetypes.png'),
@@ -61,6 +65,7 @@ const ICON_SOURCES = {
   emotionalWeather: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_emotional_weather.png'),
     bounds: { left: 236, top: 36, width: 464, height: 743 },
+    opticalScale: 0.92,
   },
   patternRecognition: {
     source: require('../../assets/icons/insights_section_icons/pattern_recognition_essay/oneiros_pattern_recognition_essay.png'),
@@ -71,8 +76,8 @@ const ICON_SOURCES = {
 
 function createInsightsPngIcon(asset: IconAsset) {
   return ({ size = 24, color: _color, style, ...props }: IconProps) => {
-    const { source, bounds, canvas = DEFAULT_ICON_CANVAS } = asset;
-    const scale = size / Math.max(bounds.width, bounds.height);
+    const { source, bounds, canvas = DEFAULT_ICON_CANVAS, opticalScale = 1 } = asset;
+    const scale = (size * opticalScale) / Math.max(bounds.width, bounds.height);
     const renderedWidth = canvas.width * scale;
     const renderedHeight = canvas.height * scale;
     const offsetX = (size - bounds.width * scale) / 2 - bounds.left * scale;

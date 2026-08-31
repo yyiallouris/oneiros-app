@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, ImageSourcePropType, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Card } from '../ui';
 import { borderRadius, colors, spacing, subscriptionButtons, subscriptionCards, text, typography } from '../../theme';
@@ -24,6 +24,8 @@ type Props = {
   variant?: PlanTier;
   disabled?: boolean;
   note?: string | null;
+  priceState?: 'available' | 'loading' | 'unavailable';
+  hideAction?: boolean;
 };
 
 export const SubscriptionPlanCard: React.FC<Props> = ({
@@ -44,9 +46,15 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
   variant = 'free',
   disabled = false,
   note,
+  priceState = 'available',
+  hideAction = false,
 }) => {
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
   const isPremium = variant === 'premium';
   const isDeeper = variant === 'deeper';
+  const visibleFeatures = showAllFeatures ? features : features.slice(0, 4);
+  const hasMoreFeatures = features.length > 4;
+  const shouldHideAction = hideAction || (current && disabled);
   const cardTextPrimary = isPremium
     ? styles.textPremiumPrimary
     : isDeeper
@@ -59,7 +67,10 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
       : styles.textFreeSecondary;
 
   return (
-    <TouchableOpacity activeOpacity={0.86} onPress={onPress} disabled={disabled} style={styles.touchable}>
+    <View
+      testID={`subscription-plan-card-${variant}`}
+      style={styles.touchable}
+    >
       <Card
         transparent
         style={[
@@ -79,7 +90,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
         >
           <Image source={imageSource} style={styles.heroImage} resizeMode="contain" />
           <View style={styles.badgeRow}>
-            {badgeText ? (
+            {badgeText && !current ? (
               <Text style={[styles.badgeText, isPremium && styles.badgeTextPremium]}>
                 {badgeText}
               </Text>
@@ -88,30 +99,40 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
             ) : (
               <View />
             )}
-            {current && <Text style={styles.currentBadge}>Current</Text>}
+            {current && <Text style={styles.currentBadge}>Your plan</Text>}
           </View>
         </View>
 
         <View style={styles.content}>
-          {eyebrow && badgeText ? <Text style={[styles.eyebrow, cardTextSecondary]}>{eyebrow}</Text> : null}
+          {eyebrow && badgeText && !current ? (
+            <Text style={[styles.eyebrow, cardTextSecondary]}>{eyebrow}</Text>
+          ) : null}
           <Text style={[styles.title, cardTextPrimary]}>{title}</Text>
           {!!compareAtPrice && (
             <Text style={[styles.compareAtPrice, cardTextSecondary]}>{compareAtPrice}</Text>
           )}
-          <Text
-            style={[styles.price, cardTextPrimary]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.72}
-          >
-            {price}
-          </Text>
-          {!!priceDetail && <Text style={[styles.priceDetail, cardTextSecondary]}>{priceDetail}</Text>}
-          {!!secondaryPriceDetail && <Text style={[styles.secondaryDetail, cardTextSecondary]}>{secondaryPriceDetail}</Text>}
-          {!!trialLabel && <Text style={[styles.trialLabel, cardTextSecondary]}>{trialLabel}</Text>}
+          {priceState === 'available' ? (
+            <>
+              <Text
+                style={[styles.price, cardTextPrimary]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.72}
+              >
+                {price}
+              </Text>
+              {!!priceDetail && <Text style={[styles.priceDetail, cardTextSecondary]}>{priceDetail}</Text>}
+              {!!secondaryPriceDetail && <Text style={[styles.secondaryDetail, cardTextSecondary]}>{secondaryPriceDetail}</Text>}
+              {!!trialLabel && <Text style={[styles.trialLabel, cardTextSecondary]}>{trialLabel}</Text>}
+            </>
+          ) : (
+            <Text style={[styles.storePriceState, cardTextSecondary]}>
+              {priceState === 'loading' ? 'Checking store price…' : 'Store price unavailable'}
+            </Text>
+          )}
 
           <View style={styles.featureList}>
-            {features.map((feature) => (
+            {visibleFeatures.map((feature) => (
               <View key={feature.label} style={styles.featureRow}>
                 <Text
                   style={[
@@ -137,13 +158,27 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
               </View>
             ))}
           </View>
+          {hasMoreFeatures ? (
+            <TouchableOpacity
+              onPress={() => setShowAllFeatures((current) => !current)}
+              style={styles.featuresToggle}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAllFeatures }}
+            >
+              <Text style={[styles.featuresToggleText, cardTextSecondary]}>
+                {showAllFeatures ? 'Show fewer features' : 'See all features'}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
 
-          {!!note && <Text style={styles.note}>{note}</Text>}
+          {!!note && <Text style={[styles.note, cardTextSecondary]}>{note}</Text>}
 
-          {isPremium ? (
+          {shouldHideAction ? null : isPremium ? (
             <Pressable
               onPress={onPress}
               disabled={disabled}
+              accessibilityRole="button"
+              accessibilityLabel={actionTitle}
               style={({ pressed }) => [
                 styles.buttonBase,
                 styles.subscriptionButton,
@@ -158,6 +193,8 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
             <Pressable
               onPress={onPress}
               disabled={disabled}
+              accessibilityRole="button"
+              accessibilityLabel={actionTitle}
               style={({ pressed }) => [
                 styles.buttonBase,
                 styles.subscriptionButton,
@@ -172,6 +209,8 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
             <Pressable
               onPress={onPress}
               disabled={disabled}
+              accessibilityRole="button"
+              accessibilityLabel={actionTitle}
               style={({ pressed }) => [
                 styles.buttonBase,
                 styles.subscriptionButton,
@@ -189,7 +228,7 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
           )}
         </View>
       </Card>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -212,12 +251,12 @@ const styles = StyleSheet.create({
   cardPremium: {
     backgroundColor: subscriptionCards.premiumBackgroundBottom,
     borderColor: subscriptionCards.premiumBorder,
-    transform: [{ scale: 1.02 }],
+    transform: [{ scale: 1.01 }],
     shadowColor: subscriptionButtons.premiumShadow,
     shadowOpacity: 1,
-    shadowRadius: 30,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
   cardDeeper: {
     backgroundColor: subscriptionCards.deeperBackground,
@@ -229,8 +268,8 @@ const styles = StyleSheet.create({
   heroWrap: {
     backgroundColor: subscriptionCards.freeBackground,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
   },
   heroWrapPremium: {
     backgroundColor: subscriptionCards.premiumBackgroundTop,
@@ -242,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
   },
   eyebrow: {
     fontSize: typography.sizes.xs,
@@ -265,28 +304,28 @@ const styles = StyleSheet.create({
   },
   currentBadge: {
     fontSize: typography.sizes.xs,
-    color: colors.buttonPrimary,
+    color: subscriptionCards.premiumBadgeText,
     fontFamily: typography.medium,
-    backgroundColor: 'rgba(101, 68, 111, 0.12)',
+    backgroundColor: subscriptionCards.premiumBadgeBackground,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.full,
   },
   heroImage: {
     width: '100%',
-    height: 112,
+    height: 78,
     alignSelf: 'center',
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: 20,
   },
   title: {
     fontSize: typography.sizes.xl,
     color: text.primary,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.screenTitle,
     marginBottom: spacing.xs,
   },
   compareAtPrice: {
@@ -315,8 +354,8 @@ const styles = StyleSheet.create({
     fontFamily: typography.medium,
   },
   featureList: {
-    marginTop: spacing.lg,
-    gap: spacing.sm,
+    marginTop: spacing.md,
+    gap: 6,
   },
   featureRow: {
     flexDirection: 'row',
@@ -348,14 +387,28 @@ const styles = StyleSheet.create({
   featureTextEmphasis: {
     fontFamily: typography.medium,
   },
+  storePriceState: {
+    marginTop: spacing.xs,
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.medium,
+  },
+  featuresToggle: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    justifyContent: 'center',
+    marginTop: spacing.xs,
+  },
+  featuresToggleText: {
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.medium,
+  },
   note: {
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     fontSize: typography.sizes.xs,
     lineHeight: typography.sizes.xs * 1.5,
-    color: text.muted,
   },
   buttonBase: {
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     minHeight: 52,
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.xl,

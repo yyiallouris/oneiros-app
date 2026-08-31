@@ -1,6 +1,6 @@
 /**
  * Flow coverage: documentation/flows-04-dreams-journal-calendar.md
- * (Write Save CTA docks above the floating tab shelf on every viewport).
+ * (Tab content and the Write Save CTA clear the floating shelf on every viewport).
  */
 import { readFileSync } from 'fs';
 import path from 'path';
@@ -11,8 +11,10 @@ function read(rel: string): string {
   return readFileSync(path.join(repoRoot, rel), 'utf8');
 }
 
-describe('Write save dock contract', () => {
+describe('floating tab shelf clearance contract', () => {
   const writeScreen = read('src/screens/WriteScreen.tsx');
+  const journalScreen = read('src/screens/JournalScreen.tsx');
+  const insightsScreen = read('src/screens/InsightsScreen.tsx');
   const tabs = read('src/navigation/MainTabsNavigator.tsx');
   const layout = read('src/theme/layout.ts');
   const flowDoc = read('documentation/flows-04-dreams-journal-calendar.md');
@@ -29,6 +31,11 @@ describe('Write save dock contract', () => {
     expect(writeScreen).toMatch(/resolveFloatingTabBarContentInset\(insets\.bottom\)/);
     expect(writeScreen).toMatch(/testID="write-save-dock"/);
     expect(writeScreen).toMatch(/paddingBottom: saveDockBottomInset/);
+    expect(journalScreen).toMatch(/resolveFloatingTabBarContentInset\(insets\.bottom\)/);
+    expect(journalScreen).toMatch(/paddingBottom: listBottomInset/);
+    expect(journalScreen).toMatch(/Math\.max\(spacing\.xl, insets\.top \+ spacing\.sm\)/);
+    expect(insightsScreen).toMatch(/resolveFloatingTabBarContentInset\(insets\.bottom\)/);
+    expect(insightsScreen).toMatch(/Math\.max\(spacing\.xl, insets\.top \+ spacing\.sm\)/);
   });
 
   it('keeps Save in the layout flow instead of overlaying the parchment nav', () => {

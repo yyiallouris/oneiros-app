@@ -498,9 +498,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   titleInput: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.regular,
-    fontFamily: typography.regular,
+    fontSize: typography.sizes.lg,
+    fontFamily: typography.roles.dreamTitle,
     color: writePalette.primaryInk,
     marginBottom: spacing.sm,
     padding: 0,
@@ -574,7 +573,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontSize: typography.sizes.lg,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.navigationTitle,
     color: colors.textTitle,
     marginBottom: spacing.md,
   },

@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   dreamTitle: {
     fontSize: typography.sizes.md,
-    fontWeight: typography.weights.semibold,
+    fontFamily: typography.roles.dreamTitle,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },

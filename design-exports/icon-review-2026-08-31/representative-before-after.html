@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oneiros icon harmonization — monochrome review</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f8f3ea;
+        --surface: #fffdf9;
+        --ink: #171217;
+        --muted: #756a79;
+        --line: #ded3df;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Arial, sans-serif;
+      }
+
+      main {
+        width: 1200px;
+        min-height: 820px;
+        margin: 0 auto;
+        padding: 52px 64px 60px;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, serif;
+        font-size: 34px;
+        font-weight: 600;
+      }
+
+      .intro {
+        width: 800px;
+        margin: 12px 0 38px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.45;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 112px repeat(3, 1fr);
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .cell {
+        min-height: 286px;
+        padding: 24px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cell:nth-child(4n) { border-right: 0; }
+      .cell:nth-last-child(-n + 4) { border-bottom: 0; }
+
+      .row-label {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+      }
+
+      .icon-name {
+        margin-top: 14px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .caption {
+        min-height: 34px;
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+        text-align: center;
+      }
+
+      .icon-stage {
+        width: 190px;
+        height: 190px;
+        display: grid;
+        place-items: center;
+      }
+
+      .journal-before {
+        width: 172px;
+        height: 172px;
+        object-fit: contain;
+        filter: grayscale(1) contrast(1.2);
+      }
+
+      .journal-after { width: 184px; height: auto; }
+      .insights-icon { width: 184px; height: 184px; overflow: visible; }
+
+      .footer {
+        margin-top: 22px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Oneiros icon harmonization</h1>
+      <p class="intro">
+        Enlarged monochrome proof. Colour is intentionally removed from the judgment:
+        the comparison tests silhouette, drawing character, and optical weight only.
+      </p>
+
+      <section class="grid" aria-label="Representative icon before and after comparison">
+        <div class="cell"><span class="row-label">BEFORE</span></div>
+        <div class="cell">
+          <div class="icon-stage">
+            <img class="journal-before" src="/src/assets/icons/tab-icons/journal_inactive.png" alt="Previous Journal icon" />
+          </div>
+          <div class="icon-name">Journal</div>
+          <div class="caption">Heavy rectangular book and dominant central dot</div>
+        </div>
+        <div class="cell">
+          <div class="icon-stage">
+            <svg class="insights-icon" viewBox="198 215.5 504 504" aria-label="Images icon before">
+              <image href="/src/assets/icons/insights_section_icons/oneiros_insight_returning_images_sheet_extract_rgba_900.png" width="900" height="900" />
+            </svg>
+          </div>
+          <div class="icon-name">Images</div>
+          <div class="caption">Original hand-ink silhouette</div>
+        </div>
+        <div class="cell">
+          <div class="icon-stage">
+            <svg class="insights-icon" viewBox="166 192 568 568" aria-label="Thresholds icon before">
+              <image href="/src/assets/icons/insights_section_icons/oneiros_insight_thresholds_sheet_extract_rgba_900.png" width="900" height="900" />
+            </svg>
+          </div>
+          <div class="icon-name">Thresholds</div>
+          <div class="caption">Original dense symbolic mark</div>
+        </div>
+
+        <div class="cell"><span class="row-label">AFTER</span></div>
+        <div class="cell">
+          <div class="icon-stage">
+            <svg class="journal-after" viewBox="0 0 36 32" fill="none" aria-label="Revised Journal icon">
+              <path d="M17.75 8.15C14.7 5.05 10.35 3.25 5.1 4.05C4 4.2 3.38 5 3.45 6.2" stroke="#171217" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M3.45 6.2C3.12 12.25 3.28 18.55 3.72 23.95C8.35 22.35 13.2 23.25 17.9 27.45" stroke="#171217" stroke-width="0.95" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M18.3 7.75C21.65 4.35 26.15 2.85 31.35 3.95C32.4 4.18 32.98 5.02 32.88 6.15" stroke="#171217" stroke-width="1.08" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M32.88 6.15C33.08 12.15 32.82 18.7 32.42 24.05C27.55 22.45 22.5 23.35 18.02 27.48" stroke="#171217" stroke-width="0.92" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M18.05 8.25C17.68 13.45 18.42 20.15 18 27.15" stroke="#171217" stroke-width="0.78" stroke-linecap="round" />
+              <path d="M4.75 22.35C9.25 21.2 13.55 22.15 17.45 24.8M18.62 24.92C22.45 22.55 26.9 21.45 31.35 22.5" stroke="#171217" stroke-width="0.62" stroke-linecap="round" stroke-linejoin="round" opacity="0.64" />
+              <circle cx="18.2" cy="20.15" r="0.62" fill="#171217" opacity="0.72" />
+            </svg>
+          </div>
+          <div class="icon-name">Journal</div>
+          <div class="caption">Airier asymmetric pages and quiet witness dot</div>
+        </div>
+        <div class="cell">
+          <div class="icon-stage">
+            <svg class="insights-icon" viewBox="198 215.5 504 504" aria-label="Images icon after">
+              <image href="/src/assets/icons/insights_section_icons/oneiros_insight_returning_images_sheet_extract_rgba_900.png" width="900" height="900" />
+            </svg>
+          </div>
+          <div class="icon-name">Images</div>
+          <div class="caption">Preserved; no redesign disguised as cleanup</div>
+        </div>
+        <div class="cell">
+          <div class="icon-stage">
+            <svg class="insights-icon" viewBox="141 167 618 618" aria-label="Thresholds icon after">
+              <image href="/src/assets/icons/insights_section_icons/oneiros_insight_thresholds_sheet_extract_rgba_900.png" width="900" height="900" />
+            </svg>
+          </div>
+          <div class="icon-name">Thresholds</div>
+          <div class="caption">Same artwork, 0.92 optical scale to reduce mass</div>
+        </div>
+      </section>
+
+      <p class="footer">Black-ink test · no shared tint used as evidence of consistency</p>
+    </main>
+  </body>
+</html>

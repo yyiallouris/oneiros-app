@@ -299,6 +299,34 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(await screen.findByText('Exploring the dream')).toBeTruthy();
   });
 
+  it('keeps the locked continuation copy in a restrained 52dp action and avoids a repeated reflection heading', async () => {
+    const screen = render(<DreamDetailScreen />);
+
+    expect(await screen.findByText('A deeper reading')).toBeTruthy();
+    expect(screen.queryAllByText('Symbolic reflection')).toHaveLength(1);
+
+    const action = screen.getByTestId('continue-conversation-action');
+    const actionStyle = StyleSheet.flatten(action.props.style) as Record<string, unknown>;
+    expect(actionStyle.minHeight).toBe(52);
+    expect(actionStyle.borderWidth).toBeTruthy();
+    expect(screen.getByText('Continue the conversation')).toBeTruthy();
+  });
+
+  it('describes a stale reflection as an earlier-version state without changing update behavior', async () => {
+    mockGetDreamById.mockResolvedValue({
+      ...dream,
+      content: `${dream.content} Then the moon moved behind a cloud.`,
+      updatedAt: '2025-04-02T00:00:00.000Z',
+    });
+
+    const screen = render(<DreamDetailScreen />);
+
+    expect(await screen.findByTestId('reflection-update-notice')).toBeTruthy();
+    expect(screen.getByText('This reflection belongs to an earlier version of the dream.')).toBeTruthy();
+    expect(screen.getByText('Update it to include your latest changes.')).toBeTruthy();
+    expect(screen.getByText('Update reflection')).toBeTruthy();
+  });
+
   it('keeps the nested chat ScrollView scrollable (bounded height, nestedScroll, no overflow hidden)', async () => {
     const screen = render(<DreamDetailScreen />);
 

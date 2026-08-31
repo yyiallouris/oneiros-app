@@ -40,7 +40,7 @@ describe('Journal untitled slip contract', () => {
   });
 
   it('documents untitled continuation on the Journal archive slip', () => {
-    expect(flowDoc).toMatch(/ending with `\.\.\.` so it still reads as a title/);
+    expect(flowDoc).toMatch(/restrained regular-weight lead from the opening words/);
     expect(flowDoc).toMatch(/two-line excerpt that continues those words on a word boundary/);
   });
 
@@ -51,6 +51,6 @@ describe('Journal untitled slip contract', () => {
     expect(journalScreen).toMatch(/style=\{styles\.markerPill\}/);
     expect(journalScreen).toMatch(/\{label\}: <\/Text>/);
     expect(journalScreen).not.toMatch(/image \/ \{symbolMarker\}/);
-    expect(flowDoc).toMatch(/separate soft capsules using natural `Label: value` syntax/);
+    expect(flowDoc).toMatch(/separate low-contrast capsules using natural `Label: value` syntax/);
   });
 });

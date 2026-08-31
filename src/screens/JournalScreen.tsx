@@ -9,29 +9,27 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList, MainTabsParamList } from '../navigation/types';
-import { colors, spacing, typography, borderRadius } from '../theme';
+import {
+  colors,
+  spacing,
+  typography,
+  borderRadius,
+  resolveFloatingTabBarContentInset,
+} from '../theme';
 import { PaperBackground, MysticHeader, LinoSkeletonCard, DesignExportForeground, LoadingState } from '../components/ui';
 import { Dream, Interpretation } from '../types/dream';
 import { getDreams, getInterpretations } from '../utils/storage';
 import { formatDateShort } from '../utils/date';
 import { buildJournalSlipCopy } from '../utils/journalSlipCopy';
 import { normalizeSymbolKey } from '../services/insightsService';
-import Svg, { Circle, Path } from 'react-native-svg';
-import { CalendarActionIcon } from '../components/icons/ActionIcons';
+import { CalendarActionIcon, SearchActionIcon } from '../components/icons/ActionIcons';
 
 const JOURNAL_MOUNTAIN_HEIGHT = 300;
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 type JournalRouteProp = RouteProp<MainTabsParamList, 'Journal'>;
-
-// Search icon
-const SearchIcon = ({ size = 20, color = colors.textSecondary }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Circle cx="11" cy="11" r="8" stroke={color} strokeWidth={2} />
-    <Path d="M21 21l-4.35-4.35" stroke={color} strokeWidth={2} strokeLinecap="round" />
-  </Svg>
-);
 
 interface DreamCardProps {
   dream: Dream;
@@ -113,6 +111,7 @@ export interface JournalScreenProps {
 const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<JournalRouteProp>();
+  const insets = useSafeAreaInsets();
   const isStackScreen = !!overrideParams;
   const filterSymbol = overrideParams?.filterSymbol ?? route.params?.filterSymbol;
   const filterLandscape = overrideParams?.filterLandscape ?? route.params?.filterLandscape;
@@ -126,6 +125,9 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const baseDreamsRef = useRef<Dream[]>([]);
   baseDreamsRef.current = baseDreams;
+  const listBottomInset = isStackScreen
+    ? insets.bottom + spacing.xl
+    : resolveFloatingTabBarContentInset(insets.bottom);
 
   const clearFilter = useCallback(() => {
     setSearchQuery('');
@@ -263,9 +265,15 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
         <MysticHeader
           title="Journal"
           subtitle="Dreams remembered and ready to return."
+          style={{ paddingTop: Math.max(spacing.xl, insets.top + spacing.sm) }}
           right={
-            <TouchableOpacity onPress={handleCalendarPress} style={styles.headerRight}>
-              <CalendarActionIcon size={32} testID="journal-calendar-icon" />
+            <TouchableOpacity
+              onPress={handleCalendarPress}
+              style={styles.headerRight}
+              accessibilityRole="button"
+              accessibilityLabel="Open dream calendar"
+            >
+              <CalendarActionIcon testID="journal-calendar-icon" />
             </TouchableOpacity>
           }
         />
@@ -273,7 +281,7 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <SearchIcon />
+            <SearchActionIcon />
             <TextInput
               style={styles.searchInput}
               placeholder="Search dreams..."
@@ -317,7 +325,10 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ overrideParams }) => {
             data={filteredDreams}
             keyExtractor={keyExtractor}
             renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: listBottomInset },
+            ]}
             initialNumToRender={15}
             maxToRenderPerBatch={10}
             windowSize={5}
@@ -341,7 +352,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   headerRight: {
-    alignItems: 'flex-end',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchContainer: {
     paddingHorizontal: spacing.lg,
@@ -402,8 +416,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   dreamSlip: {
-    marginBottom: spacing.md,
-    paddingVertical: spacing.md,
+    marginBottom: 14,
+    paddingVertical: 14,
     paddingHorizontal: spacing.md,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 253, 249, 0.58)',
@@ -424,7 +438,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: 6,
   },
   dreamDateSeal: {
     alignSelf: 'flex-start',
@@ -440,11 +454,14 @@ const styles = StyleSheet.create({
   },
   dreamTitle: {
     fontSize: typography.sizes.lg,
-    fontFamily: typography.medium,
+    fontFamily: typography.roles.dreamTitle,
     color: colors.textTitle,
     marginBottom: spacing.xs,
   },
   dreamTitleContinuing: {
+    fontSize: typography.sizes.md,
+    fontFamily: typography.regular,
+    fontWeight: typography.weights.regular,
     marginBottom: 2,
   },
   dreamPreview: {
@@ -456,14 +473,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.xs,
-    marginTop: spacing.sm,
+    marginTop: 6,
   },
   markerPill: {
     maxWidth: '100%',
     paddingHorizontal: spacing.xs,
     paddingVertical: 3,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.buttonPrimaryLight12,
+    backgroundColor: colors.contourLineFaint,
   },
   markerText: {
     flexShrink: 1,
@@ -471,7 +488,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   markerLabel: {
-    fontFamily: typography.medium,
+    fontFamily: typography.regular,
     color: colors.textMuted,
   },
   markerTextMuted: {

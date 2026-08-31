@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PaperBackground, Button, DesignExportForeground } from '../components/ui';
 import { SubscriptionBillingSwitch } from '../components/subscription/SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from '../components/subscription/SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from '../components/subscription/SubscriptionPlanCard';
+import { SubscriptionStoreNotice } from '../components/subscription/SubscriptionStoreNotice';
 import { useSubscription } from '../providers/SubscriptionProvider';
 import type { BillingInterval } from '../types/subscription';
 import {
@@ -14,10 +15,10 @@ import {
   getIapUnavailableMessage,
   getPaidPlanCardPricing,
   getPaidPlanOptionsForInterval,
-  getReadOnlyLapseMessage,
   getYearlySavingsBadgeForVisibleCard,
 } from '../services/subscriptionService';
 import { colors, spacing, text, typography } from '../theme';
+import { DESIGN_EXPORT_MODE } from '../designExport';
 
 const FREE_IMAGE = require('../assets/icons/subscription/oneiros_glyph_free.png');
 const PREMIUM_IMAGE = require('../assets/icons/subscription/oneiros_glyph_premium.png');
@@ -28,6 +29,7 @@ const SubscriptionScreen: React.FC = () => {
     status: subscriptionStatus,
     products,
     storeProductsLoading,
+    refreshStoreProducts,
     purchasingPlanCode,
     purchasePlan,
     restorePurchases,
@@ -62,10 +64,30 @@ const SubscriptionScreen: React.FC = () => {
   const freePlan = getFreePlanCardModel();
   const hasPaidAccess = subscriptionStatus?.hasPaidAccess ?? false;
   const currentPlanTier = subscriptionStatus?.planTier ?? 'free';
+  const isLapsedPaidPlan = !hasPaidAccess && currentPlanTier !== 'free';
+  const isActivePremium = hasPaidAccess && currentPlanTier === 'premium';
+  const isActiveDeeper = hasPaidAccess && currentPlanTier === 'deeper';
+  const isLapsedPremium = isLapsedPaidPlan && currentPlanTier === 'premium';
+  const isLapsedDeeper = isLapsedPaidPlan && currentPlanTier === 'deeper';
+  const premiumPriceState = premiumPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const deeperPriceState = deeperPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const hasStorePriceError =
+    (iapRuntimeAvailable || DESIGN_EXPORT_MODE) &&
+    !storeProductsLoading &&
+    (!premiumPlan.storePriceAvailable || !deeperPlan.storePriceAvailable);
   const showPricingSwitch = activeCardIndex !== 0;
-  const showManageAction = hasPaidAccess && iapRuntimeAvailable;
-  const showRestoreAction = !hasPaidAccess && iapRuntimeAvailable;
-  const showIapHelper = !iapRuntimeAvailable;
+  const showManageAction = isLapsedPaidPlan && iapRuntimeAvailable;
+  const showRestoreAction = currentPlanTier === 'free' && !hasPaidAccess && iapRuntimeAvailable;
+  const showIapHelper = !iapRuntimeAvailable && !DESIGN_EXPORT_MODE;
+  const manageLabel = Platform.OS === 'android' ? 'Manage in Google Play' : 'Manage subscription';
 
   const handleUpgrade = useCallback(
     async (planTier: 'premium' | 'deeper') => {
@@ -74,11 +96,11 @@ const SubscriptionScreen: React.FC = () => {
     [billingInterval, purchasePlan]
   );
 
-  const premiumNote = currentPlanTier === 'premium'
-    ? getReadOnlyLapseMessage()
+  const premiumNote = isLapsedPremium
+    ? 'Your existing reflections remain available.'
     : 'A balanced rhythm for regular dream work.';
-  const deeperNote = currentPlanTier === 'deeper'
-    ? getReadOnlyLapseMessage()
+  const deeperNote = isLapsedDeeper
+    ? 'Your existing reflections remain available.'
     : 'More room for a deeper ongoing practice.';
 
   return (
@@ -96,8 +118,28 @@ const SubscriptionScreen: React.FC = () => {
           <View style={styles.planSection}>
             <Text style={styles.sectionLabel}>Choose your mode</Text>
             <Text style={styles.compareCopy}>
-              Free keeps the journal open. Premium is the recommended rhythm. Deeper opens more monthly room, weekly essays, and unlimited recent-field reports.
+              Free keeps the journal open. Premium is the recommended rhythm. Deeper opens more monthly room, weekly period reflections, and unlimited recent-field reports.
             </Text>
+
+            {isLapsedPaidPlan ? (
+              <View style={styles.lapsedNotice} testID="subscription-lapsed-notice">
+                <Text style={styles.lapsedTitle}>
+                  {currentPlanTier === 'deeper' ? 'Deeper access ended' : 'Premium access ended'}
+                </Text>
+                <Text style={styles.lapsedBody}>
+                  Your existing reflections remain available. Renew to create new paid reflections and reports.
+                </Text>
+              </View>
+            ) : null}
+
+            {hasStorePriceError ? (
+              <SubscriptionStoreNotice
+                loading={storeProductsLoading}
+                onRetry={() => {
+                  void refreshStoreProducts();
+                }}
+              />
+            ) : null}
 
             {showPricingSwitch && (
               <View style={styles.switchWrap}>
@@ -122,10 +164,11 @@ const SubscriptionScreen: React.FC = () => {
                 priceDetail="Unlimited entries, one reflection per week"
                 features={FREE_PLAN_FEATURES}
                 imageSource={FREE_IMAGE}
-                actionTitle={currentPlanTier === 'free' ? 'Current plan' : 'Continue free'}
+                actionTitle={currentPlanTier === 'free' ? 'Your plan' : 'Private journal included'}
                 onPress={() => undefined}
-                current={currentPlanTier === 'free'}
-                disabled={currentPlanTier === 'free'}
+                current={!hasPaidAccess && currentPlanTier === 'free'}
+                disabled
+                hideAction
                 note="Free stays simple and clear: unlimited entries, one reflection per week, and five follow-up replies on that free reflection."
                 variant="free"
               />
@@ -133,7 +176,7 @@ const SubscriptionScreen: React.FC = () => {
               <SubscriptionPlanCard
                 title={premiumPlan.title}
                 eyebrow="The natural choice"
-                badgeText="Recommended"
+                badgeText={isLapsedPremium ? 'Expired' : 'Recommended'}
                 price={premiumPricing.price}
                 compareAtPrice={premiumPricing.compareAtPrice}
                 priceDetail={premiumPricing.priceDetail}
@@ -142,27 +185,31 @@ const SubscriptionScreen: React.FC = () => {
                 features={PREMIUM_PLAN_FEATURES}
                 imageSource={PREMIUM_IMAGE}
                 actionTitle={
-                  currentPlanTier === 'premium'
-                    ? 'Current plan'
+                  isActivePremium
+                    ? manageLabel
+                    : isLapsedPremium
+                      ? 'Renew Premium'
                     : purchasingPlanCode === premiumPlan.planCode
                       ? 'Opening store…'
-                      : !premiumPlan.storePriceAvailable
-                        ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
-                        : 'Choose Premium'
+                      : 'Choose Premium'
                 }
                 onPress={() => {
-                  if (currentPlanTier === 'premium') return;
+                  if (isActivePremium) {
+                    void openManageSubscriptions();
+                    return;
+                  }
                   void handleUpgrade('premium');
                 }}
                 selected
-                current={currentPlanTier === 'premium'}
+                current={isActivePremium}
                 note={premiumNote}
                 disabled={
-                  currentPlanTier === 'premium' ||
                   purchasingPlanCode !== null ||
                   !iapRuntimeAvailable ||
-                  !premiumPlan.storePriceAvailable
+                  (!isActivePremium && !premiumPlan.storePriceAvailable)
                 }
+                priceState={premiumPriceState}
+                hideAction={!iapRuntimeAvailable || (!isActivePremium && premiumPriceState === 'unavailable')}
                 variant="premium"
               />
 
@@ -177,26 +224,31 @@ const SubscriptionScreen: React.FC = () => {
                 features={DEEPER_PLAN_FEATURES}
                 imageSource={DEEPER_IMAGE}
                 actionTitle={
-                  currentPlanTier === 'deeper'
-                    ? 'Current plan'
+                  isActiveDeeper
+                    ? manageLabel
+                    : isLapsedDeeper
+                      ? 'Renew Deeper'
                     : purchasingPlanCode === deeperPlan.planCode
                       ? 'Opening store…'
-                      : !deeperPlan.storePriceAvailable
-                        ? storeProductsLoading ? 'Checking price…' : 'Price unavailable'
-                        : 'Choose Deeper'
+                      : 'Choose Deeper'
                 }
                 onPress={() => {
-                  if (currentPlanTier === 'deeper') return;
+                  if (isActiveDeeper) {
+                    void openManageSubscriptions();
+                    return;
+                  }
                   void handleUpgrade('deeper');
                 }}
-                current={currentPlanTier === 'deeper'}
+                badgeText={isLapsedDeeper ? 'Expired' : undefined}
+                current={isActiveDeeper}
                 note={deeperNote}
                 disabled={
-                  currentPlanTier === 'deeper' ||
                   purchasingPlanCode !== null ||
                   !iapRuntimeAvailable ||
-                  !deeperPlan.storePriceAvailable
+                  (!isActiveDeeper && !deeperPlan.storePriceAvailable)
                 }
+                priceState={deeperPriceState}
+                hideAction={!iapRuntimeAvailable || (!isActiveDeeper && deeperPriceState === 'unavailable')}
                 variant="deeper"
               />
             </SubscriptionPlanCarousel>
@@ -205,7 +257,7 @@ const SubscriptionScreen: React.FC = () => {
           <View style={styles.footerArea}>
             {showManageAction && (
               <Button
-                title="Manage"
+                title={manageLabel}
                 onPress={() => {
                   void openManageSubscriptions();
                 }}
@@ -250,7 +302,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.sizes.xxl,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.screenTitle,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
@@ -266,6 +318,25 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: text.secondary,
     lineHeight: typography.sizes.sm * 1.45,
+  },
+  lapsedNotice: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.contourLineSoft,
+    backgroundColor: colors.cardGlassSoft,
+    gap: spacing.xs,
+  },
+  lapsedTitle: {
+    fontSize: typography.sizes.md,
+    fontFamily: typography.medium,
+    color: colors.textPrimary,
+  },
+  lapsedBody: {
+    fontSize: typography.sizes.sm,
+    fontFamily: typography.regular,
+    lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    color: colors.textSecondary,
   },
   switchWrap: {
     marginTop: spacing.xs,

@@ -7,6 +7,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockPurchasePlan = jest.fn();
+const mockRefreshStoreProducts = jest.fn();
 let mockHasPaidAccess = false;
 let mockStorePriceAvailable = true;
 
@@ -59,14 +60,31 @@ jest.mock('../../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled, hideAction }: any) => {
     const React = require('react');
     const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <TouchableOpacity onPress={onPress} disabled={disabled}>
-          <Text>{actionTitle}</Text>
+        {!hideAction ? (
+          <TouchableOpacity onPress={onPress} disabled={disabled}>
+            <Text>{actionTitle}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../src/components/subscription/SubscriptionStoreNotice', () => ({
+  SubscriptionStoreNotice: ({ onRetry }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View>
+        <Text>Prices couldn’t be loaded.</Text>
+        <TouchableOpacity onPress={onRetry}>
+          <Text>Try again</Text>
         </TouchableOpacity>
       </View>
     );
@@ -146,6 +164,7 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
       },
     ],
     purchasingPlanCode: null,
+    refreshStoreProducts: (...args: unknown[]) => mockRefreshStoreProducts(...args),
     purchasePlan: (...args: unknown[]) => mockPurchasePlan(...args),
   }),
 }));
@@ -192,12 +211,14 @@ describe('Onboarding subscription flow', () => {
     });
   });
 
-  it('keeps paid choices disabled until the store returns a real price', async () => {
+  it('keeps store failure separate and retryable until a real price returns', async () => {
     mockStorePriceAvailable = false;
     const screen = render(<OnboardingSubscriptionScreen />);
 
-    fireEvent.press(screen.getAllByText('Price unavailable')[0]);
+    expect(screen.getByText('Prices couldn’t be loaded.')).toBeTruthy();
+    fireEvent.press(screen.getByText('Try again'));
     expect(mockPurchasePlan).not.toHaveBeenCalled();
+    expect(mockRefreshStoreProducts).toHaveBeenCalledTimes(1);
   });
 
   it('skips the screen when paid access is already active', async () => {

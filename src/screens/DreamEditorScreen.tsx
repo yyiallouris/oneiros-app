@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.medium,
+    fontFamily: typography.roles.dreamTitle,
     color: colors.textPrimary,
     marginBottom: spacing.sm,
     padding: 0,

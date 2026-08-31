@@ -27,14 +27,20 @@ export const typography = {
     relaxed: 1.8,
   },
 
-  // Semantic role guidance. Keep screen hierarchy restrained: brand gets the
-  // expressive serif, app UI stays sans, reflection copy breathes through line-height.
+  // Semantic role guidance. Serif marks dream material and the inward voice;
+  // navigation, controls, metadata, and system/configuration titles stay sans.
   roles: {
     brand: 'CormorantGaramond_600SemiBold',
     ui: 'Inter_400Regular',
     uiEmphasis: 'Inter_500Medium',
-    uiStrong: 'CormorantGaramond_600SemiBold',
-    reflection: 'Inter_400Regular',
+    uiStrong: 'Inter_500Medium',
+    screenTitle: 'Inter_500Medium',
+    navigationTitle: 'Inter_500Medium',
+    control: 'Inter_400Regular',
+    metadata: 'Inter_400Regular',
+    dreamTitle: 'CormorantGaramond_600SemiBold',
+    innerVoice: 'CormorantGaramond_600SemiBold',
+    reflection: 'CormorantGaramond_600SemiBold',
     poeticShortTitle: 'CormorantGaramond_600SemiBold',
   },
   

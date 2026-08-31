@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -20,7 +20,10 @@ jest.mock('@react-navigation/bottom-tabs', () => {
   return {
     createBottomTabNavigator: () => ({
       Navigator: ({ children, initialRouteName, screenOptions }: any) => (
-        <View>
+        <View
+          testID="main-tabs-options"
+          tabBarHideOnKeyboard={screenOptions?.tabBarHideOnKeyboard}
+        >
           {screenOptions?.tabBarBackground?.()}
           {React.Children.map(children, (child: any) => {
             const name = child.props.name;
@@ -28,6 +31,11 @@ jest.mock('@react-navigation/bottom-tabs', () => {
             return (
               <View key={name}>
                 {child.props.options?.tabBarIcon?.({ focused, color: undefined, size: undefined })}
+                {screenOptions?.tabBarLabel?.({
+                  focused,
+                  color: focused ? '#2D2430' : '#756A79',
+                  children: name,
+                })}
               </View>
             );
           })}
@@ -48,13 +56,28 @@ describe('MainTabsNavigator', () => {
     expect(screen.getByTestId('tab-icon-write-active')).toBeTruthy();
     expect(screen.getByTestId('tab-icon-journal-inactive')).toBeTruthy();
     expect(screen.getByTestId('tab-icon-insights-inactive')).toBeTruthy();
+    expect(screen.getByTestId('tab-label-write').props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ fontFamily: 'Inter_500Medium' })]),
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-write-active').props.style)).toEqual(
+      expect.objectContaining({ width: 40, opacity: 0.96, tintColor: '#2D2430' }),
+    );
+    expect(screen.getByTestId('tab-icon-journal-inactive').props.width).toBe(30);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-inactive').props.style).opacity).toBe(0.76);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-label-journal').props.style).color).toBe('#756A79');
+    expect(screen.getByTestId('main-tabs-options').props.tabBarHideOnKeyboard).toBe(true);
   });
 
-  it('uses the journal active png when Journal is the initial tab', () => {
+  it('uses the organic journal drawing when Journal is the initial tab', () => {
     const screen = render(<MainTabsNavigator initialRouteName="Journal" />);
 
     expect(screen.getByTestId('tab-icon-journal-active')).toBeTruthy();
     expect(screen.getByTestId('tab-icon-write-inactive')).toBeTruthy();
     expect(screen.getByTestId('tab-icon-insights-inactive')).toBeTruthy();
+    expect(screen.getByTestId('tab-label-write').props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ fontFamily: 'Inter_400Regular' })]),
+    );
+    expect(screen.getByTestId('tab-icon-journal-active').props.width).toBe(30);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-active').props.style).opacity).toBe(0.96);
   });
 });

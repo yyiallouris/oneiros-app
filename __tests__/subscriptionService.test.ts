@@ -3,6 +3,7 @@ import {
   getFallbackPlan,
   getIapUnavailableMessage,
   getPaidPlanCardPricing,
+  getPlanTitle,
   getPremiumSourceCopy,
   getReadOnlyLapseMessage,
   getStorePlanOptions,
@@ -10,6 +11,7 @@ import {
   isMissingNativeIapError,
   isStorePlanPurchasable,
   normalizeSubscriptionStatus,
+  PREMIUM_PLAN_FEATURES,
   subscriptionConfig,
 } from '../src/services/subscriptionService';
 import type { ProductSubscription } from 'expo-iap';
@@ -33,6 +35,20 @@ function iosProduct(
 }
 
 describe('subscription service', () => {
+  it('keeps billing cadence out of shared plan names and preserves exact feature limits', () => {
+    expect(getPlanTitle('paid_monthly')).toBe('Premium');
+    expect(getPlanTitle('paid_yearly')).toBe('Premium');
+    expect(getPlanTitle('deeper_monthly')).toBe('Deeper');
+    expect(PREMIUM_PLAN_FEATURES.map((feature) => feature.label)).toEqual(
+      expect.arrayContaining([
+        '35 symbolic reflections each month',
+        '10 Recent Dream Field reports each month',
+        '1 monthly period reflection',
+        'Up to 5 follow-up exchanges with each reflected dream',
+      ])
+    );
+  });
+
   it('normalizes paid-yearly status into paid access with quota metadata', () => {
     const status = normalizeSubscriptionStatus({
       plan_code: 'paid_yearly',
@@ -255,8 +271,8 @@ describe('subscription service', () => {
 
   it('returns source-aware upsell copy and lapse messaging', () => {
     expect(getPremiumSourceCopy('period_reflection')).toEqual({
-      title: 'Essays and long-form patterns',
-      body: 'Premium includes one monthly essay. Deeper opens the weekly rhythm for people who want to stay closer to the material.',
+      title: 'Period reflections and long-form patterns',
+      body: 'Premium includes one monthly period reflection. Deeper opens a weekly period reflection for people who want to stay closer to the material.',
     });
     expect(getReadOnlyLapseMessage()).toMatch(/readable/i);
   });

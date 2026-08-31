@@ -28,6 +28,7 @@ export type {
   ContourKey,
 } from './colors';
 export { typography } from './typography';
+export { iconography } from './iconography';
 export { spacing, borderRadius } from './spacing';
 export {
   layout,

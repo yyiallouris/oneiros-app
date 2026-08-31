@@ -31,7 +31,7 @@ describe('SubscriptionPlanCard', () => {
     expect(price.props.minimumFontScale).toBe(0.72);
   });
 
-  it('keeps an unavailable paid CTA disabled', () => {
+  it('keeps store failure out of the primary price and purchase CTA', () => {
     const onPress = jest.fn();
     const screen = render(
       <SubscriptionPlanCard
@@ -44,10 +44,77 @@ describe('SubscriptionPlanCard', () => {
         onPress={onPress}
         variant="premium"
         disabled
+        priceState="unavailable"
+        hideAction
       />
     );
 
-    fireEvent.press(screen.getAllByText('Price unavailable')[1]);
+    expect(screen.getByText('Store price unavailable')).toBeTruthy();
+    expect(screen.queryByText('Price unavailable')).toBeNull();
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('never combines Recommended with the current-plan badge', () => {
+    const screen = render(
+      <SubscriptionPlanCard
+        title="Premium"
+        eyebrow="The natural choice"
+        badgeText="Recommended"
+        price="€4.99 / month"
+        features={[]}
+        imageSource={{ uri: 'subscription-test' }}
+        actionTitle="Manage subscription"
+        onPress={jest.fn()}
+        variant="premium"
+        current
+      />
+    );
+
+    expect(screen.getByText('Your plan')).toBeTruthy();
+    expect(screen.queryByText('Recommended')).toBeNull();
+  });
+
+  it('keeps secondary benefits behind an accessible expansion control', () => {
+    const features = Array.from({ length: 6 }, (_, index) => ({
+      label: `Benefit ${index + 1}`,
+      included: true,
+    }));
+    const screen = render(
+      <SubscriptionPlanCard
+        title="Premium"
+        price="€4.99 / month"
+        features={features}
+        imageSource={{ uri: 'subscription-test' }}
+        actionTitle="Choose Premium"
+        onPress={jest.fn()}
+        variant="premium"
+      />
+    );
+
+    expect(screen.queryByText('Benefit 5')).toBeNull();
+    fireEvent.press(screen.getByText('See all features'));
+    expect(screen.getByText('Benefit 5')).toBeTruthy();
+    expect(screen.getByText('Show fewer features')).toBeTruthy();
+  });
+
+  it('starts purchase only from the explicit CTA, not from the card surface', () => {
+    const onPress = jest.fn();
+    const screen = render(
+      <SubscriptionPlanCard
+        title="Premium"
+        price="€4.99 / month"
+        features={[]}
+        imageSource={{ uri: 'subscription-test' }}
+        actionTitle="Choose Premium"
+        onPress={onPress}
+        variant="premium"
+      />
+    );
+
+    expect(screen.getByTestId('subscription-plan-card-premium').props.onPress).toBeUndefined();
+    expect(onPress).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByLabelText('Choose Premium'));
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

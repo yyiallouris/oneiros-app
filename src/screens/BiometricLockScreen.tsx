@@ -105,9 +105,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   title: {
-    fontSize: typography.sizes.xxxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.roles.screenTitle,
     color: colors.textPrimary,
     textAlign: 'center',
   },

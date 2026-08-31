@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { colors, spacing, typography } from '../../theme';
+import { colors, iconography, spacing, typography } from '../../theme';
 import { logError, logEvent } from '../../services/logger';
 import {
   cleanupRecording,
@@ -528,7 +528,10 @@ const styles = StyleSheet.create({
   fieldRecordButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'transparent' },
   recordButtonActive: { opacity: 0.92 },
   recordButtonDisabled: { opacity: 0.45 },
-  stopIconImage: { width: 40, height: 40 },
+  stopIconImage: {
+    width: iconography.functional.stopSize,
+    height: iconography.functional.stopSize,
+  },
   durationContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
   durationText: {
     fontSize: typography.sizes.sm,

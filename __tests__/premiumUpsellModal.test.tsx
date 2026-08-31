@@ -2,6 +2,8 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PremiumUpsellModal } from '../src/components/subscription/PremiumUpsellModal';
 
+const mockRefreshStoreProducts = jest.fn();
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
 }));
@@ -32,18 +34,42 @@ jest.mock('../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled, hideAction, current }: any) => {
     const React = require('react');
     const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <TouchableOpacity onPress={onPress} disabled={disabled}>
-          <Text>{actionTitle}</Text>
+        {current ? <Text>Your plan</Text> : null}
+        {!hideAction && !(current && disabled) ? (
+          <TouchableOpacity onPress={onPress} disabled={disabled}>
+            <Text>{actionTitle}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../src/components/subscription/SubscriptionStoreNotice', () => ({
+  SubscriptionStoreNotice: ({ onRetry }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View>
+        <Text>Prices couldn’t be loaded.</Text>
+        <TouchableOpacity onPress={onRetry}>
+          <Text>Try again</Text>
         </TouchableOpacity>
       </View>
     );
   },
+}));
+
+jest.mock('../src/providers/SubscriptionProvider', () => ({
+  useSubscription: () => ({
+    refreshStoreProducts: (...args: unknown[]) => mockRefreshStoreProducts(...args),
+  }),
 }));
 
 const premiumPlan = {
@@ -81,6 +107,10 @@ const deeperPlan = {
 };
 
 describe('PremiumUpsellModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('shows compare mode with both cards and premium-first carousel positioning', () => {
     const screen = render(
       <PremiumUpsellModal
@@ -97,7 +127,7 @@ describe('PremiumUpsellModal', () => {
 
     expect(screen.getByText('Free')).toBeTruthy();
     expect(screen.getByText('Premium Monthly')).toBeTruthy();
-    expect(screen.getByText('Current plan')).toBeTruthy();
+    expect(screen.getByText('Your plan')).toBeTruthy();
     expect(screen.getByText('InitialIndex:1')).toBeTruthy();
     expect(screen.getByText('IndicatorPosition:top')).toBeTruthy();
     expect(screen.getByText('Interval:monthly')).toBeTruthy();
@@ -144,7 +174,7 @@ describe('PremiumUpsellModal', () => {
     expect(screen.queryByText('Interval:monthly')).toBeNull();
   });
 
-  it('does not allow an upgrade when the selected store price is unavailable', () => {
+  it('separates unavailable store pricing from upgrade and offers retry', () => {
     const onUpgrade = jest.fn();
     const unavailablePremium = {
       ...premiumPlan,
@@ -167,7 +197,10 @@ describe('PremiumUpsellModal', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('Price unavailable'));
+    expect(screen.getByText('Prices couldn’t be loaded.')).toBeTruthy();
+    expect(screen.queryByText('Price unavailable')).toBeNull();
+    fireEvent.press(screen.getByText('Try again'));
     expect(onUpgrade).not.toHaveBeenCalled();
+    expect(mockRefreshStoreProducts).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,6 +7,7 @@ import { OnboardingProgress } from '../../components/onboarding/OnboardingProgre
 import { SubscriptionBillingSwitch } from '../../components/subscription/SubscriptionBillingSwitch';
 import { SubscriptionPlanCarousel } from '../../components/subscription/SubscriptionPlanCarousel';
 import { SubscriptionPlanCard } from '../../components/subscription/SubscriptionPlanCard';
+import { SubscriptionStoreNotice } from '../../components/subscription/SubscriptionStoreNotice';
 import { useSubscription } from '../../providers/SubscriptionProvider';
 import {
   DEEPER_PLAN_FEATURES,
@@ -34,6 +35,7 @@ const OnboardingSubscriptionScreen: React.FC = () => {
     loading,
     products,
     storeProductsLoading,
+    refreshStoreProducts,
     iapRuntimeAvailable,
     purchasingPlanCode,
     purchasePlan,
@@ -63,6 +65,20 @@ const OnboardingSubscriptionScreen: React.FC = () => {
     [activeCardIndex, products]
   );
   const freePlan = getFreePlanCardModel();
+  const premiumPriceState = premiumPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const deeperPriceState = deeperPlan.storePriceAvailable
+    ? 'available'
+    : storeProductsLoading
+      ? 'loading'
+      : 'unavailable';
+  const hasStorePriceError =
+    iapRuntimeAvailable &&
+    !storeProductsLoading &&
+    (!premiumPlan.storePriceAvailable || !deeperPlan.storePriceAvailable);
 
   useEffect(() => {
     if (status?.hasPaidAccess) {
@@ -103,6 +119,14 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               />
             </View>
           )}
+
+          {hasStorePriceError ? (
+            <SubscriptionStoreNotice
+              onRetry={() => {
+                void refreshStoreProducts();
+              }}
+            />
+          ) : null}
 
           <SubscriptionPlanCarousel
             initialIndex={1}
@@ -151,6 +175,8 @@ const OnboardingSubscriptionScreen: React.FC = () => {
                 !iapRuntimeAvailable ||
                 !premiumPlan.storePriceAvailable
               }
+              priceState={premiumPriceState}
+              hideAction={premiumPriceState === 'unavailable'}
             />
 
             <SubscriptionPlanCard
@@ -173,13 +199,15 @@ const OnboardingSubscriptionScreen: React.FC = () => {
               onPress={() => {
                 void handlePremiumPress('deeper');
               }}
-              note="More monthly room, weekly essays, and unlimited recent dream field reports."
+              note="More monthly room, weekly period reflections, and unlimited Recent Dream Field reports."
               variant="deeper"
               disabled={
                 purchasingPlanCode !== null ||
                 !iapRuntimeAvailable ||
                 !deeperPlan.storePriceAvailable
               }
+              priceState={deeperPriceState}
+              hideAction={deeperPriceState === 'unavailable'}
             />
           </SubscriptionPlanCarousel>
 
@@ -224,7 +252,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: typography.sizes.xxl,
-    fontFamily: typography.bold,
+    fontFamily: typography.roles.screenTitle,
     color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: spacing.sm,

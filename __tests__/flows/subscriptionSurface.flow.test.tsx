@@ -14,8 +14,10 @@ const mockIsBiometricEnabled = jest.fn();
 const mockPurchasePlan = jest.fn();
 const mockRestorePurchases = jest.fn();
 const mockOpenManageSubscriptions = jest.fn();
+const mockRefreshStoreProducts = jest.fn();
 let mockHasPaidAccess = false;
-let mockEntitlementState: 'active' | 'inactive' | 'grace_period' = 'inactive';
+let mockPlanTier: 'free' | 'premium' | 'deeper' = 'free';
+let mockEntitlementState: 'active' | 'inactive' | 'grace_period' | 'expired' = 'inactive';
 let mockIapRuntimeAvailable = true;
 let mockIapUnavailableReason: 'expo_go' | 'web' | 'missing_native_module' | 'unknown' | null = null;
 let mockStorePriceAvailable = true;
@@ -74,14 +76,32 @@ jest.mock('../../src/components/subscription/SubscriptionPlanCarousel', () => ({
 }));
 
 jest.mock('../../src/components/subscription/SubscriptionPlanCard', () => ({
-  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled }: any) => {
+  SubscriptionPlanCard: ({ title, actionTitle, onPress, disabled, hideAction, current, badgeText }: any) => {
     const React = require('react');
     const { Text, TouchableOpacity, View } = require('react-native');
     return (
       <View>
         <Text>{title}</Text>
-        <TouchableOpacity onPress={onPress} disabled={disabled}>
-          <Text>{actionTitle}</Text>
+        {current ? <Text>Your plan</Text> : badgeText ? <Text>{badgeText}</Text> : null}
+        {!hideAction ? (
+          <TouchableOpacity onPress={onPress} disabled={disabled}>
+            <Text>{actionTitle}</Text>
+          </TouchableOpacity>
+        ) : null}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../src/components/subscription/SubscriptionStoreNotice', () => ({
+  SubscriptionStoreNotice: ({ onRetry }: any) => {
+    const React = require('react');
+    const { Text, TouchableOpacity, View } = require('react-native');
+    return (
+      <View testID="subscription-store-notice">
+        <Text>Prices couldn’t be loaded.</Text>
+        <TouchableOpacity onPress={onRetry}>
+          <Text>Try again</Text>
         </TouchableOpacity>
       </View>
     );
@@ -128,7 +148,7 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
   useSubscription: () => ({
     status: {
       hasPaidAccess: mockHasPaidAccess,
-      planTier: mockHasPaidAccess ? 'premium' : 'free',
+      planTier: mockPlanTier,
       entitlementState: mockEntitlementState,
       currentPeriodEnd: '2026-08-01T00:00:00.000Z',
       quotas: {
@@ -142,6 +162,7 @@ jest.mock('../../src/providers/SubscriptionProvider', () => ({
     iapRuntimeAvailable: mockIapRuntimeAvailable,
     iapUnavailableReason: mockIapUnavailableReason,
     storeProductsLoading: mockStoreProductsLoading,
+    refreshStoreProducts: (...args: unknown[]) => mockRefreshStoreProducts(...args),
     products: [
       {
         planCode: 'paid_monthly',
@@ -222,6 +243,7 @@ describe('subscription surface flow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasPaidAccess = false;
+    mockPlanTier = 'free';
     mockEntitlementState = 'inactive';
     mockIapRuntimeAvailable = true;
     mockIapUnavailableReason = null;
@@ -255,7 +277,8 @@ describe('subscription surface flow', () => {
     expect(screen.getByText('IndicatorPosition:top')).toBeTruthy();
     expect(screen.getByText('Interval:monthly')).toBeTruthy();
     expect(screen.getByText('Restore purchases')).toBeTruthy();
-    expect(screen.queryByText('Manage')).toBeNull();
+    expect(screen.queryByText('Private journal included')).toBeNull();
+    expect(screen.queryByText(/Manage subscription|Manage in Google Play/)).toBeNull();
     expect(screen.queryByText('Dream reflections')).toBeNull();
     expect(screen.queryByText('Recent Dream Field')).toBeNull();
   });
@@ -275,19 +298,45 @@ describe('subscription surface flow', () => {
     mockStorePriceAvailable = false;
     const screen = render(<SubscriptionScreen />);
 
-    await waitFor(() => expect(screen.getAllByText('Price unavailable').length).toBeGreaterThan(0));
-    fireEvent.press(screen.getAllByText('Price unavailable')[0]);
+    await waitFor(() => expect(screen.getByText('Prices couldn’t be loaded.')).toBeTruthy());
+    expect(screen.queryByText('Price unavailable')).toBeNull();
+    fireEvent.press(screen.getByText('Try again'));
 
     expect(mockPurchasePlan).not.toHaveBeenCalled();
+    expect(mockRefreshStoreProducts).toHaveBeenCalledTimes(1);
   });
 
-  it('shows Manage only for active paid access', async () => {
+  it('shows management and Your plan for active paid access', async () => {
     mockHasPaidAccess = true;
+    mockPlanTier = 'premium';
     mockEntitlementState = 'active';
     const screen = render(<SubscriptionScreen />);
 
-    await waitFor(() => expect(screen.getByText('Manage')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getAllByText(/Manage subscription|Manage in Google Play/)).toHaveLength(1)
+    );
+    expect(screen.getByText('Your plan')).toBeTruthy();
+    expect(screen.queryByText('Recommended')).toBeNull();
     expect(screen.queryByText('Restore purchases')).toBeNull();
+  });
+
+  it('separates an expired paid plan from both current and store state', async () => {
+    mockPlanTier = 'premium';
+    mockEntitlementState = 'expired';
+    const screen = render(<SubscriptionScreen />);
+
+    expect(await screen.findByText('Premium access ended')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Your existing reflections remain available. Renew to create new paid reflections and reports.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Your plan')).toBeNull();
+    fireEvent.press(screen.getByText('Renew Premium'));
+    await waitFor(() =>
+      expect(mockPurchasePlan).toHaveBeenCalledWith('premium', 'monthly', 'subscription')
+    );
+    expect(screen.getAllByText(/Manage subscription|Manage in Google Play/)).toHaveLength(1);
   });
 
   it('hides the pricing switch when the free card becomes active', async () => {
@@ -312,6 +361,22 @@ describe('subscription surface flow', () => {
       ).toBeTruthy()
     );
     expect(screen.queryByText('Restore purchases')).toBeNull();
-    expect(screen.queryByText('Manage')).toBeNull();
+    expect(screen.queryByText(/Manage subscription|Manage in Google Play/)).toBeNull();
+  });
+
+  it('does not expose a broken manage action for active access on an unsupported runtime', async () => {
+    mockHasPaidAccess = true;
+    mockPlanTier = 'premium';
+    mockEntitlementState = 'active';
+    mockIapRuntimeAvailable = false;
+    mockIapUnavailableReason = 'expo_go';
+    const screen = render(<SubscriptionScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/development build or store build/i)).toBeTruthy()
+    );
+    expect(screen.getByText('Your plan')).toBeTruthy();
+    expect(screen.queryByText(/Manage subscription|Manage in Google Play/)).toBeNull();
+    expect(mockOpenManageSubscriptions).not.toHaveBeenCalled();
   });
 });

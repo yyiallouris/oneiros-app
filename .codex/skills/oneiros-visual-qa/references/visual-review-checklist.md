@@ -107,3 +107,22 @@ Always inspect:
 - any reference screenshot beside the current result when available
 
 If the lower crop looks busier than the upper half, keep simplifying until the hierarchy reads instantly.
+
+## 7. Icon-system pass
+
+Separate the review into four questions:
+
+1. **Concept and silhouette:** Did an established symbol change when the brief only requested harmonization? If yes, revert unless that icon was explicitly approved for redesign.
+2. **Drawing character:** In one common monochrome ink, do endings, joins, curvature, irregularity, and visual pressure suggest the same artist working at different densities?
+3. **Optical mass:** At real UI size, does any outline disappear or any filled detail become a badge, stain, eye, or button? Correct crop, scale, stroke, or small details without equalizing every icon mathematically.
+4. **State behavior:** Do active and inactive variants preserve the icon's character without relying on a large dot, pill, glow, or global recolour to communicate selection?
+
+For a pass spanning multiple icon subfamilies, prepare an enlarged before/after sheet with at least one representative navigation icon, one lighter symbolic icon, and one denser symbolic or functional icon. Render both columns in the same monochrome ink. Approve the family based on drawing character first; apply product-state colour only after that test passes.
+
+Common false positives:
+
+- all icons look related only because they received the same tint
+- smaller rendering hides mismatched stroke construction
+- a generic replacement is cleaner but no longer feels authored by Oneiros
+- deliberate filled-versus-outline density is mistaken for inconsistency
+- an active witness dot becomes the dominant feature instead of a quiet detail

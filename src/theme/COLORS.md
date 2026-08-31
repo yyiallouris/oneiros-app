@@ -15,7 +15,8 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 | Deep sand | `#CFC6BA` | `backgrounds.wave2` |
 | Deep Ink | `#2D2430` | `text.primary`, `text.title` |
 | Muted Ink | `#5E5263` | `text.secondary` |
-| Ghost Text | `#8C8290` | `text.muted`, `tabBar.iconInactive` |
+| Ghost Text | `#8C8290` | `text.muted` |
+| Muted Tab Ink | `#756A79` | `tabBar.iconInactive` |
 | Ritual Plum | `#65446F` | `text.accent` |
 | Night Plum | `#4B3158` | `accent.buttonPrimary` |
 | Soft Amethyst | `#A88BB2` | `accent.buttonPrimaryDisabled` |
@@ -39,12 +40,17 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 
 - `surfaces.glass`, `glassStrong`, `glassSoft` — cards, menus, chat
 - `surfaces.field` — inputs, loading panels, chips
-- `surfaces.nav`, `navBorder` — floating tab shelf
+- `surfaces.nav`, `navBorder` — translucent parchment floating tab shelf (`86%` opaque / `14%` transparent) and its faint contour
 
 ### Text
 
 - `text.primary`, `secondary`, `muted`, `title`, `accent`
 - `text.white`, `onAccent`
+
+### Tab navigation
+
+- `tabBar.iconActive` uses Deep Ink.
+- `tabBar.iconInactive` uses `#756A79`, muted enough to preserve hierarchy while retaining 4.5:1+ contrast against the parchment shelf for the 12dp labels. Inactive PNG glyphs also reduce opacity; no selection pill is used.
 
 ### Primary actions
 
@@ -69,17 +75,18 @@ Styles: **`SubscriptionPlanCard.tsx`**. These tokens are a separate CTA category
 - Deeper default: `deeperBackground` (`rgba(255,255,255,0.10)`) + `deeperText` (`#F8F1FA`)
 - Deeper pressed: `deeperBackgroundPressed`
 - Deeper border/shadow: `deeperBorder` + `deeperShadow`
-- Store-price loading or unavailable: keep the selected plan variant's palette and reduce the CTA to `opacity: 0.58`; do not substitute a different disabled hue.
+- Store-price loading or unavailable: keep the selected plan variant's palette, move the state into secondary typography, and hide unavailable purchase CTAs in favor of the shared retry notice.
 
 ### Subscription cards
 
 - `subscriptionCards.free*` — warm parchment / stone card, calm and fully respectable
-- `subscriptionCards.premium*` — muted dusk plum card, recommended badge, light raised depth
-- `subscriptionCards.deeper*` — midnight plum / ink card, quieter and more serious than Premium
+- `subscriptionCards.premium*` — one continuous muted dusk-plum surface (top and body share the same token value), readable secondary copy, recommended badge, restrained raised depth
+- `subscriptionCards.deeper*` — one continuous midnight plum / ink surface, quieter and more serious than Premium
 
 ### Contours
 
 - `contours.line`, `lineSoft`, `lineFaint`
+- Shared paper cards use a single `lineFaint` contour. Do not stack a second inset border or decorative top glow; spacing or one hairline should do the separating whenever possible.
 
 ### Semantic
 

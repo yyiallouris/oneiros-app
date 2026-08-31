@@ -31,7 +31,7 @@
 - **Pattern Explorer:** vertical category overview with strongest signals and top previews; category “View all” links to **`InsightsSection`**. This is the one Insights surface that explicitly uses recurrence language (`gathers`, `returns`, `reappears`, `persists`, `revisits`) to describe how a type of material behaves across many dreams.
 - The landing screen no longer renders a dedicated `Forming Patterns` / `Open Pattern Explorer` entry card; Pattern Explorer remains a secondary surface rather than a main landing block.
 - **Explore Deeper:** direct links to category detail screens using human-facing labels.
-- Insights landing and detail sections keep enough bottom scroll clearance to remain fully scrollable to the final rows above the floating tab shelf / home-indicator area.
+- Insights landing preserves its editorial header spacing while clearing the device top safe area, and uses the shared floating-tab content inset at the bottom so its final rows remain fully scrollable above the parchment shelf / home-indicator area.
 - `InsightsJourneyScreen` remains in code for compatibility/design export, but is no longer the main Insights entry path.
 - `collective` remains routable but is hidden from the primary Insights UX until the aggregate layer is real.
 
@@ -42,10 +42,10 @@
 
 ## Insights section (`InsightsSectionScreen`)
 
-Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Insight report language is configured from Account rather than inside report screens.
+Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Empty-state hand-ink marks use the shared quiet 88dp section frame and the message uses the serif inner-voice role, so the page reads as intentional silence rather than missing dashboard data. Insight report language is configured from Account rather than inside report screens.
 
 - **Forming pattern period picker:** `Images`, `Motifs`, `Emotional Atmosphere`, `Thresholds`, `Inner Tensions`, `Dream Landscapes`, and `Archetypal Echoes` own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place.
-- **Insights icon refresh:** the Period Reflection entry, grouped landing categories, and Pattern Explorer render from the supplied PNG icon set using the corrected Archetypal Echoes asset (`oneiros_isnights_archetypes.png`), the corrected Period Reflection asset (`pattern_recognition_essay/oneiros_pattern_recognition_essay.png`), and the dedicated Emotional Weather asset (`oneiros_insight_emotional_weather.png`). Those two 1024px sources are now stored as true-transparent artwork, and the shared icon renderer crops each canvas to its visible bounds so the icons read at consistent sizes without white backing plates. The previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
+- **Insights icon family:** the Period Reflection entry, grouped landing categories, and Pattern Explorer render from the supplied hand-ink PNG set using the corrected Archetypal Echoes asset (`oneiros_isnights_archetypes.png`), the corrected Period Reflection asset (`pattern_recognition_essay/oneiros_pattern_recognition_essay.png`), and the dedicated Emotional Weather asset (`oneiros_insight_emotional_weather.png`). The shared renderer crops each transparent canvas while preserving the assets' original black-ink contrast; it does not apply a family-wide plum tint as a substitute for drawing consistency. Deliberately dense glyphs remain dense but receive restrained optical scaling where needed: Emotional Atmosphere and Thresholds `0.92`, Inner Tensions `0.94`, and Dream Landscapes `0.88`. Source silhouettes and ink irregularity remain untouched. The previous generated SVG insights icons are kept under `src/components/icons/generated/legacy/` for reference only.
 
 Per `sectionId`:
 

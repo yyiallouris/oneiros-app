@@ -6,7 +6,7 @@ interface CardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   elevation?: boolean;
-  transparent?: boolean; // New prop for semi-transparent cards
+  transparent?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({ children, style, elevation = true, transparent = false }) => {
@@ -19,8 +19,6 @@ export const Card: React.FC<CardProps> = ({ children, style, elevation = true, t
         style,
       ]}
     >
-      <View pointerEvents="none" style={styles.edgeGlow} />
-      <View pointerEvents="none" style={styles.innerBorder} />
       {children}
     </View>
   );
@@ -32,7 +30,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.contourLineFaint,
     overflow: 'hidden',
   },
   transparentCard: {
@@ -42,28 +40,10 @@ const styles = StyleSheet.create({
     shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  edgeGlow: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    top: 0,
-    height: 18,
-    borderTopLeftRadius: borderRadius.lg,
-    borderTopRightRadius: borderRadius.lg,
-    backgroundColor: colors.fieldSurface,
-    opacity: 0.18,
-  },
-  innerBorder: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    shadowOpacity: 0.05,
+    shadowRadius: 11,
+    elevation: 2,
   },
 });
-

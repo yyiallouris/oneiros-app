@@ -20,7 +20,7 @@ describe('insights and paywall scroll flow', () => {
     const subscriptionDoc = read('documentation/flows-10-subscriptions-billing.md');
 
     expect(insightsScreen).toMatch(/useSafeAreaInsets/);
-    expect(insightsScreen).toMatch(/paddingBottom:\s*spacing\.xxxl \+ insets\.bottom \+ spacing\.xxl/);
+    expect(insightsScreen).toMatch(/paddingBottom:\s*resolveFloatingTabBarContentInset\(insets\.bottom\)/);
 
     expect(insightsSectionScreen).toMatch(/useSafeAreaInsets/);
     expect(insightsSectionScreen).toMatch(/paddingBottom:\s*spacing\.xxxl \+ insets\.bottom \+ spacing\.xxl/);
@@ -29,7 +29,7 @@ describe('insights and paywall scroll flow', () => {
     expect(premiumUpsellModal).toMatch(/paddingBottom:\s*spacing\.xxxl \+ insets\.bottom \+ spacing\.lg/);
     expect(premiumUpsellModal).toMatch(/keyboardShouldPersistTaps="handled"/);
 
-    expect(insightsDoc).toMatch(/fully scrollable to the final rows/);
+    expect(insightsDoc).toMatch(/shared floating-tab content inset/);
     expect(subscriptionDoc).toMatch(/The upsell sheet remains fully scrollable/);
   });
 });

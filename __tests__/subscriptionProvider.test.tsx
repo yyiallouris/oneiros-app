@@ -137,5 +137,10 @@ describe('SubscriptionProvider store pricing', () => {
       'Price unavailable',
       expect.stringMatching(/current store price/i)
     );
+
+    await act(async () => {
+      await latestSubscription?.refreshStoreProducts();
+    });
+    expect(mockFetchStoreProducts).toHaveBeenCalledTimes(2);
   });
 });

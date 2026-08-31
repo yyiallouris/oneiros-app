@@ -22,10 +22,12 @@ export const layout = {
  * footers/CTAs on these tokens so Save-style actions cannot slip under the nav.
  */
 export const floatingTabBar = {
-  height: 82,
+  /** Compact enough to stay quiet while preserving 44dp+ tab touch targets. */
+  height: 74,
   /** Extra lift above the safe-area inset (`tabBarStyle.bottom` beyond `insets.bottom`). */
   bottomOffset: 14,
   horizontalInset: 24,
+  borderRadius: 31,
   /** Quiet paper gap between a tab-screen CTA and the top of the shelf. */
   contentGap: spacing.md,
 } as const;

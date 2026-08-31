@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oneiros icon review comparison</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f8f3ea;
+        --surface: #fffdf9;
+        --ink: #2d2430;
+        --muted: #6f6473;
+        --line: rgba(101, 68, 111, 0.22);
+        --before: #8b5a62;
+        --after: #526b5d;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: 920px;
+        padding: 28px 32px 34px;
+      }
+
+      h1 {
+        margin: 0 0 7px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 31px;
+        line-height: 1.12;
+      }
+
+      .note {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+
+      figure {
+        margin: 0;
+        padding: 13px 13px 15px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+      }
+
+      figcaption {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 11px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.075em;
+        text-transform: uppercase;
+      }
+
+      .marker {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .before { color: var(--before); }
+      .after { color: var(--after); }
+
+      img {
+        display: block;
+        width: 390px;
+        height: auto;
+        border-radius: 13px;
+        box-shadow: 0 4px 20px rgba(45, 36, 48, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1 id="title"></h1>
+      <p class="note" id="note"></p>
+      <section class="comparison" aria-label="Before and after comparison">
+        <figure>
+          <figcaption class="before"><span class="marker"></span>Before review correction</figcaption>
+          <img id="before" alt="Before review correction" />
+        </figure>
+        <figure>
+          <figcaption class="after"><span class="marker"></span>After review correction</figcaption>
+          <img id="after" alt="After review correction" />
+        </figure>
+      </section>
+    </main>
+    <script>
+      const baseBefore = '/design-exports/screenshots/icon-harmonization-2026-08-31/';
+      const baseAfter = '/design-exports/screenshots/icon-review-corrected-2026-08-31/';
+      const entries = {
+        journal: {
+          title: 'Journal navigation and Calendar',
+          note: 'Journal keeps the open-book concept with lighter organic pages and a quieter witness detail. Calendar returns to the original authored mark.',
+          file: 'journal.png',
+        },
+        microphone: {
+          title: 'Write screen and Microphone',
+          note: 'The generic heavy replacement is removed. The original Oneiros microphone returns with restrained optical sizing.',
+          file: 'write.png',
+        },
+        insights: {
+          title: 'Insights icon family',
+          note: 'The global purple recolour is removed. Original black-ink silhouettes are preserved; only restrained optical normalization remains.',
+          file: 'insights-full.png',
+        },
+      };
+
+      const key = new URLSearchParams(window.location.search).get('screen') || 'journal';
+      const entry = entries[key] || entries.journal;
+      document.title = `Oneiros — ${entry.title}`;
+      document.getElementById('title').textContent = entry.title;
+      document.getElementById('note').textContent = entry.note;
+      document.getElementById('before').src = baseBefore + entry.file;
+      document.getElementById('after').src = baseAfter + entry.file;
+    </script>
+  </body>
+</html>

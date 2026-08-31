@@ -3,12 +3,12 @@
     "family": {
       "display": {
         "$type": "fontFamily",
-        "$description": "Brand serif reserved for the Oneiros wordmark, splash title, and rare short poetic title.",
+        "$description": "Serif used for the Oneiros brand, dream titles, short inward voice, and emotionally important empty states.",
         "$value": "Cormorant Garamond"
       },
       "body": {
         "$type": "fontFamily",
-        "$description": "Primary UI, body, and reflection font restored from the pre-Alegreya app style.",
+        "$description": "Primary interface and sustained-reading font.",
         "$value": "Inter"
       }
     },
@@ -131,6 +131,16 @@
         "$description": "Expressive serif brand moment only.",
         "$value": "Cormorant Garamond SemiBold"
       },
+      "dream-title": {
+        "$type": "string",
+        "$description": "User-authored dream titles and short poetic dream voice.",
+        "$value": "Cormorant Garamond SemiBold"
+      },
+      "inner-voice": {
+        "$type": "string",
+        "$description": "Short reflective questions and emotionally important empty states.",
+        "$value": "Cormorant Garamond SemiBold"
+      },
       "ui": {
         "$type": "string",
         "$description": "Restrained sans for labels, navigation, inputs, buttons, and cards.",
@@ -138,8 +148,8 @@
       },
       "reflection": {
         "$type": "string",
-        "$description": "Long-form reflection and report text stays in the sans family with relaxed line-height.",
-        "$value": "Inter Regular"
+        "$description": "Short reflective voice uses serif; sustained interpretation and report passages remain Inter Regular with relaxed leading.",
+        "$value": "Cormorant Garamond SemiBold"
       }
     },
     "letter-spacing": {

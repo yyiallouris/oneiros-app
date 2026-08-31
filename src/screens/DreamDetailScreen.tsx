@@ -21,6 +21,12 @@ import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExportForeground, PrimaryIconButton } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
+import {
+  ChevronDownActionIcon as ChevronDownIcon,
+  CopyActionIcon as CopyIcon,
+  EditActionIcon as EditIcon,
+  SendActionIcon as SendIcon,
+} from '../components/icons/ActionIcons';
 import { PhasedTypingText } from '../components/ui/PhasedTypingText';
 import { VoiceRecordButton } from '../components/ui/VoiceRecordButton';
 import { VoiceComposerService } from '../services/voiceComposerService';
@@ -67,10 +73,6 @@ type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
 const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
 const METADATA_REFRESH_DELAYS_MS = [4000, 12000, 25000, 45000];
 const METADATA_REFRESH_TAIL_DELAY_MS = 60000;
-type IconProps = {
-  size?: number;
-  color?: string;
-};
 
 const SYMBOLIC_LAYERS_ANIMATION_MS = 280;
 
@@ -101,58 +103,6 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
   return paragraphs[0]?.replace(/^#+\s*/, '').trim() ?? '';
 };
 
-  // Edit icon
-  const EditIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-
-  // Send icon
-  const SendIcon = ({ size = 24, color = colors.buttonPrimary }: IconProps) => (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-
-  // Copy icon
-  const CopyIcon = ({ size = 20, color = colors.textSecondary }: IconProps) => (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </Svg>
-  );
-
-  const ChevronDownIcon = ({ size = 22, color = colors.textSecondary }: IconProps) => (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M6 9l6 6 6-6"
-        stroke={color}
-        strokeWidth={2.25}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-
   // Wave divider
   const WaveDivider: React.FC = () => (
     <View style={styles.waveDivider}>
@@ -162,7 +112,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
           stroke={colors.buttonPrimary}
           strokeWidth={1.5}
           fill="none"
-          opacity={0.3}
+          opacity={0.22}
         />
       </Svg>
     </View>
@@ -1426,9 +1376,14 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                     {dream.updatedAt > interpretation.updatedAt && 
                     dream.content !== interpretation.dreamContentAtCreation && (
                       <>
-                        <Text style={styles.updateNoticeText}>
-                          The dream has changed since this reflection was written.
-                        </Text>
+                        <View testID="reflection-update-notice" style={styles.updateNotice}>
+                          <Text style={styles.updateNoticeTitle}>
+                            This reflection belongs to an earlier version of the dream.
+                          </Text>
+                          <Text style={styles.updateNoticeText}>
+                            Update it to include your latest changes.
+                          </Text>
+                        </View>
                         {showOfflineMessage && (
                           <OfflineMessage
                             featureName="Jungian AI interpretation"
@@ -1450,7 +1405,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                   <SymbolicLayersAccordion model={displayModel} />
                   {showInterpretationPreview && (
                     <View style={styles.reflectionPreviewSection}>
-                      <Text style={styles.reflectionPreviewTitle}>Symbolic reflection</Text>
+                      <Text style={styles.reflectionPreviewTitle}>A deeper reading</Text>
                       <Text
                         style={styles.interpretationPreview}
                         textBreakStrategy="highQuality"
@@ -1505,6 +1460,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       activeOpacity={0.7}
                       accessibilityRole="button"
                       accessibilityLabel={continuationLabel}
+                      testID="continue-conversation-action"
                     >
                       <Text style={styles.continueConversationText}>{continuationLabel}</Text>
                     </TouchableOpacity>
@@ -1818,7 +1774,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     },
     title: {
       fontSize: typography.sizes.xl,
-      fontFamily: typography.medium,
+      fontFamily: typography.roles.dreamTitle,
       color: colors.textTitle,
       marginBottom: spacing.md,
     },
@@ -1828,7 +1784,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
     },
     waveDivider: {
-      marginVertical: spacing.lg,
+      marginTop: spacing.xl,
+      marginBottom: spacing.lg,
     },
     reflectionSection: {
       marginBottom: spacing.xl,
@@ -1841,7 +1798,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     reflectionTitle: {
       fontSize: typography.sizes.lg,
       fontFamily: typography.medium,
-      color: colors.textSecondary,
+      color: colors.textPrimary,
       marginBottom: spacing.md,
       zIndex: 1,
       position: 'relative',
@@ -1937,11 +1894,25 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       letterSpacing: 0.4,
       marginBottom: spacing.sm,
     },
+    updateNotice: {
+      marginTop: spacing.sm,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderLeftWidth: 2,
+      borderLeftColor: colors.contourLineSoft,
+      backgroundColor: colors.cardGlassSoft,
+    },
+    updateNoticeTitle: {
+      fontSize: typography.sizes.sm,
+      fontFamily: typography.medium,
+      color: colors.textPrimary,
+      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
+    },
     updateNoticeText: {
       fontSize: typography.sizes.sm,
       color: colors.textSecondary,
       lineHeight: typography.sizes.sm * typography.lineHeights.normal,
-      marginTop: spacing.sm,
+      marginTop: spacing.xs,
     },
     symbolicLayersPanel: {
       marginTop: 0,
@@ -1962,6 +1933,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     },
     symbolicLayersChevron: {
       marginLeft: spacing.md,
+      width: 44,
+      height: 44,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -2069,8 +2042,16 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     },
     continueConversationButton: {
       alignSelf: 'center',
-      paddingVertical: spacing.sm,
-      marginTop: spacing.xs,
+      width: '92%',
+      minHeight: 52,
+      paddingHorizontal: spacing.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.contourLine,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.cardGlassSoft,
+      marginTop: spacing.md,
     },
     continueConversationText: {
       fontSize: typography.sizes.md,

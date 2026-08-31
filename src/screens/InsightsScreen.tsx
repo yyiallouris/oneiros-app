@@ -16,7 +16,14 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
-import { borderRadius, colors, spacing, typography, text } from '../theme';
+import {
+  borderRadius,
+  colors,
+  spacing,
+  typography,
+  text,
+  resolveFloatingTabBarContentInset,
+} from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
@@ -338,7 +345,11 @@ const InsightsScreen: React.FC = () => {
       <View style={styles.container}>
         <PaperBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
         <DesignExportForeground fill>
-          <MysticHeader title="Insights" subtitle="Patterns rising into view." />
+          <MysticHeader
+            title="Insights"
+            subtitle="Patterns rising into view."
+            style={{ paddingTop: Math.max(spacing.xl, insets.top + spacing.sm) }}
+          />
           <View style={styles.loadingPlaceholder}>
             <LoadingState preset="loadSection" context="inline" />
           </View>
@@ -361,14 +372,18 @@ const InsightsScreen: React.FC = () => {
     <View style={styles.container}>
       <PaperBackground height={INSIGHTS_MOUNTAIN_HEIGHT} lite />
       <DesignExportForeground fill>
-        <MysticHeader title="Insights" subtitle="Patterns rising into view." />
+        <MysticHeader
+          title="Insights"
+          subtitle="Patterns rising into view."
+          style={{ paddingTop: Math.max(spacing.xl, insets.top + spacing.sm) }}
+        />
 
         <ScrollView
           ref={scrollRef}
           style={[styles.scroll, Platform.OS === 'web' && styles.webScroll]}
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: spacing.xxxl + insets.bottom + spacing.xxl },
+            { paddingBottom: resolveFloatingTabBarContentInset(insets.bottom) },
           ]}
           showsVerticalScrollIndicator={false}
           onScroll={handleScroll}

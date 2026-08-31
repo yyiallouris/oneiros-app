@@ -11,17 +11,18 @@ Quiet progress chrome (`OnboardingProgress`) shows step N of 5 on every screen.
 - **Language:** Insights language for Recent Dream Field and Period Reflection. Device language is preferred/preselected when supported; Continue persists via `patternInsightLanguageService`. No Skip for the same reason as Depth.
 - **Subscription:** explicit plan choice before security.
   - Free remains explicit: unlimited entries, 1 reflection every 7 days, and 5 follow-up replies on that free reflection.
-  - Premium offers monthly and yearly billing with 35 reflections, 10 Recent Dream Field reports, 1 monthly essay, and a 7-day free trial.
-  - Deeper offers monthly and yearly billing with 80 reflections, unlimited Recent Dream Field reports, weekly essays, and a 7-day free trial.
+  - Premium offers monthly and yearly billing with 35 symbolic reflections, 10 Recent Dream Field reports, 1 monthly period reflection, and a 7-day free trial.
+  - Deeper offers monthly and yearly billing with 80 symbolic reflections, unlimited Recent Dream Field reports, 1 period reflection each week, and a 7-day free trial.
   - Plan cards are presented in a horizontal carousel rather than a stacked comparison block, with Premium shown first and Free available by swiping left.
   - Yearly cards make the exact localized annual store total primary; calculated monthly equivalent and savings stay subordinate and appear only when the paired storefront prices are compatible.
   - The Yearly switch badge follows the visible paid card using current storefront prices and stays hidden when savings cannot be calculated safely.
   - The dot/line pagination indicator sits above the cards.
   - The monthly / yearly pricing switch is hidden whenever the free card is the active visible card.
   - Native purchase starts directly from the Premium or Deeper card, while `Continue with Free` proceeds directly.
-  - Paid choices remain disabled while store prices are loading or unavailable; the app never substitutes a purchasable hardcoded currency.
+  - Paid choices remain disabled while store prices are loading or unavailable; loading/error copy is secondary rather than a fake large price, and a shared `Prices couldn’t be loaded` notice offers `Try again`. The app never substitutes a purchasable hardcoded currency.
   - “Decide later in Subscription” remains the only deferral path on this step.
 - **Secure:** optional biometric app lock. Single primary CTA **Get started** completes onboarding (`setOnboardingCompleted` → `onComplete` → `MainTabs`). No duplicate Skip, because biometrics are already optional via the toggle.
+- Onboarding configuration, consent, security, subscription, and account headings use the shared sans system-title role. The initial welcome/name moment remains serif because it is the only step where Oneiros speaks as an inward invitation rather than presenting a setting.
 
 Persistence: `hasCompletedOnboarding` / `setOnboardingCompleted` in `onboardingService.ts` — keyed per **user id** in AsyncStorage.
 
@@ -40,10 +41,12 @@ Reachable from **Write** tab → menu → **Subscription & Billing** or from the
 - The dot/line pagination indicator sits above the cards.
 - Monthly / yearly switch appears only when a paid card (Premium or Deeper) is the active visible card.
 - Bottom action is contextual:
-  - active paid access → `Manage`
-  - free or lapsed → `Restore purchases`
+  - active or known lapsed paid tier → store-management action
+  - free/no-paid-status → `Restore purchases`
   - unsupported runtime (for example Expo Go) → helper message instead of broken native actions
 - Free, Premium, and Deeper cards use the same comparison carousel as onboarding, with Premium visible first by default.
+- Active, lapsed, and store-price states remain independent: `Your plan` never shares a card with `Recommended`; a lapsed tier shows `Premium access ended` plus renewal; a store lookup failure never changes entitlement wording.
+- The shared plan-card visual and feature terminology are identical across onboarding, the permanent Subscription screen, and premium upsell sheets; Deeper consistently names weekly period reflections rather than the retired “weekly essays” wording.
 
 ## Account screen (`Account`)
 

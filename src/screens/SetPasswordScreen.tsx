@@ -133,9 +133,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: typography.sizes.xxxl,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.bold,
+    fontSize: typography.sizes.xxl,
+    fontFamily: typography.roles.screenTitle,
     color: colors.textPrimary,
     zIndex: 1,
     marginTop: spacing.sm,

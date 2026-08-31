@@ -49,7 +49,11 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - Shows the full plan comparison without usage statistics or quota counters on the screen itself.
   - The introduction and carousel now sit directly on the page instead of inside an extra wrapper card, so only the actual plan cards read as cards.
   - Uses the same top-positioned dot/line pagination indicator as onboarding.
-  - Uses one contextual bottom action only: `Manage` for active paid access, `Restore purchases` for free/lapsed, or helper copy when native IAP is unavailable.
+  - Active paid access marks only the owned tier as `Your plan`; it never combines that state with `Recommended`, and exposes one non-purchase management action (`Manage in Google Play` on Android, `Manage subscription` elsewhere). Lapsed access keeps renewal primary and store management secondary.
+  - Plan cards are continuous tier-owned surfaces rather than visibly stacked top/bottom panels. Only the explicit CTA can purchase, renew, or manage; tapping or swiping the card body cannot start a store action. The Free plan communicates inclusion in copy instead of using a disabled status-shaped button.
+  - A known lapsed paid tier is presented separately as `Premium access ended`, keeps existing reflections readable, offers the matching renewal CTA, and retains the store-management path. It is never shown as a disabled current plan.
+  - Store price failure is an independent quiet system state: `Prices couldn’t be loaded.`, reassurance that the journal/existing reflections are unaffected, and `Try again`. It never replaces or re-labels entitlement status.
+  - Free clearly states that private journaling remains available. `Restore purchases` is reserved for the free/no-paid-status path; unsupported native runtimes show helper copy instead of broken actions.
 - **Account**
   - Profile/settings surface with only a compact subscription summary row that deep-links into `Subscription`.
 - **Write menu**
@@ -70,9 +74,17 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - Store-provided `displayPrice` is the source of truth for the amount charged. Numeric `price` + ISO currency are used only for optional monthly-equivalent and savings arithmetic; localized display strings are never parsed.
 - Product loading is fail-closed. Missing, partial, malformed, mismatched-currency, offline, or unsupported-runtime responses never fall back to a hardcoded purchasable EUR price.
 - A paid CTA is enabled only for the exact product returned by the current store. Missing SKUs show a checking/unavailable state; other successfully returned plans remain usable.
+- Loading/unavailable labels use secondary card typography rather than masquerading as a large product price. The shared retry state is used by Subscription, onboarding, and paywall surfaces.
 - For annual plans, the exact annual billing total is the primary price. Equivalent monthly cost and savings are subordinate and disappear safely if either paired price is missing, non-numeric, non-positive, or in another currency.
 - Google trial offers display the recurring renewal phase rather than a zero-cost introductory phase as the plan price.
 - Free-trial copy is shown only when the current store payload contains a free introductory phase; its duration comes from that offer metadata and remains qualified with eligibility. The native store sheet is authoritative for the offer and final charge.
+
+## Shared plan-card presentation
+
+- Free, Premium, and Deeper continue to use the shared `SubscriptionPlanCard` across onboarding, Subscription, and reusable paywalls, so density, badge, price, and feature-list fixes apply consistently.
+- Plan names do not repeat `Monthly` / `Yearly`; the shared billing selector and price cadence own that context.
+- Cards show the first four benefits initially and keep exact remaining entitlements behind `See all features`.
+- Premium retains its dusk-violet identity with a slightly lighter surface, higher secondary-text contrast, a smaller glyph area, and a more compact vertical rhythm. Free and Deeper retain their existing identities.
 
 ## Source of truth
 

@@ -8,22 +8,23 @@ All app type tokens live in **`src/theme/typography.ts`**. Oneiros uses the rest
 Brand serif + Inter UI sans
 ```
 
-The goal is to keep the Oneiros wordmark expressive while returning the app UI to the clearer Inter stack used before the Alegreya migration. In-product hierarchy should come mostly from size, weight, color, spacing, and line-height, not from switching fonts.
+The two families have semantic jobs rather than decorative ones. Cormorant marks dream material and the inward voice; Inter carries the interface and sustained reading. Hierarchy still comes primarily from size, weight, color, spacing, and line-height.
 
 ## Font Families
 
 | Role | Font | Token | Usage |
 |------|------|-------|-------|
-| Brand / logo / splash | Cormorant Garamond | `typography.display`, `typography.roles.brand` | Oneiros wordmark, splash title, rare short poetic title |
-| App UI | Inter | `typography.regular`, `medium`, `semibold`, `typography.roles.ui*` | Navigation, buttons, labels, inputs, cards, screen headings |
-| Emphatic titles | Cormorant Garamond | `typography.bold`, `typography.roles.uiStrong` | Legacy title emphasis, menu titles, sparse poetic headings |
-| Reflection text | Inter | `typography.roles.reflection` | Dream reflections, interpretation copy, reports, essays |
+| Brand | Cormorant Garamond | `typography.display`, `typography.roles.brand` | Oneiros wordmark and splash title |
+| Dream title / inner voice | Cormorant Garamond | `typography.roles.dreamTitle`, `innerVoice`, `reflection`, `poeticShortTitle` | User-authored dream titles, short reflective questions, emotionally important empty states |
+| App UI | Inter | `typography.roles.ui`, `uiEmphasis`, `uiStrong`, `screenTitle`, `navigationTitle`, `control`, `metadata` | Navigation, controls, settings, timestamps, search, utility labels and system/configuration headings |
+| Sustained reading | Inter | `typography.regular` with relaxed leading | Long dream entries, interpretations, reports and essays where reading comfort matters more than display voice |
 
 ## Rules
 
-- UI labels, controls, navigation titles, and section labels use sans.
-- Dream reflections and reports use Inter with relaxed line-height.
-- The expressive serif is for the logo/splash brand moment only, unless a short poetic title truly benefits from it.
+- UI labels, controls, metadata, navigation titles, settings and system/configuration headings use sans.
+- User-authored dream titles, the dream voice, short reflective prompts and emotionally important empty states use serif.
+- Long reflection/report prose stays Inter with relaxed line-height. Serif identifies the inward voice; it is not forced across long passages at the cost of readability.
+- Never use serif merely to make a generic screen feel poetic.
 - Keep app headings restrained. Avoid making every card title feel like a screen title.
 - Use two fonts max. Do not add Alegreya Sans, Satoshi, Avenir Next, IBM Plex Sans, Source Serif, or Literata unless the whole type system is intentionally migrated.
 
@@ -32,11 +33,12 @@ The goal is to keep the Oneiros wordmark expressive while returning the app UI t
 | Level | Recommended treatment | Examples |
 |-------|-----------------------|----------|
 | Brand | Serif, 34px, loose letter spacing | Loading splash `Oneiros` |
-| Screen title | Inter medium, 22px | Main in-app header title |
+| System/configuration title | Inter medium, 22–28px | Security, language, privacy, subscription |
 | Navigation title | Inter medium, 18px | Stack header title |
-| Card / section title | Inter medium, 18px or label-style 12-14px | Insights cards, dream detail sections |
+| Dream title / short inward voice | Cormorant SemiBold, 16–22px | Journal entries, dream detail, reflective question, poetic empty state |
+| Card / section title | Inter medium, 18px or label-style 12–14px | Insights cards, dream detail sections |
 | UI label | Inter medium, 12px uppercase when needed | Report block titles, metadata labels |
-| Body / reflection | Inter regular, 16px, relaxed line-height | Dream content, symbolic reflection |
+| Sustained reading | Inter regular, 16px, relaxed line-height | Dream content, symbolic interpretation and reports |
 
 ## Import
 

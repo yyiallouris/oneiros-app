@@ -13,6 +13,7 @@ import {
   ReturningImagesIcon,
   ThresholdsIcon,
 } from '../src/components/icons/InsightsIcons';
+import { iconography } from '../src/theme';
 
 describe('insights icons', () => {
   it('renders all active insights icons', () => {
@@ -43,6 +44,25 @@ describe('insights icons', () => {
     expect(EmotionalWeatherIcon).not.toBe(PatternRecognitionIcon);
   });
 
+  it('keeps full-screen Insights marks quiet enough to support an empty state', () => {
+    const source = fs.readFileSync('src/screens/InsightsSectionScreen.tsx', 'utf8');
+
+    expect(iconography.insights.sectionSize).toBe(88);
+    expect(source).toContain('const SECTION_ICON_SIZE = iconography.insights.sectionSize');
+    expect(source).not.toContain('const SECTION_ICON_SIZE = 112');
+  });
+
+  it('keeps Dream Places in the hand-ink PNG family at a quieter optical scale', () => {
+    const screen = render(<DreamPlacesIcon size={58} testID="icon-dream-places-ink" />);
+    const icon = screen.UNSAFE_getByType(Image);
+    const flattenedStyle = StyleSheet.flatten(icon.props.style);
+
+    expect(flattenedStyle.width).toBeGreaterThan(58);
+    expect(flattenedStyle.height).toBeGreaterThan(58);
+    expect(flattenedStyle.tintColor).toBeUndefined();
+    expect(flattenedStyle.opacity).toBeUndefined();
+  });
+
   it('crops the supplied transparent canvas to the requested visual size', () => {
     const { UNSAFE_getByType } = render(<ThresholdsIcon size={88} testID="icon-thresholds-sized" />);
     const icon = UNSAFE_getByType(Image);
@@ -59,8 +79,10 @@ describe('insights icons', () => {
 
     expect(source).toContain('oneiros_isnights_archetypes.png');
     expect(source).toContain('pattern_recognition_essay/oneiros_pattern_recognition_essay.png');
+    expect(source).toContain('oneiros_insight_dream_places_sheet_extract_rgba_900.png');
+    expect(source).toContain('opticalScale: 0.88');
+    expect(source).toContain('opticalScale: 0.92');
     expect(source).toContain('canvas: { width: 559, height: 591 }');
     expect(source).toContain('canvas: { width: 1024, height: 1024 }');
-    expect(source).not.toContain('visualScale:');
   });
 });
