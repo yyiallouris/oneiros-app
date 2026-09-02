@@ -28,7 +28,8 @@ export type {
   ContourKey,
 } from './colors';
 export { typography } from './typography';
-export { iconography } from './iconography';
+export { iconography, ONEIROS_V1_CALENDAR_ICON_RELEASE } from './iconography';
+export { ONEIROS_V1_DESIGN_RELEASE } from './designRelease';
 export { spacing, borderRadius } from './spacing';
 export {
   layout,

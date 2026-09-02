@@ -44,6 +44,19 @@ describe('insights icons', () => {
     expect(EmotionalWeatherIcon).not.toBe(PatternRecognitionIcon);
   });
 
+  it('renders Images from its dedicated half-lidded imaginal-eye raster', () => {
+    const screen = render(<ReturningImagesIcon size={88} testID="returning-images-imaginal-eye" />);
+    const icon = screen.UNSAFE_getByType(Image);
+    const flattenedStyle = StyleSheet.flatten(icon.props.style);
+
+    expect(flattenedStyle.width).toBeGreaterThan(88);
+    expect(flattenedStyle.height).toBeGreaterThan(88);
+    expect(flattenedStyle.left).toBeLessThan(0);
+    expect(flattenedStyle.top).toBeLessThan(0);
+    expect(flattenedStyle.tintColor).toBeUndefined();
+    expect(flattenedStyle.opacity).toBeUndefined();
+  });
+
   it('keeps full-screen Insights marks quiet enough to support an empty state', () => {
     const source = fs.readFileSync('src/screens/InsightsSectionScreen.tsx', 'utf8');
 
@@ -74,15 +87,17 @@ describe('insights icons', () => {
     expect(flattenedStyle.top).toBeLessThan(0);
   });
 
-  it('points archetypes and pattern recognition at the true transparent PNG assets', () => {
+  it('points archetypes and Period Reflection at the true transparent PNG assets', () => {
     const source = fs.readFileSync('src/components/icons/InsightsIcons.tsx', 'utf8');
 
     expect(source).toContain('oneiros_isnights_archetypes.png');
-    expect(source).toContain('pattern_recognition_essay/oneiros_pattern_recognition_essay.png');
+    expect(source).toContain('pattern_recognition_essay/oneiros_period_reflection_v2.png');
     expect(source).toContain('oneiros_insight_dream_places_sheet_extract_rgba_900.png');
+    expect(source).toContain('oneiros_insight_images_imaginal_eye_ink.png');
+    expect(source).not.toContain('oneiros_insight_returning_images_sheet_extract_rgba_900.png');
     expect(source).toContain('opticalScale: 0.88');
     expect(source).toContain('opticalScale: 0.92');
     expect(source).toContain('canvas: { width: 559, height: 591 }');
-    expect(source).toContain('canvas: { width: 1024, height: 1024 }');
+    expect(source).toContain('canvas: { width: 1024, height: 683 }');
   });
 });

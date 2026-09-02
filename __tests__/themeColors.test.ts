@@ -8,11 +8,15 @@ describe('theme color system', () => {
     expect(backgrounds.secondary).toBe('#F3ECE2');
     expect(backgrounds.tertiary).toBe('#FCF7F0');
     expect(backgrounds.splash).toBe('#F8F3EA');
-    expect(surfaces.nav).toBe('rgba(255, 253, 249, 0.86)');
+    expect(surfaces.nav).toBe('#FFFDF9');
+    expect(surfaces.conversationDock).toBe('rgba(255, 253, 249, 0.86)');
     expect(surfaces.navBorder).toBe('rgba(222, 211, 223, 0.35)');
-    expect(colors.navSurface).toBe('rgba(255, 253, 249, 0.86)');
+    expect(colors.navSurface).toBe('#FFFDF9');
+    expect(colors.conversationDockSurface).toBe('rgba(255, 253, 249, 0.86)');
     expect(colors.navBorder).toBe('rgba(222, 211, 223, 0.35)');
+    expect(colors.tabIconActive).toBe('#4B3158');
     expect(colors.tabIconInactive).toBe('#756A79');
+    expect(colors.symbolicInk).toBe('#000000');
   });
 
   it('uses PaperBackground across the active shell while keeping legacy wave exports available', () => {
@@ -47,20 +51,37 @@ describe('theme color system', () => {
     expect(uiIndexSource).toContain("export { LegacyMountainWaveBackground } from './MountainWaveBackground';");
   });
 
-  it('uses the paper tab shelf with authored PNGs plus the approved organic Journal drawing', () => {
+  it('uses the paper tab shelf with the harmonized feather, organic Journal, and dot-free Insights eye', () => {
     const tabsSource = fs.readFileSync(
       path.join(__dirname, '../src/navigation/MainTabsNavigator.tsx'),
       'utf8'
     );
+    const navigationIconsSource = fs.readFileSync(
+      path.join(__dirname, '../src/components/icons/NavigationIcons.tsx'),
+      'utf8'
+    );
+    const dreamDetailSource = fs.readFileSync(
+      path.join(__dirname, '../src/screens/DreamDetailScreen.tsx'),
+      'utf8'
+    );
 
     expect(tabsSource).toContain('backgroundColor: colors.navSurface');
+    expect(dreamDetailSource).toContain('backgroundColor: colors.conversationDockSurface');
+    expect(dreamDetailSource).not.toContain('backgroundColor: colors.navSurface');
     expect(tabsSource).toContain('borderColor: colors.navBorder');
-    expect(tabsSource).toContain("source={focused ? TAB_ICONS.Write.active : TAB_ICONS.Write.inactive}");
+    expect(tabsSource).toContain('<WriteTabIcon');
     expect(tabsSource).toContain('<JournalTabIcon');
-    expect(tabsSource).toContain("source={focused ? TAB_ICONS.Insights.active : TAB_ICONS.Insights.inactive}");
-    expect(tabsSource).toContain("require('../assets/icons/tab-icons/write_active.png')");
+    expect(tabsSource).toContain('<InsightsTabIcon');
+    expect(navigationIconsSource).toContain("require('../../assets/icons/tab-icons/write_nav_ink_v2.png')");
+    expect(navigationIconsSource).toContain('writePressureUnderlay');
+    expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/write_active.png')");
+    expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/write_inactive.png')");
     expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/journal_active.png')");
-    expect(tabsSource).toContain("require('../assets/icons/tab-icons/inighsts_active.png')");
+    expect(navigationIconsSource).toContain("require('../../assets/icons/tab-icons/insights_nav_eye_ink.png')");
+    expect(navigationIconsSource).toContain('top: 330');
+    expect(tabsSource).not.toContain('oneiros_insight_returning_images_sheet_extract_rgba_900.png');
+    expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/inighsts_active.png')");
+    expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/inisghts_inactive.png')");
     expect(tabsSource).not.toContain('LinearGradient');
     expect(tabsSource).not.toContain('write_tab.svg');
     expect(tabsSource).not.toContain('journal_tab.svg');

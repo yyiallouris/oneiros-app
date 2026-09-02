@@ -16,7 +16,9 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 | Deep Ink | `#2D2430` | `text.primary`, `text.title` |
 | Muted Ink | `#5E5263` | `text.secondary` |
 | Ghost Text | `#8C8290` | `text.muted` |
+| Active Tab Plum | `#4B3158` | `tabBar.iconActive` |
 | Muted Tab Ink | `#756A79` | `tabBar.iconInactive` |
+| Symbolic Black Ink | `#000000` | `iconInks.symbolic` |
 | Ritual Plum | `#65446F` | `text.accent` |
 | Night Plum | `#4B3158` | `accent.buttonPrimary` |
 | Soft Amethyst | `#A88BB2` | `accent.buttonPrimaryDisabled` |
@@ -40,17 +42,23 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 
 - `surfaces.glass`, `glassStrong`, `glassSoft` — cards, menus, chat
 - `surfaces.field` — inputs, loading panels, chips
-- `surfaces.nav`, `navBorder` — translucent parchment floating tab shelf (`86%` opaque / `14%` transparent) and its faint contour
+- `surfaces.nav`, `navBorder` — fully opaque warm parchment floating tab shelf (`#FFFDF9`) and its faint translucent contour
+- `surfaces.conversationDock` — the existing translucent parchment (`86%` opaque) retained for the Dream Detail conversation composer; it stays separate so nav-shelf experiments do not leak into reading/chat surfaces
 
 ### Text
 
 - `text.primary`, `secondary`, `muted`, `title`, `accent`
 - `text.white`, `onAccent`
+- Functional artwork such as the microphone paths and tintable calendar ink raster uses `text.secondary` (Muted Ink), preserving authored line/alpha variation without introducing asset-local colours.
 
 ### Tab navigation
 
-- `tabBar.iconActive` uses Deep Ink.
-- `tabBar.iconInactive` uses `#756A79`, muted enough to preserve hierarchy while retaining 4.5:1+ contrast against the parchment shelf for the 12dp labels. Inactive PNG glyphs also reduce opacity; no selection pill is used.
+- `tabBar.iconActive` uses Night Plum (`#4B3158`) so the selected tab receives a restrained colour infusion from the existing Oneiros action palette rather than a new decorative accent.
+- `tabBar.iconInactive` uses `#756A79`; inactive glyphs also reduce to `0.58` opacity while labels retain the token at full contrast. Active glyphs render at `0.98`. Hue, contrast, and label weight make state clear without a selection pill or badge.
+
+### Symbolic icons
+
+- `iconInks.symbolic` gives code-native Insights marks the same black-ink value as the authored symbolic PNG assets. It does not recolour navigation or functional controls.
 
 ### Primary actions
 

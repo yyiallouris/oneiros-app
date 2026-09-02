@@ -42,6 +42,10 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Design system
 
+- Final v1 design identity: `oneiros-design-v1.0.1`. The complete active
+  visual/UX source and asset baseline is fingerprinted and documented in
+  [`oneiros-v1-design-release.md`](./oneiros-v1-design-release.md).
+
 - Colors: `src/theme/colors.ts`; docs: `src/theme/COLORS.md`.
 - Typography: `src/theme/typography.ts`; docs: `src/theme/TYPOGRAPHY.md`.
 - Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `PaperBackground`, `WebContentShell`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.

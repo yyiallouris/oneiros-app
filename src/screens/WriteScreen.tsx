@@ -282,7 +282,7 @@ const WriteScreen: React.FC = () => {
             <TextInput
               ref={contentInputRef}
               style={[styles.contentInput, { minHeight: contentMinHeight, paddingBottom: contentInputBottomPadding }]}
-              placeholder="Write it as you remember it, without correcting."
+              placeholder="Write it as you remember it."
               placeholderTextColor={colors.textMuted}
               value={content}
               onChangeText={(text) => {

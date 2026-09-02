@@ -38,8 +38,13 @@ export const text = {
 } as const;
 
 export const tabBar = {
-  iconActive: '#2D2430',
+  iconActive: '#4B3158',
   iconInactive: '#756A79',
+} as const;
+
+/** Black-ink match for native marks that sit inside the authored Insights PNG family. */
+export const iconInks = {
+  symbolic: '#000000',
 } as const;
 
 export const accent = {
@@ -104,7 +109,8 @@ export const surfaces = {
   glassStrong: 'rgba(255, 253, 249, 0.88)',
   glassSoft: 'rgba(255, 253, 249, 0.58)',
   field: 'rgba(252, 247, 240, 0.94)',
-  nav: 'rgba(255, 253, 249, 0.86)',
+  nav: '#FFFDF9',
+  conversationDock: 'rgba(255, 253, 249, 0.86)',
   navBorder: 'rgba(222, 211, 223, 0.35)',
 } as const;
 
@@ -147,6 +153,7 @@ export const colors = {
   cardGlassSoft: surfaces.glassSoft,
   fieldSurface: surfaces.field,
   navSurface: surfaces.nav,
+  conversationDockSurface: surfaces.conversationDock,
   navBorder: surfaces.navBorder,
   contourLine: contours.line,
   contourLineSoft: contours.lineSoft,
@@ -161,6 +168,7 @@ export const colors = {
   onAccent: text.onAccent,
   tabIconActive: tabBar.iconActive,
   tabIconInactive: tabBar.iconInactive,
+  symbolicInk: iconInks.symbolic,
   accentOldGold: accent.oldGold,
   accentClayBrown: accent.clayBrown,
   buttonPrimary: accent.buttonPrimary,
@@ -193,3 +201,4 @@ export type ShadowKey = keyof typeof shadows;
 export type CalendarKey = keyof typeof calendar;
 export type SurfaceKey = keyof typeof surfaces;
 export type ContourKey = keyof typeof contours;
+export type IconInkKey = keyof typeof iconInks;

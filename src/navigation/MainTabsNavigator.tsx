@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ImageSourcePropType, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabsParamList } from './types';
@@ -8,48 +8,9 @@ import JournalScreen from '../screens/JournalScreen';
 import InsightsScreen from '../screens/InsightsScreen';
 import { colors, floatingTabBar, iconography, resolveFloatingTabBarBottom, typography } from '../theme';
 import { IS_DESIGN_EXPORT_BACKGROUND_ONLY } from '../designExport';
-import { JournalTabIcon } from '../components/icons/NavigationIcons';
+import { InsightsTabIcon, JournalTabIcon, WriteTabIcon } from '../components/icons/NavigationIcons';
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
-const TAB_ICONS = {
-  Write: {
-    active: require('../assets/icons/tab-icons/write_active.png'),
-    inactive: require('../assets/icons/tab-icons/write_inactive.png'),
-  },
-  Insights: {
-    active: require('../assets/icons/tab-icons/inighsts_active.png'),
-    inactive: require('../assets/icons/tab-icons/inisghts_inactive.png'),
-  },
-} satisfies Record<'Write' | 'Insights', { active: ImageSourcePropType; inactive: ImageSourcePropType }>;
-
-const TabPngIcon = ({
-  focused,
-  source,
-  testID,
-  size = iconography.navigation.insightsSize,
-  frameStyle,
-  imageStyle,
-}: {
-  focused: boolean;
-  source: ImageSourcePropType;
-  testID: string;
-  size?: number;
-  frameStyle?: object;
-  imageStyle?: object;
-}) => (
-  <View style={[styles.iconFrame, focused && styles.iconFrameFocused, frameStyle]}>
-    <Image
-      source={source}
-      style={[
-        { width: size, height: size },
-        imageStyle,
-        focused ? styles.iconImageActive : styles.iconImageInactive,
-      ]}
-      resizeMode="contain"
-      testID={testID}
-    />
-  </View>
-);
 
 const TabLabel = ({ focused, color, children }: { focused: boolean; color: string; children: string }) => (
   <Text
@@ -107,14 +68,12 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         component={WriteScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabPngIcon
-              focused={focused}
-              size={iconography.navigation.writeSize}
-              source={focused ? TAB_ICONS.Write.active : TAB_ICONS.Write.inactive}
-              testID={focused ? 'tab-icon-write-active' : 'tab-icon-write-inactive'}
-              frameStyle={styles.writeIconFrame}
-              imageStyle={styles.writeIconImage}
-            />
+            <View style={[styles.iconFrame, focused && styles.iconFrameFocused]}>
+              <WriteTabIcon
+                focused={focused}
+                testID={focused ? 'tab-icon-write-active' : 'tab-icon-write-inactive'}
+              />
+            </View>
           ),
         }}
       />
@@ -137,12 +96,12 @@ export const MainTabsNavigator: React.FC<MainTabsNavigatorProps> = ({ initialRou
         component={InsightsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <TabPngIcon
-              focused={focused}
-              size={iconography.navigation.insightsSize}
-              source={focused ? TAB_ICONS.Insights.active : TAB_ICONS.Insights.inactive}
-              testID={focused ? 'tab-icon-insights-active' : 'tab-icon-insights-inactive'}
-            />
+            <View style={[styles.iconFrame, focused && styles.iconFrameFocused]}>
+              <InsightsTabIcon
+                focused={focused}
+                testID={focused ? 'tab-icon-insights-active' : 'tab-icon-insights-inactive'}
+              />
+            </View>
           ),
         }}
       />
@@ -170,20 +129,6 @@ const styles = StyleSheet.create({
   },
   iconFrameFocused: {
     transform: [{ translateY: -1 }],
-  },
-  writeIconFrame: {
-    marginBottom: 3,
-  },
-  writeIconImage: {
-    transform: [{ translateX: 2 }],
-  },
-  iconImageActive: {
-    opacity: iconography.navigation.activeOpacity,
-    tintColor: iconography.ink.primary,
-  },
-  iconImageInactive: {
-    opacity: iconography.navigation.inactiveOpacity,
-    tintColor: iconography.ink.inactive,
   },
   tabLabel: {
     marginTop: 1,

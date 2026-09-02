@@ -2225,7 +2225,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     limitReachedContainer: {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
-      backgroundColor: colors.navSurface,
+      backgroundColor: colors.conversationDockSurface,
       borderTopWidth: 1,
       borderTopColor: colors.navBorder,
     },
@@ -2249,7 +2249,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       flexDirection: 'row',
       padding: spacing.md,
       paddingTop: spacing.lg,
-      backgroundColor: colors.navSurface,
+      backgroundColor: colors.conversationDockSurface,
       borderTopWidth: 1,
       borderTopColor: colors.navBorder,
       alignItems: 'flex-end',

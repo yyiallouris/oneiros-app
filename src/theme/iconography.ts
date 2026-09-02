@@ -1,6 +1,23 @@
 import { colors } from './colors';
 
 /**
+ * Immutable identity for the calendar artwork approved for Oneiros v1.
+ *
+ * Any visual edit requires a new release id, asset filename, and digest. This
+ * prevents a later iteration from silently replacing the approved artifact.
+ */
+export const ONEIROS_V1_CALENDAR_ICON_RELEASE = {
+  id: 'oneiros-calendar-date-leaf-v1.0.0',
+  designRelease: 'oneiros-design-v1.0.1',
+  status: 'final',
+  approvedOn: '2026-09-02',
+  assetFile: 'calendar_date_leaf_ink_v1.png',
+  assetSha256: '6f275899ec569cacf75b15c1d05ebbbbc0172ddcd18d042d4ccb66da34a038a8',
+  sourceCanvas: { width: 512, height: 512 },
+  opticalSize: 31,
+} as const;
+
+/**
  * Oneiros icon-system roles.
  *
  * The three subfamilies intentionally keep different density:
@@ -23,15 +40,17 @@ export const iconography = {
   navigation: {
     frameWidth: 60,
     frameHeight: 34,
-    writeSize: 40,
+    writeSize: 30,
     journalSize: 30,
-    insightsSize: 31,
-    activeOpacity: 0.96,
-    inactiveOpacity: 0.76,
+    insightsSize: 29,
+    activeInk: colors.tabIconActive,
+    inactiveInk: colors.tabIconInactive,
+    activeOpacity: 0.98,
+    inactiveOpacity: 0.58,
   },
   functional: {
-    microphoneSize: 29,
-    calendarSize: 30,
+    microphoneSize: 31,
+    calendarSize: 31,
     stopSize: 36,
   },
   insights: {

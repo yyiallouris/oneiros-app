@@ -73,7 +73,9 @@ const baseExpoConfig = {
     './plugins/withVoicePendingStoragePrivacy',
     'expo-iap',
   ],
-  extra: {},
+  extra: {
+    designRelease: 'oneiros-design-v1.0.1',
+  },
 };
 
 const env = process.env;

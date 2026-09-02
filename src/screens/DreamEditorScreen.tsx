@@ -188,7 +188,7 @@ const DreamEditorScreen: React.FC = () => {
           <TextInput
             ref={contentInputRef}
             style={styles.contentInput}
-            placeholder="Write it as you remember it, without correcting."
+            placeholder="Write it as you remember it."
             placeholderTextColor={colors.textMuted}
             value={content}
             onChangeText={setContent}

@@ -16,7 +16,6 @@ export { SocialAuthProviderRow } from './SocialAuthProviderRow';
 export { BreathingLine } from './BreathingLine';
 export { ThreadDrift } from './ThreadDrift';
 export { StarsAppearing } from './StarsAppearing';
-export { OracleGlyph } from './OracleGlyph';
 export { PrintPatchLoader } from './AbstractPrintTexture';
 export { LinoSkeletonCard } from './LinoSkeletonCard';
 export { DreamDetailSkeleton } from './DreamDetailSkeleton';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -33,7 +33,7 @@ jest.mock('@react-navigation/bottom-tabs', () => {
                 {child.props.options?.tabBarIcon?.({ focused, color: undefined, size: undefined })}
                 {screenOptions?.tabBarLabel?.({
                   focused,
-                  color: focused ? '#2D2430' : '#756A79',
+                  color: focused ? '#4B3158' : '#756A79',
                   children: name,
                 })}
               </View>
@@ -59,13 +59,37 @@ describe('MainTabsNavigator', () => {
     expect(screen.getByTestId('tab-label-write').props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ fontFamily: 'Inter_500Medium' })]),
     );
-    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-write-active').props.style)).toEqual(
-      expect.objectContaining({ width: 40, opacity: 0.96, tintColor: '#2D2430' }),
+    const writeFrame = screen.getByTestId('tab-icon-write-active');
+    expect(StyleSheet.flatten(writeFrame.props.style)).toEqual(
+      expect.objectContaining({ width: 28, height: 30, opacity: 0.98 }),
     );
+    const writeImages = writeFrame.findAllByType(Image).map((image) => StyleSheet.flatten(image.props.style));
+    expect(writeImages).toHaveLength(2);
+    expect(writeImages.every((image) => image.tintColor === '#4B3158')).toBe(true);
     expect(screen.getByTestId('tab-icon-journal-inactive').props.width).toBe(30);
-    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-inactive').props.style).opacity).toBe(0.76);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-insights-inactive').props.style)).toEqual(
+      expect.objectContaining({ width: 29, opacity: 0.58 }),
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-inactive').props.style).opacity).toBe(0.58);
     expect(StyleSheet.flatten(screen.getByTestId('tab-label-journal').props.style).color).toBe('#756A79');
     expect(screen.getByTestId('main-tabs-options').props.tabBarHideOnKeyboard).toBe(true);
+  });
+
+  it('uses the dot-free authored seeing crop and deep-plum state when Insights is active', () => {
+    const screen = render(<MainTabsNavigator initialRouteName="Insights" />);
+    const eyeFrame = screen.getByTestId('tab-icon-insights-active');
+    const eyeImage = eyeFrame.findByType(Image);
+
+    expect(StyleSheet.flatten(eyeFrame.props.style)).toEqual(
+      expect.objectContaining({ width: 29, opacity: 0.98 }),
+    );
+    expect(StyleSheet.flatten(eyeImage.props.style)).toEqual(
+      expect.objectContaining({ tintColor: '#4B3158', top: expect.any(Number) }),
+    );
+    expect(StyleSheet.flatten(eyeImage.props.style).top).toBeLessThan(-18);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-label-insights').props.style).color).toBe('#4B3158');
+    expect(screen.getByTestId('tab-icon-journal-inactive')).toBeTruthy();
+    expect(screen.getByTestId('tab-icon-write-inactive')).toBeTruthy();
   });
 
   it('uses the organic journal drawing when Journal is the initial tab', () => {
@@ -78,6 +102,6 @@ describe('MainTabsNavigator', () => {
       expect.arrayContaining([expect.objectContaining({ fontFamily: 'Inter_400Regular' })]),
     );
     expect(screen.getByTestId('tab-icon-journal-active').props.width).toBe(30);
-    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-active').props.style).opacity).toBe(0.96);
+    expect(StyleSheet.flatten(screen.getByTestId('tab-icon-journal-active').props.style).opacity).toBe(0.98);
   });
 });

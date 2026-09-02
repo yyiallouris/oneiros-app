@@ -35,8 +35,8 @@ const DEFAULT_ICON_CANVAS: IconCanvas = { width: 900, height: 900 };
 
 const ICON_SOURCES = {
   returningImages: {
-    source: require('../../assets/icons/insights_section_icons/oneiros_insight_returning_images_sheet_extract_rgba_900.png'),
-    bounds: { left: 198, top: 218, width: 504, height: 499 },
+    source: require('../../assets/icons/insights_section_icons/oneiros_insight_images_imaginal_eye_ink.png'),
+    bounds: { left: 258, top: 266, width: 432, height: 333 },
   },
   repeatingPatterns: {
     source: require('../../assets/icons/insights_section_icons/oneiros_insight_repeating_patterns_sheet_extract_rgba_900.png'),
@@ -68,9 +68,9 @@ const ICON_SOURCES = {
     opticalScale: 0.92,
   },
   patternRecognition: {
-    source: require('../../assets/icons/insights_section_icons/pattern_recognition_essay/oneiros_pattern_recognition_essay.png'),
-    bounds: { left: 144, top: 172, width: 720, height: 632 },
-    canvas: { width: 1024, height: 1024 },
+    source: require('../../assets/icons/insights_section_icons/pattern_recognition_essay/oneiros_period_reflection_v2.png'),
+    bounds: { left: 89, top: 136, width: 848, height: 386 },
+    canvas: { width: 1024, height: 683 },
   },
 } as const;
 

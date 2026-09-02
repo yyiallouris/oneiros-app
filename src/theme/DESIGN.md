@@ -2,6 +2,15 @@
 
 Centralized visual rules for Oneiros. **Do not add one-off colors or loading patterns in screens.**
 
+## Oneiros v1 release lock
+
+The complete current app design is final and frozen as
+`oneiros-design-v1.0.1`, approved on 2026-09-02. The immutable scope, source
+fingerprint, platform boundary and versioning rules are documented in
+[`../../documentation/oneiros-v1-design-release.md`](../../documentation/oneiros-v1-design-release.md).
+Any user-visible design change requires explicit product approval and a new
+design-release identity; do not silently overwrite the v1 baseline.
+
 ## Files
 
 | Layer | Source | Guide |
@@ -31,7 +40,7 @@ Import from `src/components/ui/`:
 3. **Responsive actions:** button labels should stay readable as whole words on narrow devices. Prefer single-line labels, and if side-by-side actions cannot fit cleanly, stack them vertically instead of letting words split awkwardly across lines.
 4. **Web layout:** Expo web keeps the mobile single-column UI. `WebContentShell` (mounted in `App.tsx`) centers a phone-scale column (`layout.contentMaxWidth` / tablet comfort width) on wide browsers. Prefer `useContentWidth()` over `Dimensions.get('window')` for horizontal pagers and size-bound chrome so they track the shell, not the full desktop viewport. Design-export phone-frame mode bypasses the shell.
 5. **Tab-screen CTAs:** the floating parchment nav is overlay chrome. Dock primary actions (Write **Save dream**) in the layout with `resolveFloatingTabBarContentInset` — never absolutely overlay them with platform-specific fudge offsets that can slip under the shelf on short web/iPhone/Android viewports.
-6. **Icons:** follow `ICONS.md`. Preserve existing concepts and silhouettes unless a specific redesign is approved; Journal is the current explicit exception. Judge harmonization in a common monochrome proof before product-state colour. Insights retains original black ink, microphone/calendar retain their original raster canvas, and code-native functional paths share rounded 1.7 strokes. Preserve at least a 44dp parent touch target.
+6. **Icons:** follow `ICONS.md`. Preserve existing concepts and silhouettes unless a specific redesign is approved. Judge harmonization in a common monochrome proof before product-state colour. The navigation branch shares pressure-led ink and authored asymmetry across the compact cropped raster feather, reinforced native open journal, and dot-free cropped seeing mark; active navigation uses the existing Night Plum palette token while inactive marks recede in Muted Tab Ink. Images uses its own half-lidded imaginal-eye raster: narrow unequal lids, a vertical organic presence, and one witness dot distinguish it from the fully open, round-pupil navigation eye while keeping both in one authored family. The remaining denser Insights artwork retains its authored black ink. Microphone/calendar form the pressure-led functional branch: microphone uses unequal rounded native strokes, while Calendar uses a tintable transparent raster built from irregular filled ink masses, dry breaks, and low-alpha filaments. The other code-native functional paths keep the quieter rounded 1.7 stroke. Preserve at least a 44dp parent touch target. Runtime code must never import artwork from an `assets/legacy` directory.
 7. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
 8. **Background:** `PaperBackground` + `BG_paper.png` — no new global gradients or waves on active screens.
 9. **Legacy:** `LegacyWaveBackground` / `LegacyMountainWaveBackground` are reference-only; not for new screens.
