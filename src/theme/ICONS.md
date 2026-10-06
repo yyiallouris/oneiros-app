@@ -27,7 +27,7 @@ Microphone and calendar share a 31dp frame and `iconography.ink.secondary` (Mute
 
 ### Oneiros v1 icon artifact lock
 
-The whole application is frozen under `oneiros-design-v1.0.1`; Calendar is one exact artifact inside that release. Its artifact identity is `oneiros-calendar-date-leaf-v1.0.0`, approved on 2026-09-02. The runtime file is `action_icons/calendar_date_leaf_ink_v1.png`: a 512 × 512 transparent source rendered at a 31dp optical size, with SHA-256 `6f275899ec569cacf75b15c1d05ebbbbc0172ddcd18d042d4ccb66da34a038a8`. The same identity is exported by `ONEIROS_V1_CALENDAR_ICON_RELEASE` and enforced by the icon ownership contract test.
+The whole application is frozen under `oneiros-design-v1.0.2`; Calendar is one exact artifact inside that release. Its artifact identity is `oneiros-calendar-date-leaf-v1.0.0`, approved on 2026-09-02. The runtime file is `action_icons/calendar_date_leaf_ink_v1.png`: a 512 × 512 transparent source rendered at a 31dp optical size, with SHA-256 `6f275899ec569cacf75b15c1d05ebbbbc0172ddcd18d042d4ccb66da34a038a8`. The same identity is exported by `ONEIROS_V1_CALENDAR_ICON_RELEASE` and enforced by the icon ownership contract test.
 
 Do not overwrite this file when refining the design. Any change to silhouette, crop, ink texture, alpha field, optical size, or state treatment requires explicit product approval plus a new release id, filename, digest, documentation entry, and contract expectation.
 

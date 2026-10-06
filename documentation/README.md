@@ -1,7 +1,7 @@
 # User & system flows (Oneiros)
 
 **Final v1 design:** the complete current application is frozen as
-`oneiros-design-v1.0.1`. Release scope, fingerprint and change boundary:
+`oneiros-design-v1.0.2`. Release scope, fingerprint and change boundary:
 [`oneiros-v1-design-release.md`](./oneiros-v1-design-release.md).
 
 **V1 language boundary:** app-owned navigation, shared buttons, structural
@@ -85,6 +85,10 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 
 ## AI agent onboarding
 
-Repo-local skill: [`../.codex/skills/oneiros-repo/SKILL.md`](../.codex/skills/oneiros-repo/SKILL.md).
+Repo-local skills:
+
+- [`../.codex/skills/oneiros-repo/SKILL.md`](../.codex/skills/oneiros-repo/SKILL.md) for repository workflow, architecture, tests, docs, and deploy obligations.
+- [`../.codex/skills/oneiros-browser-ux-qa/SKILL.md`](../.codex/skills/oneiros-browser-ux-qa/SKILL.md) for evidence-backed UX audits through a real browser.
+- [`../.codex/skills/oneiros-visual-qa/SKILL.md`](../.codex/skills/oneiros-visual-qa/SKILL.md) for screenshot-level visual review and Oneiros composition guardrails.
 
 Before changing behavior, future agents should read `AGENTS.md`, this index, and the architecture map that matches the task. UI work should also check [`../src/theme/COLORS.md`](../src/theme/COLORS.md) and [`../src/theme/TYPOGRAPHY.md`](../src/theme/TYPOGRAPHY.md).

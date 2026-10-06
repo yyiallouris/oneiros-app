@@ -3,6 +3,7 @@
 Canonical delivery path for both Oneiros support surfaces:
 
 - signed-in `ContactScreen` requests;
+- signed-in AI-response reports containing only a sanitized private reference, selected reason, and optional user note (no automatic dream/output attachment);
 - signed-out `LoginSupportScreen` requests;
 - the public `oneirosjournal.com/support` form through the same-origin Vercel `/api/support` proxy.
 

@@ -8,7 +8,7 @@ import { colors } from './colors';
  */
 export const ONEIROS_V1_CALENDAR_ICON_RELEASE = {
   id: 'oneiros-calendar-date-leaf-v1.0.0',
-  designRelease: 'oneiros-design-v1.0.1',
+  designRelease: 'oneiros-design-v1.0.2',
   status: 'final',
   approvedOn: '2026-09-02',
   assetFile: 'calendar_date_leaf_ink_v1.png',

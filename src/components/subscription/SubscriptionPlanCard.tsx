@@ -4,6 +4,7 @@ import { Card } from '../ui';
 import { borderRadius, colors, spacing, subscriptionButtons, subscriptionCards, text, typography } from '../../theme';
 import type { SubscriptionFeatureRow } from '../../types/subscription';
 import type { PlanTier } from '../../billing/types';
+import { SubscriptionPurchaseDisclosure } from './SubscriptionPurchaseDisclosure';
 
 type Props = {
   title: string;
@@ -172,6 +173,15 @@ export const SubscriptionPlanCard: React.FC<Props> = ({
           ) : null}
 
           {!!note && <Text style={[styles.note, cardTextSecondary]}>{note}</Text>}
+
+          {(isPremium || isDeeper) && priceState === 'available' ? (
+            <SubscriptionPurchaseDisclosure
+              price={price}
+              priceDetail={priceDetail}
+              trialLabel={trialLabel}
+              variant={isPremium ? 'premium' : 'deeper'}
+            />
+          ) : null}
 
           {shouldHideAction ? null : isPremium ? (
             <Pressable

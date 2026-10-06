@@ -4,6 +4,14 @@
 
 Primary UX is **`DreamDetailScreen`** (embedded reflection + chat). The stack also registers **`InterpretationChat`** with the same conceptual flow, but **no in-app `navigation.navigate('InterpretationChat')` call** was found in the repo — treat it as a **maintained alternate route** (e.g. future linking or tests).
 
+## Generative safety and in-app reporting
+
+- Every completed assistant response in `DreamDetailScreen` and the maintained `InterpretationChatScreen` route exposes a quiet `Report this response` action. Live streaming/typing is untouched; the action appears only after completion.
+- The report route sends a bounded private reference, surface name, selected reason, and optional user note through the existing `support-request` path. It never automatically attaches dream text, chat text, prompts, or generated output.
+- The free-form follow-up entrypoint applies the shared narrow `generativeSafety` guard on both client and `ai-entitlements-gateway`, before quota reservation or provider invocation. It blocks explicit harmful-instruction, exploitation, and explicit-sexual generation requests while leaving difficult dream narratives and ordinary reflective questions available.
+- Provider model safety remains the broader output boundary. The deterministic guard is intentionally not run against stored dream narratives by keyword, because difficult dream imagery is not itself a request to generate prohibited content.
+- This compliance layer changes neither approved prompt bytes nor the locked same-call question, partial-reveal, streaming, or `PhasedTypingText` contracts.
+
 ## Settings that affect AI output
 
 - **Interpretation depth** and **Mythic Resonance** from `userSettingsService` (Account screen).

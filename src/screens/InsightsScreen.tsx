@@ -25,6 +25,7 @@ import {
   resolveFloatingTabBarContentInset,
 } from '../theme';
 import { PaperBackground, MysticHeader, Card, Button, DesignExportForeground, LoadingState } from '../components/ui';
+import { AiContentReportButton } from '../components/ui/AiContentReportButton';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ArchetypalEnergiesIcon,
@@ -485,6 +486,14 @@ const InsightsScreen: React.FC = () => {
                     <Text style={styles.recentReportBody} selectable>{section.body}</Text>
                   </View>
                 ))}
+                <AiContentReportButton
+                  onPress={() => navigation.navigate('Contact', {
+                    aiReport: {
+                      surface: 'recent_dream_field',
+                      referenceId: `${recentCount}:${recentCachedAt ?? 'current'}`,
+                    },
+                  })}
+                />
               </View>
             )}
           </Card>

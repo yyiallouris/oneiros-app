@@ -5,7 +5,7 @@ Centralized visual rules for Oneiros. **Do not add one-off colors or loading pat
 ## Oneiros v1 release lock
 
 The complete current app design is final and frozen as
-`oneiros-design-v1.0.1`, approved on 2026-09-02. The immutable scope, source
+`oneiros-design-v1.0.2`, approved on 2026-09-02. The immutable scope, source
 fingerprint, platform boundary and versioning rules are documented in
 [`../../documentation/oneiros-v1-design-release.md`](../../documentation/oneiros-v1-design-release.md).
 Any user-visible design change requires explicit product approval and a new

@@ -2,7 +2,7 @@
 
 **Decision:** FINAL / FROZEN FOR ONEIROS V1
 
-**Release id:** `oneiros-design-v1.0.1`
+**Release id:** `oneiros-design-v1.0.2`
 
 **Approved:** 2026-09-02
 
@@ -23,14 +23,14 @@ floating navigation, and the current hierarchy, spacing and motion contracts.
 
 ## Immutable identity
 
-Runtime metadata and theme code expose `oneiros-design-v1.0.1`. A deterministic
+Runtime metadata and theme code expose `oneiros-design-v1.0.2`. A deterministic
 SHA-256 fingerprint binds that identity to the active application shell,
 screens, navigation, layout, theme, shared components, backgrounds, branding
 and runtime icon assets. Paths and bytes are hashed in sorted order; legacy
 assets and the release declaration itself are excluded.
 
 **Source fingerprint:**
-`32b209c5f78c75b5b392164795320643e8f4a4e5124038d04e2c0dd58c75acc5`
+`844ad6349dd39a928c2a8308739f4f2ab2329a8b5e2915f4edb4ecfcb7923dca`
 
 The fingerprint is a change detector, not a claim that every source file has
 the same visual role. It ensures a later user-visible edit cannot silently keep
@@ -70,6 +70,10 @@ longer matches the final-v1 baseline.
 
 ## Release history
 
+- `oneiros-design-v1.0.2` — approved store-compliance refinement: discreet AI
+  report actions, quiet paid-plan purchase disclosures, and contextual account-
+  deletion subscription messaging. Core paper atmosphere, navigation, layout,
+  reflection streaming, motion, iconography, and typography remain unchanged.
 - `oneiros-design-v1.0.1` — approved copy patch: both dream-entry surfaces use
   exact **“Write it as you remember it.”**; no visual geometry or behavior
   changed.

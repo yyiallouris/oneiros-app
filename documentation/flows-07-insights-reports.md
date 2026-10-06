@@ -9,14 +9,14 @@
 ### Main structure and navigation
 
 - **Legacy hidden:** the old Dream Field Overview summary block is kept behind a legacy gate in `InsightsScreen` and is no longer part of the active Insights layout.
-- **Recent Dream Field:** living reflection on the latest interpreted dreams; paid users default to Last 3 and can switch between Last 2 / Last 3 / Last 5; uses the global Insights language selected in Account; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections.
+- **Recent Dream Field:** living reflection on the latest interpreted dreams; paid users default to Last 3 and can switch between Last 2 / Last 3 / Last 5; uses the global Insights language selected in Account; cached locally by exact dream-id sequence + language; not saved to the monthly archive and not shown in Past reflections. A completed report includes the quiet `Report this response` route, sending only its scope/cache reference and selected reason automatically.
   - Free users see this as a deactivated but tappable Premium surface.
   - Free users do not see a preselected recent-scope chip; the scope options stay faded/unselected until Premium unlocks them, while the scope label keeps the same copy as paid but in a muted style.
   - In the free locked state, the CTA is inline clickable text (`Unlock Premium`) rather than a filled button, matching the nearby Period Reflection pattern.
   - The top-right uppercase Premium tag is not shown in the free locked state.
   - Locked taps open a premium-only upsell card rather than a full free-vs-premium compare view.
   - The inline “recent field is forming” helper box is not shown anymore when the current scope is still too light.
-- **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports.
+- **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports. Each displayed generated essay includes `Report this response`, keyed to the report period without automatically attaching essay or dream text.
   - Free users see a locked paid-plan card with tappable upsell behavior rather than a dead end.
 - **Insights categories:** the landing page no longer places every insight tile under a single `Forming Patterns` umbrella. It now groups the category entry points into:
   - `Dream Fabric`: Images, Motifs, Emotional Atmosphere, Dream Landscapes

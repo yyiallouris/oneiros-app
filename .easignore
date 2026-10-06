@@ -1,0 +1,56 @@
+# Keep the EAS source snapshot focused on files needed to build the mobile app.
+# Unlike .gitignore, store-submission and design review artifacts remain
+# trackable in git but must never be uploaded as part of a production build.
+
+# Dependencies and generated Expo/native output
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+/ios/
+/android/
+.kotlin/
+*.orig.*
+*.tsbuildinfo
+
+# Credentials and local environment
+.env
+.env*.local
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+
+# Logs, editor and operating-system output
+.git
+.git/
+.githooks/
+.cursor/
+.venv-assets/
+.vscode/
+.DS_Store
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tmp
+
+# Non-runtime review, test, research and store-delivery artifacts
+.agents/
+.codex/
+__tests__/
+coverage/
+design-exports/
+docs/
+documentation/
+e2e/
+site/
+store-submission/
+testing/
+tmp/
+
+# Keep __mocks__/ in the archive: metro.config.js resolves production
+# react-native-reanimated imports to the two runtime-compatible stubs there.

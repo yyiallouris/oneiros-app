@@ -14,7 +14,7 @@ This is the practical map for agents changing Oneiros. Use it to find the right 
 | Orchestration | `src/services/storageService.ts`, `src/services/syncService.ts`, `src/services/userService.ts` | Offline-first reads/writes, user isolation, sync, merge |
 | Remote data | `src/services/remoteStorage.ts`, `src/services/supabaseClient.ts` | Supabase tables, RLS-backed CRUD, user settings, pattern reports, and the new billing / quota domain |
 | AI | `src/ai/dreamReflectionPrompt.ts`, `src/ai/reflectiveQuestionExtract.ts`, `src/ai/reflectiveContractObservation.ts`, `src/ai/reflectiveEssayPrompt.ts`, `src/ai/reflectiveLanguage.ts`, `src/services/ai.ts`, `src/services/dreamMetadataPrefetchService.ts` | Canonical reflective release `v1.0.3` aliases immutable approved Reader artifact `oneiros-dream-reflection-v3.2.3-candidate` and question artifact SHA `f5399a49…`; chat `oneiros-followup-chat-v2.0.1`; runtime bundle `oneiros-reflective-questions-runtime-v1.0.3+structure-v1.0.0`; archived failed v1.0.2 and held/denied Q2-only v1.0.4 (`a4f972c…`) plus final v1.0.5 (`16da1d13…`) remain offline evidence, with Q2 prompt R&D stopped; versioned completed-output heading normalization plus deterministic fail-open post-completion shadow validation/extraction and 12-language routing; extraction, grouping, pattern essays |
-| Edge Functions | `supabase/functions/*` | OpenAI proxy, account deletion, support, contact email, bounded/authenticated transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
+| Edge Functions | `supabase/functions/*` | OpenAI proxy, Apple revocation-token custody, revocation-aware account deletion, support/contact delivery, bounded authenticated transcription, billing verification, store webhooks, subscription status, and AI entitlement gating |
 
 ## Navigation contract
 
@@ -42,7 +42,7 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Design system
 
-- Final v1 design identity: `oneiros-design-v1.0.1`. The complete active
+- Final v1 design identity: `oneiros-design-v1.0.2`. The complete active
   visual/UX source and asset baseline is fingerprinted and documented in
   [`oneiros-v1-design-release.md`](./oneiros-v1-design-release.md).
 
@@ -60,6 +60,8 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 - Schema changes require a migration under `supabase/migrations/`, README updates, and a final `supabase db push` note.
 - Edge Function behavior changes require the relevant `supabase/functions/<name>/README.md` update and a final deploy command note.
 - AI provider/model routing lives in `supabase/functions/openai-proxy/task-config.ts`; after changing it, deploy `openai-proxy`.
+- Generative-report metadata lives in `aiContentReport.ts`; free-form follow-up safety lives in `generativeSafety.ts` and is enforced on client plus gateway without changing approved prompt bytes.
+- Sign in with Apple revocation credentials are service-role-only in `apple_auth_tokens`; `apple-auth-token` exchanges authorization codes and `delete-account` revokes before destructive deletion.
 
 ## Change impact guide
 

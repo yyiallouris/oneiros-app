@@ -57,6 +57,10 @@ import {
   reconstructCommittedFollowupReplay,
   type PersistedFollowupMessage,
 } from '../_shared/followup-replay.ts';
+import {
+  AI_SAFETY_BLOCK_MESSAGE,
+  getGenerativeSafetyBlockReason,
+} from '../../../src/ai/generativeSafety.ts';
 
 type GatewayBody = {
   action: GatewayAction;
@@ -1096,6 +1100,13 @@ serve(async (req: Request) => {
     if (body.action === 'dream_followup_reply') {
       if (!body.interpretationId || !body.message?.trim()) {
         throw new HttpError(400, 'interpretationId and message are required');
+      }
+      const safetyBlockReason = getGenerativeSafetyBlockReason(body.message);
+      if (safetyBlockReason) {
+        throw new HttpError(400, AI_SAFETY_BLOCK_MESSAGE, {
+          failureCode: 'ai_safety_blocked',
+          safetyBlockReason,
+        });
       }
 
       const interpretation = await getInterpretationById(admin, userId, body.interpretationId);

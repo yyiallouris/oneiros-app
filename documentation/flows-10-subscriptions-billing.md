@@ -56,6 +56,7 @@ This document describes the subscription, entitlement, quota, and mobile paywall
   - Free clearly states that private journaling remains available. `Restore purchases` is reserved for the free/no-paid-status path; unsupported native runtimes show helper copy instead of broken actions.
 - **Account**
   - Profile/settings surface with only a compact subscription summary row that deep-links into `Subscription`.
+  - Active subscribers are warned that account deletion does not cancel store billing, and receive both store-management and immediate-deletion choices.
 - **Write menu**
   - Includes a dedicated **Subscription & Billing** entry that routes into `Subscription`.
 - **Premium taps**
@@ -66,6 +67,9 @@ This document describes the subscription, entitlement, quota, and mobile paywall
 - **Native runtime requirement**
   - Restore / manage subscription actions require a development build or store build.
   - Expo Go / unsupported runtimes show explanatory helper copy instead of broken native IAP actions.
+- **Purchase disclosure**
+  - Every available paid card renders a compact disclosure immediately before its CTA across onboarding, Subscription, and reusable paywalls.
+  - It states the exact visible store price/cadence, automatic renewal, store-account charge, cancellation route, trial-to-paid conversion when an eligible trial is present, the Free alternative, and direct Privacy Policy / Terms of Use links.
 
 ## Storefront pricing contract
 

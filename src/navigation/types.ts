@@ -1,5 +1,6 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 import type { InsightsSectionId } from '../types/insights';
+import type { AiReportContext } from '../services/aiContentReport';
 
 export type OnboardingStackParamList = {
   OnboardingName: undefined;
@@ -22,7 +23,7 @@ export type RootStackParamList = {
   DreamDetail: { dreamId: string };
   Account: undefined;
   Subscription: undefined;
-  Contact: { initialSubject?: string; initialMessage?: string } | undefined;
+  Contact: { initialSubject?: string; initialMessage?: string; aiReport?: AiReportContext } | undefined;
   Privacy: undefined;
   Calendar: { initialDate?: string } | undefined;
   InsightsSection: {

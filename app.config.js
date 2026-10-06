@@ -17,7 +17,7 @@ const baseExpoConfig = {
     supportsTablet: false,
     bundleIdentifier: 'com.oneirosdreamjournal.app',
     icon: './assets/branding/icon-ios.png',
-    buildNumber: '4',
+    buildNumber: '6',
     usesAppleSignIn: true,
   },
   android: {
@@ -30,13 +30,28 @@ const baseExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: 'com.oneirosdreamjournal.app',
-    versionCode: 4,
+    versionCode: 6,
+    // These optional template permissions are not required by Oneiros. Keep
+    // the store binary free of overlay and legacy shared-storage access.
+    blockedPermissions: [
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
+    ],
   },
   scheme: 'oneiros-dream-journal',
   web: {
     favicon: './assets/favicon.png',
   },
   plugins: [
+    [
+      'expo-dev-client',
+      {
+        // Keep the generated `exp+` launcher scheme only in a dedicated
+        // development build, never in preview or production artifacts.
+        addGeneratedScheme: process.env.EAS_BUILD_PROFILE === 'development',
+      },
+    ],
     'expo-asset',
     'expo-font',
     'expo-web-browser',
@@ -72,9 +87,12 @@ const baseExpoConfig = {
     ],
     './plugins/withVoicePendingStoragePrivacy',
     'expo-iap',
+    // Must run last so release artifacts cannot retain generated Expo launcher
+    // schemes or development-only Android activities added by other plugins.
+    './plugins/withProductionStoreHardening',
   ],
   extra: {
-    designRelease: 'oneiros-design-v1.0.1',
+    designRelease: 'oneiros-design-v1.0.2',
   },
 };
 

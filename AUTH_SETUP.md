@@ -41,6 +41,15 @@ The app uses **PKCE** for Google/Discord (`exchangeCodeForSession` on `?code=`).
 
 The iOS Apple button uses native Apple credentials and sends the Apple identity token to Supabase with `signInWithIdToken`, so it still requires the Apple provider to be enabled in Supabase even though it does not open the browser OAuth flow.
 
+For App Store account-deletion compliance, the app also sends Apple's short-lived authorization code to the authenticated `apple-auth-token` Edge Function. Configure a Sign in with Apple key with these Supabase secrets (the key can be distinct from the App Store Connect API key):
+
+- `APPLE_SIGN_IN_TEAM_ID`
+- `APPLE_SIGN_IN_KEY_ID`
+- `APPLE_SIGN_IN_PRIVATE_KEY`
+- `APPLE_SIGN_IN_CLIENT_ID` (`com.oneirosdreamjournal.app` for the native iOS flow; the function falls back to `APPLE_BUNDLE_ID`)
+
+Apply `supabase/migrations/20260902120000_create_apple_auth_tokens.sql`, then deploy `apple-auth-token` and `delete-account`. The refresh token is server-only and is used solely to call Apple's revoke endpoint before account deletion. An iOS deletion also requests fresh Apple authorization; the stored token covers later deletion from another platform.
+
 ### 4. (Optional) Show the 6-digit code in the confirmation email
 
 By default, the “Confirm signup” email only contains a link. To also show the 6-digit OTP so users can type it in the app:

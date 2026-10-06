@@ -1,0 +1,4 @@
+interface:
+  display_name: "Oneiros Browser UX QA"
+  short_description: "Audit Oneiros journeys in a real browser"
+  default_prompt: "Use $oneiros-browser-ux-qa to audit this Oneiros flow in a browser and report evidence-backed UX findings."

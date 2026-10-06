@@ -1,4 +1,9 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import {
+  decodeAppleIdTokenSubject,
+  exchangeAppleAuthorizationCode,
+  revokeAppleToken,
+} from "../_shared/apple-sign-in.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -15,7 +20,14 @@ const USER_TABLES = [
   "interpretations",
   "dreams",
   "contact_messages",
+  "apple_auth_tokens",
 ];
+
+type ResolvedUser = {
+  id?: string;
+  app_metadata?: { provider?: string; providers?: string[] };
+  identities?: Array<{ provider?: string; identity_data?: { sub?: string }; identity_id?: string }>;
+};
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -49,10 +61,26 @@ serve(async (req: Request) => {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    const user = await userResp.json() as { id?: string };
+    const user = await userResp.json() as ResolvedUser;
     const userId = user.id;
     if (!userId) {
       return json({ error: "Unauthorized" }, 401);
+    }
+
+    const requestBody = await readOptionalBody(req);
+    const appleAuthorizationCode = typeof requestBody.appleAuthorizationCode === "string"
+      ? requestBody.appleAuthorizationCode.trim()
+      : "";
+    const appleSubject = getAppleSubject(user);
+    if (appleSubject) {
+      const revoked = await revokeAppleAuthorization({
+        userId,
+        appleSubject,
+        authorizationCode: appleAuthorizationCode,
+      });
+      if (!revoked) {
+        return json({ error: "Apple reauthentication is required before deletion", code: "apple_reauthentication_required" }, 409);
+      }
     }
 
     const failedTables: string[] = [];
@@ -85,6 +113,62 @@ serve(async (req: Request) => {
     return json({ error: "Something went wrong" }, 500);
   }
 });
+
+async function readOptionalBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const text = await req.text();
+    return text ? JSON.parse(text) as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+function getAppleSubject(user: ResolvedUser): string | null {
+  const identity = user.identities?.find((item) => item.provider === "apple");
+  return identity?.identity_data?.sub ?? identity?.identity_id ?? null;
+}
+
+async function revokeAppleAuthorization(input: {
+  userId: string;
+  appleSubject: string;
+  authorizationCode: string;
+}): Promise<boolean> {
+  try {
+    let refreshToken = "";
+    if (input.authorizationCode) {
+      const tokens = await exchangeAppleAuthorizationCode(input.authorizationCode);
+      const tokenSubject = decodeAppleIdTokenSubject(tokens.id_token);
+      if (!tokens.refresh_token || tokenSubject !== input.appleSubject) {
+        console.error("[delete-account] Apple identity verification failed", { userId: input.userId });
+        return false;
+      }
+      refreshToken = tokens.refresh_token;
+    } else {
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/apple_auth_tokens?user_id=eq.${encodeURIComponent(input.userId)}&select=refresh_token&limit=1`,
+        {
+          headers: {
+            apikey: SERVICE_ROLE_KEY,
+            authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+          },
+        },
+      );
+      if (!response.ok) return false;
+      const rows = await response.json() as Array<{ refresh_token?: string }>;
+      refreshToken = rows[0]?.refresh_token ?? "";
+    }
+    if (!refreshToken) return false;
+    await revokeAppleToken(refreshToken);
+    console.log("[delete-account] Apple authorization revoked", { userId: input.userId });
+    return true;
+  } catch (error) {
+    console.error("[delete-account] Apple revocation failed", {
+      userId: input.userId,
+      name: error instanceof Error ? error.name : "unknown",
+    });
+    return false;
+  }
+}
 
 async function deleteRows(table: string, userId: string): Promise<boolean> {
   const resp = await fetch(`${SUPABASE_URL}/rest/v1/${table}?user_id=eq.${encodeURIComponent(userId)}`, {

@@ -9,7 +9,7 @@ import {
 describe('Oneiros v1 design release', () => {
   it('identifies the complete approved v1 visual and UX baseline', () => {
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      id: 'oneiros-design-v1.0.1',
+      id: 'oneiros-design-v1.0.2',
       productLine: 'oneiros-v1',
       status: 'final',
       approvedOn: '2026-09-02',

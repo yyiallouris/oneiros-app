@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExportForeground, PrimaryIconButton } from '../components/ui';
+import { AiContentReportButton } from '../components/ui/AiContentReportButton';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ChevronDownActionIcon as ChevronDownIcon,
@@ -125,6 +126,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     isStreaming?: boolean;
     onTypingComplete?: () => void;
     onCopy?: (text: string) => void;
+    onReport?: () => void;
     showSettleFooter?: boolean;
   }
 
@@ -219,7 +221,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
 
   const SETTLE_FOOTER = 'This feels like a good point to pause and let the dream settle.\nYou can return tomorrow, or begin a new reflection.';
 
-  const ChatBubble = React.memo<ChatBubbleProps>(({ message, isUser, isTyping = false, isStreaming = false, onTypingComplete, onCopy, showSettleFooter = false }) => {
+  const ChatBubble = React.memo<ChatBubbleProps>(({ message, isUser, isTyping = false, isStreaming = false, onTypingComplete, onCopy, onReport, showSettleFooter = false }) => {
     const handleCopy = () => {
       try {
         if (onCopy) {
@@ -257,13 +259,16 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
             </>
           )}
           {!isUser && !isTyping && !isStreaming && (
-            <TouchableOpacity 
-              style={styles.copyButton} 
-              onPress={handleCopy}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <CopyIcon size={16} color={colors.textSecondary} />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.copyButton}
+                onPress={handleCopy}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <CopyIcon size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+              {onReport ? <AiContentReportButton onPress={onReport} compact /> : null}
+            </>
           )}
         </View>
       </View>
@@ -1551,6 +1556,14 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                       }
                     }}
                     showSettleFooter={!!isLastAssistantAtLimit}
+                    onReport={item.role === 'assistant' ? () => {
+                      navigation.navigate('Contact', {
+                        aiReport: {
+                          surface: item.id === assistantMessages[0]?.id ? 'dream_reflection' : 'exploring_reply',
+                          referenceId: `${dreamId}:${item.id}`,
+                        },
+                      });
+                    } : undefined}
                     onCopy={(text) => {
                       try {
                         if (Clipboard && Clipboard.setString) {

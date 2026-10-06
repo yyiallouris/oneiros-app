@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, borderRadius } from '../theme';
 import { LoadingState, DesignExportForeground, PaperBackground, PrimaryIconButton } from '../components/ui';
+import { AiContentReportButton } from '../components/ui/AiContentReportButton';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   CopyActionIcon as CopyIcon,
@@ -54,6 +55,7 @@ interface ChatBubbleProps {
   isUser: boolean;
   isTyping?: boolean;
   onTypingComplete?: () => void;
+  onReport?: () => void;
   showSettleFooter?: boolean;
 }
 
@@ -148,7 +150,7 @@ const FormattedMessageText: React.FC<{ text: string; isUser: boolean }> = ({ tex
 
 const SETTLE_FOOTER = 'This feels like a good point to pause and let the dream settle.\nYou can return tomorrow, or begin a new reflection.';
 
-const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete, showSettleFooter = false }) => {
+const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = false, onTypingComplete, onReport, showSettleFooter = false }) => {
   const handleCopy = () => {
     try {
       if (Clipboard && Clipboard.setString) {
@@ -181,13 +183,16 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isUser, isTyping = fal
           </>
         )}
         {!isUser && !isTyping && (
-          <TouchableOpacity 
-            style={styles.copyButton} 
-            onPress={handleCopy}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <CopyIcon size={16} color={colors.textSecondary} />
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.copyButton}
+              onPress={handleCopy}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <CopyIcon size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+            {onReport ? <AiContentReportButton onPress={onReport} compact /> : null}
+          </>
         )}
       </View>
     </View>
@@ -522,6 +527,14 @@ const InterpretationChatScreen: React.FC = () => {
                   }
                 }}
                 showSettleFooter={!!isLastAssistantAtLimit}
+                onReport={item.role === 'assistant' ? () => {
+                  navigation.navigate('Contact', {
+                    aiReport: {
+                      surface: item.id === assistantMessages[0]?.id ? 'dream_reflection' : 'exploring_reply',
+                      referenceId: `${dreamId}:${item.id}`,
+                    },
+                  });
+                } : undefined}
               />
             );
           }}

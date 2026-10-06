@@ -3,7 +3,7 @@
 This is the end-to-end Oneiros path for agents who need the whole product shape before changing a single feature. For deeper details, follow the linked flow docs.
 
 **V1 design lock:** the complete journey described here is the final approved
-Oneiros v1 visual and UX baseline, versioned as `oneiros-design-v1.0.1` on
+Oneiros v1 visual and UX baseline, versioned as `oneiros-design-v1.0.2` on
 2026-09-02. See [oneiros-v1-design-release.md](./oneiros-v1-design-release.md)
 for the immutable source fingerprint, platform boundary and change policy.
 
@@ -65,7 +65,7 @@ Related docs: [flows-05-sync-offline.md](./flows-05-sync-offline.md), [../ARCHIT
 - Authenticated contact goes through `ContactScreen` and `sendContactMessage`.
 - Signed-out or locked support goes through `LoginSupportScreen` and the `support-request` function.
 - Privacy and legal text lives in `PrivacyScreen` and `constants/legal.ts`; hosted Privacy Policy and Terms URLs are configurable for public release.
-- Account deletion invokes the `delete-account` Supabase Edge Function, clears local storage, then signs out.
+- Account deletion warns active subscribers that store billing must be canceled separately, revokes Sign in with Apple authorization before destructive deletion when applicable, invokes the `delete-account` Supabase Edge Function, clears local storage, then signs out.
 - Write menu is the visible logout entry point.
 
 Related docs: [flows-08-support-legal-contact.md](./flows-08-support-legal-contact.md), [../supabase/functions/support-request/README.md](../supabase/functions/support-request/README.md), [../supabase/functions/delete-account/README.md](../supabase/functions/delete-account/README.md).

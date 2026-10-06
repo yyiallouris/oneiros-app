@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types';
 import { colors, spacing, typography, text, borderRadius, iconography } from '../theme';
 import { PaperBackground, LoadingState, ContentSkeleton, SectionTitleWithInfo, SymbolInfoModal, DesignExportForeground, Button } from '../components/ui';
+import { AiContentReportButton } from '../components/ui/AiContentReportButton';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
   ArchetypalEnergiesIcon,
@@ -1247,6 +1248,14 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
                       </Text>
                     </View>
                   ))}
+                  <AiContentReportButton
+                    onPress={() => navigation.navigate('Contact', {
+                      aiReport: {
+                        surface: 'period_reflection',
+                        referenceId: patternViewingMonthKey ?? patternSelectedMonthKey,
+                      },
+                    })}
+                  />
                 </View>
               </Animated.View>
             )}

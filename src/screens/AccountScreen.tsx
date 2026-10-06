@@ -33,6 +33,7 @@ const AccountScreen: React.FC = () => {
     status: subscriptionStatus,
     loading: subscriptionLoading,
     refreshing: subscriptionRefreshing,
+    openManageSubscriptions,
   } = useSubscription();
   const [displayName, setDisplayName] = useState('');
   const [savedDisplayName, setSavedDisplayName] = useState('');
@@ -168,7 +169,42 @@ const AccountScreen: React.FC = () => {
     });
   }, [navigation]);
 
+  const performDeletion = useCallback(async () => {
+    setAccountDeleting(true);
+    try {
+      await deleteAccountAndData();
+    } catch (error: any) {
+      if (error?.code === 'ERR_REQUEST_CANCELED') return;
+      Alert.alert(
+        'Could not delete account',
+        'Please try again later or contact us from Privacy & Legal so we can help.'
+      );
+    } finally {
+      setAccountDeleting(false);
+    }
+  }, []);
+
   const handleDeletionRequest = useCallback(() => {
+    if (hasPaidAccess) {
+      Alert.alert(
+        'Subscription stays active',
+        'Deleting your Oneiros account does not cancel your App Store or Google Play subscription. To prevent future charges, cancel it in your store first. You can still delete your account now, and your subscription access will continue only through the store until canceled.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Manage subscription',
+            onPress: () => { void openManageSubscriptions(); },
+          },
+          {
+            text: 'Delete anyway',
+            style: 'destructive',
+            onPress: () => { void performDeletion(); },
+          },
+        ]
+      );
+      return;
+    }
+
     Alert.alert(
       'Delete account and data?',
       'This will delete your Oneiros account and associated dream data. This cannot be undone. Some records may be kept only where required for security, fraud prevention, or legal reasons.',
@@ -177,23 +213,11 @@ const AccountScreen: React.FC = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            setAccountDeleting(true);
-            try {
-              await deleteAccountAndData();
-            } catch {
-              Alert.alert(
-                'Could not delete account',
-                'Please try again later or contact us from Privacy & Legal so we can help.'
-              );
-            } finally {
-              setAccountDeleting(false);
-            }
-          },
+          onPress: () => { void performDeletion(); },
         },
       ]
     );
-  }, []);
+  }, [hasPaidAccess, openManageSubscriptions, performDeletion]);
 
   const currentPeriodLabel =
     subscriptionStatus?.currentPeriodEnd
@@ -381,7 +405,11 @@ const AccountScreen: React.FC = () => {
             <View style={styles.dataRowContent}>
               <Text style={[styles.dataRowTitle, styles.deleteRowTitle]}>Delete account and data</Text>
               <Text style={styles.dataRowHint}>
-                {accountDeleting ? 'Deleting account...' : 'Permanently remove your account and associated data.'}
+                {accountDeleting
+                  ? 'Deleting account...'
+                  : hasPaidAccess
+                    ? 'Permanently remove your data. Store subscriptions must be canceled separately.'
+                    : 'Permanently remove your account and associated data.'}
               </Text>
             </View>
             <Text style={[styles.dataRowChevron, styles.deleteRowTitle]}>›</Text>

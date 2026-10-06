@@ -9,8 +9,10 @@ function getLegalConfigUrl(extraKey: string, envKey: string): string | null {
 }
 
 export const LEGAL_LINKS = {
-  privacyPolicyUrl: getLegalConfigUrl('privacyPolicyUrl', 'EXPO_PUBLIC_PRIVACY_POLICY_URL'),
-  termsUrl: getLegalConfigUrl('termsUrl', 'EXPO_PUBLIC_TERMS_URL'),
+  privacyPolicyUrl: getLegalConfigUrl('privacyPolicyUrl', 'EXPO_PUBLIC_PRIVACY_POLICY_URL')
+    ?? 'https://www.oneirosjournal.com/privacy',
+  termsUrl: getLegalConfigUrl('termsUrl', 'EXPO_PUBLIC_TERMS_URL')
+    ?? 'https://www.oneirosjournal.com/terms',
 };
 
 export const AUTH_LEGAL_NOTE =
@@ -59,7 +61,7 @@ export const PRIVACY_SECTIONS = [
   {
     title: 'AI Processing',
     body:
-      'When you request an interpretation or chat response, relevant dream content is sent to the configured AI provider or server proxy to generate the response. AI output is automatically generated symbolic material. Treat it as reflection, not fact, instruction, clinical assessment, or advice.',
+      'When you request an interpretation or chat response, relevant dream content is sent to the configured AI provider or server proxy to generate the response. AI output is automatically generated symbolic material. Treat it as reflection, not fact, instruction, clinical assessment, or advice. Free-form AI requests are subject to safety controls, and you can report an AI response from the surface where it appears.',
   },
   {
     title: 'Access And Support',

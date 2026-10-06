@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TextInput,
   KeyboardAvoidingView,
+  TouchableOpacity,
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -19,6 +20,12 @@ import {
 } from '../components/ui';
 import { sendContactMessage } from '../services/contact';
 import { RootStackParamList } from '../navigation/types';
+import {
+  AI_REPORT_REASONS,
+  buildAiReportMessage,
+  getAiReportSurfaceLabel,
+  type AiReportReason,
+} from '../services/aiContentReport';
 
 type ContactRouteProp = RouteProp<RootStackParamList, 'Contact'>;
 type ContactNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -31,9 +38,11 @@ const ContactScreen: React.FC = () => {
   const navigation = useNavigation<ContactNavigationProp>();
   const [subject, setSubject] = useState(route.params?.initialSubject ?? '');
   const [message, setMessage] = useState(route.params?.initialMessage ?? '');
+  const [reportReason, setReportReason] = useState<AiReportReason | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reportContext = route.params?.aiReport;
 
   useEffect(() => {
     if (route.params?.initialSubject) setSubject(route.params.initialSubject);
@@ -55,7 +64,15 @@ const ContactScreen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!message.trim()) {
+    if (reportContext && !reportReason) {
+      setFeedback({
+        tone: 'error',
+        title: 'Choose a reason',
+        message: 'Select the option that best describes this response.',
+      });
+      return;
+    }
+    if (!reportContext && !message.trim()) {
       setFeedback({
         tone: 'error',
         title: 'Message needed',
@@ -66,17 +83,26 @@ const ContactScreen: React.FC = () => {
     setFeedback(null);
     setIsSending(true);
     try {
-      await sendContactMessage({ subject: subject.trim() || '(no subject)', message: message.trim() });
+      const payload = reportContext && reportReason
+        ? buildAiReportMessage(reportContext, reportReason, message)
+        : { subject: subject.trim() || '(no subject)', message: message.trim() };
+      await sendContactMessage(payload);
       setSubject('');
       setMessage('');
       setFeedback({
         tone: 'success',
-        title: 'Message sent',
-        message: 'Thank you. We’ll reply by email. Returning to Write…',
+        title: reportContext ? 'Report sent' : 'Message sent',
+        message: reportContext
+          ? 'Thank you. We’ll review this response. Returning to your reflection…'
+          : 'Thank you. We’ll reply by email. Returning to Write…',
       });
       redirectTimer.current = setTimeout(() => {
         redirectTimer.current = null;
-        navigation.navigate('MainTabs', { screen: 'Write' });
+        if (reportContext && navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate('MainTabs', { screen: 'Write' });
+        }
       }, SUCCESS_REDIRECT_DELAY_MS);
     } catch {
       setFeedback({
@@ -97,12 +123,14 @@ const ContactScreen: React.FC = () => {
     >
       <PaperBackground />
       <DesignExportForeground style={styles.content}>
-        <Text style={styles.title}>Contact us</Text>
+        <Text style={styles.title}>{reportContext ? 'Report an AI response' : 'Contact us'}</Text>
         <Text style={styles.subtitle}>
-          Share feedback, privacy requests, or anything that is on your mind. We will receive your message privately.
+          {reportContext
+            ? `Tell us what felt wrong in this ${getAiReportSurfaceLabel(reportContext.surface).toLowerCase()}. We send its private reference, not your dream or the response text.`
+            : 'Share feedback, privacy requests, or anything that is on your mind. We will receive your message privately.'}
         </Text>
 
-        <View style={styles.field}>
+        {!reportContext && <View style={styles.field}>
           <Text style={styles.label}>Subject</Text>
           <TextInput
             style={styles.input}
@@ -112,13 +140,39 @@ const ContactScreen: React.FC = () => {
             onChangeText={updateSubject}
             editable={!isSending}
           />
-        </View>
+        </View>}
+
+        {reportContext && (
+          <View style={styles.field}>
+            <Text style={styles.label}>What happened?</Text>
+            <View style={styles.reasonList}>
+              {AI_REPORT_REASONS.map((reason) => {
+                const selected = reportReason === reason;
+                return (
+                  <TouchableOpacity
+                    key={reason}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    style={[styles.reasonChip, selected && styles.reasonChipSelected]}
+                    onPress={() => {
+                      setReportReason(reason);
+                      if (feedback?.tone === 'error') setFeedback(null);
+                    }}
+                    disabled={isSending}
+                  >
+                    <Text style={[styles.reasonText, selected && styles.reasonTextSelected]}>{reason}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        )}
 
         <View style={styles.field}>
-          <Text style={styles.label}>Message</Text>
+          <Text style={styles.label}>{reportContext ? 'Anything else? (optional)' : 'Message'}</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Write your message..."
+            placeholder={reportContext ? 'Add context without repeating private dream details…' : 'Write your message...'}
             placeholderTextColor={colors.textMuted}
             value={message}
             onChangeText={updateMessage}
@@ -135,7 +189,7 @@ const ContactScreen: React.FC = () => {
           <Button
             title="Send"
             onPress={handleSubmit}
-            disabled={!message.trim()}
+            disabled={reportContext ? !reportReason : !message.trim()}
           />
         </ActionLoadingSlot>
 
@@ -193,6 +247,31 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 120,
+  },
+  reasonList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  reasonChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.cardBackground,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  reasonChipSelected: {
+    borderColor: colors.buttonPrimary,
+    backgroundColor: colors.buttonPrimaryLight12,
+  },
+  reasonText: {
+    color: colors.textSecondary,
+    fontSize: typography.sizes.sm,
+  },
+  reasonTextSelected: {
+    color: colors.buttonPrimary,
+    fontWeight: typography.weights.semibold,
   },
 });
 

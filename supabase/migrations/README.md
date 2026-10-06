@@ -82,6 +82,9 @@ Adds `billing_paid_dream_reflection_limit(raw)` so paid dream-reflection cycle l
 
 `billing_reserve_quota` and `billing_subscription_status` both honor that override and sync the active paid bucket `limit_count`. Use `scripts/sql/grant-test-user-200-dreams.sql` for manual/test grants (currently `yyiallouris@gmail.com` → 200 / month).
 
+### `20260902120000_create_apple_auth_tokens.sql`
+Creates the service-role-only `apple_auth_tokens` table. It stores Sign in with Apple refresh tokens solely so `delete-account` can revoke Apple authorization before deleting the user. RLS is enabled and all `anon` / `authenticated` table privileges are revoked; the client never reads these tokens.
+
 ## Running Migrations
 
 ### Prerequisites

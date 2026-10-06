@@ -187,6 +187,8 @@ Production Android config expectations:
 
 - `android.package`: `com.oneirosdreamjournal.app`.
 - `android.versionCode`: increment for every Google Play upload.
+- Production/preview manifests remove the generated `exp+` Expo launcher scheme, Compose/dev-launcher activities, `SYSTEM_ALERT_WINDOW`, and legacy shared-storage permissions. Keep `plugins/withProductionStoreHardening.js` last in the app plugin list and validate the finished AAB with Google `bundletool dump manifest`.
+- `.easignore` excludes store-delivery, design-export, test, research, local-native and documentation artifacts from the EAS source archive; keep those assets trackable locally without sending them to the remote build worker. It intentionally keeps `__mocks__/` because `metro.config.js` resolves production `react-native-reanimated` imports to runtime-compatible stubs in that directory.
 - `production.android.buildType`: `app-bundle` in `eas.json`.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
 - Support routing: deploy `support-request` with server-side `SUPPORT_EMAIL=support@oneirosjournal.com` and exact sender syntax `FROM_EMAIL=Oneiros Support <support@oneirosjournal.com>`; do not expose the destination through `EXPO_PUBLIC_CONTACT_EMAIL`.
@@ -246,6 +248,7 @@ Production iOS config expectations:
 - `ios.buildNumber`: increment for every App Store upload.
 - `ios.supportsTablet`: `false` for the first release; v1 is iPhone-only. Enable iPad only after dedicated layout/device QA and iPad screenshot preparation.
 - `ios.usesAppleSignIn`: enabled, because the app offers Google/Discord social sign-in.
+- Production/preview Info.plist output contains only Oneiros-owned URL schemes; the generated `exp+` Expo launcher scheme is development-build-only.
 - Microphone purpose string: describes optional dream voice journaling and transcription.
 - Hosted legal URLs: set `EXPO_PUBLIC_PRIVACY_POLICY_URL` and `EXPO_PUBLIC_TERMS_URL`.
 - Support routing: deploy `support-request` with server-side `SUPPORT_EMAIL=support@oneirosjournal.com` and exact sender syntax `FROM_EMAIL=Oneiros Support <support@oneirosjournal.com>`; do not expose the destination through `EXPO_PUBLIC_CONTACT_EMAIL`.

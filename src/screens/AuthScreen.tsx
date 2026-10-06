@@ -537,6 +537,9 @@ const AuthScreen: React.FC = () => {
       if (!credential.identityToken) {
         throw new Error('Apple did not return a sign-in token.');
       }
+      if (!credential.authorizationCode) {
+        throw new Error('Apple did not return an account authorization code.');
+      }
 
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
@@ -545,6 +548,15 @@ const AuthScreen: React.FC = () => {
       });
 
       if (error) throw error;
+
+      const { error: appleTokenError } = await supabase.functions.invoke('apple-auth-token', {
+        method: 'POST',
+        body: { authorizationCode: credential.authorizationCode },
+      });
+      if (appleTokenError) {
+        await supabase.auth.signOut();
+        throw new Error('Apple account authorization could not be secured. Please try again.');
+      }
 
       logEvent(`${AUTH_APPLE_PROVIDER.eventPrefix}_success`, { mode });
       showOAuthSuccessAlert('apple', isNewOAuthUser(data.user));

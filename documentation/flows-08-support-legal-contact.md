@@ -4,6 +4,7 @@
 
 - Reachable from Write **menu** (authenticated).
 - Fields: optional subject, required message.
+- AI surfaces open a dedicated report mode with a required reason and optional note. The payload contains a sanitized surface/reference identifier and never automatically copies dream or AI-response text.
 - `sendContactMessage` resolves the signed-in account email and invokes the shared `support-request` edge function; the client never writes `contact_messages` directly or selects the destination address.
 - The edge function resolves the bearer session when available, sends the request to the server-owned support inbox through Resend, and sends a best-effort acknowledgement to the user. Authenticated `contact_messages` persistence is a best-effort operational archive and cannot block email delivery.
 - Success clears the form, announces an inline confirmation, then returns to **Write** after a short readable delay.
@@ -32,8 +33,11 @@
 
 - Account settings include `Delete account and data`.
 - User sees destructive confirmation before deletion starts.
-- Client invokes Supabase edge function `delete-account`, clears local storage, then signs out.
-- Edge function deletes Oneiros rows for the authenticated `user_id` and then deletes the Supabase Auth user using the service-role key.
+- If paid access is active, confirmation states that account deletion does not cancel App Store / Google Play billing, offers `Manage subscription`, and still allows immediate `Delete anyway`.
+- Apple sign-in sends its short-lived authorization code to `apple-auth-token`, which exchanges it server-side and stores only the refresh token in the service-role-only `apple_auth_tokens` table. The client never receives that refresh token.
+- iOS deletion performs fresh Apple reauthentication when available; `delete-account` otherwise uses the stored refresh token, including for cross-platform deletion. Apple authorization is revoked before Oneiros rows or the Supabase Auth user are deleted; missing/failed revocation fails closed so deletion can be retried.
+- After server deletion succeeds, the client clears local storage and signs out.
+- Public `/support#account-deletion` documents the direct in-app path and separate store-cancellation responsibility.
 
 ## Legal consent (`LegalConsentScreen`)
 

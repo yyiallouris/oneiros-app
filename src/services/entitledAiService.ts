@@ -26,6 +26,7 @@ import type { Dream, Interpretation } from '../types/dream';
 import type { ReflectiveQuestionArtifact } from '../ai/reflectiveQuestionPrompt';
 import type { GatewayAction } from '../billing/types';
 import type { PatternInsightDreamEntry } from './ai';
+import { assertPermittedGenerativeRequest } from '../ai/generativeSafety';
 
 function metadataExtractIdempotencyKey(interpretationId: string): string {
   return createIdempotencyKey(
@@ -863,6 +864,7 @@ export async function generateEntitledFollowupReply(
   interpretationId: string,
   message: string
 ): Promise<Interpretation> {
+  assertPermittedGenerativeRequest(message);
   const response = await invokeAiEntitlementsGateway<GatewayFollowupResponse | GatewayDeniedResponse>({
     action: 'dream_followup_reply',
     idempotencyKey: createIdempotencyKey('dream_followup_reply', interpretationId),
