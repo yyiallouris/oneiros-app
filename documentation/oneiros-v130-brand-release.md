@@ -4,7 +4,9 @@
 
 **App version:** `1.3.0`
 
-**Design release:** `oneiros-design-v1.1.0`
+**Brand approval design release:** `oneiros-design-v1.1.0`
+
+**Current inheriting runtime:** `oneiros-design-v1.2.0` (brand bytes unchanged)
 
 **Approved:** 2026-10-06
 
@@ -70,7 +72,9 @@ npm run brand:export:v1.3.0
 npm test -- --runInBand __tests__/brandV130Release.test.ts __tests__/designRelease.test.ts
 ```
 
-The active app metadata is version `1.3.0`, iOS build `7`, Android version code
-`7`, and design release `oneiros-design-v1.1.0`. The previous flat branding
+The active app metadata is version `1.3.0`, iOS build `8`, Android version code
+`8`, and design release `oneiros-design-v1.2.0`. The approved brand manifest
+remains owned by `oneiros-design-v1.1.0` because the later visual patches change
+no brand bytes. The previous flat branding
 files remain unchanged as historical `1.2.0` source material; runtime imports
 do not overwrite or depend on them.

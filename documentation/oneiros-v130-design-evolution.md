@@ -1,14 +1,14 @@
 # Oneiros 1.3.0 visual-system evolution
 
-**Status:** FINAL — VISUAL FOUNDATION LOCKED
+**Status:** FINAL — FOUNDATION LOCKED / DREAM DETAIL HIERARCHY APPROVED
 
 **App version:** `1.3.0`
 
-**Design release:** `oneiros-design-v1.1.0`
+**Design release:** `oneiros-design-v1.2.0`
 
-**Active checkpoint:** `v1.3.0-d5-final`
+**Active checkpoint:** `v1.3.0-d6-dream-detail`
 
-**Final fingerprint:** `ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775`
+**Final fingerprint:** `38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c`
 
 **Open visual work:** none inside this phase; icon redesign is deferred to a separately opened future phase
 
@@ -19,8 +19,16 @@
 The product-owner-approved eye/river symbol, app-icon composition and their
 deterministic platform exports remain final exact-source artifacts. The
 paper/ink/plum foundation, semantic typography roles, shared surfaces,
-navigation treatment and responsive web shell are now also locked under the
-same `1.3.0` marketing version and `oneiros-design-v1.1.0` release. The
+navigation treatment and responsive web shell were locked under the same
+`1.3.0` marketing version and `oneiros-design-v1.1.0` release. The approved
+`oneiros-design-v1.1.1` corrective patch kept that direction intact while
+making the repeated paper image fill its owner at every viewport size and
+removing the redundant decorative rule above the Write date chip. The
+product-owner-approved `oneiros-design-v1.2.0` checkpoint then revises only
+Dream Detail's information hierarchy: one always-open Dream Fabric replaces
+the former summary plus disclosure structure, while the reflection essay,
+foundation tokens, brand, icons, navigation and locked streaming remain
+unchanged. The
 superseded `1.2.0` / `oneiros-design-v1.0.2` release remains immutable history.
 
 Candidate directories end in `-candidate`; they stay outside the final
@@ -40,6 +48,8 @@ silhouettes or runtime artwork. Any later icon work must begin as a separate
 | `v1.3.0-d3-icons` | diagnostic approved / redesign deferred | Diagnostic evidence retained; no concept exploration or artwork is authorized in this phase |
 | `v1.3.0-d4-screens` | closed / not required | No texture, component or screen redesign was necessary for foundation closure |
 | `v1.3.0-d5-final` | approved | Runtime consistency, responsive browser QA, accessibility corrections and final source fingerprint |
+| `v1.3.0-d5.1-corrective` | approved | Full-plane paper coverage plus removal of the redundant Write date-chip rule; no direction, palette, icon or hierarchy change |
+| `v1.3.0-d6-dream-detail` | approved | Dream Detail becomes one always-open Dream Fabric with Inner movement; legacy summary labels, disclosure, separators and duplicate tension are removed |
 
 ## Locked direction
 
@@ -54,8 +64,9 @@ silhouettes or runtime artwork. Any later icon work must begin as a separate
   titles, short inward voice and reflective/poetic roles.
 - The approved logo stays the expressive textured hero. UI remains flat and
   restrained; no UI-icon texture was added.
-- Information architecture, labels, content, navigation behavior, AI flows and
-  the locked reflection streaming/phased typing experience remain unchanged.
+- Navigation behavior, AI flows and the locked reflection streaming/phased
+  typing experience remain unchanged. Dream Detail alone carries the explicit
+  D6 hierarchy exception documented below.
 
 ## D1 — navigation normalization
 
@@ -146,3 +157,52 @@ biometric, haptic or store behavior. Those remain release-verification checks,
 not permission to reopen the visual foundation without a confirmed defect.
 The store build remains `8` and marketing version remains `1.3.0`. No Supabase
 migration or function deploy belongs to this visual-only release.
+
+## D5.1 — Corrective visual patch
+
+The product owner confirmed two visible defects after the D5 lock. On web,
+React Native rendered the repeated `BG_paper.png` layer at its intrinsic
+`393 × 852` CSS size even though its owning `PaperBackground` plane filled the
+viewport. Wider or taller viewports could therefore expose a flat paper-colour
+strip. The shared image layer now owns explicit `100%` width and height while
+retaining `resizeMode="repeat"`, so the same texture continuously fills its
+owner on narrow phone, tall phone, tablet and desktop web layouts. The sizing
+also removes the equivalent risk from native phone layouts without changing
+the image, opacity, palette or texture direction.
+
+The Write notebook page also removes its redundant decorative hairline above
+the existing date chip. The card contour, grain, chip, spacing, title divider,
+CTA and navigation remain unchanged.
+
+This correction advances the semantic release to
+`oneiros-design-v1.1.1` / `v1.3.0-d5.1-corrective`; the approved D5 artifact
+and its `ccb14cde…` fingerprint remain immutable historical evidence. Icon
+redesign remains deferred to its separate phase.
+
+## D6 — Dream Detail hierarchy redesign
+
+The product owner explicitly reopened Dream Detail for a focused hierarchy
+redesign. The screen now has one visible **Dream Fabric** title and no
+expand/collapse interaction. **Inner movement** appears first inside the Fabric
+with the same label/body typography as the other metadata rows, followed by
+grounded Fabric fields and available **Interpretive Echoes**. Exact duplicate
+Inner Tensions are suppressed when the movement already states the same text.
+
+The former **Dream essence**, **Key anchors**, **Symbolic reflection**, and
+**Explore symbolic layers** labels are absent from Dream Detail. Legacy row
+separators and the chevron/reveal animation are also removed; spacing carries
+the internal hierarchy. The existing **A deeper reading** reflection preview,
+same-call question markdown, **Continue the conversation**, Exploring chat,
+~15s partial reveal and `PhasedTypingText` are unchanged.
+
+Browser QA covered `320×667`, `390×844`, and `430×932` with real Greek content:
+no horizontal overflow, one Dream Fabric heading, no legacy labels, identical
+computed label/body typography between Inner movement and the other Fabric
+rows, and zero-pixel internal row borders. iOS and Android behavior is covered
+by the shared React Native render contract; native device visual verification
+remains a release check. No extraction prompt/schema, persistence, Supabase,
+brand, icon, palette or navigation change belongs to D6.
+
+This approved screen-level change advances the semantic design release to
+`oneiros-design-v1.2.0` / `v1.3.0-d6-dream-detail`. The D5 and D5.1
+fingerprints remain immutable history, and icon redesign remains deferred.

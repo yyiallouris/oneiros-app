@@ -47,7 +47,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `openaiProxySamplingParams.flow.test.ts` | flows-06 / openai-proxy README (omit forbidden temperature so Sonnet 5 / gpt-5 fallback stays alive) |
 | `openaiProxyFallbackChain.flow.test.ts` | flows-06 / openai-proxy README (Sonnet→Haiku fallback chains for reflection/essay tasks) |
 | `structuredAiValidation.flow.test.ts` | architecture-interpretation / openai-proxy README (Zod schemas + one repair for structured AI tasks) |
-| `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions, DreamDetail reflection presentation) |
+| `dreamDetail.offlineMessage.flow.test.tsx` | flows-05 / flows-06 (offline AI actions; always-open Dream Fabric hierarchy; legacy essence/anchors/disclosure absent; iOS/Android parity) |
 | `dreamDetail.chatScroll.flow.test.tsx` | flows-06 (DreamDetail Exploring nested chat keeps full multi-section reflection scrollable; no overflow:hidden) |
 | `dreamDetail.streamingTyping.contract.flow.test.ts` | flows-06 **locked UX** (DreamDetail ~15s streamed reflection must keep `PhasedTypingText`; user approval required to change; forbids instant full-text dump shortcut) |
 | `dreamDetail.skeleton.flow.test.ts` | flows-04 (DreamDetail initial load uses layout-faithful `DreamDetailSkeleton`, not dual journal `LinoSkeletonCard`) |

@@ -42,9 +42,13 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Design system
 
-- Final visual foundation: `oneiros-design-v1.1.0` for app `1.3.0`. The exact
+- Active visual runtime: `oneiros-design-v1.2.0` for app `1.3.0`. This
+  release inherits the exact `oneiros-design-v1.1.0`
   eye/river brand artifacts, palette, typography roles, surfaces, navigation
-  treatment and responsive shell are locked as documented in
+  treatment and responsive shell, guarantees full-plane repeated-paper
+  coverage, removes the redundant rule above the Write date chip, and carries
+  the explicitly approved Dream Detail Fabric hierarchy redesign. The shared
+  foundation remains locked as documented in
   [`oneiros-v130-design-evolution.md`](./oneiros-v130-design-evolution.md).
   D1 is the approved bottom-navigation-only checkpoint: it normalizes
   the existing feather/book/eye sources and does not authorize new concepts,

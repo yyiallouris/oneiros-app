@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
-  Animated,
   View,
   Text,
   StyleSheet,
@@ -12,7 +11,6 @@ import {
   StatusBar,
   Alert,
   Clipboard,
-  Easing,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,7 +21,6 @@ import { Button, PaperBackground, LoadingState, DreamDetailSkeleton, DesignExpor
 import { AiContentReportButton } from '../components/ui/AiContentReportButton';
 import { PremiumUpsellModal } from '../components/subscription/PremiumUpsellModal';
 import {
-  ChevronDownActionIcon as ChevronDownIcon,
   CopyActionIcon as CopyIcon,
   EditActionIcon as EditIcon,
   SendActionIcon as SendIcon,
@@ -41,7 +38,7 @@ import {
   dreamDetailChatScrollViewStyle,
 } from './dreamDetailChatLayout';
 import { updateInterpretationElementsFromConversation } from '../services/ai';
-import { buildDreamDetailDisplayModel, type DreamDetailDisplayModel, type VisibleDreamAnchor } from '../services/dreamDetailDisplay';
+import { buildDreamDetailDisplayModel, type DreamDetailDisplayModel } from '../services/dreamDetailDisplay';
 import { getInterpretationDepth } from '../services/userSettingsService';
 import { MAX_FOLLOW_UP_RESPONSES } from '../constants/interpretation';
 import { isOnline } from '../utils/network';
@@ -74,8 +71,6 @@ type DetailRouteProp = RouteProp<RootStackParamList, 'DreamDetail'>;
 const DREAM_DETAIL_MOUNTAIN_HEIGHT = 260;
 const METADATA_REFRESH_DELAYS_MS = [4000, 12000, 25000, 45000];
 const METADATA_REFRESH_TAIL_DELAY_MS = 60000;
-
-const SYMBOLIC_LAYERS_ANIMATION_MS = 280;
 
 const buildInterpretationPreviewExcerpt = (text: string): string => {
   const paragraphs = text
@@ -277,64 +272,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
 
   ChatBubble.displayName = 'ChatBubble';
 
-  const AnchorCard = React.memo<{ anchor: VisibleDreamAnchor }>(({ anchor }) => (
-    <View style={styles.anchorCard}>
-      <Text style={styles.anchorLabel}>{anchor.label}</Text>
-      {anchor.uiMeaning ? (
-        <Text style={styles.anchorMeaning} numberOfLines={2}>
-          {anchor.uiMeaning}
-        </Text>
-      ) : null}
-    </View>
-  ));
-
-  AnchorCard.displayName = 'AnchorCard';
-
-  const DreamFieldSummary = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
-    const hasEssence = Boolean(model.essenceTitle || model.essenceLine);
+  const DreamFabric = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
     const hasMovement = Boolean(model.mainTension || model.movementLine);
-    if (!hasEssence && model.anchors.length === 0 && !hasMovement) return null;
-
-    return (
-      <View style={styles.fieldSummary}>
-        {hasEssence && (
-          <View style={styles.essenceBlock}>
-            <Text style={styles.summarySectionTitle}>Dream essence</Text>
-            {model.essenceTitle ? <Text style={styles.essenceTitle}>{model.essenceTitle}</Text> : null}
-            {model.essenceLine ? <Text style={styles.essenceLine}>{model.essenceLine}</Text> : null}
-          </View>
-        )}
-
-        {model.anchors.length > 0 && (
-          <View style={styles.summaryBlock}>
-            <Text style={styles.summarySectionTitle}>Key anchors</Text>
-            <View style={styles.anchorGrid}>
-              {model.anchors.map((anchor, index) => (
-                <AnchorCard key={`${anchor.label}-${index}`} anchor={anchor} />
-              ))}
-            </View>
-          </View>
-        )}
-
-        {hasMovement && (
-          <View style={styles.movementBlock}>
-            <Text style={styles.summarySectionTitle}>Inner movement</Text>
-            {model.mainTension ? <Text style={styles.movementTitle}>{model.mainTension}</Text> : null}
-            {model.movementLine ? <Text style={styles.movementLine}>{model.movementLine}</Text> : null}
-          </View>
-        )}
-      </View>
-    );
-  });
-
-  DreamFieldSummary.displayName = 'DreamFieldSummary';
-
-  const SymbolicLayersAccordion = React.memo<{ model: DreamDetailDisplayModel }>(({ model }) => {
-    const [expanded, setExpanded] = useState(false);
-    const [contentMounted, setContentMounted] = useState(false);
-    const [contentHeight, setContentHeight] = useState(0);
-    const expansionProgress = useRef(new Animated.Value(0)).current;
-    const expandedRef = useRef(false);
     type TagRow = { kind: 'tags'; title: string; items: string[] };
     type EchoRow = {
       kind: 'echoes';
@@ -355,9 +294,17 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
 
     const archetypalItems = model.symbolicLayers.archetypalEchoes;
     const mythicItems = model.symbolicLayers.mythicEchoes;
+    const movementKeys = new Set(
+      [model.mainTension, model.movementLine]
+        .filter((value): value is string => Boolean(value))
+        .map((value) => value.trim().toLocaleLowerCase()),
+    );
+    const distinctInnerTensions = model.symbolicLayers.innerTensions.filter(
+      (item) => !movementKeys.has(item.trim().toLocaleLowerCase()),
+    );
     const echoRows: LayerRow[] = (
       [
-        { kind: 'tags' as const, title: 'Inner Tensions', items: model.symbolicLayers.innerTensions },
+        { kind: 'tags' as const, title: 'Inner Tensions', items: distinctInnerTensions },
         {
           kind: 'echoes' as const,
           title: archetypalItems.length === 1 ? 'Archetypal Echo' : 'Archetypal Echoes',
@@ -371,156 +318,60 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       ] satisfies LayerRow[]
     ).filter((row) => row.items.length > 0);
 
-    const groups: Array<{ title: string; rows: LayerRow[] }> = [
-      { title: 'Dream Fabric', rows: fabricRows },
-      { title: 'Interpretive Echoes', rows: echoRows },
-    ].filter((group) => group.rows.length > 0);
-
-    useEffect(() => {
-      if (!expanded || !contentMounted || contentHeight <= 0) return;
-
-      expansionProgress.stopAnimation();
-      Animated.timing(expansionProgress, {
-        toValue: 1,
-        duration: SYMBOLIC_LAYERS_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }).start();
-    }, [contentHeight, contentMounted, expanded, expansionProgress]);
-
-    useEffect(
-      () => () => {
-        expansionProgress.stopAnimation();
-      },
-      [expansionProgress],
-    );
-
-    const toggleExpanded = useCallback(() => {
-      const nextExpanded = !expanded;
-      expandedRef.current = nextExpanded;
-      expansionProgress.stopAnimation();
-
-      if (nextExpanded) {
-        setContentMounted(true);
-        setExpanded(true);
-        return;
-      }
-
-      setExpanded(false);
-      Animated.timing(expansionProgress, {
-        toValue: 0,
-        duration: SYMBOLIC_LAYERS_ANIMATION_MS,
-        easing: Easing.inOut(Easing.cubic),
-        useNativeDriver: false,
-      }).start(({ finished }) => {
-        if (finished && !expandedRef.current) setContentMounted(false);
-      });
-    }, [expanded, expansionProgress]);
-
-    if (groups.length === 0) return null;
+    if (!hasMovement && fabricRows.length === 0 && echoRows.length === 0) return null;
 
     return (
-      <View testID="symbolic-layers-section" style={styles.symbolicLayersPanel}>
-        <TouchableOpacity
-          style={styles.symbolicLayersHeader}
-          onPress={toggleExpanded}
-          activeOpacity={0.7}
-          accessibilityRole="button"
-          accessibilityLabel="Explore symbolic layers"
-          accessibilityHint="Reveals symbolic layers within this dream"
-          accessibilityState={{ expanded }}
-          testID="symbolic-layers-toggle"
-        >
-          <Text style={styles.symbolicLayersTitle}>Explore symbolic layers</Text>
-          <Animated.View
-            testID="symbolic-layers-chevron"
-            style={[
-              styles.symbolicLayersChevron,
-              {
-                transform: [
-                  {
-                    rotate: expansionProgress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0deg', '180deg'],
-                    }),
-                  },
-                ],
-              },
-            ]}
-          >
-            <ChevronDownIcon />
-          </Animated.View>
-        </TouchableOpacity>
-        {contentMounted && (
-          <Animated.View
-            style={[
-              styles.symbolicLayersReveal,
-              {
-                height:
-                  contentHeight > 0
-                    ? expansionProgress.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, contentHeight],
-                      })
-                    : 0,
-                opacity: expansionProgress,
-                transform: [
-                  {
-                    translateY: expansionProgress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [-4, 0],
-                    }),
-                  },
-                ],
-              },
-            ]}
-            pointerEvents={expanded ? 'auto' : 'none'}
-            accessibilityElementsHidden={!expanded}
-            importantForAccessibility={expanded ? 'auto' : 'no-hide-descendants'}
-          >
-            <View
-              style={styles.symbolicLayersBody}
-              onLayout={(event) => {
-                const nextHeight = event.nativeEvent.layout.height;
-                if (nextHeight > 0 && nextHeight !== contentHeight) setContentHeight(nextHeight);
-              }}
-            >
-              {groups.map((group) => (
-                <View key={group.title} style={styles.layerGroup}>
-                  <Text style={styles.layerGroupTitle}>{group.title}</Text>
-                  {group.rows.map((row) => (
-                    <View key={row.title} style={styles.layerRow}>
-                      <Text style={styles.layerTitle}>{row.title}</Text>
-                      {row.kind === 'tags' ? (
-                        <Text style={styles.layerText}>{row.items.join(', ')}</Text>
-                      ) : (
-                        <View style={styles.layerEchoList}>
-                          {row.items.map((echo) => (
-                            <View
-                              key={`${row.title}-${echo.title}-${echo.subtitle ?? ''}`}
-                              style={styles.layerEchoItem}
-                            >
-                              <Text style={styles.layerEchoTitle}>{echo.title}</Text>
-                              {echo.subtitle ? (
-                                <Text style={styles.layerEchoSubtitle}>{echo.subtitle}</Text>
-                              ) : null}
-                              {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              ))}
+      <View testID="dream-fabric-section" style={styles.dreamFabricBody}>
+        {hasMovement ? (
+          <View style={styles.layerRow}>
+            <Text style={styles.layerTitle}>Inner movement</Text>
+            <View style={styles.movementContent}>
+              {model.mainTension ? <Text style={styles.layerText}>{model.mainTension}</Text> : null}
+              {model.movementLine ? <Text style={styles.layerText}>{model.movementLine}</Text> : null}
             </View>
-          </Animated.View>
-        )}
+          </View>
+        ) : null}
+
+        {fabricRows.map((row) => (
+          <View key={row.title} style={styles.layerRow}>
+            <Text style={styles.layerTitle}>{row.title}</Text>
+            <Text style={styles.layerText}>{row.items.join(', ')}</Text>
+          </View>
+        ))}
+
+        {echoRows.length > 0 ? (
+          <View style={styles.layerGroup}>
+            <Text style={styles.layerGroupTitle}>Interpretive Echoes</Text>
+            {echoRows.map((row) => (
+              <View key={row.title} style={styles.layerRow}>
+                <Text style={styles.layerTitle}>{row.title}</Text>
+                {row.kind === 'tags' ? (
+                  <Text style={styles.layerText}>{row.items.join(', ')}</Text>
+                ) : (
+                  <View style={styles.layerEchoList}>
+                    {row.items.map((echo) => (
+                      <View
+                        key={`${row.title}-${echo.title}-${echo.subtitle ?? ''}`}
+                        style={styles.layerEchoItem}
+                      >
+                        <Text style={styles.layerEchoTitle}>{echo.title}</Text>
+                        {echo.subtitle ? (
+                          <Text style={styles.layerEchoSubtitle}>{echo.subtitle}</Text>
+                        ) : null}
+                        {echo.body ? <Text style={styles.layerText}>{echo.body}</Text> : null}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
     );
   });
 
-  SymbolicLayersAccordion.displayName = 'SymbolicLayersAccordion';
+  DreamFabric.displayName = 'DreamFabric';
 
   const DreamDetailScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProp>();
@@ -1359,12 +1210,10 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
           {/* Show reflection section only if no chat is active */}
           {!showChat && !isGeneratingInitial && (
             <View style={styles.reflectionSection}>
-              <Text style={styles.reflectionTitle}>Symbolic reflection</Text>
+              <Text style={styles.reflectionTitle}>Dream Fabric</Text>
 
               {interpretation ? (
                 <View style={styles.reflectionBody}>
-                  <DreamFieldSummary model={displayModel} />
-
                   {isMetadataPending && (
                     <LoadingState
                       preset="loadSection"
@@ -1407,7 +1256,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                     
                   </View>
 
-                  <SymbolicLayersAccordion model={displayModel} />
+                  <DreamFabric model={displayModel} />
                   {showInterpretationPreview && (
                     <View style={styles.reflectionPreviewSection}>
                       <Text style={styles.reflectionPreviewTitle}>A deeper reading</Text>
@@ -1822,76 +1671,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       width: '100%', // Use full width
       paddingHorizontal: spacing.xs,
     },
-    fieldSummary: {
-      gap: spacing.md,
-      marginBottom: 0,
-    },
-    essenceBlock: {
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.xs,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.contourLineFaint,
-    },
-    summaryBlock: {
-      marginBottom: spacing.sm,
-    },
-    summarySectionTitle: {
-      fontSize: typography.sizes.xs,
-      fontFamily: typography.medium,
-      color: colors.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.4,
-      marginBottom: spacing.sm,
-    },
-    essenceTitle: {
-      fontSize: typography.sizes.lg,
-      fontFamily: typography.medium,
-      color: colors.textTitle,
-      marginBottom: spacing.xs,
-    },
-    essenceLine: {
-      fontSize: typography.sizes.md,
-      color: colors.textPrimary,
-      lineHeight: typography.sizes.md * typography.lineHeights.relaxed,
-      maxWidth: 320,
-    },
-    anchorGrid: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.contourLineFaint,
-    },
-    anchorCard: {
-      paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.contourLineFaint,
-    },
-    anchorLabel: {
-      fontSize: typography.sizes.md,
-      fontFamily: typography.medium,
-      color: colors.textTitle,
-    },
-    anchorMeaning: {
-      marginTop: spacing.xs,
-      fontSize: typography.sizes.sm,
-      color: colors.textSecondary,
-      lineHeight: typography.sizes.sm * typography.lineHeights.normal,
-    },
-    movementBlock: {
-      paddingVertical: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.contourLineFaint,
-    },
-    movementTitle: {
-      fontSize: typography.sizes.md,
-      fontFamily: typography.medium,
-      color: colors.textTitle,
-      marginBottom: spacing.xs,
-    },
-    movementLine: {
-      fontSize: typography.sizes.sm,
-      color: colors.textSecondary,
-      lineHeight: typography.sizes.sm * typography.lineHeights.relaxed,
+    movementContent: {
+      gap: spacing.xs,
     },
     reflectionPreviewSection: {
       marginTop: spacing.lg,
@@ -1927,35 +1708,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       lineHeight: typography.sizes.sm * typography.lineHeights.normal,
       marginTop: spacing.xs,
     },
-    symbolicLayersPanel: {
-      marginTop: 0,
-      backgroundColor: 'transparent',
-    },
-    symbolicLayersHeader: {
-      minHeight: 60,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.xs,
-    },
-    symbolicLayersTitle: {
-      fontSize: typography.sizes.md,
-      fontFamily: typography.medium,
-      color: colors.textPrimary,
-    },
-    symbolicLayersChevron: {
-      marginLeft: spacing.md,
-      width: 44,
-      height: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    symbolicLayersReveal: {
-      overflow: 'hidden',
-    },
-    symbolicLayersBody: {
-      paddingTop: spacing.md,
+    dreamFabricBody: {
+      paddingTop: 0,
       paddingBottom: spacing.md,
       paddingHorizontal: spacing.xs,
       gap: spacing.md,
@@ -1972,9 +1726,7 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
       marginBottom: spacing.xs,
     },
     layerRow: {
-      paddingTop: spacing.xs,
-      borderTopWidth: 1,
-      borderTopColor: colors.contourLineFaint,
+      paddingTop: 0,
     },
     layerTitle: {
       fontSize: typography.sizes.xs,

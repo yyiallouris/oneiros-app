@@ -10,7 +10,7 @@ import {
 describe('Oneiros v1 design release', () => {
   it('locks the v1.3.0 visual foundation and defers icon redesign', () => {
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      id: 'oneiros-design-v1.1.0',
+      id: 'oneiros-design-v1.2.0',
       productLine: 'oneiros-v1',
       status: 'final',
       phaseOpenedOn: '2026-10-06',
@@ -18,9 +18,9 @@ describe('Oneiros v1 design release', () => {
       appVersionAtApproval: '1.3.0',
       scope: 'complete-app-visual-ux',
       fingerprintAlgorithm: 'sha256-path-null-bytes-v1',
-      activeCheckpoint: 'v1.3.0-d5-final',
+      activeCheckpoint: 'v1.3.0-d6-dream-detail',
       reviewCheckpoint: null,
-      sourceFingerprint: 'ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775',
+      sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
       candidateSourceFingerprint: null,
     });
 
@@ -75,6 +75,24 @@ describe('Oneiros v1 design release', () => {
         sourceFingerprint: 'ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775',
         iconRedesignDeferred: true,
       }),
+      expect.objectContaining({
+        id: 'v1.3.0-d5.1-corrective',
+        label: 'Paper coverage and Write date-chip corrective patch',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '565633dfa5df701d0379d9051638a7d320acd48e0f7655dc252f2c7d915d7b0b',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
+      expect.objectContaining({
+        id: 'v1.3.0-d6-dream-detail',
+        label: 'Dream Detail hierarchy redesign',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
     ]);
   });
 
@@ -92,7 +110,7 @@ describe('Oneiros v1 design release', () => {
     expect(files).toContain('assets/branding/releases/v1.3.0/exports/icon-ios-1024.png');
     expect(computeDesignReleaseFingerprint()).toBe(ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint);
     expect(ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint).toBe(
-      'ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775',
+      '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
     );
     expect(verifyDesignReleaseFingerprint().matches).toBe(true);
   });
@@ -118,7 +136,7 @@ describe('Oneiros v1 design release', () => {
       expect(actualDigest).toBe(expectedDigest);
     });
     expect(listDesignReleaseFiles().some((file) => file.includes('d1-navigation-candidate'))).toBe(false);
-    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d5-final');
+    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6-dream-detail');
   });
 
   it('retains the exact normalization review artifact after D1 promotion', () => {
@@ -142,7 +160,7 @@ describe('Oneiros v1 design release', () => {
     expect(manifest.promoted_source_fingerprint).toBe(
       '24450147e3fa2b8d104245ea6c5c8aa4753f695524da54434bcadefbeca0f980',
     );
-    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d5-final');
+    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6-dream-detail');
     expect(ONEIROS_V1_DESIGN_RELEASE.checkpoints[1]).toMatchObject({
       status: 'approved',
       sourceFingerprint: '24450147e3fa2b8d104245ea6c5c8aa4753f695524da54434bcadefbeca0f980',
@@ -175,7 +193,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d2-insights-normalization-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d5-final',
+      activeCheckpoint: 'v1.3.0-d6-dream-detail',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });
@@ -250,7 +268,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d2-5-palette-definition-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d5-final',
+      activeCheckpoint: 'v1.3.0-d6-dream-detail',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });
@@ -292,7 +310,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d3-icon-diagnostic-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d5-final',
+      activeCheckpoint: 'v1.3.0-d6-dream-detail',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });

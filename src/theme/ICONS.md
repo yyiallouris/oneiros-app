@@ -67,8 +67,9 @@ Microphone and calendar share a 31dp frame and `iconography.ink.secondary` (Mute
 
 ### App-brand and inherited icon artifact locks
 
-The approved D0 runtime checkpoint belongs to the active
-`oneiros-design-v1.1.0` train. Its app-brand
+The approved D0 runtime checkpoint originated in
+`oneiros-design-v1.1.0` and is inherited byte-for-byte by the active
+`oneiros-design-v1.2.0` Dream Detail hierarchy release. Its app-brand
 eye/river masters and Apple/Android/web/splash exports live under
 `assets/branding/releases/v1.3.0/` and are locked by their manifest plus the
 brand-release contract test. The visual foundation is final; wider icon-system

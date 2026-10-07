@@ -1,6 +1,6 @@
 /**
  * Flow coverage: documentation/flows-04-dreams-journal-calendar.md
- * DreamDetail initial load skeleton must match dream page + reflection summary,
+ * DreamDetail initial load skeleton must match dream page + open Dream Fabric,
  * not journal-list LinoSkeletonCard rows.
  */
 import { readFileSync } from 'fs';
@@ -26,8 +26,10 @@ describe('dream detail skeleton flow', () => {
     expect(skeleton).toMatch(/Layout-faithful DreamDetail initial loader/);
     expect(skeleton).toMatch(/dreamPage/);
     expect(skeleton).toMatch(/reflectionSection/);
-    expect(skeleton).toMatch(/essenceBlock/);
-    expect(skeleton).toMatch(/anchorRow/);
+    expect(skeleton).toMatch(/fabricRows/);
+    expect(skeleton).toMatch(/fabricRow/);
+    expect(skeleton).not.toMatch(/essenceBlock/);
+    expect(skeleton).not.toMatch(/anchorRow/);
     expect(skeleton).toMatch(/not journal-list LinoSkeletonCard/);
 
     expect(loadingDoc).toMatch(/DreamDetailSkeleton/);

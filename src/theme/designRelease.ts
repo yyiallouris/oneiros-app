@@ -3,12 +3,13 @@
  *
  * The brand masters are final, while the complete-app visual system advances
  * through explicit review checkpoints under the same marketing/design version.
- * `sourceFingerprint` identifies the locked visual-foundation source. Icon
- * redesign is explicitly outside this release and can reopen only as a future
+ * `sourceFingerprint` identifies the active visual source after the approved
+ * Dream Detail hierarchy redesign. The locked foundation remains inherited;
+ * icon redesign is still outside this release and can reopen only as a future
  * phase with its own approval boundary.
  */
 export const ONEIROS_V1_DESIGN_RELEASE = {
-  id: 'oneiros-design-v1.1.0',
+  id: 'oneiros-design-v1.2.0',
   productLine: 'oneiros-v1',
   status: 'final',
   phaseOpenedOn: '2026-10-06',
@@ -16,9 +17,9 @@ export const ONEIROS_V1_DESIGN_RELEASE = {
   appVersionAtApproval: '1.3.0',
   scope: 'complete-app-visual-ux',
   fingerprintAlgorithm: 'sha256-path-null-bytes-v1',
-  activeCheckpoint: 'v1.3.0-d5-final',
+  activeCheckpoint: 'v1.3.0-d6-dream-detail',
   reviewCheckpoint: null,
-  sourceFingerprint: 'ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775',
+  sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
   candidateSourceFingerprint: null,
   checkpoints: [
     {
@@ -77,6 +78,24 @@ export const ONEIROS_V1_DESIGN_RELEASE = {
       status: 'approved',
       approvedOn: '2026-10-07',
       sourceFingerprint: 'ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775',
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d5.1-corrective',
+      label: 'Paper coverage and Write date-chip corrective patch',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '565633dfa5df701d0379d9051638a7d320acd48e0f7655dc252f2c7d915d7b0b',
+      foundationDirectionChanged: false,
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d6-dream-detail',
+      label: 'Dream Detail hierarchy redesign',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+      foundationDirectionChanged: false,
       iconRedesignDeferred: true,
     },
   ],

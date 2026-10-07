@@ -146,6 +146,11 @@ Flat `colors.*` aliases remain for existing screens. Prefer grouped exports in n
 
 Full-screen field: `assets/backgrounds/BG_paper.png` via `PaperBackground`.
 
-`PaperBackground` now tiles the paper texture with `resizeMode="repeat"` instead of stretching/cropping a single phone-sized image. This keeps the paper feel consistent on taller Android screens, long content areas, and navigation transitions where a scaled image could wash out into a flatter white field.
+`PaperBackground` tiles the paper texture with `resizeMode="repeat"` instead of
+stretching/cropping a single phone-sized image. Its image layer also owns
+explicit `100%` width and height so React Native Web cannot fall back to the
+asset's intrinsic `393 × 852` CSS size and expose a flat strip on wider or
+taller viewports. The same full-plane sizing keeps the paper field continuous
+on tall Android/iPhone screens and long content areas.
 
 Legacy wave exports stay in the repo for reference only (`LegacyWaveBackground`, `LegacyMountainWaveBackground`).

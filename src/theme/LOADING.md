@@ -73,7 +73,7 @@ After the calm `dreamReflection` loader, once the ~15s partial-reveal threshold 
 
 Journal initial load still uses `LinoSkeletonCard` rows — that is list scaffolding, not action loading. Do not replace list skeletons with `LoadingState`.
 
-DreamDetail initial load uses `DreamDetailSkeleton` (`src/components/ui/DreamDetailSkeleton.tsx`) so the placeholder mirrors the dream page + reflection summary. Do not reuse `LinoSkeletonCard` there.
+DreamDetail initial load uses `DreamDetailSkeleton` (`src/components/ui/DreamDetailSkeleton.tsx`) so the placeholder mirrors the dream page + always-open Dream Fabric rows. Do not reuse `LinoSkeletonCard` there.
 
 ## Do not use
 

@@ -4,9 +4,11 @@ Centralized visual rules for Oneiros. **Do not add one-off colors or loading pat
 
 ## Active release train
 
-The current app `1.3.0` uses the final `oneiros-design-v1.1.0` visual
-foundation. Its eye/river masters, seven-colour palette, typography roles,
-shared surfaces, navigation treatment and responsive shell are locked.
+The current app `1.3.0` uses the final `oneiros-design-v1.2.0` visual runtime.
+It inherits the approved eye/river masters,
+seven-colour palette, typography roles, shared surfaces and navigation from
+`oneiros-design-v1.1.0`, the D5.1 paper/Write correction, and the focused D6
+Dream Detail hierarchy redesign. The shared foundation remains locked.
 Lifecycle and checkpoint rules are documented in
 [`../../documentation/oneiros-v130-design-evolution.md`](../../documentation/oneiros-v130-design-evolution.md).
 The approved D1 navigation uses the existing feather, open book and eye. D2
@@ -53,7 +55,7 @@ Import from `src/components/ui/`:
    target. Runtime code must never import artwork from an `assets/legacy` or
    `-candidate` directory.
 7. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
-8. **Background:** `PaperBackground` + `BG_paper.png` — no new global gradients or waves on active screens.
+8. **Background:** `PaperBackground` + `BG_paper.png` — the repeated image must explicitly fill its owning plane at every viewport size; no new global gradients or waves on active screens.
 9. **Legacy:** `LegacyWaveBackground` / `LegacyMountainWaveBackground` are reference-only; not for new screens.
 10. **Calmness before affordance:** optimize for calmness first, discoverability second. If an interactive element draws attention to itself instead of to the dream, it is too loud; prefer editorial disclosures that emerge from the paper over generic card or Material-button chrome. For disclosure rows, remove the chevron mentally: everything left behind should read as a natural part of the page, not as a button.
 11. **Subscription cards:** visual density, continuous tier surfaces, status badges, store-price states, explicit CTA-only store actions, and feature expansion belong in shared `SubscriptionPlanCard` / `SubscriptionStoreNotice`; do not patch only one onboarding, paywall, or Subscription consumer.

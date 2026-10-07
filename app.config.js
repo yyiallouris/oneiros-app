@@ -92,7 +92,7 @@ const baseExpoConfig = {
     './plugins/withProductionStoreHardening',
   ],
   extra: {
-    designRelease: 'oneiros-design-v1.1.0',
+    designRelease: 'oneiros-design-v1.2.0',
   },
 };
 

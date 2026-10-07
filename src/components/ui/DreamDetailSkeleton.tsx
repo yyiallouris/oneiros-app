@@ -9,7 +9,7 @@ interface DreamDetailSkeletonProps {
 
 /**
  * Layout-faithful DreamDetail initial loader.
- * Mirrors dream page (date / title / body) + symbolic reflection summary,
+ * Mirrors dream page (date / title / body) + always-open Dream Fabric,
  * not journal-list LinoSkeletonCard rows.
  */
 export const DreamDetailSkeleton: React.FC<DreamDetailSkeletonProps> = ({
@@ -65,25 +65,28 @@ export const DreamDetailSkeleton: React.FC<DreamDetailSkeletonProps> = ({
 
       <View style={styles.waveSpacer} />
 
-      {/* Reflection summary — matches reflectionSection + DreamFieldSummary shape */}
+      {/* Dream Fabric — matches the loaded, always-open detail hierarchy. */}
       <View style={styles.reflectionSection}>
         {line('reflectionTitle', styles.sectionHeading, colors.wave1)}
 
-        <View style={styles.essenceBlock}>
-          {line('essenceLabel', styles.labelLine, colors.wave1)}
-          {line('essenceTitle', styles.essenceTitleLine, colors.wave1)}
-          {line('essenceLine', styles.essenceBodyLine)}
+        <View style={styles.fabricRow}>
+          {line('movementLabel', styles.labelLine, colors.wave1)}
+          {line('movementTitle', styles.fabricBodyLine, colors.wave1)}
+          {line('movementLine', styles.fabricBodyLine)}
         </View>
 
-        <View style={styles.summaryBlock}>
-          {line('anchorsLabel', styles.labelLine, colors.wave1)}
-          <View style={styles.anchorRow}>
-            {line('anchor1a', styles.anchorTitleLine, colors.wave1)}
-            {line('anchor1b', styles.anchorMeaningLine)}
+        <View style={styles.fabricRows}>
+          <View style={styles.fabricRow}>
+            {line('fabric1a', styles.fabricLabelLine, colors.wave1)}
+            {line('fabric1b', styles.fabricBodyLine)}
           </View>
-          <View style={styles.anchorRow}>
-            {line('anchor2a', styles.anchorTitleLine, colors.wave1)}
-            {line('anchor2b', styles.anchorMeaningLine)}
+          <View style={styles.fabricRow}>
+            {line('fabric2a', styles.fabricLabelLine, colors.wave1)}
+            {line('fabric2b', styles.fabricBodyLine)}
+          </View>
+          <View style={styles.fabricRow}>
+            {line('fabric3a', styles.fabricLabelLine, colors.wave1)}
+            {line('fabric3b', styles.fabricBodyLine)}
           </View>
         </View>
 
@@ -121,24 +124,14 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.xl,
   },
-  essenceBlock: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.contourLineFaint,
-    marginBottom: spacing.md,
-  },
-  summaryBlock: {
+  fabricRows: {
     marginBottom: spacing.md,
   },
   previewBlock: {
     marginTop: spacing.md,
   },
-  anchorRow: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.contourLineFaint,
+  fabricRow: {
+    paddingVertical: spacing.sm,
   },
   line: {
     borderRadius: 2,
@@ -173,24 +166,14 @@ const styles = StyleSheet.create({
     height: 10,
     marginBottom: spacing.sm,
   },
-  essenceTitleLine: {
-    width: '55%',
-    height: typography.sizes.lg,
-    marginBottom: spacing.xs,
-  },
-  essenceBodyLine: {
+  fabricBodyLine: {
     width: '88%',
     height: 14,
     marginBottom: 0,
   },
-  anchorTitleLine: {
+  fabricLabelLine: {
     width: '42%',
-    height: 14,
+    height: 10,
     marginBottom: spacing.xs,
-  },
-  anchorMeaningLine: {
-    width: '72%',
-    height: 12,
-    marginBottom: 0,
   },
 });

@@ -267,7 +267,6 @@ const WriteScreen: React.FC = () => {
           }}
         >
           <View pointerEvents="none" style={styles.paperGrain} />
-          <View pointerEvents="none" style={styles.paperRuleTop} />
           {/* Date Pill */}
           <View style={styles.datePill}>
             <Text style={styles.datePillText}>{formatDate(today)}</Text>
@@ -479,15 +478,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.accentClayBrown,
     opacity: 0.018,
-  },
-  paperRuleTop: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    top: spacing.lg,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.contourLineFaint,
-    opacity: 0.7,
   },
   datePill: {
     alignSelf: 'flex-start',

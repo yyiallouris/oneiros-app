@@ -299,11 +299,12 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(await screen.findByText('Exploring the dream')).toBeTruthy();
   });
 
-  it('keeps the locked continuation copy in a restrained 52dp action and avoids a repeated reflection heading', async () => {
+  it('keeps the locked continuation copy in a restrained 52dp action after Dream Fabric', async () => {
     const screen = render(<DreamDetailScreen />);
 
     expect(await screen.findByText('A deeper reading')).toBeTruthy();
-    expect(screen.queryAllByText('Symbolic reflection')).toHaveLength(1);
+    expect(screen.queryAllByText('Dream Fabric')).toHaveLength(1);
+    expect(screen.queryByText('Symbolic reflection')).toBeNull();
 
     const action = screen.getByTestId('continue-conversation-action');
     const actionStyle = StyleSheet.flatten(action.props.style) as Record<string, unknown>;
