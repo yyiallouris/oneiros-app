@@ -20,7 +20,7 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `supportSubmissionFeedback.flow.test.tsx` | flows-08 (cross-platform inline success/error feedback, failure draft retention, signed-in return to Write, and signed-out reset to Auth) |
 | `supportWebDelivery.flow.test.ts` | flows-08 / release docs (public support form validates input, absorbs honeypot spam, keeps credentials server-side, and proxies only to the canonical support function) |
 | `storeSubmissionCompliance.contract.flow.test.ts` | flows-06 / flows-08 / flows-10 (AI report/safety controls, private references, subscription disclosures, Apple token revocation, paid-account deletion warning) |
-| `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, collective placeholder) |
+| `insightsPeriodsAndKeys.flow.test.ts` | flows-07 (periods, labels, filter key matching, seeded aggregation updates, period-scoped/deduplicated Mythic Parallels, collective placeholder) |
 | `patternInsightsService.flow.test.ts` | flows-07 (month/week/report keys, pattern entry filtering, pending metadata skip) |
 | `dreamMetadataPrefetchService.flow.test.ts` | architecture-interpretation (extraction cache, dream content hashes, in-flight prefetch, offline prefetch skip) |
 | `entitledAiService.flow.test.ts` | flows-06 / flows-07 / flows-10 (gateway AI actions, async reflection polling/resume handles, stable generate keys, direct interpretation payloads, local persistence/cache, entitlement denial reasons) |
@@ -65,11 +65,11 @@ Automated coverage for journeys described under [`documentation/`](../documentat
 | `storageService.flow.test.ts` | flows-05 (offline-first storage orchestration, signed-out cold-start owner fence, unreadable-queue/failed-audio-delete cleanup retention, scoped account-switch cleanup) |
 | `subscriptionBilling.policy.flow.test.ts` | flows-10 (quota math, monthly cadence, cache/read-only rules) |
 | `subscriptionBilling.runtime.flow.test.ts` | flows-10 (purchase persistence, webhook dedupe, reserve/commit/release orchestration) |
-| `insightsScreen.recentDreamField.flow.test.tsx` | flows-07 / flows-10 (Recent Dream Field generation, cache display, premium lock state) |
+| `insightsScreen.recentDreamField.flow.test.tsx` | flows-07 / flows-10 (Recent Dream Field generation, cache display, premium lock state, grouped Insights entries including Mythic Parallels) |
 | `patternExplorerCategories.flow.test.ts` | flows-07 (Pattern Explorer recurrence copy, category labels, and restored Archetypal Echoes category) |
 | `insightsAndPaywallScroll.flow.test.ts` | flows-07 / flows-10 (Insights landing/detail bottom scroll clearance and premium upsell sheet scroll envelope) |
 | `insightsScrollRestore.flow.test.ts` | flows-07 (Insights landing soft-refresh + scroll restore when returning from a section) |
-| `insightsSection.offlineMessage.flow.test.tsx` | flows-05 / flows-07 / flows-10 (period reflection offline guard and premium lock state) |
+| `insightsSection.offlineMessage.flow.test.tsx` | flows-05 / flows-07 / flows-10 (period reflection offline guard, premium lock state, and Mythic Parallels detail rendering) |
 | `webContentShell.flow.test.tsx` | architecture-features / DESIGN.md (Expo web centered content column; native passthrough; content width context) |
 
 Run only these:

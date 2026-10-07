@@ -96,6 +96,7 @@ and Edge runtime. Gate record:
 - Reflection text is for the individual dream page.
 - `display_distillation` remains the compatibility and presentation source for DreamDetail's Inner movement; its essence and visible-anchor fields are persisted but no longer rendered on that screen.
 - Full metadata powers Insights and pattern reports.
+- Insights Mythic Parallels reads normalized persisted `amplifications`, groups authoritative rows by `catalog_id`, and counts distinct interpreted dreams only within the selected inclusive period. This consumer does not trigger extraction or reinterpret stored resonance/divergence text.
 - `metadata_status` tracks whether extraction is `pending`, `ready`, or `failed`; Insights skip only still-pending interpretations so incomplete enrichment does not pollute reports.
 - Persisted `archetypes` and closed-catalog `amplifications` are extracted once from the raw-dream metadata pass and are not revised by follow-up chat. Conversation-element updates may revise affects, motifs, relational dynamics, thresholds, central conflicts, and core mode.
 - If `display_distillation` is partial (for example missing `visible_anchors`), DreamDetail must fall back to metadata anchors instead of crashing.

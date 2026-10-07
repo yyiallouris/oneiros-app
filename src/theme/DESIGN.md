@@ -4,11 +4,14 @@ Centralized visual rules for Oneiros. **Do not add one-off colors or loading pat
 
 ## Active release train
 
-The current app `1.3.0` uses the final `oneiros-design-v1.2.0` visual runtime.
+The current app `1.3.0` uses the final `oneiros-design-v1.2.4` visual runtime.
 It inherits the approved eye/river masters,
 seven-colour palette, typography roles, shared surfaces and navigation from
-`oneiros-design-v1.1.0`, the D5.1 paper/Write correction, and the focused D6
-Dream Detail hierarchy redesign. The shared foundation remains locked.
+`oneiros-design-v1.1.0`, the D5.1 paper/Write correction, the focused D6
+Dream Detail hierarchy redesign, the D6.1 shared-button correction, and the
+D6.2 generated-text loading normalization, the D6.3 Insights Dream Fabric
+grouping correction, and the D6.4 Mythic Parallels entry under Deeper Echoes.
+The shared foundation remains locked; the supplied Mythic icon is still pending.
 Lifecycle and checkpoint rules are documented in
 [`../../documentation/oneiros-v130-design-evolution.md`](../../documentation/oneiros-v130-design-evolution.md).
 The approved D1 navigation uses the existing feather, open book and eye. D2
@@ -42,7 +45,7 @@ Import from `src/components/ui/`:
 ## Rules
 
 1. **Colors:** import from `../theme` — no hardcoded hex in components.
-2. **Buttons:** use `Button` + `buttons.ts` tokens for enabled / disabled / press. Do not override primary colors or disabled opacity in screens (layout-only styles are fine). Subscription plan CTAs and text links are exceptions.
+2. **Buttons:** use `Button` + `buttons.ts` tokens for enabled / disabled / press. Size tokens own height and radius: default actions may use the established pill, while compact actions use the quieter 18dp contour; variants must not override that geometry. Do not override primary colors or disabled opacity in screens (layout-only styles are fine). Subscription plan CTAs, destructive semantic colour, and text links are exceptions.
 3. **Responsive actions:** button labels should stay readable as whole words on narrow devices. Prefer single-line labels, and if side-by-side actions cannot fit cleanly, stack them vertically instead of letting words split awkwardly across lines.
 4. **Web layout:** Expo web keeps the mobile single-column UI. `WebContentShell` (mounted in `App.tsx`) centers a phone-scale column (`layout.contentMaxWidth` / tablet comfort width) on wide browsers. Prefer `useContentWidth()` over `Dimensions.get('window')` for horizontal pagers and size-bound chrome so they track the shell, not the full desktop viewport. Design-export phone-frame mode bypasses the shell.
 5. **Tab-screen CTAs:** the floating parchment nav is overlay chrome. Dock primary actions (Write **Save dream**) in the layout with `resolveFloatingTabBarContentInset` — never absolutely overlay them with platform-specific fudge offsets that can slip under the shelf on short web/iPhone/Android viewports.
@@ -54,7 +57,7 @@ Import from `src/components/ui/`:
    Insights PNG pixels remain unchanged. Preserve at least a 44dp parent touch
    target. Runtime code must never import artwork from an `assets/legacy` or
    `-candidate` directory.
-7. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons.
+7. **Loading:** hide the CTA, show `LoadingState` — never `ActivityIndicator` inside buttons. User-facing AI text generation uses the shared six-line `reflect` visual; short fetches and transitions use `breath`.
 8. **Background:** `PaperBackground` + `BG_paper.png` — the repeated image must explicitly fill its owning plane at every viewport size; no new global gradients or waves on active screens.
 9. **Legacy:** `LegacyWaveBackground` / `LegacyMountainWaveBackground` are reference-only; not for new screens.
 10. **Calmness before affordance:** optimize for calmness first, discoverability second. If an interactive element draws attention to itself instead of to the dream, it is too loud; prefer editorial disclosures that emerge from the paper over generic card or Material-button chrome. For disclosure rows, remove the chevron mentally: everything left behind should read as a natural part of the page, not as a button.

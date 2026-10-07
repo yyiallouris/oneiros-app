@@ -11,8 +11,10 @@
 **App version at approval:** `1.2.0`
 
 App `1.3.0` promoted the separately versioned eye/river identity under
-`oneiros-design-v1.1.0` and now carries the approved Dream Detail hierarchy
-runtime `oneiros-design-v1.2.0`; see
+`oneiros-design-v1.1.0` and now carries the approved Dream Detail hierarchy,
+button normalization, generated-text loading, and unified Insights Dream
+Fabric grouping in
+`oneiros-design-v1.2.4`; see
 [`oneiros-v130-brand-release.md`](./oneiros-v130-brand-release.md). This record
 and its fingerprint remain the exact historical `1.2.0` baseline.
 

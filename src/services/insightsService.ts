@@ -6,6 +6,7 @@
 import pluralize from 'pluralize';
 import { StorageService } from './storageService';
 import { canonicalArchetypeLabels } from '../ai/archetypalEchoes';
+import { normalizeAmplifications } from '../ai/mythicEchoes';
 import { ARCHETYPE_WHITELIST, normalizeArchetype } from '../constants/archetypes';
 import { isExplicitSymbol, toSafeSymbolLabel } from '../constants/safeLabels';
 import {
@@ -18,6 +19,7 @@ import {
 import type {
   SymbolCount,
   ArchetypeCount,
+  MythicParallelCount,
   LandscapeCount,
   MotifCount,
   ThresholdCount,
@@ -256,6 +258,60 @@ export async function getRecurringArchetypes(period?: InsightsPeriod): Promise<A
     name,
     count: byName.get(name)?.size ?? 0,
   })).sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Mythic parallels from persisted closed-catalog `interpretation.amplifications` metadata.
+ * Counts distinct interpreted dreams in the selected period, grouping new rows by
+ * authoritative catalog id and legacy rows by their resolved title + tradition.
+ */
+export async function getRecurringMythicParallels(
+  period?: InsightsPeriod
+): Promise<MythicParallelCount[]> {
+  const dreams = await StorageService.getDreams();
+  const filtered = period ? dreamsInPeriod(dreams, period) : dreams;
+  const dreamIds = new Set(filtered.map((dream) => dream.id));
+  const interpretations = await StorageService.getInterpretations();
+  const byKey = new Map<
+    string,
+    { catalogId: string | null; title: string; tradition: string; dreamIds: Set<string> }
+  >();
+
+  interpretations.forEach((interpretation) => {
+    if (!dreamIds.has(interpretation.dreamId)) return;
+
+    normalizeAmplifications(interpretation.amplifications ?? []).forEach((parallel) => {
+      const title = parallel.title.trim();
+      if (!title) return;
+      const tradition = parallel.tradition.trim();
+      const catalogId = parallel.catalog_id?.trim() || null;
+      const key = catalogId
+        ? `catalog:${catalogId}`
+        : `legacy:${normalizeSymbolKey(title)}::${tradition.toLowerCase()}`;
+      const existing = byKey.get(key);
+
+      if (existing) {
+        existing.dreamIds.add(interpretation.dreamId);
+        return;
+      }
+
+      byKey.set(key, {
+        catalogId,
+        title,
+        tradition,
+        dreamIds: new Set([interpretation.dreamId]),
+      });
+    });
+  });
+
+  return Array.from(byKey.values())
+    .map((parallel) => ({
+      catalogId: parallel.catalogId,
+      title: parallel.title,
+      tradition: parallel.tradition,
+      count: parallel.dreamIds.size,
+    }))
+    .sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
 }
 
 /**

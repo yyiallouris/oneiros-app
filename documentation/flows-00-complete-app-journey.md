@@ -4,9 +4,11 @@ This is the end-to-end Oneiros path for agents who need the whole product shape 
 
 **Current design train:** the journey uses the approved app `1.3.0` eye/river
 identity while the wider visual system advances through gated
-`oneiros-design-v1.2.0` checkpoints. The runtime inherits the approved
+`oneiros-design-v1.2.4` checkpoints. The runtime inherits the approved
 `oneiros-design-v1.1.0` direction, the D5.1 paper/Write correction, and the
-focused D6 Dream Detail hierarchy redesign. See
+focused D6 Dream Detail hierarchy redesign, D6.1 button normalization, and
+D6.2 generated-text loading normalization, and D6.3 Insights Dream Fabric
+grouping, and D6.4 Mythic Parallels under Deeper Echoes. See
 [oneiros-v130-design-evolution.md](./oneiros-v130-design-evolution.md). The
 brand masters are final; the previous `1.2.0` / `oneiros-design-v1.0.2`
 baseline remains immutable history.

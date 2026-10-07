@@ -60,13 +60,10 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('../../src/components/ui', () => {
   const React = require('react');
   const { View, Text, TouchableOpacity } = require('react-native');
+  const { Button } = jest.requireActual('../../src/components/ui/Button');
   return {
     Card: ({ children }: any) => <View>{children}</View>,
-    Button: ({ title, onPress }: any) => (
-      <TouchableOpacity onPress={onPress}>
-        <Text>{title}</Text>
-      </TouchableOpacity>
-    ),
+    Button,
     Chip: ({ label }: any) => <Text>{label}</Text>,
     PaperBackground: ({ children }: any) => <View>{children}</View>,
     LegacyWaveBackground: ({ children }: any) => <View>{children}</View>,
@@ -299,7 +296,7 @@ describe('DreamDetail exploring chat scroll flow', () => {
     expect(await screen.findByText('Exploring the dream')).toBeTruthy();
   });
 
-  it('keeps the locked continuation copy in a restrained 52dp action after Dream Fabric', async () => {
+  it('keeps the locked continuation copy in a compact shared action after Dream Fabric', async () => {
     const screen = render(<DreamDetailScreen />);
 
     expect(await screen.findByText('A deeper reading')).toBeTruthy();
@@ -308,8 +305,13 @@ describe('DreamDetail exploring chat scroll flow', () => {
 
     const action = screen.getByTestId('continue-conversation-action');
     const actionStyle = StyleSheet.flatten(action.props.style) as Record<string, unknown>;
-    expect(actionStyle.minHeight).toBe(52);
+    expect(actionStyle.minHeight).toBe(46);
+    expect(actionStyle.borderRadius).toBe(18);
     expect(actionStyle.borderWidth).toBeTruthy();
+    expect(actionStyle.width).toBeUndefined();
+    expect(actionStyle.maxWidth).toBe('100%');
+    expect(action.props.accessibilityRole).toBe('button');
+    expect(action.props.accessibilityLabel).toBe('Continue the conversation');
     expect(screen.getByText('Continue the conversation')).toBeTruthy();
   });
 

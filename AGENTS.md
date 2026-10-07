@@ -89,6 +89,11 @@ npm run detox:test:android
 - Check `git status --short` before editing.
 - If existing modified files are unrelated, leave them alone.
 - If existing modified files affect the task, read them and work with the changes.
+- Never run `git add`, `git commit`, `git commit --amend`, or otherwise stage or
+  commit changes unless the user gives an explicit instruction to do so. Do not
+  infer permission from task completion, approval of the implementation, or a
+  request to continue. Without that explicit instruction, leave all changes
+  unstaged and uncommitted.
 
 ## UX And Product Contracts Require Explicit Approval
 

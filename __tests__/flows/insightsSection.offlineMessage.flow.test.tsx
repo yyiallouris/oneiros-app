@@ -2,7 +2,7 @@
  * Flow coverage: documentation/flows-05-sync-offline.md (offline guard for pattern reflection generation).
  */
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { Alert, InteractionManager } from 'react-native';
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -16,6 +16,8 @@ const mockGetPatternReports = jest.fn();
 const mockGetInterpretationDepth = jest.fn();
 const mockIsOnline = jest.fn();
 const mockGetRecurringSymbols = jest.fn();
+const mockGetRecurringMythicParallels = jest.fn();
+const mockGetPatternInsightEntries = jest.fn();
 const mockGenerateEntitledPeriodReflection = jest.fn();
 const mockPurchasePlan = jest.fn();
 let mockRouteParams: Record<string, unknown> = { sectionId: 'pattern-recognition' };
@@ -50,7 +52,7 @@ jest.mock('../../src/components/ui', () => {
         <Text>{title}</Text>
       </TouchableOpacity>
     ),
-    LoadingState: () => <Text>Loading</Text>,
+    LoadingState: ({ preset }: any) => <Text>{`Loading:${preset ?? 'custom'}`}</Text>,
     ContentSkeleton: () => <Text>Skeleton</Text>,
     SectionTitleWithInfo: ({ title }: any) => <Text>{title}</Text>,
     SymbolInfoModal: () => null,
@@ -89,6 +91,7 @@ jest.mock('../../src/components/subscription/PremiumUpsellModal', () => ({
 jest.mock('../../src/services/insightsService', () => ({
   getRecurringSymbols: (...args: unknown[]) => mockGetRecurringSymbols(...args),
   getRecurringArchetypes: jest.fn().mockResolvedValue([]),
+  getRecurringMythicParallels: (...args: unknown[]) => mockGetRecurringMythicParallels(...args),
   getRecurringLandscapes: jest.fn().mockResolvedValue([]),
   getRecurringMotifs: jest.fn().mockResolvedValue([]),
   getRecurringThresholds: jest.fn().mockResolvedValue([]),
@@ -119,7 +122,7 @@ jest.mock('../../src/services/insightsService', () => ({
 
 jest.mock('../../src/services/patternInsightsService', () => ({
   generateMonthlyInsights: jest.fn(),
-  getPatternInsightEntries: jest.fn().mockResolvedValue([]),
+  getPatternInsightEntries: (...args: unknown[]) => mockGetPatternInsightEntries(...args),
   getMonthPeriod: jest.fn((monthKey: string) => ({ startDate: `${monthKey}-01`, endDate: `${monthKey}-28` })),
   getLast12MonthKeys: jest.fn().mockReturnValue(['2025-04']),
   formatMonthKeyLabel: jest.fn().mockReturnValue('April 2025'),
@@ -214,6 +217,9 @@ describe('InsightsSection offline message flow', () => {
     mockGetInterpretationDepth.mockResolvedValue('standard');
     mockIsOnline.mockResolvedValue(false);
     mockGetRecurringSymbols.mockResolvedValue([]);
+    mockGetRecurringMythicParallels.mockResolvedValue([]);
+    mockGetPatternInsightEntries.mockResolvedValue([]);
+    mockGenerateEntitledPeriodReflection.mockResolvedValue('## Period Reflection\nQuiet body.');
   });
 
   afterEach(() => {
@@ -247,6 +253,32 @@ describe('InsightsSection offline message flow', () => {
     expect(screen.getByText('Paywall:period_reflection:premium_only')).toBeTruthy();
   });
 
+  it('shows the shared essay hexagram state while Period Reflection text is generating', async () => {
+    let resolveGeneration!: (value: string) => void;
+    mockIsOnline.mockResolvedValue(true);
+    mockGetPatternInsightEntries.mockResolvedValue([
+      { dreamId: 'd1', date: '2025-04-02', extracted: {}, interpretation: 'one' },
+      { dreamId: 'd2', date: '2025-04-12', extracted: {}, interpretation: 'two' },
+    ]);
+    mockGenerateEntitledPeriodReflection.mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveGeneration = resolve;
+      })
+    );
+    const screen = render(<InsightsSectionScreen />);
+
+    await waitFor(() => expect(screen.getByText('Generate reflection')).toBeTruthy());
+    fireEvent.press(screen.getByText('Generate reflection'));
+
+    await waitFor(() => expect(screen.getByText('Loading:essayGeneration')).toBeTruthy());
+    expect(screen.queryByText('Generate reflection')).toBeNull();
+    expect(screen.getByText('Skeleton')).toBeTruthy();
+
+    await act(async () => {
+      resolveGeneration('## Period Reflection\nQuiet body.');
+    });
+  });
+
   it('lets forming pattern sections own the period picker and reloads when the period changes', async () => {
     mockRouteParams = {
       sectionId: 'recurring-symbols',
@@ -275,6 +307,33 @@ describe('InsightsSection offline message flow', () => {
     expect(mockGetRecurringSymbols).toHaveBeenCalledWith({
       startDate: '2026-06-01',
       endDate: '2026-06-30',
+    });
+  });
+
+  it('renders period-filtered mythic parallels with their resolved tradition', async () => {
+    mockRouteParams = {
+      sectionId: 'mythic-parallels',
+      periodStart: '2026-07-01',
+      periodEnd: '2026-07-31',
+      periodLabel: 'This month',
+    };
+    mockGetRecurringMythicParallels.mockResolvedValue([
+      {
+        catalogId: 'sumerian.inanna_descent',
+        title: 'The Descent of Inanna',
+        tradition: 'Sumerian / Mesopotamian',
+        count: 2,
+      },
+    ]);
+
+    const screen = render(<InsightsSectionScreen />);
+
+    await waitFor(() => expect(screen.getByText('The Descent of Inanna')).toBeTruthy());
+    expect(screen.getByText('Sumerian / Mesopotamian')).toBeTruthy();
+    expect(screen.getByText('×2')).toBeTruthy();
+    expect(mockGetRecurringMythicParallels).toHaveBeenCalledWith({
+      startDate: '2026-07-01',
+      endDate: '2026-07-31',
     });
   });
 });

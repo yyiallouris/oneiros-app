@@ -42,13 +42,19 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Design system
 
-- Active visual runtime: `oneiros-design-v1.2.0` for app `1.3.0`. This
+- Active visual runtime: `oneiros-design-v1.2.4` for app `1.3.0`. This
   release inherits the exact `oneiros-design-v1.1.0`
   eye/river brand artifacts, palette, typography roles, surfaces, navigation
   treatment and responsive shell, guarantees full-plane repeated-paper
   coverage, removes the redundant rule above the Write date chip, and carries
-  the explicitly approved Dream Detail Fabric hierarchy redesign. The shared
-  foundation remains locked as documented in
+  the explicitly approved Dream Detail Fabric hierarchy redesign, and keeps
+  compact secondary/ghost actions on the shared 46dp / 18dp geometry, and uses
+  the shared six-line reflect visual for user-facing AI text generation in
+  Dream Detail, follow-up chat, Recent Dream Field and Period Reflection, and
+  places the six grounded Insights categories in one top Dream Fabric group,
+  and adds the period-filtered Mythic Parallels entry under Deeper Echoes.
+  The
+  shared foundation remains locked as documented in
   [`oneiros-v130-design-evolution.md`](./oneiros-v130-design-evolution.md).
   D1 is the approved bottom-navigation-only checkpoint: it normalizes
   the existing feather/book/eye sources and does not authorize new concepts,

@@ -3,7 +3,8 @@
 > **Design checkpoint:** the v1.3.0 visual foundation is locked. D2 Insights
 > normalization stays offline and D3 remains diagnostic evidence only. The
 > seven palette primitives are final; icon redesign is deferred to a separate
-> future phase. No route, label, data, icon artwork or report flow below changed.
+> future phase. The Mythic Parallels entry intentionally ships without new
+> artwork until the product-supplied icon arrives.
 
 ## Insights tab (`InsightsScreen`)
 
@@ -23,10 +24,25 @@
   - The inline “recent field is forming” helper box is not shown anymore when the current scope is still too light.
 - **Period Reflection:** primary card to `pattern-recognition` in **`InsightsSection`** for archived calendar-period reports. Each displayed generated essay includes `Report this response`, keyed to the report period without automatically attaching essay or dream text.
   - Free users see a locked paid-plan card with tappable upsell behavior rather than a dead end.
+- **Essay generation feedback:** while either Recent Dream Field or Period
+  Reflection is generating its essay, the trigger is hidden and the shared
+  six-line plum hexagram loader is shown. Short data fetches keep the quieter
+  breathing-line loader; the hexagram is reserved for user-facing generated
+  text work.
 - **Insights categories:** the landing page no longer places every insight tile under a single `Forming Patterns` umbrella. It now groups the category entry points into:
-  - `Dream Fabric`: Images, Motifs, Emotional Atmosphere, Dream Landscapes
-  - `Dream Movement`: Thresholds, Inner Tensions
-  - `Deeper Echoes`: Archetypal Echoes
+  - `Dream Fabric`: Images, Motifs, Emotional Atmosphere, Dream Landscapes,
+    Thresholds, Inner Tensions
+  - `Deeper Echoes`: Archetypal Echoes, Mythic Parallels
+
+  `Dream Movement` is no longer a separate landing group; its two entry points
+  live inside the top Dream Fabric section. Their detail routes, data, and
+  period behavior are unchanged.
+
+  Dream Fabric uses the period-aware description `How your dreams take shape
+  and move across this period.` It deliberately avoids assuming that every
+  period contains tension, boundaries, or change, and does not describe the
+  aggregate as though it belonged to one specific dream.
+
   Each group uses descriptive copy about what kind of dream material it represents, while recurrence language is reserved for the Pattern Explorer surface.
 - **Returning Patterns:** unified strongest patterns across categories.
   - Images → **`JournalFilter`** with `filterSymbol`.
@@ -49,7 +65,7 @@
 
 Visual treatment: detail sections avoid dashboard-style nested cards. Pattern controls, report output, empty states, symbol associations, archetype overviews, and collective placeholders render as open text blocks/rows with hairline separators. Empty-state hand-ink marks use the shared quiet 88dp section frame and the message uses the serif inner-voice role, so the page reads as intentional silence rather than missing dashboard data. Insight report language is configured from Account rather than inside report screens.
 
-- **Forming pattern period picker:** `Images`, `Motifs`, `Emotional Atmosphere`, `Thresholds`, `Inner Tensions`, `Dream Landscapes`, and `Archetypal Echoes` own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place.
+- **Forming pattern period picker:** `Images`, `Motifs`, `Emotional Atmosphere`, `Thresholds`, `Inner Tensions`, `Dream Landscapes`, `Archetypal Echoes`, and `Mythic Parallels` own the period picker locally. The selector offers This month, Last month, Last 3 months, Last 6 months, and All time from inside the section screen itself, and updates the section header period label in place.
 - **Insights icon family:** the Period Reflection entry, grouped landing categories, and Pattern Explorer render from the hand-ink PNG set using the corrected Archetypal Echoes asset (`oneiros_isnights_archetypes.png`), the dedicated second-generation Period Reflection asset (`pattern_recognition_essay/oneiros_period_reflection_v2.png`), the dedicated Emotional Weather asset (`oneiros_insight_emotional_weather.png`), and the dedicated Images asset (`oneiros_insight_images_imaginal_eye_ink.png`). Images uses a half-lidded eye with unequal pressure-led lids, a vertical organic presence, and one witness dot. It treats the dream image as a presence rather than a photo/file metaphor and remains visibly distinct from the fully open, round-pupil, dot-free navigation eye. Period Reflection uses three uneven dream-stone forms joined by one wandering dry-brush thread and the family's detached witness dot, retaining its across-time synthesis meaning while matching the authored ink pressure, roughness, and restraint of the other Insights marks. The shared PNG renderer crops each transparent canvas while preserving original black-ink contrast; no symbolic raster receives a family-wide plum tint as a substitute for drawing consistency. Deliberately dense glyphs remain dense but receive restrained optical scaling where needed: Emotional Atmosphere and Thresholds `0.92`, Inner Tensions uses `0.94`, and Dream Landscapes uses `0.88`. The previous generated SVG Insights icons remain under `src/components/icons/generated/legacy/`, while other superseded in-app artwork lives under `src/assets/icons/legacy/`; root-level pre-redesign and loading artwork lives under `assets/legacy/`. All legacy locations are visual history only and have no runtime consumer.
 
 Per `sectionId`:
@@ -59,6 +75,7 @@ Per `sectionId`:
 - **Emotional Atmosphere:** defined as the felt climate around the dream, while the underlying counts still aggregate recurring `affects` across dreams. `Single Appearances` now render inline from the start; no journal filter in this pass.
 - **Thresholds / Inner Tensions:** the section intro defines the material (`passage, hesitation, and change`; `opposing pulls or demands`) without collapsing immediately into recurrence language, even though the list still shows period counts.
 - **Archetypal Echoes:** restored to the grouped landing categories and still available through direct routing / deep links, using the same aggregated `topArchetypalEchoes` metadata pipeline as the detail section.
+- **Mythic Parallels:** a second Deeper Echoes entry. The detail section reads persisted `interpretation.amplifications`, resolves closed-catalog `catalog_id` rows through the existing Mythic catalog, groups by catalog id (title + tradition for legacy rows), and counts each interpreted dream once. It uses the same inclusive period bounds as the other section details, so out-of-period dreams never contribute. This is a read-only Insights consumer of the existing extraction contract; no prompt, schema, catalog, persistence, or Edge Function behavior changed. Its icon slot remains artwork-free until the product-supplied Mythic Parallels icon arrives.
 - **Period Reflection:** AI calendar-period reports; month picker (last 12 months); requires at least 2 interpreted dreams in the selected period; Premium current month uses a month-level report key, while Deeper keeps week keys for the current month via `getReportKeyForGeneration`; uses the global Insights language selected in Account; saves reports via `remoteSavePatternReport` / loads `remoteGetPatternReports` when online; uses interpreted dream entries from `getPatternInsightEntries` (capped, period-filtered); generation now routes through `generateEntitledPeriodReflection`.
 - **Recent Dream Field:** AI recent-sequence reflection lives on `InsightsScreen`; uses `getRecentPatternInsightEntries`, `getRecentSequenceScopeKey`, and `generateEntitledRecentDreamField` for the standard paid path; requires at least 2 interpreted dreams; reads the global Insights language from `patternInsightLanguageService`; local cache key is based on the exact `dreamIds` hash and language; does not use `monthKey`, `LocalStorage.savePatternReport`, `remoteSavePatternReport`, or the Past reflections archive.
 - **Collective:** `getCollectiveInsights()` — currently **placeholder** empty aggregates (`insightsService` TODO).
@@ -94,11 +111,11 @@ Per `sectionId`:
 
 ## Insights ↔ data dependencies
 
-- Aggregations still use **local dreams** and interpretations, and full pattern metadata remains available to Insights sections: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances. The accepted Phase 1 essay builder consumes this metadata-heavy context; narrative-first selective context is research-only. Forming Patterns grid counts still use archetype `canonical_label` only and do not include amplifications.
+- Aggregations still use **local dreams** and interpretations, and full pattern metadata remains available to Insights sections: symbols, archetypes, landscapes, affects, motifs, relational dynamics, thresholds, central conflicts, core mode, amplifications, and symbol stances. The accepted Phase 1 essay builder consumes this metadata-heavy context; narrative-first selective context is research-only. The strongest-pattern ranking still excludes Interpretive Echoes. `amplifications` now additionally feed the dedicated period-filtered Mythic Parallels detail section.
 - `display_distillation` is for immediate DreamDetail presentation only; monthly/quarterly reports and recent reflections continue to synthesize from full metadata and interpretation excerpts.
 - The new backend gateway assumes remote dream + interpretation data is available and is now the default path for gated premium actions.
 - **Regression:** insights empty until user has reflections with extracted fields; changing period changes all section data.
-- **Regression:** adding a newly interpreted dream to an existing period updates interpreted counts, strongest patterns, recurring images, motifs, thresholds, and the field summary.
+- **Regression:** adding a newly interpreted dream to an existing period updates interpreted counts, strongest patterns, recurring images, motifs, thresholds, and the field summary. Mythic Parallels separately updates from persisted `amplifications`, deduplicates repeated interpretation rows for one dream, and excludes parallels outside the selected period.
 - **Regression:** Recent Dream Field and Essay gateway responses persist to their local caches/reports using the returned scope key, including cached gateway artifacts.
 
 ## Calendar + insights

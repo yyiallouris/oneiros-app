@@ -27,10 +27,11 @@ describe('loading system', () => {
     expect(screen.getByText(loadingPresets.dreamReflection.message!)).toBeTruthy();
   });
 
-  it('renders breath preset for recent reflection panel', () => {
-    render(<LoadingState preset="recentReflection" />);
-    expect(screen.getByTestId('breathing-line')).toBeTruthy();
-    expect(screen.getByText(loadingPresets.recentReflection.message!)).toBeTruthy();
+  it('renders the six-line reflect visual for long-form essay generation', () => {
+    render(<LoadingState preset="essayGeneration" />);
+    expect(screen.getByTestId('print-patch-loader')).toBeTruthy();
+    expect(screen.queryByTestId('breathing-line')).toBeNull();
+    expect(screen.getByText(loadingPresets.essayGeneration.message!)).toBeTruthy();
   });
 
   it('swaps children for loading visual in ActionLoadingSlot', () => {

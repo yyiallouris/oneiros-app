@@ -28,8 +28,8 @@ export const loadingPresets = {
     context: 'panel',
     message: 'Removing this dream…',
   },
-  recentReflection: {
-    variant: 'breath',
+  essayGeneration: {
+    variant: 'reflect',
     context: 'panel',
     message: 'Listening for what is moving now…',
   },

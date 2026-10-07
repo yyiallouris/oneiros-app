@@ -6,7 +6,7 @@
 
 **Brand approval design release:** `oneiros-design-v1.1.0`
 
-**Current inheriting runtime:** `oneiros-design-v1.2.0` (brand bytes unchanged)
+**Current inheriting runtime:** `oneiros-design-v1.2.4` (brand bytes unchanged)
 
 **Approved:** 2026-10-06
 
@@ -73,7 +73,7 @@ npm test -- --runInBand __tests__/brandV130Release.test.ts __tests__/designRelea
 ```
 
 The active app metadata is version `1.3.0`, iOS build `8`, Android version code
-`8`, and design release `oneiros-design-v1.2.0`. The approved brand manifest
+`8`, and design release `oneiros-design-v1.2.4`. The approved brand manifest
 remains owned by `oneiros-design-v1.1.0` because the later visual patches change
 no brand bytes. The previous flat branding
 files remain unchanged as historical `1.2.0` source material; runtime imports

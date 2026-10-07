@@ -74,6 +74,9 @@ Styles: **`buttons.ts`**. Loading: **`loading.ts`**. Press: shared `Button` uses
 - Active: `buttonPrimary90` + `buttonEdge` + soft plum shadow + `onAccent` label
 - Disabled: same plum fill/border at `opacity: 0.68` (Save dream treatment — app-wide for primary)
 - Secondary/ghost disabled: keep variant fill, fade with `opacity: 0.68`
+- Geometry belongs to `buttonSizes`: default actions keep the established pill;
+  compact primary, secondary, and ghost actions all resolve to `46dp` height
+  with an `18dp` radius. Variant styles do not replace size geometry.
 
 Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`, `buttonPrimaryDisabled*`; all shared plum variants derive from `PLUM` or `PLUM_SOFT`.
 

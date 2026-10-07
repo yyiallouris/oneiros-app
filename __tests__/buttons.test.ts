@@ -1,7 +1,10 @@
+import fs from 'fs';
 import {
   primaryButton,
   primaryButtonText,
   primaryIconButton,
+  secondaryButton,
+  ghostButton,
   buttonSizes,
 } from '../src/theme/buttons';
 import { colors } from '../src/theme';
@@ -32,5 +35,19 @@ describe('button theme tokens', () => {
   it('defines compact size used by Save dream', () => {
     expect(buttonSizes.compact.minHeight).toBe(46);
     expect(buttonSizes.compact.borderRadius).toBe(18);
+    expect(buttonSizes.compact.paddingVertical).toBe(8);
+  });
+
+  it('lets size tokens own secondary and ghost geometry', () => {
+    expect(secondaryButton.base).not.toHaveProperty('borderRadius');
+    expect(ghostButton.base).not.toHaveProperty('borderRadius');
+  });
+
+  it('keeps the Dream Editor destructive action on semantic colour tokens', () => {
+    const editorSource = fs.readFileSync('src/screens/DreamEditorScreen.tsx', 'utf8');
+
+    expect(editorSource).toContain('borderColor: colors.error');
+    expect(editorSource).toContain('color: semantic.errorDark');
+    expect(editorSource).not.toContain("color: '#D32F2F'");
   });
 });

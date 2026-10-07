@@ -16,6 +16,14 @@ export interface ArchetypeCount {
   count: number;
 }
 
+/** Closed-catalog mythic parallel aggregated across distinct interpreted dreams. */
+export interface MythicParallelCount {
+  catalogId: string | null;
+  title: string;
+  tradition: string;
+  count: number;
+}
+
 /** Symbol frequency in a time window (e.g. per month) */
 export interface SymbolMonthCount {
   symbol: string;
@@ -169,6 +177,7 @@ export type InsightsSectionId =
   | 'recurring-symbols'   // overview: bars + 1 line + View symbol details
   | 'symbol-details'     // deep dive: recurring symbols, clusters, all symbols
   | 'recurring-archetypes' // archetypal echoes across dreams
+  | 'mythic-parallels'   // closed-catalog mythic echoes across dreams
   | 'symbolic-motifs'    // Motifs: dream situations and shapes
   | 'emotional-weather'  // Emotional Atmosphere: felt tones from affects
   | 'thresholds'         // Thresholds: moments of passage, hesitation, and change

@@ -28,6 +28,7 @@ import {
   getInterpretedDreamsCountForPeriod,
   getInsightsOverview,
   getRecurringAffects,
+  getRecurringMythicParallels,
   buildStrongestPatterns,
   buildDreamFieldSummary,
 } from '../../src/services/insightsService';
@@ -398,5 +399,98 @@ describe('insights periods & keys flow', () => {
       ])
     );
     expect(affects.find((a) => a.name === 'anxiety')?.count).toBe(2);
+  });
+
+  it('collects mythic parallels from persisted metadata only inside the selected period', async () => {
+    mockStorageService.getDreams.mockResolvedValue([
+      { id: 'dream-april-a', date: '2026-04-02', content: 'A descent.', createdAt: 't', updatedAt: 't' },
+      { id: 'dream-april-b', date: '2026-04-18', content: 'Seven gates.', createdAt: 't', updatedAt: 't' },
+      { id: 'dream-march', date: '2026-03-20', content: 'A lost beloved.', createdAt: 't', updatedAt: 't' },
+    ]);
+    mockStorageService.getInterpretations.mockResolvedValue([
+      {
+        id: 'i-april-a-1',
+        dreamId: 'dream-april-a',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        amplifications: [{
+          catalog_id: 'sumerian.inanna_descent',
+          title: '',
+          tradition: '',
+          resonance: 'A voluntary descent through successive gates.',
+          divergence: 'The dream does not stage a completed return.',
+          evidence: [],
+          confidence: 'high' as const,
+        }],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+      {
+        id: 'i-april-a-duplicate',
+        dreamId: 'dream-april-a',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        amplifications: [{
+          catalog_id: 'sumerian.inanna_descent',
+          title: '',
+          tradition: '',
+          resonance: 'The same persisted echo on another interpretation row.',
+          divergence: 'Still one dream.',
+          evidence: [],
+          confidence: 'medium' as const,
+        }],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+      {
+        id: 'i-april-b',
+        dreamId: 'dream-april-b',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        amplifications: [{
+          catalog_id: 'sumerian.inanna_descent',
+          title: '',
+          tradition: '',
+          resonance: 'Another dream with the same parallel.',
+          divergence: 'Its return remains open.',
+          evidence: [],
+          confidence: 'high' as const,
+        }],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+      {
+        id: 'i-march',
+        dreamId: 'dream-march',
+        messages: [],
+        symbols: [],
+        archetypes: [],
+        amplifications: [{
+          catalog_id: 'greek.orpheus_eurydice',
+          title: '',
+          tradition: '',
+          resonance: 'A retrieval crossing.',
+          divergence: 'There is no backward look.',
+          evidence: [],
+          confidence: 'high' as const,
+        }],
+        createdAt: 't',
+        updatedAt: 't',
+      },
+    ]);
+
+    await expect(
+      getRecurringMythicParallels({ startDate: '2026-04-01', endDate: '2026-04-30' })
+    ).resolves.toEqual([
+      {
+        catalogId: 'sumerian.inanna_descent',
+        title: 'The Descent of Inanna',
+        tradition: 'Sumerian / Mesopotamian',
+        count: 2,
+      },
+    ]);
   });
 });

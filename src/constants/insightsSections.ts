@@ -4,6 +4,7 @@ export const INSIGHTS_SECTION_TITLES: Record<InsightsSectionId, string> = {
   'recurring-symbols': 'Images',
   'symbol-details': 'Explore symbol data',
   'recurring-archetypes': 'Archetypal Echoes',
+  'mythic-parallels': 'Mythic Parallels',
   'symbolic-motifs': 'Motifs',
   'emotional-weather': 'Emotional Atmosphere',
   thresholds: 'Thresholds',
@@ -17,6 +18,7 @@ export const INSIGHTS_SECTION_SUBTITLES: Record<InsightsSectionId, string> = {
   'recurring-symbols': 'Figures, objects, and forms that carry weight in the dream',
   'symbol-details': 'Recurring symbols, associations, and image families',
   'recurring-archetypes': 'Deeper patterns of human experience resonating through the dream',
+  'mythic-parallels': 'Older stories whose shape may echo through the dream',
   'symbolic-motifs': 'Scenes that give form to recognizable human situations',
   'emotional-weather': 'The felt emotional climate surrounding the dream',
   thresholds: 'Places or moments of passage, hesitation, and change',
@@ -34,6 +36,7 @@ export const INSIGHTS_SECTIONS: { id: InsightsSectionId; subtitle: string }[] = 
   { id: 'core-conflicts', subtitle: INSIGHTS_SECTION_SUBTITLES['core-conflicts'] },
   { id: 'space-landscapes', subtitle: INSIGHTS_SECTION_SUBTITLES['space-landscapes'] },
   { id: 'recurring-archetypes', subtitle: INSIGHTS_SECTION_SUBTITLES['recurring-archetypes'] },
+  { id: 'mythic-parallels', subtitle: INSIGHTS_SECTION_SUBTITLES['mythic-parallels'] },
   { id: 'pattern-recognition', subtitle: INSIGHTS_SECTION_SUBTITLES['pattern-recognition'] },
   { id: 'collective', subtitle: INSIGHTS_SECTION_SUBTITLES.collective },
 ];

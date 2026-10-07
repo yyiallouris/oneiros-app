@@ -26,6 +26,8 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  accessibilityLabel?: string;
+  testID?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -36,6 +38,8 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   style,
   textStyle,
+  accessibilityLabel,
+  testID,
 }) => {
   const sizeStyle = buttonSizes[size];
 
@@ -59,10 +63,14 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, sizeStyle, ...variantStyles.button, style]}
+      style={[styles.button, ...variantStyles.button, sizeStyle, style]}
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled }}
+      testID={testID}
     >
       <Text
         style={[...variantStyles.text, textStyle]}

@@ -3,13 +3,13 @@
  *
  * The brand masters are final, while the complete-app visual system advances
  * through explicit review checkpoints under the same marketing/design version.
- * `sourceFingerprint` identifies the active visual source after the approved
- * Dream Detail hierarchy redesign. The locked foundation remains inherited;
- * icon redesign is still outside this release and can reopen only as a future
- * phase with its own approval boundary.
+ * `sourceFingerprint` identifies the active visual source after the focused
+ * Deeper Echoes Mythic Parallels addition. The locked foundation remains
+ * inherited; icon redesign is still outside this release and can reopen only
+ * as a future phase with its own approval boundary.
  */
 export const ONEIROS_V1_DESIGN_RELEASE = {
-  id: 'oneiros-design-v1.2.0',
+  id: 'oneiros-design-v1.2.4',
   productLine: 'oneiros-v1',
   status: 'final',
   phaseOpenedOn: '2026-10-06',
@@ -17,9 +17,9 @@ export const ONEIROS_V1_DESIGN_RELEASE = {
   appVersionAtApproval: '1.3.0',
   scope: 'complete-app-visual-ux',
   fingerprintAlgorithm: 'sha256-path-null-bytes-v1',
-  activeCheckpoint: 'v1.3.0-d6-dream-detail',
+  activeCheckpoint: 'v1.3.0-d6.4-insights-mythic-parallels',
   reviewCheckpoint: null,
-  sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+  sourceFingerprint: '26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa',
   candidateSourceFingerprint: null,
   checkpoints: [
     {
@@ -95,6 +95,42 @@ export const ONEIROS_V1_DESIGN_RELEASE = {
       status: 'approved',
       approvedOn: '2026-10-07',
       sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+      foundationDirectionChanged: false,
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d6.1-buttons',
+      label: 'Shared button geometry corrective patch',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '0122151b4ad719ddb8d59309135735551ae97e620205bd33bee53650fede49ae',
+      foundationDirectionChanged: false,
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d6.2-generation-loading',
+      label: 'Generated-text loading visual normalization',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '33633260b099fcb3b1a10d4cbf340cf7e02e6cf350766f3bc718f3888edb84b1',
+      foundationDirectionChanged: false,
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d6.3-insights-fabric-grouping',
+      label: 'Insights Dream Fabric grouping correction',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '51a5c1fdc786e633974d44000d2490adf64a63bbb829e0f696660b4f083bfcf6',
+      foundationDirectionChanged: false,
+      iconRedesignDeferred: true,
+    },
+    {
+      id: 'v1.3.0-d6.4-insights-mythic-parallels',
+      label: 'Insights Mythic Parallels addition',
+      status: 'approved',
+      approvedOn: '2026-10-07',
+      sourceFingerprint: '26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa',
       foundationDirectionChanged: false,
       iconRedesignDeferred: true,
     },

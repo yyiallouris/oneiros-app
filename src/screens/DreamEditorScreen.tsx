@@ -15,7 +15,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
-import { colors, spacing, typography, borderRadius } from '../theme';
+import { colors, spacing, typography, borderRadius, semantic } from '../theme';
 import { Card, Button, DesignExportForeground, PaperBackground, ActionLoadingSlot } from '../components/ui';
 import { Dream } from '../types/dream';
 import { getDreamById, saveDream, deleteDream } from '../utils/storage';
@@ -299,9 +299,10 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginTop: spacing.sm,
+    borderColor: colors.error,
   },
   deleteButtonText: {
-    color: '#D32F2F', // Red color for delete
+    color: semantic.errorDark,
   },
 });
 

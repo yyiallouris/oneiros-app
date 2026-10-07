@@ -44,7 +44,7 @@ For fast local actions such as **Save dream**, disable the trigger immediately b
 Named bundles in `loadingPresets` (`src/theme/loading.ts`):
 
 - `saveDream`, `deleteDream`
-- `recentReflection`, `dreamReflection`, `analyzeDream`
+- `essayGeneration`, `dreamReflection`, `analyzeDream`
 - `loadDream`, `loadSection`, `loadJournal`, `loadDayDreams`
 - `authSubmit`, `sendSupport`, `consentSave`, `setPassword`, `biometricUnlock`
 - `sendMessage` (compact icon)
@@ -58,10 +58,15 @@ In DreamDetail follow-up chat, the same reflection send visual should render as 
 When generating essays/reports:
 
 1. Hide the generate button row (`ActionLoadingSlot` or conditional render).
-2. Show `LoadingState` with `preset="recentReflection"` (or `dreamReflection`).
+2. Show `LoadingState` with `preset="essayGeneration"`. This uses the same
+   six-line `PrintPatchLoader` as dream reflection and follow-up text
+   generation, rather than the short-wait breathing line.
 3. Add `ContentSkeleton` beneath it while the report body is forming.
 
-Example: Insights period reflection (`InsightsSectionScreen`).
+Both long-form essay surfaces use this shared preset:
+
+- Recent Dream Field (`InsightsScreen`)
+- Period Reflection (`InsightsSectionScreen`)
 
 ### DreamDetail reflection streaming (locked)
 

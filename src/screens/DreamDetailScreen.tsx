@@ -1308,16 +1308,15 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
                     </TouchableOpacity>
                   ) : null}
                   {!showChat && (
-                    <TouchableOpacity
+                    <Button
+                      title={continuationLabel}
                       onPress={animateChatOpen}
+                      variant="ghost"
+                      size="compact"
                       style={styles.continueConversationButton}
-                      activeOpacity={0.7}
-                      accessibilityRole="button"
                       accessibilityLabel={continuationLabel}
                       testID="continue-conversation-action"
-                    >
-                      <Text style={styles.continueConversationText}>{continuationLabel}</Text>
-                    </TouchableOpacity>
+                    />
                   )}
                 </View>
               ) : (
@@ -1807,23 +1806,8 @@ const buildInterpretationPreviewExcerpt = (text: string): string => {
     },
     continueConversationButton: {
       alignSelf: 'center',
-      width: '92%',
-      minHeight: 52,
-      paddingHorizontal: spacing.lg,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.contourLine,
-      borderRadius: borderRadius.full,
-      backgroundColor: colors.cardGlassSoft,
-      marginTop: spacing.md,
-    },
-    continueConversationText: {
-      fontSize: typography.sizes.md,
-      color: colors.buttonPrimary,
-      fontWeight: typography.weights.medium,
-      fontFamily: typography.regular,
-      letterSpacing: 0.2,
+      maxWidth: '100%',
+      marginTop: spacing.lg,
     },
     actionButtonsContainer: {
       flexDirection: 'column',

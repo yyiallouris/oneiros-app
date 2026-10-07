@@ -1,16 +1,18 @@
 # User & system flows (Oneiros)
 
 **Current design:** app `1.3.0` uses the final
-`oneiros-design-v1.2.0` runtime. It inherits the approved eye/river
+`oneiros-design-v1.2.4` runtime. It inherits the approved eye/river
 brand artifacts, seven-colour palette, semantic typography roles, shared
 surfaces and navigation from `oneiros-design-v1.1.0`, plus the approved
-paper-coverage / Write corrective patch and the focused Dream Detail hierarchy
-redesign:
+paper-coverage / Write corrective patch, the focused Dream Detail hierarchy
+redesign, shared-button normalization, generated-text loading normalization,
+the unified Insights Dream Fabric grouping, and the Deeper Echoes Mythic
+Parallels entry:
 [`oneiros-v130-design-evolution.md`](./oneiros-v130-design-evolution.md).
 D2 Insights normalization remains outside runtime and D3 remains diagnostic
 evidence only. Icon redesign is deferred to a separately opened future phase;
 no icon concept or runtime replacement is authorized by this foundation lock.
-The final source fingerprint is `38ee83c1…`.
+The final source fingerprint is `26a79541…`.
 Brand artifact details remain in
 [`oneiros-v130-brand-release.md`](./oneiros-v130-brand-release.md).
 

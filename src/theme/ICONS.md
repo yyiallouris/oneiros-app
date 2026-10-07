@@ -61,6 +61,11 @@ Icon Redesign Phase; no final artwork or runtime import is authorized here.
 
 Insights keeps the hand-ink PNG family and its original black-ink contrast. Images uses a dedicated half-lidded imaginal eye: two unequal pressure-led lids hold a narrow field around an asymmetric vertical presence, with one detached witness dot. It treats the image as something with its own presence rather than as a photo, file, camera, chart, or decorative dream shorthand. It is deliberately related to, but not a duplicate of, the navigation eye: navigation stays fully open with a round pupil and no dot, while Images is narrower, inward, vertically centred, and visibly more private. Dense glyphs such as Emotional Atmosphere may remain darker and more compact than line-led glyphs. Period Reflection uses a dedicated second-generation hand-ink mark: three uneven dream-stone forms joined by one wandering dry-brush thread, with the family's detached witness dot. Its compact sequence preserves the report's across-time meaning without reading as a constellation, analytics graph, spinner, or generic AI symbol. Individual `opticalScale` values reduce excessive mass without recolouring or redrawing the source: Emotional Atmosphere and Thresholds use `0.92`, Inner Tensions uses `0.94`, and Dream Landscapes uses `0.88`. Full-screen section empty states use the quiet 88dp optical frame: the mark holds the silence without becoming the protagonist.
 
+Mythic Parallels is present under Deeper Echoes but has no runtime icon yet.
+Its tile stays intentionally text-only until the product-supplied artwork is
+received; do not fill that slot with a generic library glyph, reused Insights
+symbol, or generated substitute.
+
 ### Functional controls
 
 Microphone and calendar share a 31dp frame and `iconography.ink.secondary` (Muted Ink), but they no longer fake family resemblance through identical smooth SVG strokes. Microphone remains code-native: its narrow capsule and open cradle use an uneven `1.9` body, separate `1.7` / `1.85` cradle gestures, a wandering stem, short pressure-led base, a `16%` side overdraw, and a faint inner breath trace. Calendar uses the transparent `calendar_date_leaf_ink_v1.png` raster, constructed from hand-shaped filled ink masses rather than uniform centre-line strokes. Its uneven perimeters, deliberate dry breaks, sparse low-alpha filaments, and softly lifted lower corner give it real pixel-level ink behaviour related to the navigation and Insights rasters. The page lift quietly relates it to Journal without duplicating the open-book silhouette; unequal bindings, one broken header gesture, one main date trace, and one fading memory trace preserve calendar recognition without a mini-grid. Tinting applies only the shared Muted Ink colour and preserves the authored alpha texture. Neither icon uses looped notepad rings, dense grids, moons, stars, sparkles, sound waves, or other dream-app shorthand. Search, edit, send, copy, and disclosure chevron preserve their existing paths and the quieter shared rounded functional stroke.
@@ -69,7 +74,7 @@ Microphone and calendar share a 31dp frame and `iconography.ink.secondary` (Mute
 
 The approved D0 runtime checkpoint originated in
 `oneiros-design-v1.1.0` and is inherited byte-for-byte by the active
-`oneiros-design-v1.2.0` Dream Detail hierarchy release. Its app-brand
+`oneiros-design-v1.2.4` Insights Mythic-Parallels release. Its app-brand
 eye/river masters and Apple/Android/web/splash exports live under
 `assets/branding/releases/v1.3.0/` and are locked by their manifest plus the
 brand-release contract test. The visual foundation is final; wider icon-system

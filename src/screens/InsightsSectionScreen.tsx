@@ -36,6 +36,7 @@ import type {
   ThresholdCount,
   CentralConflictCount,
   AffectCount,
+  MythicParallelCount,
 } from '../types/insights';
 import {
   getRecurringSymbols,
@@ -45,6 +46,7 @@ import {
   getRecurringThresholds,
   getRecurringCentralConflicts,
   getRecurringAffects,
+  getRecurringMythicParallels,
   getCollectiveInsights,
   getSymbolClusters,
   symbolHasAssociations,
@@ -127,6 +129,7 @@ const FORMING_PATTERN_SECTION_IDS: InsightsSectionId[] = [
   'core-conflicts',
   'space-landscapes',
   'recurring-archetypes',
+  'mythic-parallels',
 ];
 const PERIOD_PRESETS: { key: PeriodPreset; label: string }[] = [
   { key: 'this_month', label: 'This month' },
@@ -239,6 +242,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
   const [loading, setLoading] = useState(true);
   const [symbols, setSymbols] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [archetypes, setArchetypes] = useState<{ name: string; count: number }[]>([]);
+  const [mythicParallels, setMythicParallels] = useState<MythicParallelCount[]>([]);
   const [landscapes, setLandscapes] = useState<{ name: string; normalizedKey: string; count: number }[]>([]);
   const [motifs, setMotifs] = useState<MotifCount[]>([]);
   const [affects, setAffects] = useState<AffectCount[]>([]);
@@ -367,6 +371,9 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
       } else if (currentSectionId === 'recurring-archetypes') {
         const data = await getRecurringArchetypes(period);
         setArchetypes(data);
+      } else if (currentSectionId === 'mythic-parallels') {
+        const data = await getRecurringMythicParallels(period);
+        setMythicParallels(data);
       } else if (currentSectionId === 'symbolic-motifs') {
         const data = await getRecurringMotifs(period);
         setMotifs(data);
@@ -1055,6 +1062,34 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
           );
         })()}
 
+        {sectionId === 'mythic-parallels' && (
+          <View style={[styles.section, styles.sectionNoTopPadding]}>
+            {mythicParallels.length === 0 ? (
+              <Text style={styles.empty}>No clear mythic parallels have been identified here.</Text>
+            ) : (
+              <>
+                <Text style={styles.sectionFraming}>
+                  Some dreams may echo the shape of older stories without repeating them.
+                </Text>
+                {mythicParallels.map((parallel) => (
+                  <View
+                    key={parallel.catalogId ?? `${parallel.title}:${parallel.tradition}`}
+                    style={styles.archetypeRow}
+                  >
+                    <View style={styles.mythicParallelIdentity}>
+                      <Text style={styles.archetypeName}>{parallel.title}</Text>
+                      {parallel.tradition ? (
+                        <Text style={styles.mythicParallelTradition}>{parallel.tradition}</Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.archetypeCount}>×{parallel.count}</Text>
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
+        )}
+
         {sectionId === 'pattern-recognition' && (
           <View style={styles.patternWrap}>
             <Text style={styles.patternIntro}>
@@ -1211,7 +1246,7 @@ const InsightsSectionScreenInner: React.FC<InsightsSectionScreenProps> = (props)
 
             {patternInsightGenerating && (
               <>
-                <LoadingState preset="recentReflection" style={styles.patternLoadingState} />
+                <LoadingState preset="essayGeneration" style={styles.patternLoadingState} />
                 <ContentSkeleton />
               </>
             )}
@@ -1936,6 +1971,16 @@ const styles = StyleSheet.create({
   archetypeName: {
     fontSize: typography.sizes.md,
     color: colors.textPrimary,
+  },
+  mythicParallelIdentity: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: spacing.md,
+  },
+  mythicParallelTradition: {
+    marginTop: spacing.xs / 2,
+    fontSize: typography.sizes.sm,
+    color: text.muted,
   },
   archetypeCount: {
     fontSize: typography.sizes.sm,

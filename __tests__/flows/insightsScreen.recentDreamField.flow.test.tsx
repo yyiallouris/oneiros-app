@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { Alert } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 
 const mockNavigate = jest.fn();
 const mockIsOnline = jest.fn();
@@ -53,7 +53,7 @@ jest.mock('../../src/components/ui', () => {
       </TouchableOpacity>
     ),
     DesignExportForeground: ({ children }: any) => <View>{children}</View>,
-    LoadingState: () => <Text>Loading</Text>,
+    LoadingState: ({ preset }: any) => <Text>{`Loading:${preset ?? 'custom'}`}</Text>,
   };
 });
 
@@ -225,6 +225,26 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     expect(screen.queryByText('Past reflections')).toBeNull();
   });
 
+  it('shows the shared essay hexagram state while Recent Dream Field text is generating', async () => {
+    let resolveGeneration!: (value: string) => void;
+    mockGenerateEntitledRecentDreamField.mockReturnValueOnce(
+      new Promise<string>((resolve) => {
+        resolveGeneration = resolve;
+      })
+    );
+    const screen = render(<InsightsScreen />);
+
+    await waitFor(() => expect(screen.getByText('Reflect on recent dreams')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reflect on recent dreams'));
+
+    await waitFor(() => expect(screen.getByText('Loading:essayGeneration')).toBeTruthy());
+    expect(screen.queryByText('Reflect on recent dreams')).toBeNull();
+
+    await act(async () => {
+      resolveGeneration('## Recent Dream Field\nFresh body.');
+    });
+  });
+
   it('opens the premium paywall when a free user taps the locked recent field action', async () => {
     mockHasPaidAccess = false;
     const screen = render(<InsightsScreen />);
@@ -239,14 +259,19 @@ describe('InsightsScreen Recent Dream Field flow', () => {
     const screen = render(<InsightsScreen />);
 
     await waitFor(() => expect(screen.getByText('Dream Fabric')).toBeTruthy());
-    expect(screen.queryByText('Loading')).toBeNull();
+    expect(screen.queryByText(/^Loading:/)).toBeNull();
     expect(screen.queryByText('Forming Patterns')).toBeNull();
-    expect(screen.getByText('Dream Fabric')).toBeTruthy();
-    expect(screen.getByText('Dream Movement')).toBeTruthy();
+    expect(screen.getAllByText('Dream Fabric')).toHaveLength(1);
+    expect(screen.getByText('How your dreams take shape and move across this period.')).toBeTruthy();
+    expect(screen.queryByText(/shape the dream’s world and movement/)).toBeNull();
+    expect(screen.queryByText('Dream Movement')).toBeNull();
     expect(screen.getByText('Deeper Echoes')).toBeTruthy();
+    expect(screen.getByText('Dream Landscapes')).toBeTruthy();
     expect(screen.getByText('Thresholds')).toBeTruthy();
+    expect(screen.getByText('Inner Tensions')).toBeTruthy();
     expect(screen.getByText('Emotional Atmosphere')).toBeTruthy();
     expect(screen.getByText('Archetypal Echoes')).toBeTruthy();
+    expect(screen.getByText('Mythic Parallels')).toBeTruthy();
     expect(screen.queryByText('Open Pattern Explorer')).toBeNull();
   });
 });

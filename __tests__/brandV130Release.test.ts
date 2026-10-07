@@ -49,7 +49,7 @@ describe('Oneiros 1.3.0 approved brand release', () => {
   it('activates the versioned assets without overwriting the frozen 1.2.0 files', () => {
     const appConfig = fs.readFileSync('app.config.js', 'utf8');
     expect(appConfig).toContain("version: '1.3.0'");
-    expect(appConfig).toContain("designRelease: 'oneiros-design-v1.2.0'");
+    expect(appConfig).toContain("designRelease: 'oneiros-design-v1.2.4'");
     expect(appConfig).toContain('assets/branding/releases/v1.3.0/exports/icon-ios-1024.png');
     expect(appConfig).toContain('assets/branding/releases/v1.3.0/exports/splash-symbol-master.png');
     expect(fs.existsSync('assets/branding/icon-ios.png')).toBe(true);

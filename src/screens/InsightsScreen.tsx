@@ -69,7 +69,7 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 type ExploreLink = {
   sectionId: InsightsSectionId;
   title: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   iconFrameStyle?: StyleProp<ViewStyle>;
 };
 
@@ -321,18 +321,18 @@ const InsightsScreen: React.FC = () => {
       icon: <ArchetypalEnergiesIcon size={INSIGHTS_WIDE_TILE_ICON_SIZE} />,
       iconFrameStyle: styles.exploreIconWide,
     },
+    {
+      sectionId: 'mythic-parallels',
+      title: 'Mythic Parallels',
+      // Artwork intentionally deferred until the product-supplied icon arrives.
+    },
   ];
 
   const exploreGroups: ExploreGroup[] = [
     {
       title: 'Dream Fabric',
-      description: 'The images, scenes, places, and atmosphere that give the dream its particular world.',
-      links: dreamFabricLinks,
-    },
-    {
-      title: 'Dream Movement',
-      description: 'How the dream holds tension, approaches boundaries, and moves toward or away from change.',
-      links: dreamMovementLinks,
+      description: 'How your dreams take shape and move across this period.',
+      links: [...dreamFabricLinks, ...dreamMovementLinks],
     },
     {
       title: 'Deeper Echoes',
@@ -449,7 +449,7 @@ const InsightsScreen: React.FC = () => {
 
             <View style={styles.recentActionRow}>
               {recentGenerating ? (
-                <LoadingState preset="recentReflection" style={styles.recentGenerateButton} />
+                <LoadingState preset="essayGeneration" style={styles.recentGenerateButton} />
               ) : !hasPaidAccess ? (
                 <TouchableOpacity
                   onPress={() => handleGenerateRecentReflection(false)}
@@ -539,11 +539,14 @@ const InsightsScreen: React.FC = () => {
                     style={[
                       styles.exploreTile,
                       group.links.length === 1 && styles.exploreTileFullWidth,
+                      !link.icon && styles.exploreTileTextOnly,
                     ]}
                     onPress={() => navigateToSection(link.sectionId)}
                     activeOpacity={0.72}
                   >
-                    <View style={[styles.exploreIcon, link.iconFrameStyle]}>{link.icon}</View>
+                    {link.icon ? (
+                      <View style={[styles.exploreIcon, link.iconFrameStyle]}>{link.icon}</View>
+                    ) : null}
                     <Text style={styles.exploreTitle} numberOfLines={2}>{link.title}</Text>
                   </TouchableOpacity>
                 ))}
@@ -834,7 +837,8 @@ const styles = StyleSheet.create({
   exploreTile: {
     width: '48%',
     minHeight: 138,
-    padding: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.md,
     backgroundColor: colors.fieldSurface,
     borderWidth: 1,
@@ -842,6 +846,9 @@ const styles = StyleSheet.create({
   },
   exploreTileFullWidth: {
     width: '100%',
+  },
+  exploreTileTextOnly: {
+    justifyContent: 'center',
   },
   exploreIcon: {
     width: 48,

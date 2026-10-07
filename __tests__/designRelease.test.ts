@@ -10,7 +10,7 @@ import {
 describe('Oneiros v1 design release', () => {
   it('locks the v1.3.0 visual foundation and defers icon redesign', () => {
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      id: 'oneiros-design-v1.2.0',
+      id: 'oneiros-design-v1.2.4',
       productLine: 'oneiros-v1',
       status: 'final',
       phaseOpenedOn: '2026-10-06',
@@ -18,9 +18,9 @@ describe('Oneiros v1 design release', () => {
       appVersionAtApproval: '1.3.0',
       scope: 'complete-app-visual-ux',
       fingerprintAlgorithm: 'sha256-path-null-bytes-v1',
-      activeCheckpoint: 'v1.3.0-d6-dream-detail',
+      activeCheckpoint: 'v1.3.0-d6.4-insights-mythic-parallels',
       reviewCheckpoint: null,
-      sourceFingerprint: '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+      sourceFingerprint: '26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa',
       candidateSourceFingerprint: null,
     });
 
@@ -93,6 +93,42 @@ describe('Oneiros v1 design release', () => {
         foundationDirectionChanged: false,
         iconRedesignDeferred: true,
       }),
+      expect.objectContaining({
+        id: 'v1.3.0-d6.1-buttons',
+        label: 'Shared button geometry corrective patch',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '0122151b4ad719ddb8d59309135735551ae97e620205bd33bee53650fede49ae',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
+      expect.objectContaining({
+        id: 'v1.3.0-d6.2-generation-loading',
+        label: 'Generated-text loading visual normalization',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '33633260b099fcb3b1a10d4cbf340cf7e02e6cf350766f3bc718f3888edb84b1',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
+      expect.objectContaining({
+        id: 'v1.3.0-d6.3-insights-fabric-grouping',
+        label: 'Insights Dream Fabric grouping correction',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '51a5c1fdc786e633974d44000d2490adf64a63bbb829e0f696660b4f083bfcf6',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
+      expect.objectContaining({
+        id: 'v1.3.0-d6.4-insights-mythic-parallels',
+        label: 'Insights Mythic Parallels addition',
+        status: 'approved',
+        approvedOn: '2026-10-07',
+        sourceFingerprint: '26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa',
+        foundationDirectionChanged: false,
+        iconRedesignDeferred: true,
+      }),
     ]);
   });
 
@@ -110,7 +146,7 @@ describe('Oneiros v1 design release', () => {
     expect(files).toContain('assets/branding/releases/v1.3.0/exports/icon-ios-1024.png');
     expect(computeDesignReleaseFingerprint()).toBe(ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint);
     expect(ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint).toBe(
-      '38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c',
+      '26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa',
     );
     expect(verifyDesignReleaseFingerprint().matches).toBe(true);
   });
@@ -136,7 +172,7 @@ describe('Oneiros v1 design release', () => {
       expect(actualDigest).toBe(expectedDigest);
     });
     expect(listDesignReleaseFiles().some((file) => file.includes('d1-navigation-candidate'))).toBe(false);
-    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6-dream-detail');
+    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6.4-insights-mythic-parallels');
   });
 
   it('retains the exact normalization review artifact after D1 promotion', () => {
@@ -160,7 +196,7 @@ describe('Oneiros v1 design release', () => {
     expect(manifest.promoted_source_fingerprint).toBe(
       '24450147e3fa2b8d104245ea6c5c8aa4753f695524da54434bcadefbeca0f980',
     );
-    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6-dream-detail');
+    expect(ONEIROS_V1_DESIGN_RELEASE.activeCheckpoint).toBe('v1.3.0-d6.4-insights-mythic-parallels');
     expect(ONEIROS_V1_DESIGN_RELEASE.checkpoints[1]).toMatchObject({
       status: 'approved',
       sourceFingerprint: '24450147e3fa2b8d104245ea6c5c8aa4753f695524da54434bcadefbeca0f980',
@@ -193,7 +229,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d2-insights-normalization-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d6-dream-detail',
+      activeCheckpoint: 'v1.3.0-d6.4-insights-mythic-parallels',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });
@@ -268,7 +304,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d2-5-palette-definition-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d6-dream-detail',
+      activeCheckpoint: 'v1.3.0-d6.4-insights-mythic-parallels',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });
@@ -310,7 +346,7 @@ describe('Oneiros v1 design release', () => {
     ).toBe(manifest.review_artifact_sha256);
     expect(listDesignReleaseFiles().some((file) => file.includes('d3-icon-diagnostic-candidate'))).toBe(false);
     expect(ONEIROS_V1_DESIGN_RELEASE).toMatchObject({
-      activeCheckpoint: 'v1.3.0-d6-dream-detail',
+      activeCheckpoint: 'v1.3.0-d6.4-insights-mythic-parallels',
       reviewCheckpoint: null,
       candidateSourceFingerprint: null,
     });

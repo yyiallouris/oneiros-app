@@ -1,14 +1,14 @@
 # Oneiros 1.3.0 visual-system evolution
 
-**Status:** FINAL — FOUNDATION LOCKED / DREAM DETAIL HIERARCHY APPROVED
+**Status:** FINAL — FOUNDATION LOCKED / INSIGHTS MYTHIC PARALLELS APPROVED
 
 **App version:** `1.3.0`
 
-**Design release:** `oneiros-design-v1.2.0`
+**Design release:** `oneiros-design-v1.2.4`
 
-**Active checkpoint:** `v1.3.0-d6-dream-detail`
+**Active checkpoint:** `v1.3.0-d6.4-insights-mythic-parallels`
 
-**Final fingerprint:** `38ee83c1933f645de7c87565fea7449968598085bd3a062bae09008b4f11d61c`
+**Final fingerprint:** `26a795413dac902b9d42561e58b4c5af928321da5dd1f0bd4298ca41b10666aa`
 
 **Open visual work:** none inside this phase; icon redesign is deferred to a separately opened future phase
 
@@ -28,7 +28,19 @@ product-owner-approved `oneiros-design-v1.2.0` checkpoint then revises only
 Dream Detail's information hierarchy: one always-open Dream Fabric replaces
 the former summary plus disclosure structure, while the reflection essay,
 foundation tokens, brand, icons, navigation and locked streaming remain
-unchanged. The
+unchanged. The corrective `oneiros-design-v1.2.1` checkpoint then routes the
+conversation action through the shared button component, restores compact
+secondary/ghost geometry, and tokenizes the destructive editor action without
+changing the foundation direction. The
+product-owner-approved `oneiros-design-v1.2.2` checkpoint then normalizes the
+two remaining long-form AI text waits onto the existing six-line reflect
+visual without changing generation behavior, copy, or output presentation. The
+product-owner-approved `oneiros-design-v1.2.3` checkpoint then groups the
+former Dream Movement entries into the top Insights Dream Fabric section,
+without changing their detail routes, data, or icon artwork. The approved
+`oneiros-design-v1.2.4` checkpoint adds Mythic Parallels as the second Deeper
+Echoes entry, backed by period-filtered persisted `amplifications`, while
+deliberately leaving its artwork empty until the product-supplied icon arrives. The
 superseded `1.2.0` / `oneiros-design-v1.0.2` release remains immutable history.
 
 Candidate directories end in `-candidate`; they stay outside the final
@@ -50,6 +62,10 @@ silhouettes or runtime artwork. Any later icon work must begin as a separate
 | `v1.3.0-d5-final` | approved | Runtime consistency, responsive browser QA, accessibility corrections and final source fingerprint |
 | `v1.3.0-d5.1-corrective` | approved | Full-plane paper coverage plus removal of the redundant Write date-chip rule; no direction, palette, icon or hierarchy change |
 | `v1.3.0-d6-dream-detail` | approved | Dream Detail becomes one always-open Dream Fabric with Inner movement; legacy summary labels, disclosure, separators and duplicate tension are removed |
+| `v1.3.0-d6.1-buttons` | approved | Continue the conversation adopts the shared compact ghost language; compact secondary/ghost radius ownership and destructive-action colour tokens are normalized |
+| `v1.3.0-d6.2-generation-loading` | approved | Recent Dream Field and Period Reflection essay generation use the shared six-line reflect loader already used by dream/chat generation |
+| `v1.3.0-d6.3-insights-fabric-grouping` | approved | Thresholds and Inner Tensions join the four grounded categories inside one top Dream Fabric group; Deeper Echoes remains separate |
+| `v1.3.0-d6.4-insights-mythic-parallels` | approved | Mythic Parallels joins Archetypal Echoes inside Deeper Echoes; Dream Fabric copy becomes period-aware without prescribing tension/boundaries/change; icon artwork remains deferred |
 
 ## Locked direction
 
@@ -66,7 +82,7 @@ silhouettes or runtime artwork. Any later icon work must begin as a separate
   restrained; no UI-icon texture was added.
 - Navigation behavior, AI flows and the locked reflection streaming/phased
   typing experience remain unchanged. Dream Detail alone carries the explicit
-  D6 hierarchy exception documented below.
+  D6 hierarchy and D6.1 button corrections documented below.
 
 ## D1 — navigation normalization
 
@@ -206,3 +222,87 @@ brand, icon, palette or navigation change belongs to D6.
 This approved screen-level change advances the semantic design release to
 `oneiros-design-v1.2.0` / `v1.3.0-d6-dream-detail`. The D5 and D5.1
 fingerprints remain immutable history, and icon redesign remains deferred.
+
+## D6.1 — Shared button corrective patch
+
+The product owner identified the Dream Detail **Continue the conversation**
+action as visually disconnected from the locked foundation. Its bespoke
+full-width 52dp pill has been removed. The exact locked label and chat-opening
+behavior are unchanged, but the action now uses the shared compact ghost
+treatment at natural content width: 46dp minimum height, 18dp radius, quiet
+paper contour and plum control text.
+
+The audit also found that secondary and ghost variant bases were overriding
+the compact size token with the default full-pill radius. Geometry now belongs
+to `buttonSizes`, so compact primary, secondary and ghost actions resolve
+consistently. The Dream Editor destructive action also uses the shared error
+token rather than a component-local red literal. Subscription plan CTAs,
+segmented controls, chips, text links, circular icon controls and row actions
+remain deliberate role-specific exceptions and were not flattened into the
+shared CTA shape.
+
+The shared `Button` now exposes its button role, accessible label/state and
+test id at the actual touch target. No label, navigation, AI behavior,
+reflection streaming, icon artwork, palette primitive or subscription action
+was changed.
+
+This corrective pass advances the semantic design release to
+`oneiros-design-v1.2.1` / `v1.3.0-d6.1-buttons`. The D6 fingerprint remains
+immutable history. Icon redesign remains deferred to its separate phase.
+
+## D6.2 — Generated-text loading normalization
+
+Recent Dream Field and Period Reflection previously used the short-wait
+breathing line while waiting for their AI essays. Both now use the shared
+six-line plum `PrintPatchLoader`, matching initial dream reflection and
+follow-up response generation. Their generate controls remain hidden while the
+request is in flight; Period Reflection keeps its content skeleton below the
+loader. Fetch, navigation, auth, and other non-generative waits continue to use
+the quieter breathing line.
+
+This is a shared preset correction only. It changes no prompt, model, quota,
+cache, report persistence, copy, generated output, stream, icon artwork,
+palette, geometry, navigation, or locked Dream Detail typing behavior. The
+semantic design release advances to `oneiros-design-v1.2.2` /
+`v1.3.0-d6.2-generation-loading`; D6.1 remains immutable history and icon
+redesign remains deferred.
+
+## D6.3 — Insights Dream Fabric grouping correction
+
+The Insights landing now presents one top **Dream Fabric** section containing
+Images, Motifs, Emotional Atmosphere, Dream Landscapes, Thresholds, and Inner
+Tensions. The separate **Dream Movement** group is removed; **Deeper Echoes**
+remains its own section below. The Dream Fabric description now names both the
+world and movement of the dream so the merged hierarchy remains legible.
+
+At the narrow `320px` browser viewport, the shared tile horizontal padding is
+reduced from the medium to the small spacing token so **Thresholds** stays a
+whole word. Card geometry, tile height, typography, icons, routes, period
+filters, data semantics, and detail screens are unchanged.
+
+This approved hierarchy correction advances the semantic design release to
+`oneiros-design-v1.2.3` / `v1.3.0-d6.3-insights-fabric-grouping`. D6.2 remains
+immutable history and icon redesign remains deferred.
+
+## D6.4 — Insights Mythic Parallels
+
+Deeper Echoes now contains two equal entry tiles: **Archetypal Echoes** and
+**Mythic Parallels**. The new detail route reads existing persisted
+`interpretation.amplifications`, resolves closed-catalog identities, and counts
+distinct interpreted dreams inside the selected period. It does not change the
+extraction prompt, schema, catalog, persistence model, or strongest-pattern
+ranking.
+
+The Dream Fabric landing description is now **How your dreams take shape and
+move across this period.** This keeps the collective period context explicit
+without assuming that every set of dreams contains tension, boundaries, or a
+movement toward change.
+
+No generic or substitute icon was introduced. Until the product-supplied
+Mythic Parallels artwork arrives, the new tile uses a centered text-only state
+within the existing card geometry; all established icon artwork remains
+untouched.
+
+This approved addition advances the semantic design release to
+`oneiros-design-v1.2.4` / `v1.3.0-d6.4-insights-mythic-parallels`. D6.3 remains
+immutable history and the broader icon redesign stays deferred.

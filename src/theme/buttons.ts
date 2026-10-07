@@ -54,7 +54,6 @@ export const secondaryButton = {
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     borderWidth: 1,
-    borderRadius: borderRadius.full,
   },
   active: {
     backgroundColor: colors.buttonPrimaryLight12,
@@ -90,7 +89,6 @@ export const ghostButton = {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.contourLineSoft,
-    borderRadius: borderRadius.full,
   },
   disabled: {
     backgroundColor: 'transparent',
@@ -148,6 +146,7 @@ export const buttonSizes = {
   compact: {
     minHeight: 46,
     borderRadius: 18,
+    paddingVertical: spacing.sm,
   },
 } as const;
 
