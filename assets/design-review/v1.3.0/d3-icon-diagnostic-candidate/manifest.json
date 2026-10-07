@@ -1,0 +1,27 @@
+{
+  "checkpoint": "v1.3.0-d3-icons",
+  "status": "approved-diagnostic",
+  "approved_on": "2026-10-07",
+  "scope": "icon-semantics-and-geometry-diagnostic-only",
+  "runtime_import_allowed": false,
+  "runtime_modified": false,
+  "icon_assets_modified": false,
+  "icon_designs_produced": false,
+  "concepts_explored": false,
+  "verdicts_authorize_redesign": false,
+  "palette_checkpoint": "v1.3.0-d2.5-palette-pending",
+  "palette_modified": false,
+  "review_artifact": "index.html",
+  "review_artifact_sha256": "fa98485407647ae3da5471e1ba3951e55d3dc5a24018a64b4da3224fe91d3ae0",
+  "verdicts": {
+    "images": "keep-as-is",
+    "motifs": "needs-refinement",
+    "emotional_atmosphere": "conceptual-redesign-candidate",
+    "dream_landscapes": "keep-as-is",
+    "thresholds": "keep-as-is",
+    "inner_tensions": "needs-refinement",
+    "archetypal_echoes": "needs-refinement",
+    "period_reflection": "conceptual-redesign-candidate"
+  },
+  "generative_art_used": false
+}

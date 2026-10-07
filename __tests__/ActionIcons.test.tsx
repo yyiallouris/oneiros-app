@@ -49,7 +49,7 @@ describe('action icons', () => {
     expect(microphonePaths[6].props.opacity).toBe(0.32);
 
     const calendarStyle = StyleSheet.flatten(screen.getByTestId('calendar').props.style);
-    expect(calendarStyle.tintColor).toBe('#5E5263');
+    expect(calendarStyle.tintColor).toBe('#6B606C');
     expect(fs.statSync('src/assets/icons/action_icons/calendar_date_leaf_ink_v1.png').size).toBeGreaterThan(1000);
   });
 

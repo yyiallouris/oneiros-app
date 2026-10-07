@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: spacing.md,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 253, 249, 0.58)',
+    backgroundColor: colors.cardGlassSoft,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
     overflow: 'hidden',

@@ -1,6 +1,6 @@
 {
   "name": "oneiros-app",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -16,6 +16,8 @@
     "test:one": "JEST_DISABLE_WATCHMAN=1 jest --runInBand --watchman=false",
     "test:flows": "JEST_DISABLE_WATCHMAN=1 jest __tests__/flows --watchman=false",
     "verify:design-release": "node -r ./scripts/register-typescript.cjs scripts/lib/designReleaseFingerprint.ts",
+    "brand:export:v1.3.0": "bash scripts/branding/export-oneiros-v130.sh",
+    "brand:verify:v1.3.0": "node scripts/branding/validate-oneiros-v130.mjs",
     "test:live-ai": "RUN_LIVE_AI_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
     "test:live-ai-quality": "RUN_LIVE_AI_TESTS=1 RUN_LIVE_AI_QUALITY_TESTS=1 JEST_DISABLE_WATCHMAN=1 jest __tests__/live --runInBand --watchman=false",
     "guard:ai-entitlements-gateway-deploy": "node -r ./scripts/register-typescript.cjs scripts/guards/assert-reflective-question-gateway-deploy.ts",

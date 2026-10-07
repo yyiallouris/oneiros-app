@@ -48,6 +48,12 @@ const collectFiles = (rootDirectory: string, relativePath: string): string[] => 
     .flatMap((entry) => {
       const childPath = path.join(relativePath, entry.name);
       if (entry.isDirectory() && entry.name === 'legacy') return [];
+      if (entry.isDirectory() && entry.name === 'review') return [];
+      // Candidate assets are review-only and must not mutate the fingerprint
+      // of the currently active, product-approved design release. Once a
+      // candidate is approved, its directory loses the `-candidate` suffix
+      // and becomes part of the next active release fingerprint.
+      if (entry.isDirectory() && entry.name.endsWith('-candidate')) return [];
       return entry.isDirectory()
         ? collectFiles(rootDirectory, childPath)
         : isFrozenDesignSource(childPath)
@@ -76,7 +82,8 @@ export const computeDesignReleaseFingerprint = (rootDirectory = process.cwd()): 
 
 export const verifyDesignReleaseFingerprint = (rootDirectory = process.cwd()) => {
   const actual = computeDesignReleaseFingerprint(rootDirectory);
-  const expected = ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint;
+  const expected = ONEIROS_V1_DESIGN_RELEASE.candidateSourceFingerprint
+    ?? ONEIROS_V1_DESIGN_RELEASE.sourceFingerprint;
 
   return { actual, expected, matches: actual === expected };
 };
@@ -89,8 +96,13 @@ if (require.main === module) {
     );
     process.exitCode = 1;
   } else {
+    const sourceKind = ONEIROS_V1_DESIGN_RELEASE.candidateSourceFingerprint
+      ? 'integrated review'
+      : ONEIROS_V1_DESIGN_RELEASE.reviewCheckpoint
+        ? 'approved source with review-only candidate'
+        : 'approved';
     process.stdout.write(
-      `${ONEIROS_V1_DESIGN_RELEASE.id} verified: ${result.actual}\n`,
+      `${ONEIROS_V1_DESIGN_RELEASE.id} ${sourceKind} source verified: ${result.actual}\n`,
     );
   }
 }

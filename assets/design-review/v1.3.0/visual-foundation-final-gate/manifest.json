@@ -1,0 +1,56 @@
+{
+  "checkpoint": "v1.3.0-d5-final",
+  "title": "Oneiros v1.3.0 — Visual Foundation Final Gate",
+  "status": "approved-locked",
+  "approved_on": "2026-10-07",
+  "scope": "visual-foundation-consistency-responsive-accessibility",
+  "review_artifact": "index.html",
+  "review_artifact_sha256": "06a50394579fe7994ea639332ab655c4270e2936e52dbaa93f92a934849977cd",
+  "runtime_source_fingerprint": "ccb14cde6e5716cd2843d96377dde5043cc49fa4023dae145a8cbe03d97cb775",
+  "runtime_import_allowed": false,
+  "visual_foundation_locked": true,
+  "icon_redesign_deferred": true,
+  "new_design_exploration": false,
+  "logo_modified": false,
+  "icon_sources_modified": false,
+  "icon_concepts_modified": false,
+  "icon_silhouettes_modified": false,
+  "typography_family_modified": false,
+  "layout_structure_modified": false,
+  "content_modified": false,
+  "texture_direction_modified": false,
+  "primitive_tokens": {
+    "PAPER": "#F3ECE2",
+    "SURFACE": "#FAF7F1",
+    "INK": "#342A38",
+    "INK_MUTED": "#6B606C",
+    "PLUM": "#5E4566",
+    "PLUM_SOFT": "#897B8C",
+    "BORDER": "#E4DCD2"
+  },
+  "minimum_corrections": [
+    "small essential muted copy routes to INK_MUTED",
+    "inactive navigation labels route to INK_MUTED while inactive artwork remains PLUM_SOFT",
+    "Write title and menu controls keep 44dp targets",
+    "Insights scope chips and locked CTA keep 44dp targets",
+    "active Write and Journal surfaces use shared colour and radius tokens",
+    "desktop shell contour and shadow use shared tokens"
+  ],
+  "browser_qa": {
+    "write_and_insights": ["320x667", "360x800", "390x844", "430x932"],
+    "desktop_shell": "1440x900",
+    "horizontal_overflow": false,
+    "minimum_measured_target_dp": 44,
+    "write_320_cta_to_nav_clearance_dp": 25
+  },
+  "contrast_qa": {
+    "INK_on_SURFACE": 12.8,
+    "INK_MUTED_on_SURFACE": 5.59,
+    "PLUM_on_SURFACE": 7.8,
+    "WHITE_on_PLUM": 8.34,
+    "PLUM_SOFT_on_SURFACE": 3.72,
+    "plum_soft_policy": "inactive or non-text artwork only; never small essential text"
+  },
+  "native_device_qa_executed": false,
+  "native_boundary": "Browser QA does not prove native-only safe-area, rendering, microphone, biometric, haptic, or store behavior."
+}

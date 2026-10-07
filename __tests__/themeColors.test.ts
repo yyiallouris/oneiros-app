@@ -1,22 +1,45 @@
-import { backgrounds, colors, subscriptionCards, surfaces, typography } from '../src/theme';
+import {
+  backgrounds,
+  colors,
+  oneirosPalette,
+  subscriptionCards,
+  surfaces,
+  typography,
+} from '../src/theme';
 import fs from 'fs';
 import path from 'path';
 
 describe('theme color system', () => {
-  it('keeps the new paper-first background and floating parchment nav tokens', () => {
-    expect(backgrounds.primary).toBe('#F8F3EA');
-    expect(backgrounds.secondary).toBe('#F3ECE2');
-    expect(backgrounds.tertiary).toBe('#FCF7F0');
-    expect(backgrounds.splash).toBe('#F8F3EA');
-    expect(surfaces.nav).toBe('#FFFDF9');
-    expect(surfaces.conversationDock).toBe('rgba(255, 253, 249, 0.86)');
-    expect(surfaces.navBorder).toBe('rgba(222, 211, 223, 0.35)');
-    expect(colors.navSurface).toBe('#FFFDF9');
-    expect(colors.conversationDockSurface).toBe('rgba(255, 253, 249, 0.86)');
-    expect(colors.navBorder).toBe('rgba(222, 211, 223, 0.35)');
-    expect(colors.tabIconActive).toBe('#4B3158');
-    expect(colors.tabIconInactive).toBe('#756A79');
-    expect(colors.symbolicInk).toBe('#000000');
+  it('routes the approved D2.5 direction through exactly seven primitives', () => {
+    expect(oneirosPalette).toEqual({
+      PAPER: '#F3ECE2',
+      SURFACE: '#FAF7F1',
+      INK: '#342A38',
+      INK_MUTED: '#6B606C',
+      PLUM: '#5E4566',
+      PLUM_SOFT: '#897B8C',
+      BORDER: '#E4DCD2',
+    });
+    expect(Object.keys(oneirosPalette)).toHaveLength(7);
+
+    expect(backgrounds.primary).toBe(oneirosPalette.PAPER);
+    expect(backgrounds.secondary).toBe(oneirosPalette.SURFACE);
+    expect(backgrounds.tertiary).toBe(oneirosPalette.SURFACE);
+    expect(backgrounds.card).toBe(oneirosPalette.SURFACE);
+    expect(backgrounds.splash).toBe(oneirosPalette.PAPER);
+    expect(surfaces.nav).toBe(oneirosPalette.SURFACE);
+    expect(surfaces.conversationDock).toBe('rgba(250, 247, 241, 0.86)');
+    expect(surfaces.navBorder).toBe(oneirosPalette.BORDER);
+    expect(colors.navSurface).toBe(oneirosPalette.SURFACE);
+    expect(colors.conversationDockSurface).toBe('rgba(250, 247, 241, 0.86)');
+    expect(colors.navBorder).toBe(oneirosPalette.BORDER);
+    expect(colors.tabIconActive).toBe(oneirosPalette.PLUM);
+    expect(colors.cardBackground).toBe(oneirosPalette.SURFACE);
+    expect(colors.textPrimary).toBe(oneirosPalette.INK);
+    expect(colors.textSecondary).toBe(oneirosPalette.INK_MUTED);
+    expect(colors.textMuted).toBe(oneirosPalette.INK_MUTED);
+    expect(colors.tabIconInactive).toBe(oneirosPalette.PLUM_SOFT);
+    expect(colors.symbolicInk).toBe(oneirosPalette.INK);
   });
 
   it('uses PaperBackground across the active shell while keeping legacy wave exports available', () => {
@@ -73,7 +96,8 @@ describe('theme color system', () => {
     expect(tabsSource).toContain('<JournalTabIcon');
     expect(tabsSource).toContain('<InsightsTabIcon');
     expect(navigationIconsSource).toContain("require('../../assets/icons/tab-icons/write_nav_ink_v2.png')");
-    expect(navigationIconsSource).toContain('writePressureUnderlay');
+    expect(navigationIconsSource).toContain('const width = WRITE_BOUNDS.width * heightScale');
+    expect(navigationIconsSource).not.toContain('writePressureUnderlay');
     expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/write_active.png')");
     expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/write_inactive.png')");
     expect(tabsSource).not.toContain("require('../assets/icons/tab-icons/journal_active.png')");

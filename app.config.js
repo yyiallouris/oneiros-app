@@ -6,9 +6,9 @@ const EAS_PROJECT_ID = 'b81471aa-9f89-4729-8bf3-5ec9e8ec62e9';
 const baseExpoConfig = {
   name: 'Oneiros',
   slug: 'oneiros-app',
-  version: '1.2.0',
+  version: '1.3.0',
   orientation: 'portrait',
-  icon: './assets/branding/icon-ios.png',
+  icon: './assets/branding/releases/v1.3.0/exports/icon-ios-1024.png',
   userInterfaceStyle: 'light',
   newArchEnabled: false,
   ios: {
@@ -16,21 +16,21 @@ const baseExpoConfig = {
     // and App Store screenshot coverage.
     supportsTablet: false,
     bundleIdentifier: 'com.oneirosdreamjournal.app',
-    icon: './assets/branding/icon-ios.png',
-    buildNumber: '6',
+    icon: './assets/branding/releases/v1.3.0/exports/icon-ios-1024.png',
+    buildNumber: '8',
     usesAppleSignIn: true,
   },
   android: {
-    icon: './assets/branding/icon-android-legacy.png',
+    icon: './assets/branding/releases/v1.3.0/exports/icon-android-legacy-1024.png',
     adaptiveIcon: {
-      foregroundImage: './assets/branding/icon-android-foreground.png',
-      backgroundImage: './assets/branding/icon-android-background.png',
-      monochromeImage: './assets/branding/icon-android-monochrome.png',
+      foregroundImage: './assets/branding/releases/v1.3.0/exports/icon-android-foreground-1024.png',
+      backgroundImage: './assets/branding/releases/v1.3.0/exports/icon-android-background-1024.png',
+      monochromeImage: './assets/branding/releases/v1.3.0/exports/icon-android-monochrome-1024.png',
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: 'com.oneirosdreamjournal.app',
-    versionCode: 6,
+    versionCode: 8,
     // These optional template permissions are not required by Oneiros. Keep
     // the store binary free of overlay and legacy shared-storage access.
     blockedPermissions: [
@@ -41,7 +41,7 @@ const baseExpoConfig = {
   },
   scheme: 'oneiros-dream-journal',
   web: {
-    favicon: './assets/favicon.png',
+    favicon: './assets/branding/releases/v1.3.0/exports/favicon-256.png',
   },
   plugins: [
     [
@@ -59,7 +59,7 @@ const baseExpoConfig = {
       'expo-splash-screen',
       {
         backgroundColor: '#F8F3EA',
-        image: './assets/branding/splash-lockup.png',
+        image: './assets/branding/releases/v1.3.0/exports/splash-symbol-master.png',
         imageWidth: 180,
       },
     ],
@@ -92,7 +92,7 @@ const baseExpoConfig = {
     './plugins/withProductionStoreHardening',
   ],
   extra: {
-    designRelease: 'oneiros-design-v1.0.2',
+    designRelease: 'oneiros-design-v1.1.0',
   },
 };
 

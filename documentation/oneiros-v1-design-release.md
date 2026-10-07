@@ -2,11 +2,18 @@
 
 **Decision:** FINAL / FROZEN FOR ONEIROS V1
 
+**Lifecycle:** SUPERSEDED AS ACTIVE RUNTIME, PRESERVED IMMUTABLY
+
 **Release id:** `oneiros-design-v1.0.2`
 
 **Approved:** 2026-09-02
 
 **App version at approval:** `1.2.0`
+
+App `1.3.0` promotes the separately versioned eye/river identity under
+`oneiros-design-v1.1.0`; see
+[`oneiros-v130-brand-release.md`](./oneiros-v130-brand-release.md). This record
+and its fingerprint remain the exact historical `1.2.0` baseline.
 
 ## Product decision
 
@@ -23,7 +30,8 @@ floating navigation, and the current hierarchy, spacing and motion contracts.
 
 ## Immutable identity
 
-Runtime metadata and theme code expose `oneiros-design-v1.0.2`. A deterministic
+At approval, runtime metadata and theme code exposed
+`oneiros-design-v1.0.2`. A deterministic
 SHA-256 fingerprint binds that identity to the active application shell,
 screens, navigation, layout, theme, shared components, backgrounds, branding
 and runtime icon assets. Paths and bytes are hashed in sorted order; legacy

@@ -9,8 +9,11 @@ interface LoadingScreenProps {
   onComplete?: () => void;
 }
 
-const MAX_EMBLEM_SIZE = 330;
-const IMAGE_SCALE = 0.6;
+const MAX_EMBLEM_WIDTH = 360;
+const IMAGE_SCALE = 0.78;
+const EMBLEM_SOURCE_SIZE = 1254;
+const EMBLEM_CROP_TOP = 292;
+const EMBLEM_CROP_HEIGHT = 690;
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const insets = useSafeAreaInsets();
@@ -19,7 +22,9 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const emblemFloat = useRef(new Animated.Value(0)).current;
 
   const contentH = screenH - insets.top - insets.bottom;
-  const imgSize = Math.min(MAX_EMBLEM_SIZE, Math.round(screenW * IMAGE_SCALE));
+  const imgSize = Math.min(MAX_EMBLEM_WIDTH, Math.round(screenW * IMAGE_SCALE));
+  const emblemHeight = Math.round(imgSize * (EMBLEM_CROP_HEIGHT / EMBLEM_SOURCE_SIZE));
+  const emblemOffsetY = -Math.round(imgSize * (EMBLEM_CROP_TOP / EMBLEM_SOURCE_SIZE));
   const portalOffset = -Math.round(contentH * 0.03);
 
   useEffect(() => {
@@ -96,7 +101,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
             styles.imageWrap,
             {
               width: imgSize,
-              height: imgSize,
+              height: emblemHeight,
               opacity: emblemOpacity,
               transform: [{ translateY: emblemTranslateY }],
             },
@@ -104,8 +109,13 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           testID="loading-logo-wrap"
         >
           <Image
-            source={require('../../../assets/branding/splash-logo.png')}
-            style={{ width: imgSize, height: imgSize }}
+            source={require('../../../assets/branding/releases/v1.3.0/exports/splash-symbol-master.png')}
+            style={{
+              position: 'absolute',
+              top: emblemOffsetY,
+              width: imgSize,
+              height: imgSize,
+            }}
             resizeMode="contain"
             testID="loading-logo"
           />

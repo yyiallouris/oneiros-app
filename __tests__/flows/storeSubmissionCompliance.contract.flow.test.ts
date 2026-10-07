@@ -81,8 +81,8 @@ describe('Apple and Google store submission compliance', () => {
     expect(appConfig).toContain("'android.permission.SYSTEM_ALERT_WINDOW'");
     expect(appConfig).toContain("'android.permission.READ_EXTERNAL_STORAGE'");
     expect(appConfig).toContain("'android.permission.WRITE_EXTERNAL_STORAGE'");
-    expect(appConfig).toContain("buildNumber: '6'");
-    expect(appConfig).toContain('versionCode: 6');
+    expect(appConfig).toContain("buildNumber: '8'");
+    expect(appConfig).toContain('versionCode: 8');
     expect(appConfig).toContain("'./plugins/withProductionStoreHardening'");
     expect(hardeningPlugin).toContain("const GENERATED_EXPO_SCHEME_PREFIX = 'exp+'");
     expect(hardeningPlugin).toContain('androidx.compose.ui.tooling.PreviewActivity');

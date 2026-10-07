@@ -82,5 +82,6 @@ describe('icon asset ownership', () => {
     expect(source).not.toMatch(/assets\/legacy\//);
     expect(source).not.toMatch(/assets\/icons\/legacy\//);
     expect(source).not.toMatch(/components\/icons\/generated\/legacy\//);
+    expect(source).not.toMatch(/assets\/icons\/[^'"\n]*-candidate\//);
   });
 });

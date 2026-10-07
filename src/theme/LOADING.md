@@ -88,7 +88,7 @@ Keep local micro-spinners only for:
 
 - `VoiceRecordButton` transcription/recording feedback.
 - Inline toggle rows (biometric switch) while hardware state resolves.
-- `LoadingScreen` app launch splash (brand emblem, not async work).
+- `LoadingScreen` app launch splash (the approved eye/river brand emblem, not async work).
 
 ## Adding a new loading state
 

@@ -42,16 +42,28 @@ Local storage is the first write target. Remote Supabase is best-effort/backgrou
 
 ## Design system
 
-- Final v1 design identity: `oneiros-design-v1.0.2`. The complete active
-  visual/UX source and asset baseline is fingerprinted and documented in
-  [`oneiros-v1-design-release.md`](./oneiros-v1-design-release.md).
+- Final visual foundation: `oneiros-design-v1.1.0` for app `1.3.0`. The exact
+  eye/river brand artifacts, palette, typography roles, surfaces, navigation
+  treatment and responsive shell are locked as documented in
+  [`oneiros-v130-design-evolution.md`](./oneiros-v130-design-evolution.md).
+  D1 is the approved bottom-navigation-only checkpoint: it normalizes
+  the existing feather/book/eye sources and does not authorize new concepts,
+  silhouettes, palette changes, or any other screen work. D2 is retained as
+  reviewed normalization evidence only. D3 is diagnostic evidence only.
+  D2.5's seven primitives are final and routed through shared theme roles.
+  All eight Insights sources and `InsightsIcons` remain unchanged. Every icon
+  redesign is deferred to a separately opened future phase.
+  The `oneiros-design-v1.0.2` fingerprint remains immutable `1.2.0` history.
 
 - Colors: `src/theme/colors.ts`; docs: `src/theme/COLORS.md`.
 - Typography: `src/theme/typography.ts`; docs: `src/theme/TYPOGRAPHY.md`.
 - Shared surfaces: `Button`, `Card`, `Chip`, `MysticHeader`, `PaperBackground`, `WebContentShell`, `BreathingLine`, `LinoSkeletonCard`, `SymbolInfoModal`.
 - Web layout tokens: `src/theme/layout.ts` + `useContentWidth()` for shell-aware widths. Floating tab geometry (`floatingTabBar`, `resolveFloatingTabBarContentInset`) is the shared clearance for the parchment nav and tab-screen CTAs.
 - Legacy visuals: `LegacyWaveBackground` and `LegacyMountainWaveBackground` remain in the repo for fallback/reference only and should not be used for active screens.
-- Visual direction: textured warm paper base, Deep Ink text, Night/Ritual Plum actions, and a floating parchment bottom nav. Avoid hardcoded colors in components unless truly local.
+- Visual direction: textured warm paper base, dark ink text/icons, signature
+  plum accents, warm neutral surfaces and a floating parchment bottom nav.
+  Small essential muted copy uses `INK_MUTED`; `PLUM_SOFT` is reserved for
+  inactive/non-text artwork. Avoid hardcoded colors in components unless truly local.
 - UI changes must consider both iPhone/iOS and Android safe areas, keyboard behavior, native permissions, and the absolute bottom tab bar.
 
 ## Supabase and deployment map

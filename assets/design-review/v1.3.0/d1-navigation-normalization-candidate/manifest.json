@@ -1,0 +1,19 @@
+{
+  "checkpoint": "v1.3.0-d1-navigation",
+  "status": "approved",
+  "approved_on": "2026-10-06",
+  "promoted_source_fingerprint": "24450147e3fa2b8d104245ea6c5c8aa4753f695524da54434bcadefbeca0f980",
+  "scope": "bottom-navigation-only",
+  "runtime_import_allowed": false,
+  "concepts_redesigned": false,
+  "review_artifact": "index.html",
+  "review_artifact_sha256": "98b2062f6d0279b81c84824dc3d6232780812453109340c0af98e46c29dfcac8",
+  "semantic_identities": {
+    "write": "existing-feather",
+    "journal": "existing-open-book",
+    "insights": "existing-eye"
+  },
+  "brand_master_modified": false,
+  "palette_modified": false,
+  "generative_art_used": false
+}

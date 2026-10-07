@@ -71,11 +71,10 @@ a {
 }
 
 .brand-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
+  width: 64px;
+  height: 40px;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   filter: drop-shadow(0 8px 18px rgba(45, 36, 48, 0.14));
 }
 

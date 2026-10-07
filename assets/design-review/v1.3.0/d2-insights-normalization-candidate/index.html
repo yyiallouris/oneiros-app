@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oneiros D2 · Insights normalization</title>
+    <style>
+      :root {
+        --paper: #f8f3ea;
+        --paper-raised: #fffdf9;
+        --ink: #2d2430;
+        --secondary: #5e5263;
+        --plum: #4b3158;
+        --line: rgba(58, 47, 42, 0.1);
+        --line-strong: rgba(75, 49, 88, 0.2);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper) url("../../../backgrounds/BG_paper.png") repeat;
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 52px 0 72px;
+      }
+
+      h1, h2, h3, p { margin: 0; }
+      h1 { font-size: clamp(30px, 4vw, 46px); font-weight: 500; letter-spacing: -0.04em; }
+      h2 { font-size: 21px; font-weight: 550; }
+      h3 { font-size: 15px; font-weight: 600; }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 28px;
+        padding-bottom: 28px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      header p { max-width: 570px; color: var(--secondary); line-height: 1.55; }
+
+      .badge {
+        display: inline-flex;
+        margin-bottom: 12px;
+        padding: 7px 11px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        color: var(--plum);
+        background: rgba(255, 253, 249, 0.72);
+        font-size: 11px;
+        font-weight: 650;
+        letter-spacing: 0.11em;
+      }
+
+      .guardrail {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin: 22px 0 34px;
+      }
+
+      .guardrail span {
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: var(--secondary);
+        background: rgba(255, 253, 249, 0.56);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .section-heading { margin-bottom: 15px; }
+      .section-heading p { margin-top: 5px; color: var(--secondary); font-size: 13px; line-height: 1.5; }
+
+      .icon-sheet {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .icon-card {
+        min-width: 0;
+        padding: 17px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 253, 249, 0.78);
+        box-shadow: 0 12px 30px rgba(45, 36, 48, 0.035);
+      }
+
+      .icon-card > p { margin-top: 3px; color: var(--secondary); font-size: 11px; }
+
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+        margin-top: 15px;
+      }
+
+      .sample {
+        display: grid;
+        min-width: 0;
+        height: 138px;
+        grid-template-rows: 1fr auto;
+        justify-items: center;
+        align-items: center;
+        padding: 10px 4px 9px;
+        border: 1px solid rgba(58, 47, 42, 0.065);
+        border-radius: 13px;
+        background: rgba(248, 243, 234, 0.68);
+      }
+
+      .sample.normalized { border-color: var(--line-strong); background: rgba(255, 253, 249, 0.9); }
+      .sample-label { color: var(--secondary); font-size: 10px; font-weight: 550; }
+      .sample.normalized .sample-label { color: var(--plum); }
+      .stage { display: grid; width: 94px; height: 94px; place-items: center; }
+      .icon-frame { position: relative; flex: none; overflow: hidden; }
+      .icon-frame img, .icon-frame .ink-mask { position: absolute; display: block; }
+      .ink-mask {
+        background: var(--ink);
+        opacity: 0.88;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: 100% 100%;
+        mask-repeat: no-repeat;
+        mask-size: 100% 100%;
+      }
+
+      .actual-contexts {
+        display: grid;
+        grid-template-columns: 1.35fr 0.65fr;
+        gap: 18px;
+        margin-top: 36px;
+      }
+
+      .context-panel {
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(255, 253, 249, 0.67);
+      }
+
+      .phone-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .phone {
+        min-width: 0;
+        padding: 14px 11px 16px;
+        border: 1px solid var(--line);
+        border-radius: 23px;
+        background: rgba(248, 243, 234, 0.86);
+      }
+
+      .phone-label { margin-bottom: 11px; color: var(--secondary); font-size: 11px; font-weight: 600; text-align: center; }
+      .insights-title { font-size: 17px; font-weight: 650; text-align: center; }
+      .insights-subtitle { margin-top: 3px; color: var(--secondary); font-size: 10px; text-align: center; }
+      .group-title { margin-top: 17px; font-size: 14px; font-weight: 650; }
+      .group-copy { margin-top: 4px; color: var(--secondary); font-size: 9.5px; line-height: 1.35; }
+
+      .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 10px; }
+      .insight-tile {
+        display: grid;
+        min-height: 91px;
+        grid-template-rows: 49px auto;
+        justify-items: center;
+        align-items: center;
+        padding: 7px 5px;
+        border: 1px solid rgba(58, 47, 42, 0.075);
+        border-radius: 10px;
+        background: rgba(255, 253, 249, 0.56);
+      }
+
+      .tile-label { font-size: 9.5px; font-weight: 600; line-height: 1.2; text-align: center; }
+
+      .section-states { display: grid; gap: 10px; margin-top: 18px; }
+      .section-state {
+        display: grid;
+        grid-template-columns: 94px 1fr;
+        gap: 13px;
+        align-items: center;
+        min-height: 112px;
+        padding: 10px 13px;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        background: rgba(248, 243, 234, 0.72);
+      }
+
+      .section-state p { margin-top: 4px; color: var(--secondary); font-size: 11px; line-height: 1.45; }
+
+      .period-card {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 13px;
+        align-items: center;
+        margin-top: 10px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 253, 249, 0.72);
+      }
+
+      .period-card p { margin-top: 4px; color: var(--secondary); font-size: 11px; line-height: 1.4; }
+
+      .decision-note {
+        margin-top: 18px;
+        padding: 16px;
+        border-left: 2px solid var(--plum);
+        border-radius: 0 12px 12px 0;
+        color: var(--secondary);
+        background: rgba(75, 49, 88, 0.045);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      footer { margin-top: 24px; color: var(--secondary); font-size: 12px; line-height: 1.55; text-align: center; }
+
+      @media (max-width: 920px) {
+        header { align-items: start; flex-direction: column; }
+        .guardrail, .icon-sheet { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .actual-contexts { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 580px) {
+        main { width: min(100% - 20px, 1120px); padding-top: 24px; }
+        .guardrail { grid-template-columns: 1fr 1fr; }
+        .icon-sheet, .phone-pair { grid-template-columns: 1fr; }
+        .context-panel { padding: 15px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <div class="badge">D2 · REVIEW CANDIDATE</div>
+          <h1>Insights normalization</h1>
+        </div>
+        <p>Eight existing meanings and eight existing alpha silhouettes. The candidate changes only optical scale and shared Oneiros ink treatment; no symbol is redrawn or reinterpreted.</p>
+      </header>
+
+      <div class="guardrail" aria-label="D2 scope guardrails">
+        <span>Same concepts</span>
+        <span>Same silhouettes</span>
+        <span>Existing palette only</span>
+        <span>No runtime import</span>
+      </div>
+
+      <section aria-labelledby="sheet-title">
+        <div class="section-heading">
+          <h2 id="sheet-title">Current → normalized</h2>
+          <p>Enlarged comparison on the same paper ground. Judge optical mass, edge character and family rhythm—not new ideas.</p>
+        </div>
+        <div class="icon-sheet" id="icon-sheet"></div>
+      </section>
+
+      <section class="actual-contexts" aria-labelledby="context-title">
+        <div class="context-panel">
+          <div class="section-heading">
+            <h2 id="context-title">Actual 42px overview context</h2>
+            <p>The same tiles and labels, shown at the app’s working icon size.</p>
+          </div>
+          <div class="phone-pair">
+            <div class="phone">
+              <div class="phone-label">CURRENT</div>
+              <div class="insights-title">Insights</div>
+              <div class="insights-subtitle">Patterns rising into view.</div>
+              <div class="group-title">Dream Fabric</div>
+              <div class="group-copy">The images, scenes, places, and atmosphere that give the dream its particular world.</div>
+              <div class="tile-grid" id="current-tiles"></div>
+            </div>
+            <div class="phone">
+              <div class="phone-label">NORMALIZED CANDIDATE</div>
+              <div class="insights-title">Insights</div>
+              <div class="insights-subtitle">Patterns rising into view.</div>
+              <div class="group-title">Dream Fabric</div>
+              <div class="group-copy">The images, scenes, places, and atmosphere that give the dream its particular world.</div>
+              <div class="tile-grid" id="normalized-tiles"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="context-panel">
+          <div class="section-heading">
+            <h2>88px states + wide treatment</h2>
+            <p>Large section marks remain quieter than the approved Oneiros hero logo.</p>
+          </div>
+          <div class="section-states">
+            <div class="section-state">
+              <div data-icon="emotionalWeather" data-size="88" data-mode="normalized"></div>
+              <div><h3>Emotional Atmosphere</h3><p>Same flame. Reduced optical dominance; no aura or replacement concept.</p></div>
+            </div>
+            <div class="section-state">
+              <div data-icon="archetypalEnergies" data-size="88" data-mode="normalized"></div>
+              <div><h3>Archetypal Echoes</h3><p>Same sun/eclipse source. Density is restrained through rendering only.</p></div>
+            </div>
+          </div>
+          <div class="period-card">
+            <div data-icon="patternRecognition" data-size="84" data-mode="normalized"></div>
+            <div><h3>Period Reflection</h3><p>Same wave mark, scaled to breathe inside the existing wide card.</p></div>
+          </div>
+          <div class="decision-note"><strong>D3 rule:</strong> if a symbol still feels semantically or stylistically wrong after this normalization, it is flagged for a separate conceptual candidate. D2 does not silently redesign it.</div>
+        </div>
+      </section>
+
+      <footer>This is a review-only artifact. The approved D1 runtime remains untouched until explicit D2 approval.</footer>
+    </main>
+
+    <script>
+      const base = '../../../../src/assets/icons/insights_section_icons/';
+      const icons = {
+        returningImages: {
+          label: 'Images', semantic: 'existing eye', file: base + 'oneiros_insight_images_imaginal_eye_ink.png',
+          canvas: [900, 900], bounds: [258, 266, 432, 333], current: 1, normalized: 0.92,
+        },
+        repeatingPatterns: {
+          label: 'Motifs', semantic: 'existing infinity / loop', file: base + 'oneiros_insight_repeating_patterns_sheet_extract_rgba_900.png',
+          canvas: [900, 900], bounds: [140, 308, 575, 329], current: 1, normalized: 0.92,
+        },
+        emotionalWeather: {
+          label: 'Emotional Atmosphere', semantic: 'existing flame', file: base + 'oneiros_insight_emotional_weather.png',
+          canvas: [900, 900], bounds: [236, 36, 464, 743], current: 0.92, normalized: 0.84,
+        },
+        dreamPlaces: {
+          label: 'Dream Landscapes', semantic: 'existing mountain / path', file: base + 'oneiros_insight_dream_places_sheet_extract_rgba_900.png',
+          canvas: [900, 900], bounds: [162, 288, 554, 367], current: 0.88, normalized: 0.92,
+        },
+        thresholds: {
+          label: 'Thresholds', semantic: 'existing arch', file: base + 'oneiros_insight_thresholds_sheet_extract_rgba_900.png',
+          canvas: [900, 900], bounds: [273, 192, 354, 568], current: 0.92, normalized: 0.88,
+        },
+        innerTensions: {
+          label: 'Inner Tensions', semantic: 'existing two figures / forms', file: base + 'oneiros_insight_inner_tensions_sheet_extract_rgba_900.png',
+          canvas: [900, 900], bounds: [232, 200, 436, 560], current: 0.94, normalized: 0.88,
+        },
+        archetypalEnergies: {
+          label: 'Archetypal Echoes', semantic: 'existing sun / eclipse', file: base + 'oneiros_isnights_archetypes.png',
+          canvas: [559, 591], bounds: [0, 0, 559, 591], current: 1, normalized: 0.8,
+        },
+        patternRecognition: {
+          label: 'Period Reflection', semantic: 'existing wave', file: base + 'pattern_recognition_essay/oneiros_period_reflection_v2.png',
+          canvas: [1024, 683], bounds: [89, 136, 848, 386], current: 1, normalized: 0.78,
+        },
+      };
+
+      function iconFrame(key, size, mode) {
+        const data = icons[key];
+        const [canvasWidth, canvasHeight] = data.canvas;
+        const [left, top, width, height] = data.bounds;
+        const opticalScale = data[mode];
+        const scale = (size * opticalScale) / Math.max(width, height);
+        const renderedWidth = canvasWidth * scale;
+        const renderedHeight = canvasHeight * scale;
+        const offsetX = (size - width * scale) / 2 - left * scale;
+        const offsetY = (size - height * scale) / 2 - top * scale;
+        const frame = document.createElement('div');
+        frame.className = 'icon-frame';
+        frame.style.width = size + 'px';
+        frame.style.height = size + 'px';
+
+        if (mode === 'current') {
+          const img = document.createElement('img');
+          img.src = data.file;
+          img.alt = '';
+          Object.assign(img.style, {
+            width: renderedWidth + 'px', height: renderedHeight + 'px',
+            left: offsetX + 'px', top: offsetY + 'px',
+          });
+          frame.appendChild(img);
+        } else {
+          const mask = document.createElement('span');
+          mask.className = 'ink-mask';
+          Object.assign(mask.style, {
+            width: renderedWidth + 'px', height: renderedHeight + 'px',
+            left: offsetX + 'px', top: offsetY + 'px',
+            WebkitMaskImage: `url("${data.file}")`, maskImage: `url("${data.file}")`,
+          });
+          frame.appendChild(mask);
+        }
+        return frame;
+      }
+
+      Object.entries(icons).forEach(([key, data]) => {
+        const card = document.createElement('article');
+        card.className = 'icon-card';
+        card.innerHTML = `<h3>${data.label}</h3><p>${data.semantic}</p><div class="pair"><div class="sample current"><div class="stage current-stage"></div><span class="sample-label">Current</span></div><div class="sample normalized"><div class="stage normalized-stage"></div><span class="sample-label">Normalized</span></div></div>`;
+        card.querySelector('.current-stage').appendChild(iconFrame(key, 76, 'current'));
+        card.querySelector('.normalized-stage').appendChild(iconFrame(key, 76, 'normalized'));
+        document.querySelector('#icon-sheet').appendChild(card);
+      });
+
+      ['returningImages', 'repeatingPatterns', 'emotionalWeather', 'dreamPlaces'].forEach((key) => {
+        ['current', 'normalized'].forEach((mode) => {
+          const tile = document.createElement('div');
+          tile.className = 'insight-tile';
+          tile.appendChild(iconFrame(key, 42, mode));
+          const label = document.createElement('div');
+          label.className = 'tile-label';
+          label.textContent = icons[key].label;
+          tile.appendChild(label);
+          document.querySelector(`#${mode}-tiles`).appendChild(tile);
+        });
+      });
+
+      document.querySelectorAll('[data-icon]').forEach((host) => {
+        host.appendChild(iconFrame(host.dataset.icon, Number(host.dataset.size), host.dataset.mode));
+      });
+    </script>
+  </body>
+</html>

@@ -1,59 +1,65 @@
-# App icon – spec for designer
+# Oneiros app-brand asset specification
 
-For the icon to feel like the Oneiros droplet on a quiet paper field, while still **filling the entire app-icon frame** on device.
+The active app `1.3.0` identity is the approved eye/river mark. Its exact
+masters, export hashes, and platform decisions are recorded in
+[`../documentation/oneiros-v130-brand-release.md`](../documentation/oneiros-v130-brand-release.md)
+and `assets/branding/releases/v1.3.0/manifest.json`.
 
----
+## Source policy
 
-## If the file is already full-bleed but a white gap appears
+- Never redraw, vectorize, smooth, replace, or generatively reinterpret the
+  supplied symbol.
+- Preserve the two canonical 1254px PNG masters byte-for-byte under `source/`.
+- Produce store assets only through `npm run brand:export:v1.3.0`, then verify
+  their hashes.
+- A later visual change requires a new versioned release directory, manifest,
+  app/design version, documentation, and product approval.
 
-The gap may come from **rendering** (Expo/Android), not from the file:
+## Platform outputs
 
-1. **Android adaptive icon** clips the icon into a **circle or squircle**. The **corners** of the square may appear as gaps if they are **transparent** in the PNG. Solution: the adaptive **background image must be fully filled** with the paper field, with **no transparency** at the edges.
-2. **Expo prebuild** may have stale assets. Try: `npx expo prebuild --clean` and then a new build, so that Android icon assets are regenerated from the current `icon.png`.
+### Apple
 
----
+- `icon-ios-1024.png` is opaque RGB at `1024×1024`; App Store icons must not
+  contain an alpha channel.
+- The supplied transparent presentation margin is cropped. Only pixels hidden
+  beneath Apple's owned corner mask receive an opaque plum fill.
+- Do not bake another rounded-square mask or extra margin into the submitted
+  source.
 
-## Dimensions
+### Android
 
-- **1024 × 1024 px** or **1200 × 1200 px** (square) — both OK, the build will resize
-- Format: **PNG**, 32-bit (RGB + alpha if needed)
-- **Important:** Pixel dimensions alone will not fix the white gap. The **graphic must fill the entire frame** (see below).
+- Legacy icon and adaptive background are opaque `1024×1024` versions of the
+  complete approved composition.
+- The adaptive foreground is intentionally transparent: the composition stays
+  in the background layer to preserve the exact watercolor texture instead of
+  reconstructing it for parallax.
+- The monochrome layer uses the exact eye/river silhouette inside Android's
+  safe zone. Near-zero alpha export speckles are removed so system tinting
+  cannot amplify invisible source noise.
+- Verify circle and squircle masks in the release platform preview and on a
+  generated Android build.
 
-## How to fill the frame
+### Splash and in-app loading
 
-1. **Full bleed background**  
-   The paper background must extend **to the edges** of the 1024×1024.  
-   **No** transparent padding around the adaptive/icon background image.
+- Background: warm paper `#F8F3EA`.
+- Native splash: exact transparent eye/river symbol, `imageWidth: 180`, no text.
+- In-app `LoadingScreen`: the same source pixels plus the `Oneiros` wordmark.
+  Transparent canvas whitespace is removed only with a render-time optical
+  crop; the PNG itself is not altered.
 
-2. **Safe zone (Android)**  
-   The droplet symbol is best kept **inside a central circle ~66%** of the side (approx. 672px diameter at 1024px).  
-   This way they won’t be cut off on round/squircle masks. Colors/waves can extend to the corners.
+### Web and public site
 
-3. **Background**  
-   Use the paper field (`BG_paper.png`) behind the droplet for full-bleed icon outputs.  
-   Do not leave transparency at the edges of the adaptive background.
+- Expo web uses the deterministic `favicon-256.png` export.
+- The public site uses a byte-equal copy of the transparent symbol and the same
+  favicon export.
 
-## Current Oneiros splash direction
+## Active paths
 
-### Native splash
+All app runtime references resolve from:
 
-- Background: `#F8F3EA` warm paper.
-- Emblem: the droplet mark from `assets/branding/oneiros_logo.png`.
-- Native splash image width: around 180px (`app.config.js` `expo-splash-screen` `imageWidth`).
-- No splash text; the emblem should feel like a quiet dream portal, not a poster.
+```text
+assets/branding/releases/v1.3.0/exports/
+```
 
-### In-app loading screen
-
-- Appears after the native splash while app resources/session state finish loading.
-- Uses the same paper field, a larger droplet emblem, and the `Oneiros` wordmark below it.
-- This is the fuller brand moment; the native splash stays calmer.
-
-## Summary
-
-| Correct                         | Wrong                    |
-|---------------------------------|---------------------------|
-| 1024×1024, graphic to the edges | Padding / margin around  |
-| Entire background frame filled  | Transparency at edges     |
-| Key elements in central 66%     | Logo too close to corners |
-
-After changing the source assets, regenerate the outputs in `assets/branding/` and run a new build for changes to apply.
+The previous flat `assets/branding/*.png` files remain unchanged as historical
+`1.2.0` material and are not active runtime inputs.

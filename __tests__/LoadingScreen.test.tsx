@@ -1,4 +1,5 @@
 import React from 'react';
+import fs from 'fs';
 import { render } from '@testing-library/react-native';
 import { LoadingScreen } from '../src/components/ui/LoadingScreen';
 
@@ -23,5 +24,8 @@ describe('LoadingScreen', () => {
     expect(getByTestId('paper-background-image').props.resizeMode).toBe('repeat');
     expect(getByTestId('loading-logo')).toBeTruthy();
     expect(getByText('Oneiros')).toBeTruthy();
+    expect(fs.readFileSync('src/components/ui/LoadingScreen.tsx', 'utf8')).toContain(
+      "assets/branding/releases/v1.3.0/exports/splash-symbol-master.png",
+    );
   });
 });

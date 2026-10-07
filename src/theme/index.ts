@@ -1,5 +1,6 @@
 export {
   colors,
+  oneirosPalette,
   backgrounds,
   text,
   accent,
@@ -15,6 +16,7 @@ export {
 } from './colors';
 export type {
   ColorKey,
+  OneirosPaletteKey,
   BackgroundKey,
   TextKey,
   AccentKey,

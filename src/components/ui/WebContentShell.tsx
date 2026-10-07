@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { LayoutChangeEvent, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { backgrounds } from '../../theme';
+import { backgrounds, colors } from '../../theme';
 import { layout, resolveWebContentWidth } from '../../theme/layout';
 import { WebLayoutProvider } from '../../layout/WebLayoutContext';
 import { DESIGN_EXPORT_MODE } from '../../designExport';
@@ -119,12 +119,12 @@ const styles = StyleSheet.create({
   columnElevated: Platform.select({
     web: {
       // Keep absolute tab bars / overlays clipped to the phone column on wide desks.
-      boxShadow: '0 0 0 1px rgba(45, 36, 48, 0.06), 0 18px 48px rgba(45, 36, 48, 0.08)',
+      boxShadow: `0 0 0 1px ${colors.navBorder}, 0 18px 48px ${colors.shadow}`,
     },
     default: {
       borderLeftWidth: StyleSheet.hairlineWidth,
       borderRightWidth: StyleSheet.hairlineWidth,
-      borderColor: 'rgba(45, 36, 48, 0.08)',
+      borderColor: colors.navBorder,
     },
   }) as object,
 });

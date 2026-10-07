@@ -1,7 +1,19 @@
 # User & system flows (Oneiros)
 
-**Final v1 design:** the complete current application is frozen as
-`oneiros-design-v1.0.2`. Release scope, fingerprint and change boundary:
+**Current design:** app `1.3.0` uses the final
+`oneiros-design-v1.1.0` visual foundation. Its eye/river brand artifacts,
+seven-colour palette, semantic typography roles, shared surfaces, navigation
+treatment and responsive shell are locked:
+[`oneiros-v130-design-evolution.md`](./oneiros-v130-design-evolution.md).
+D2 Insights normalization remains outside runtime and D3 remains diagnostic
+evidence only. Icon redesign is deferred to a separately opened future phase;
+no icon concept or runtime replacement is authorized by this foundation lock.
+The final source fingerprint is `ccb14cde…`.
+Brand artifact details remain in
+[`oneiros-v130-brand-release.md`](./oneiros-v130-brand-release.md).
+
+**Previous design:** app `1.2.0` / `oneiros-design-v1.0.2` remains an immutable
+historical release rather than being overwritten:
 [`oneiros-v1-design-release.md`](./oneiros-v1-design-release.md).
 
 **V1 language boundary:** app-owned navigation, shared buttons, structural
@@ -45,6 +57,8 @@ This folder catalogs **user journeys, technical flow paths, and practical archit
 | File | Scope |
 |------|--------|
 | [oneiros-v1-design-release.md](./oneiros-v1-design-release.md) | Final complete-app Oneiros v1 visual/UX identity, deterministic source fingerprint, platform boundary, and change policy |
+| [oneiros-v130-design-evolution.md](./oneiros-v130-design-evolution.md) | Final app 1.3.0 visual foundation, checkpoint history, candidate boundary, fingerprint and future icon-phase separation |
+| [oneiros-v130-brand-release.md](./oneiros-v130-brand-release.md) | Approved exact-source app 1.3.0 logo/icon/splash release, platform exports, hashes, and runtime ownership |
 | [flows-00-complete-app-journey.md](./flows-00-complete-app-journey.md) | End-to-end journey from launch/login through consent, onboarding, dreams, AI, Insights, support, and logout |
 | [flows-01-app-entry-session.md](./flows-01-app-entry-session.md) | Cold start, splash/loading, session lifecycle, offline token behavior |
 | [flows-02-authentication.md](./flows-02-authentication.md) | Sign up, login, email verification, Apple/Google/Discord sign-in, forgot password, reset link → set password, login support |

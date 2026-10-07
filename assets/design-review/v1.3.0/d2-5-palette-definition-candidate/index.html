@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oneiros D2.5 R2 · Palette refinement candidate</title>
+    <style>
+      :root { --paper:#f8f3ea; --active:#4b3158; --review-line:rgba(58,47,42,.12); }
+      * { box-sizing:border-box; }
+      body { margin:0; color:#2d2430; background:var(--paper) url("../../../backgrounds/BG_paper.png") repeat; font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      main { width:min(1240px,calc(100% - 40px)); margin:0 auto; padding:48px 0 72px; }
+      h1,h2,h3,p { margin:0; }
+      h1 { font-size:clamp(31px,4.3vw,50px); font-weight:520; letter-spacing:-.045em; }
+      h2 { font-size:22px; font-weight:650; }
+      h3 { font-size:16px; font-weight:650; }
+      header { display:grid; grid-template-columns:1fr minmax(320px,560px); gap:34px; align-items:end; padding-bottom:28px; border-bottom:1px solid var(--review-line); }
+      header p { color:#5e5263; line-height:1.6; }
+      .badge { display:inline-flex; margin-bottom:12px; padding:7px 11px; border:1px solid rgba(75,49,88,.24); border-radius:999px; color:var(--active); background:rgba(255,253,249,.72); font-size:11px; font-weight:760; letter-spacing:.11em; }
+      .guardrails { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:20px 0 36px; }
+      .guardrails span { padding:11px 12px; border:1px solid var(--review-line); border-radius:13px; background:rgba(255,253,249,.64); color:#5e5263; font-size:12px; text-align:center; }
+      .context { margin-top:38px; }
+      .section-head { margin-bottom:16px; }
+      .section-head p { margin-top:5px; color:#5e5263; font-size:13px; line-height:1.55; }
+      .comparison { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+      .panel { min-width:0; padding:18px; border:1px solid var(--review-line); border-radius:22px; background:rgba(255,253,249,.54); }
+      .panel-label { margin-bottom:12px; color:#5e5263; font-size:11px; font-weight:760; letter-spacing:.09em; text-transform:uppercase; }
+      .phone { --bg:#f8f3ea; --card:#f3ece2; --primary:#2d2430; --secondary:#5e5263; --icon:#000; --muted:#756a79; --accent:#4b3158; --border:rgba(58,47,42,.06); --divider:#eae0d4; --nav-surface:#fffdf9; position:relative; width:min(100%,390px); min-height:690px; margin:0 auto; overflow:hidden; padding:22px 16px 102px; border:1px solid var(--border); border-radius:28px; color:var(--primary); background-color:var(--bg); background-image:url("../../../backgrounds/BG_paper.png"); background-repeat:repeat; box-shadow:0 12px 34px rgba(45,36,48,.055); }
+      .phone.proposed { --bg:#f3ece2; --card:#faf7f1; --primary:#342a38; --secondary:#6b606c; --icon:#342a38; --muted:#897b8c; --accent:#5e4566; --border:#e4dcd2; --divider:#e4dcd2; --nav-surface:#faf7f1; }
+      .write-header { position:relative; text-align:center; }
+      .dots { position:absolute; left:0; top:-5px; color:var(--accent); font-weight:750; letter-spacing:3px; }
+      .write-header h3 { font-size:22px; }
+      .write-header p { margin-top:5px; color:var(--secondary); font-size:13px; }
+      .dream-card { min-height:430px; margin-top:18px; padding:18px; border:1px solid var(--border); border-radius:18px; background:var(--card); }
+      .date-chip { display:inline-flex; padding:5px 10px; border:1px solid var(--border); border-radius:999px; color:var(--secondary); background:rgba(255,253,249,.66); font-size:11px; font-weight:650; }
+      .dream-title { margin-top:16px; padding-bottom:11px; border-bottom:1px solid var(--divider); color:var(--secondary); font-family:Georgia,serif; font-size:16px; font-weight:600; }
+      .dream-copy { margin-top:15px; color:var(--secondary); font-size:14px; }
+      .mic { position:absolute; right:20px; bottom:132px; width:22px; height:28px; color:var(--secondary); }
+      .mic svg { width:100%; height:100%; }
+      .cta { display:grid; height:49px; margin-top:17px; place-items:center; border:1px solid rgba(255,253,249,.5); border-radius:14px; color:white; background:var(--accent); box-shadow:0 7px 18px rgba(75,49,88,.13); font-size:14px; font-weight:650; }
+      .screen-title { font-size:27px; font-weight:650; text-align:center; }
+      .screen-subtitle { margin-top:4px; color:var(--secondary); font-size:12px; text-align:center; }
+      .field-card { margin-top:18px; padding:15px; border:1px solid var(--border); border-radius:17px; background:var(--card); }
+      .field-card .kicker { color:var(--accent); font-size:10px; font-weight:750; letter-spacing:.07em; text-transform:uppercase; }
+      .field-card h3 { margin-top:7px; }
+      .field-card p { margin-top:5px; color:var(--secondary); font-size:11px; line-height:1.45; }
+      .group-title { margin-top:21px; font-size:17px; }
+      .group-copy { margin-top:4px; color:var(--secondary); font-size:11px; line-height:1.45; }
+      .tiles { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:11px; }
+      .tile { display:grid; min-height:105px; grid-template-rows:58px auto; place-items:center; padding:8px 5px; border:1px solid var(--border); border-radius:14px; background:var(--card); }
+      .tile span { color:var(--primary); font-size:11px; font-weight:650; text-align:center; }
+      .icon-frame { position:relative; overflow:hidden; flex:none; }
+      .icon-frame img,.icon-frame i { position:absolute; display:block; }
+      .icon-frame i { background:var(--icon); -webkit-mask-repeat:no-repeat; -webkit-mask-size:100% 100%; mask-repeat:no-repeat; mask-size:100% 100%; }
+      .nav { position:absolute; left:14px; right:14px; bottom:14px; display:grid; grid-template-columns:repeat(3,1fr); height:74px; padding:7px 0 6px; border:1px solid var(--border); border-radius:31px; background:var(--nav-surface); box-shadow:0 6px 18px rgba(45,36,48,.075); }
+      .tab { display:grid; grid-template-rows:35px auto; justify-items:center; align-items:center; color:var(--muted); font-size:10px; }
+      .tab.active { transform:translateY(-1px); color:var(--accent); font-weight:700; }
+      .tab .glyph { display:grid; width:31px; height:32px; place-items:center; opacity:.58; }
+      .tab.active .glyph { opacity:.98; }
+      .nav-mask { position:relative; overflow:hidden; color:inherit; }
+      .nav-mask i { position:absolute; display:block; background:currentColor; -webkit-mask-repeat:no-repeat; -webkit-mask-size:100% 100%; mask-repeat:no-repeat; mask-size:100% 100%; }
+      .feather { width:19.6px; height:30px; }
+      .feather i { left:-10.76px; top:-3.21px; width:36.49px; height:36.49px; -webkit-mask-image:url("../../../../src/assets/icons/tab-icons/write_nav_ink_v2.png"); mask-image:url("../../../../src/assets/icons/tab-icons/write_nav_ink_v2.png"); }
+      .eye { width:29px; height:21.34px; }
+      .eye i { left:-10.12px; top:-18.06px; width:49.25px; height:49.25px; -webkit-mask-image:url("../../../../src/assets/icons/tab-icons/insights_nav_eye_ink.png"); mask-image:url("../../../../src/assets/icons/tab-icons/insights_nav_eye_ink.png"); }
+      .book { width:30px; height:27px; color:inherit; }
+      .book svg { width:100%; height:100%; }
+      .identity { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:38px; }
+      .identity-card { display:grid; grid-template-columns:112px 1fr; gap:14px; align-items:center; min-height:132px; padding:16px; border:1px solid var(--review-line); border-radius:18px; background:rgba(255,253,249,.64); }
+      .identity-card img { display:block; width:112px; height:90px; object-fit:contain; }
+      .identity-card p { margin-top:4px; color:#5e5263; font-size:12px; line-height:1.5; }
+      .roles { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:15px; }
+      .role { padding:13px; border:1px solid var(--review-line); border-radius:14px; background:rgba(255,253,249,.68); }
+      .role strong { display:block; font-size:12px; }
+      .swatch { width:100%; height:34px; margin:10px 0 8px; border:1px solid rgba(52,42,56,.10); border-radius:9px; background:var(--swatch); }
+      .role code { color:#6b606c; font-size:11px; }
+      .aliases { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:15px; }
+      .alias { display:flex; justify-content:space-between; gap:16px; padding:12px 13px; border:1px solid var(--review-line); border-radius:12px; background:rgba(255,253,249,.68); font-size:12px; }
+      .alias span:last-child { color:#5e4566; font-weight:700; text-align:right; }
+      .texture-note { margin-top:28px; padding:17px 18px; border-left:3px solid var(--active); border-radius:0 14px 14px 0; background:rgba(75,49,88,.045); color:#5e5263; font-size:13px; line-height:1.6; }
+      footer { margin-top:25px; color:#5e5263; font-size:12px; line-height:1.55; text-align:center; }
+      @media (max-width:940px) { header{grid-template-columns:1fr;align-items:start}.comparison,.identity{grid-template-columns:1fr}.roles{grid-template-columns:repeat(2,1fr)} }
+      @media (max-width:540px) { main{width:calc(100% - 20px);padding-top:24px}.guardrails{grid-template-columns:1fr 1fr}.panel{padding:10px}.phone{padding-left:12px;padding-right:12px}.roles,.aliases{grid-template-columns:1fr}.identity-card{grid-template-columns:88px 1fr}.identity-card img{width:88px;height:76px} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><div><div class="badge">D2.5 R2 · DEVICE VALIDATION</div><h1>Refinement, not a purple overhaul</h1></div><p>The direction is approved. Seven provisional-final primitives now serve the shared runtime roles for native-device validation: warm paper, dark ink and muted plum—without turning the interface purple.</p></header>
+      <div class="guardrails"><span>Direction approved</span><span>Hexes provisional</span><span>Tokens integrated</span><span>No icon texture</span></div>
+      <section class="context"><div class="section-head"><h2>Write · current → proposed</h2><p>Checks canvas, writing vessel, hierarchy, divider, CTA, muted control ink and active/inactive navigation in the existing screen composition.</p></div><div class="comparison" id="write-comparison"></div></section>
+      <section class="context"><div class="section-head"><h2>Insights · current → proposed</h2><p>Checks symbolic ink and card separation at the real 42px tile size. Every symbol below is the current source asset; only the proposed colour treatment changes.</p></div><div class="comparison" id="insights-comparison"></div></section>
+      <section class="identity" aria-label="Logo treatment comparison"><article class="identity-card"><img src="../../../branding/releases/v1.3.0/source/oneiros-symbol-master.png" alt="Approved Oneiros symbol"><div><h3>Current logo treatment</h3><p>Exact approved source pixels on the warm parchment canvas.</p></div></article><article class="identity-card"><img src="../../../branding/releases/v1.3.0/source/oneiros-symbol-master.png" alt="Approved Oneiros symbol"><div><h3>Proposed logo treatment</h3><p>Identical source, scale and ink. The palette changes around the hero mark—not through it.</p></div></article></section>
+      <section class="context"><div class="section-head"><h2>Seven colour primitives</h2><p>These are the only shared palette colours in the device-validation runtime. Exact promotion still requires native iPhone/Android review.</p></div><div class="roles" id="roles"></div></section>
+      <section class="context"><div class="section-head"><h2>Semantic aliases</h2><p>Many UI roles, few source colours. A future plum adjustment changes one primitive instead of many components.</p></div><div class="aliases" id="aliases"></div></section>
+      <div class="texture-note"><strong>Expression hierarchy:</strong> the exact approved logo remains the textured hero. Insights use dark ink with subtle organic silhouette but no added texture. Navigation stays clean, with signature plum reserved for the active state. Cards and canvas remain warm neutrals—not purple surfaces.</div>
+      <footer>D2.5 direction approved · provisional tokens integrated for device validation · D1 remains the latest fully approved checkpoint · D3 exploration is limited to two concepts</footer>
+    </main>
+    <script>
+      const insightBase='../../../../src/assets/icons/insights_section_icons/';
+      const insights={
+        images:{label:'Images',file:insightBase+'oneiros_insight_images_imaginal_eye_ink.png',canvas:[900,900],bounds:[258,266,432,333],optical:1},
+        motifs:{label:'Motifs',file:insightBase+'oneiros_insight_repeating_patterns_sheet_extract_rgba_900.png',canvas:[900,900],bounds:[140,308,575,329],optical:1},
+        atmosphere:{label:'Emotional Atmosphere',file:insightBase+'oneiros_insight_emotional_weather.png',canvas:[900,900],bounds:[236,36,464,743],optical:.92},
+        landscapes:{label:'Dream Landscapes',file:insightBase+'oneiros_insight_dream_places_sheet_extract_rgba_900.png',canvas:[900,900],bounds:[162,288,554,367],optical:.88}
+      };
+      const roles=[['PAPER','#F3ECE2'],['SURFACE','#FAF7F1'],['INK','#342A38'],['INK_MUTED','#6B606C'],['PLUM','#5E4566'],['PLUM_SOFT','#897B8C'],['BORDER','#E4DCD2']];
+      const aliases=[['Canvas / background','PAPER'],['Cards + navigation surface','SURFACE'],['Primary text + primary icon ink','INK'],['Secondary text','INK_MUTED'],['Active navigation + CTA accent','PLUM'],['Inactive / muted icons','PLUM_SOFT'],['Borders + dividers','BORDER'],['Logo treatment','Exact locked source']];
+      function nav(active){
+        const book='<div class="book"><svg viewBox="0 0 36 32" fill="none"><g stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17.35 8.95C13.65 5.45 9.35 3.55 5.18 4.3C3.98 4.55 3.32 5.62 3.58 6.9C3.2 12.25 3.45 18.35 4.18 23.85C8.32 22.25 13.12 23.05 17.72 27.05" stroke-width="1.8"/><path d="M18.55 8.05C22.15 5.1 26.18 4.12 29.78 4.55C31.38 4.75 32.35 3.82 33.05 2.75C32.95 4.45 33.15 6.05 32.55 7.45C32.9 12.65 32.62 18.42 32.02 24.02C27.65 22.72 22.62 23.55 18.12 27.08" stroke-width="1.8"/><path d="M17.72 9.25C18.12 14.8 18.18 21 18.02 27.08" stroke-width="1.4"/><path d="M7.4 8.45C10.55 8.2 13.2 9.35 15.45 11.15M22 10.75C24.72 9.08 27.3 8.62 29.42 8.8" stroke-width=".9"/></g></svg></div>';
+        const data=[['Write','<div class="nav-mask feather"><i></i></div>'],['Journal',book],['Insights','<div class="nav-mask eye"><i></i></div>']];
+        return '<div class="nav">'+data.map(([label,glyph])=>`<div class="tab ${label===active?'active':''}"><div class="glyph">${glyph}</div><span>${label}</span></div>`).join('')+'</div>';
+      }
+      function iconFrame(data,size,proposed){
+        const [cw,ch]=data.canvas,[left,top,width,height]=data.bounds,scale=(size*data.optical)/Math.max(width,height),frame=document.createElement('div');
+        frame.className='icon-frame';frame.style.width=size+'px';frame.style.height=size+'px';const node=document.createElement(proposed?'i':'img');
+        if(proposed){node.style.webkitMaskImage=`url("${data.file}")`;node.style.maskImage=`url("${data.file}")`;}else{node.src=data.file;node.alt='';}
+        Object.assign(node.style,{width:cw*scale+'px',height:ch*scale+'px',left:((size-width*scale)/2-left*scale)+'px',top:((size-height*scale)/2-top*scale)+'px'});frame.appendChild(node);return frame;
+      }
+      function writePhone(proposed){
+        const phone=document.createElement('div');phone.className='phone '+(proposed?'proposed':'current');phone.innerHTML=`<div class="write-header"><span class="dots">•••</span><h3>Hello, Yiannis</h3><p>Take a breath. Let the dream come back.</p></div><div class="dream-card"><span class="date-chip">Tue · 6 Oct 2026</span><div class="dream-title">Name your dream (optional)</div><div class="dream-copy">Write it as you remember it.</div></div><div class="mic"><svg viewBox="0 0 24 30" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="7" y="2" width="10" height="17" rx="5" stroke-width="1.9"/><path d="M4 14.5c0 6 3.4 9.5 8 9.5s8-3.5 8-9.5M12 24v4M8.5 28h7" stroke-width="1.7"/></svg></div><div class="cta">Save dream</div>${nav('Write')}`;return phone;
+      }
+      function insightsPhone(proposed){
+        const phone=document.createElement('div');phone.className='phone '+(proposed?'proposed':'current');phone.innerHTML=`<div class="screen-title">Insights</div><div class="screen-subtitle">Patterns rising into view.</div><div class="field-card"><div class="kicker">Recent dream field</div><h3>A quieter view of what is gathering</h3><p>Images, places and movements across your latest reflected dreams.</p></div><div class="group-title">Dream Fabric</div><div class="group-copy">The images, scenes, places and atmosphere that give the dream its particular world.</div><div class="tiles"></div>${nav('Insights')}`;
+        const tiles=phone.querySelector('.tiles');Object.values(insights).forEach(data=>{const tile=document.createElement('div');tile.className='tile';tile.appendChild(iconFrame(data,42,proposed));const label=document.createElement('span');label.textContent=data.label;tile.appendChild(label);tiles.appendChild(tile);});return phone;
+      }
+      function addPair(rootId,builder){const root=document.querySelector(rootId);[['Current · approved D1',false],['R2 · provisional runtime',true]].forEach(([label,proposed])=>{const panel=document.createElement('article');panel.className='panel';panel.innerHTML=`<div class="panel-label">${label}</div>`;panel.appendChild(builder(proposed));root.appendChild(panel);});}
+      addPair('#write-comparison',writePhone);addPair('#insights-comparison',insightsPhone);
+      document.querySelector('#roles').innerHTML=roles.map(([name,value])=>`<article class="role" style="--swatch:${value}"><strong>${name}</strong><div class="swatch"></div><code>${value}</code></article>`).join('');
+      document.querySelector('#aliases').innerHTML=aliases.map(([role,token])=>`<article class="alias"><span>${role}</span><span>${token}</span></article>`).join('');
+    </script>
+  </body>
+</html>

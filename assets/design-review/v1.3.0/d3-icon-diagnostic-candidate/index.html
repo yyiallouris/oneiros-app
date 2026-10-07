@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Oneiros D3 · Insights icon diagnostic</title>
+    <style>
+      :root {
+        --paper: #f8f3ea;
+        --card: #fcf7f0;
+        --raised: #fffdf9;
+        --ink: #332638;
+        --secondary: #665968;
+        --symbolic: #3a263d;
+        --plum: #4b3158;
+        --inactive: #7c6e80;
+        --line: rgba(51, 38, 56, 0.12);
+        --keep: #42604f;
+        --refine: #825f25;
+        --concept: #743e4e;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper) url("../../../backgrounds/BG_paper.png") repeat;
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 72px; }
+      h1, h2, h3, p { margin: 0; }
+      h1 { font-size: clamp(30px, 4.3vw, 49px); font-weight: 520; letter-spacing: -0.045em; }
+      h2 { font-size: 21px; font-weight: 620; }
+      h3 { font-size: 18px; font-weight: 650; }
+      header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 520px); gap: 34px; align-items: end; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+      header p { color: var(--secondary); line-height: 1.6; }
+      .eyebrow { display: inline-flex; margin-bottom: 12px; padding: 7px 11px; border: 1px solid rgba(75,49,88,.24); border-radius: 999px; background: rgba(255,253,249,.7); color: var(--plum); font-size: 11px; font-weight: 750; letter-spacing: .12em; }
+      .guardrails { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0 28px; }
+      .guardrails div { padding: 11px 12px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,253,249,.62); color: var(--secondary); font-size: 12px; text-align: center; }
+      .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 34px; }
+      .summary div { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px; border: 1px solid var(--line); border-radius: 15px; background: rgba(252,247,240,.84); }
+      .summary strong { font-size: 25px; }
+      .summary span { color: var(--secondary); font-size: 12px; font-weight: 650; }
+      .section-copy { margin-top: 6px; color: var(--secondary); font-size: 13px; line-height: 1.55; }
+      .sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin-top: 17px; }
+      .card { min-width: 0; padding: 19px; border: 1px solid var(--line); border-radius: 19px; background: rgba(252,247,240,.9); box-shadow: 0 10px 28px rgba(51,38,56,.035); }
+      .card-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+      .semantic { margin-top: 4px; color: var(--secondary); font-size: 12px; line-height: 1.45; }
+      .status { flex: none; padding: 7px 9px; border: 1px solid currentColor; border-radius: 999px; font-size: 10px; font-weight: 760; letter-spacing: .055em; text-transform: uppercase; }
+      .keep { color: var(--keep); background: rgba(66,96,79,.055); }
+      .refine { color: var(--refine); background: rgba(130,95,37,.055); }
+      .concept { color: var(--concept); background: rgba(116,62,78,.055); }
+      .card-body { display: grid; grid-template-columns: 126px minmax(0, 1fr); gap: 17px; margin-top: 16px; }
+      .visual { display: grid; justify-items: center; align-content: center; gap: 10px; min-height: 158px; padding: 12px 8px; border: 1px solid rgba(51,38,56,.085); border-radius: 15px; background: rgba(255,253,249,.72); }
+      .sizes { position: relative; width: 102px; height: 96px; }
+      .sizes .large { position: absolute; top: 0; left: 0; }
+      .sizes .context { position: absolute; right: 0; bottom: 0; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+      .size-note { color: var(--inactive); font-size: 10px; font-weight: 650; }
+      .icon-frame { position: relative; overflow: hidden; flex: none; }
+      .icon-frame img { position: absolute; display: block; }
+      .diagnostic { color: var(--secondary); font-size: 13px; line-height: 1.52; }
+      .label { margin-bottom: 5px; color: var(--ink); font-size: 10px; font-weight: 760; letter-spacing: .085em; text-transform: uppercase; }
+      .failures { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+      .failure { padding: 5px 7px; border: 1px solid rgba(51,38,56,.12); border-radius: 8px; color: var(--secondary); background: rgba(255,253,249,.62); font-size: 10px; font-weight: 650; }
+      .failure.none { color: var(--keep); }
+      .next { margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--secondary); font-size: 11px; line-height: 1.5; }
+      .matrix { margin-top: 36px; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: rgba(252,247,240,.88); }
+      .matrix-row { display: grid; grid-template-columns: 1.05fr 1.25fr 2.5fr; gap: 14px; padding: 13px 16px; border-top: 1px solid var(--line); align-items: center; font-size: 12px; }
+      .matrix-row:first-child { border-top: 0; color: var(--secondary); background: rgba(255,253,249,.65); font-size: 10px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }
+      .matrix-row span:last-child { color: var(--secondary); line-height: 1.45; }
+      .decision { margin-top: 22px; padding: 17px 18px; border-left: 3px solid var(--plum); border-radius: 0 14px 14px 0; background: rgba(75,49,88,.045); color: var(--secondary); font-size: 13px; line-height: 1.6; }
+      footer { margin-top: 26px; color: var(--secondary); font-size: 12px; line-height: 1.55; text-align: center; }
+      @media (max-width: 900px) { header { grid-template-columns: 1fr; align-items: start; } .guardrails { grid-template-columns: repeat(2, 1fr); } .sheet { grid-template-columns: 1fr; } }
+      @media (max-width: 540px) { main { width: calc(100% - 20px); padding-top: 24px; } .summary { grid-template-columns: 1fr; } .card { padding: 15px; } .card-head { display: grid; } .status { justify-self: start; } .card-body { grid-template-columns: 102px minmax(0, 1fr); gap: 12px; } .visual { min-height: 148px; } .matrix-row { grid-template-columns: 1fr; gap: 5px; } .matrix-row:first-child { display: none; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div><div class="eyebrow">D3 · APPROVED DIAGNOSTIC</div><h1>Insights icon gate</h1></div>
+        <p>Evidence before aesthetics. Every current icon is judged against its intended meaning, real runtime size, silhouette and family role. The findings are accepted as working hypotheses, not permission to redesign.</p>
+      </header>
+
+      <section class="guardrails" aria-label="D3 guardrails">
+        <div>Current assets only</div><div>No concept exploration</div><div>D2.5 palette pending</div><div>Runtime untouched</div>
+      </section>
+
+      <section class="summary" aria-label="Diagnostic totals">
+        <div><span>Keep as-is</span><strong>3</strong></div>
+        <div><span>Needs refinement</span><strong>3</strong></div>
+        <div><span>Concept candidates</span><strong>2</strong></div>
+      </section>
+
+      <section aria-labelledby="diagnostic-title">
+        <h2 id="diagnostic-title">Per-icon diagnostic</h2>
+        <p class="section-copy">The source artwork is shown in its current black ink so colour does not manufacture cohesion. Each card includes an enlarged 88px view and its actual overview/report size.</p>
+        <div class="sheet" id="sheet"></div>
+      </section>
+
+      <section aria-labelledby="matrix-title">
+        <h2 id="matrix-title" style="margin-top:36px">Approval matrix</h2>
+        <p class="section-copy">A verdict identifies the next review gate; it does not authorize asset production or runtime integration.</p>
+        <div class="matrix" id="matrix"></div>
+      </section>
+
+      <div class="decision"><strong>Next gate:</strong> D2.5 Palette Definition only. No geometry refinement, metaphor exploration, final icon production or runtime integration is authorized until the palette candidate is reviewed and separately approved.</div>
+      <footer>Approved diagnostic artifact only · D1 remains the active runtime checkpoint · D2.5 is pending · no icon, component or screen changed</footer>
+    </main>
+
+    <script>
+      const base = '../../../../src/assets/icons/insights_section_icons/';
+      const icons = {
+        images: {
+          title: 'Images', role: 'Dream images as presences encountered or seen', verdict: 'Keep as-is', status: 'keep',
+          file: base + 'oneiros_insight_images_imaginal_eye_ink.png', canvas: [900,900], bounds: [258,266,432,333], optical: 1, context: 42,
+          diagnostic: 'The half-lidded eye reads clearly at 42px and 88px. Its inward vertical presence and witness dot distinguish it from the open navigation/logo eye without creating a competing hero mark.',
+          failures: [], next: 'No change. Preserve the current asset and crop.'
+        },
+        motifs: {
+          title: 'Motifs', role: 'Recurring image, action or relation across dreams', verdict: 'Needs refinement', status: 'refine',
+          file: base + 'oneiros_insight_repeating_patterns_sheet_extract_rgba_900.png', canvas: [900,900], bounds: [140,308,575,329], optical: 1, context: 42,
+          diagnostic: 'The loop is a valid recurrence metaphor. At 42px, however, the crossing and central weave lose definition, the detached dot competes with the loop, and the visible mass is lighter than adjacent marks.',
+          failures: ['Scalability','Consistency'], next: 'Geometry refinement only after approval; retain the recurrence/loop metaphor.'
+        },
+        atmosphere: {
+          title: 'Emotional Atmosphere', role: 'The dream’s overall emotional climate or felt field', verdict: 'Conceptual redesign candidate', status: 'concept',
+          file: base + 'oneiros_insight_emotional_weather.png', canvas: [900,900], bounds: [236,36,464,743], optical: .92, context: 42,
+          diagnostic: 'The flame is recognizable, but it strongly codes heat, intensity and danger. That narrows a category that must also hold grief, calm, dread, tenderness or numbness; scale and stroke tuning cannot repair that semantic range.',
+          failures: ['Metaphor','Family relationship'], next: 'Approve metaphor exploration first. No replacement icon is proposed here.'
+        },
+        landscapes: {
+          title: 'Dream Landscapes', role: 'Places, terrains and spatial worlds within dreams', verdict: 'Keep as-is', status: 'keep',
+          file: base + 'oneiros_insight_dream_places_sheet_extract_rgba_900.png', canvas: [900,900], bounds: [162,288,554,367], optical: .88, context: 42,
+          diagnostic: 'Mountain and path communicate place and passage directly. The low, wide silhouette remains recognizable at both sizes and is distinct from every other family member.',
+          failures: [], next: 'No conceptual change. Preserve the existing mark.'
+        },
+        thresholds: {
+          title: 'Thresholds', role: 'Crossings, entrances, exits and moments of transition', verdict: 'Keep as-is', status: 'keep',
+          file: base + 'oneiros_insight_thresholds_sheet_extract_rgba_900.png', canvas: [900,900], bounds: [273,192,354,568], optical: .92, context: 42,
+          diagnostic: 'The doorway/arch metaphor is direct and the outer silhouette survives at 42px. Interior ink details become secondary without damaging recognition or category meaning.',
+          failures: [], next: 'No change. Preserve the arch metaphor and source.'
+        },
+        tensions: {
+          title: 'Inner Tensions', role: 'Opposing needs, forces or positions held within the dream', verdict: 'Needs refinement', status: 'refine',
+          file: base + 'oneiros_insight_inner_tensions_sheet_extract_rgba_900.png', canvas: [900,900], bounds: [232,200,436,560], optical: .94, context: 42,
+          diagnostic: 'Two opposing forms support the intended meaning, but at 42px they can read as unrelated rocks or figures. The central gap and dot become unstable, weakening the tension between the pair.',
+          failures: ['Recognizability','Silhouette','Scalability'], next: 'Refine the opposing-form geometry after approval; do not replace the metaphor yet.'
+        },
+        archetypes: {
+          title: 'Archetypal Echoes', role: 'Transpersonal or mythic patterns echoed by the dream', verdict: 'Needs refinement', status: 'refine',
+          file: base + 'oneiros_isnights_archetypes.png', canvas: [559,591], bounds: [0,0,559,591], optical: 1, context: 58,
+          diagnostic: 'The eclipse/solar totality is a plausible transpersonal cue, but fine rays collapse at overview size while the dark centre dominates. The result drifts toward a generic mystical sun beside quieter family marks.',
+          failures: ['Scalability','Consistency','Family relationship'], next: 'Retain the eclipse premise for a geometry refinement gate unless later evidence reopens the metaphor.'
+        },
+        period: {
+          title: 'Period Reflection', role: 'Reflection across a bounded span of dreams over time', verdict: 'Conceptual redesign candidate', status: 'concept',
+          file: base + 'pattern_recognition_essay/oneiros_period_reflection_v2.png', canvas: [1024,683], bounds: [89,136,848,386], optical: 1, context: 84,
+          diagnostic: 'The wandering wave/thread reads as a decorative flourish without its label. A bounded period, accumulation through time and reflective synthesis are not recoverable from the mark itself.',
+          failures: ['Metaphor','Recognizability','Scalability'], next: 'Approve a time/reflection metaphor direction before any new artwork is made.'
+        }
+      };
+
+      function iconFrame(data, size) {
+        const [cw,ch] = data.canvas, [left,top,width,height] = data.bounds;
+        const scale = (size * data.optical) / Math.max(width,height);
+        const frame = document.createElement('div'); frame.className = 'icon-frame';
+        frame.style.width = size + 'px'; frame.style.height = size + 'px';
+        const img = document.createElement('img'); img.src = data.file; img.alt = '';
+        Object.assign(img.style, { width: cw*scale+'px', height: ch*scale+'px', left: ((size-width*scale)/2-left*scale)+'px', top: ((size-height*scale)/2-top*scale)+'px' });
+        frame.appendChild(img); return frame;
+      }
+
+      const matrix = document.querySelector('#matrix');
+      matrix.innerHTML = '<div class="matrix-row"><span>Icon</span><span>Verdict</span><span>Next authorized step</span></div>';
+      Object.values(icons).forEach((data) => {
+        const card = document.createElement('article'); card.className = 'card';
+        card.innerHTML = `<div class="card-head"><div><h3>${data.title}</h3><p class="semantic">${data.role}</p></div><span class="status ${data.status}">${data.verdict}</span></div><div class="card-body"><div class="visual"><div class="sizes"><span class="large"></span><span class="context"></span></div><span class="size-note">88px · ${data.context}px actual</span></div><div><div class="label">Concrete diagnostic</div><p class="diagnostic">${data.diagnostic}</p><div class="failures">${data.failures.length ? data.failures.map(x => `<span class="failure">${x}</span>`).join('') : '<span class="failure none">No demonstrated failure</span>'}</div><p class="next"><strong>Next:</strong> ${data.next}</p></div></div>`;
+        card.querySelector('.large').appendChild(iconFrame(data,88));
+        card.querySelector('.context').appendChild(iconFrame(data,data.context));
+        document.querySelector('#sheet').appendChild(card);
+        const row = document.createElement('div'); row.className = 'matrix-row';
+        row.innerHTML = `<strong>${data.title}</strong><span class="status ${data.status}" style="justify-self:start">${data.verdict}</span><span>${data.next}</span>`;
+        matrix.appendChild(row);
+      });
+    </script>
+  </body>
+</html>

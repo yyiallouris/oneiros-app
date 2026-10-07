@@ -12,14 +12,18 @@ import { InsightsTabIcon, JournalTabIcon, WriteTabIcon } from '../components/ico
 
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
-const TabLabel = ({ focused, color, children }: { focused: boolean; color: string; children: string }) => (
-  <Text
-    testID={`tab-label-${children.toLowerCase()}`}
-    style={[styles.tabLabel, { color }, focused && styles.tabLabelFocused]}
-  >
-    {children}
-  </Text>
-);
+const TabLabel = ({ focused, children }: { focused: boolean; color: string; children: string }) => {
+  const labelColor = focused ? colors.tabIconActive : colors.textSecondary;
+
+  return (
+    <Text
+      testID={`tab-label-${children.toLowerCase()}`}
+      style={[styles.tabLabel, { color: labelColor }, focused && styles.tabLabelFocused]}
+    >
+      {children}
+    </Text>
+  );
+};
 
 export interface MainTabsNavigatorProps {
   initialRouteName?: keyof MainTabsParamList;

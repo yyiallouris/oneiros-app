@@ -1,5 +1,10 @@
 # Insights, periods, recent dream field, pattern reports, journal drill-down
 
+> **Design checkpoint:** the v1.3.0 visual foundation is locked. D2 Insights
+> normalization stays offline and D3 remains diagnostic evidence only. The
+> seven palette primitives are final; icon redesign is deferred to a separate
+> future phase. No route, label, data, icon artwork or report flow below changed.
+
 ## Insights tab (`InsightsScreen`)
 
 - The landing screen no longer exposes a top-level period dropdown.

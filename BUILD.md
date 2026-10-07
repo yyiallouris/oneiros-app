@@ -186,6 +186,9 @@ npx expo install --check
 Production Android config expectations:
 
 - `android.package`: `com.oneirosdreamjournal.app`.
+- App `1.3.0` uses Android `versionCode: 8` and the approved versioned
+  eye/river legacy, adaptive-background, transparent-foreground, and
+  monochrome assets under `assets/branding/releases/v1.3.0/exports/`.
 - `android.versionCode`: increment for every Google Play upload.
 - Production/preview manifests remove the generated `exp+` Expo launcher scheme, Compose/dev-launcher activities, `SYSTEM_ALERT_WINDOW`, and legacy shared-storage permissions. Keep `plugins/withProductionStoreHardening.js` last in the app plugin list and validate the finished AAB with Google `bundletool dump manifest`.
 - `.easignore` excludes store-delivery, design-export, test, research, local-native and documentation artifacts from the EAS source archive; keep those assets trackable locally without sending them to the remote build worker. It intentionally keeps `__mocks__/` because `metro.config.js` resolves production `react-native-reanimated` imports to runtime-compatible stubs in that directory.
@@ -245,6 +248,8 @@ npx expo install --check
 Production iOS config expectations:
 
 - `ios.bundleIdentifier`: `com.oneirosdreamjournal.app`
+- App `1.3.0` uses iOS `buildNumber: 8` and the opaque RGB 1024px eye/river
+  icon under `assets/branding/releases/v1.3.0/exports/`.
 - `ios.buildNumber`: increment for every App Store upload.
 - `ios.supportsTablet`: `false` for the first release; v1 is iPhone-only. Enable iPad only after dedicated layout/device QA and iPad screenshot preparation.
 - `ios.usesAppleSignIn`: enabled, because the app offers Google/Discord social sign-in.

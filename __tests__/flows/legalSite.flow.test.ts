@@ -20,9 +20,11 @@ describe('public legal site', () => {
     expect(fs.existsSync(path.join(siteRoot, 'terms/index.html'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'support/index.html'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'assets/oneiros_logo.png'))).toBe(true);
+    expect(fs.existsSync(path.join(siteRoot, 'assets/favicon.png'))).toBe(true);
     expect(fs.existsSync(path.join(siteRoot, 'sitemap.xml'))).toBe(true);
 
     expect(readSiteFile('index.html')).toContain('/assets/oneiros_logo.png');
+    expect(readSiteFile('index.html')).toContain('/assets/favicon.png');
     expect(readSiteFile('index.html')).toContain('clear boundaries for a private dream journal');
     expect(readSiteFile('index.html')).toContain('privacy');
     expect(readSiteFile('index.html')).toContain('terms');

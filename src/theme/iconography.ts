@@ -38,6 +38,7 @@ export const iconography = {
     functional: 1.7,
   },
   navigation: {
+    constructionGrid: 24,
     frameWidth: 60,
     frameHeight: 34,
     writeSize: 30,
@@ -47,6 +48,11 @@ export const iconography = {
     inactiveInk: colors.tabIconInactive,
     activeOpacity: 0.98,
     inactiveOpacity: 0.58,
+    stroke: {
+      primary: 1.8,
+      spine: 1.4,
+      detail: 0.9,
+    },
   },
   functional: {
     microphoneSize: 31,

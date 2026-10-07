@@ -245,7 +245,12 @@ const WriteScreen: React.FC = () => {
           style={[styles.headerShell, { paddingTop: insets.top + spacing.xs }]}
           titleStyle={styles.headerTitle}
           left={
-            <TouchableOpacity style={styles.headerLeft} onPress={handleMenuPress}>
+            <TouchableOpacity
+              style={styles.headerLeft}
+              onPress={handleMenuPress}
+              accessibilityRole="button"
+              accessibilityLabel="Open menu"
+            >
               <Text style={styles.menuIcon}>⋯</Text>
             </TouchableOpacity>
           }
@@ -436,6 +441,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   headerLeft: {
+    width: 44,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.xs,
@@ -446,7 +453,7 @@ const styles = StyleSheet.create({
   },
   entryRitual: {
     fontSize: typography.sizes.md,
-    color: 'rgba(45, 36, 48, 0.68)',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: spacing.md,
     paddingHorizontal: spacing.md,
@@ -457,7 +464,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
-    borderRadius: 14,
+    borderRadius: borderRadius.lg,
     backgroundColor: writePalette.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.contourLineFaint,
@@ -494,10 +501,11 @@ const styles = StyleSheet.create({
   },
   datePillText: {
     fontSize: typography.sizes.sm,
-    color: 'rgba(45, 36, 48, 0.62)',
+    color: colors.textSecondary,
     fontWeight: typography.weights.medium,
   },
   titleInput: {
+    minHeight: 44,
     fontSize: typography.sizes.lg,
     fontFamily: typography.roles.dreamTitle,
     color: writePalette.primaryInk,

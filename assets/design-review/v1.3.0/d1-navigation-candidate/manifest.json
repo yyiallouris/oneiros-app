@@ -1,0 +1,14 @@
+{
+  "checkpoint": "v1.3.0-d1-navigation",
+  "status": "rejected",
+  "rejection_reason": "Conceptual redesign exceeded the approved normalization-only scope.",
+  "runtime_import_allowed": false,
+  "construction_grid": 24,
+  "assets": {
+    "write.svg": "196aebbfdfca63372878030cc4c5e0ce80cb155ee44dfe1b430137975dc0b4d5",
+    "journal.svg": "4c9e58bf224d4e88df968af75a1e1b12d81d884e7df5d5cd2a80e498dce81a1e",
+    "insights.svg": "5e5d44c682c64c441a53a326afe83403532bf4d211e1a00f9ea534bafcb701e9"
+  },
+  "brand_master_modified": false,
+  "generative_art_used": false
+}

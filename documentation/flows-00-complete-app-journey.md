@@ -2,16 +2,18 @@
 
 This is the end-to-end Oneiros path for agents who need the whole product shape before changing a single feature. For deeper details, follow the linked flow docs.
 
-**V1 design lock:** the complete journey described here is the final approved
-Oneiros v1 visual and UX baseline, versioned as `oneiros-design-v1.0.2` on
-2026-09-02. See [oneiros-v1-design-release.md](./oneiros-v1-design-release.md)
-for the immutable source fingerprint, platform boundary and change policy.
+**Current design train:** the journey uses the approved app `1.3.0` eye/river
+identity while the wider visual system advances through gated
+`oneiros-design-v1.1.0` checkpoints. See
+[oneiros-v130-design-evolution.md](./oneiros-v130-design-evolution.md). The
+brand masters are final; the previous `1.2.0` / `oneiros-design-v1.0.2`
+baseline remains immutable history.
 
 ## 1. Launch and route gate
 
 1. `App.tsx` loads brand fonts, hides the native splash, then shows `LoadingScreen` inside `WebContentShell` (Expo web centers a phone-scale column; native is unchanged).
-2. Native splash now uses the droplet symbol only on a warm paper field.
-3. `LoadingScreen` continues the same paper-first entry moment with the droplet logo plus the `Oneiros` wordmark.
+2. Native splash uses the approved eye/river symbol only on a warm paper field.
+3. `LoadingScreen` continues the same paper-first entry moment with the exact eye/river symbol plus the `Oneiros` wordmark.
 4. `RootNavigator` initializes storage and auth deep links in parallel.
 5. Supabase session state decides the first root route:
    - No session: `Auth` plus `LoginSupport`.
@@ -39,7 +41,7 @@ Related docs: [flows-02-authentication.md](./flows-02-authentication.md), [flows
 
 Main app tabs are `Write`, `Journal`, and `Insights`.
 
-- Bottom navigation renders as a fully opaque warm parchment shelf (`#FFFDF9`) over the paper background. Its three marks form one expressive hand-ink family: Write preserves the authored open dry-brush feather, cropped into a compact `30 × 28dp` frame with a restrained low-opacity pressure copy so its visible ink stays in the same vertical band as the other tabs; Journal keeps the open-page drawing with stronger unequal outer pressure, a wandering spine, and faint edge echoes; Insights uses a dedicated crop of the authored brush eye as a seeing mark. The eye crop removes the two detached dots that became badge-like at navigation size while preserving the uneven lids and dense off-centre pupil. Images inside Insights uses a separate half-lidded imaginal eye with a vertical organic presence and one witness dot, so it remains related to the navigation mark without duplicating its fully open, round-pupil silhouette. Focus uses Night Plum (`#4B3158`) at `0.98`; inactive marks use Muted Tab Ink at `0.58`, while label weight and the existing one-pixel lift reinforce state. No tab gains a pill, badge, moon, star, glow, or separate selection dot. Tab screens share `floatingTabBar` tokens so primary CTAs (Write **Save dream**) sit in the layout above the shelf instead of slipping underneath it.
+- Bottom navigation renders as a fully opaque `SURFACE #FAF7F1` shelf over `PAPER #F3ECE2`. Its three marks retain the approved D1 feather / open book / eye geometry and crops. Focus uses `PLUM #5E4566` at `0.98`; inactive marks use `PLUM_SOFT #897B8C` at `0.58`, while inactive labels use accessible `INK_MUTED #6B606C`. Label weight and the existing one-pixel lift reinforce state. No tab gains a pill, badge, moon, star, glow, or separate selection dot. Tab screens share `floatingTabBar` tokens so primary CTAs (Write **Save dream**) sit in the layout above the shelf instead of slipping underneath it.
 
 - `WriteScreen`: user records today’s dream, auto-saves a draft, optionally captures up to five minutes of voice offline-first after a device-storage preflight, and receives a quality-gated transcript through a backup-excluded, move-first/partial-salvage durable inbox + owner-scoped bounded retry queue. Delivery commits a per-user composer snapshot with clip-ID dedupe before queue/audio acknowledgement, so process death cannot lose or double-append the result; suspicious caption boilerplate or repetition is never appended as speech.
 - `DreamDetailScreen`: shows the dream, streamed reflection, `display_distillation`, and same-call reflective questions inside the reading (Quick: 1 terminal question; Standard/Advanced: 2 under exact English `Reflective Questions`). A versioned completed-output normalizer may insert only that missing heading when two terminal question bullets are structurally unambiguous; otherwise it is a byte-identical no-op. It never changes partial streaming or generated prose/questions. Exact English `Continue the conversation` remains available in every content language. Follow-up chat `oneiros-followup-chat-v2.0.1` continues the conversation with one trailing question on open turns and none when closing. Initial/chat language is resolved from the 12-language conversation contract before generation; generated prose/questions follow that language, while v1 navigation, structural headings, shared buttons, and metadata titles remain English. Post-completion marker/language/cardinality/no-answer-menu validation is fail-open shadow telemetry only. Neither a failed contract nor an observer exception blocks or retries the visible response.
@@ -79,6 +81,6 @@ Related docs: [flows-08-support-legal-contact.md](./flows-08-support-legal-conta
 - Subscription / billing changes affect store purchase binding, quota ledgers, live onboarding/account/paywall UX, period-reflection archival, account deletion, and store-management flows.
 - UI theme changes affect `src/theme/COLORS.md`, `src/theme/TYPOGRAPHY.md`, shared UI components, design exports, iPhone/iOS and Android visual behavior.
 
-Across the complete journey, the visual grammar is semantic rather than decorative: serif belongs to dream titles, short inward voice, and emotionally important silence; sans belongs to navigation, controls, metadata, settings, and system information. Shared paper cards use one faint contour and restrained depth, while Insights section empty states keep their authored black-ink marks at the quiet shared optical frame. These rules apply to the whole app, not only the three main tabs.
+Across the complete journey, the visual grammar is semantic rather than decorative: serif belongs to dream titles, short inward voice, and emotionally important silence; sans belongs to navigation, controls, metadata, settings, and system information. The locked v1.3.0 foundation routes shared surfaces, ink, plum states and borders through seven primitives without component-local palette families. Authored Insights PNG pixels remain unchanged until a separate future Icon Redesign Phase is explicitly opened. These rules apply to the whole app, not only the three main tabs.
 
 Use [flows-09-regression-edge-cases.md](./flows-09-regression-edge-cases.md) as the checklist before closing behavior work.

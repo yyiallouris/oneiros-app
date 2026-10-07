@@ -4,7 +4,10 @@
 
 1. `App.tsx` shows `LoadingScreen` until `onComplete`; native splash is hidden immediately.
 2. Native splash is symbol-only on a warm paper background.
-3. In-app loading uses the same paper field with the droplet logo and `Oneiros` wordmark while session/bootstrap completes.
+3. In-app loading uses the same paper field with the exact approved eye/river
+   symbol and `Oneiros` wordmark while session/bootstrap completes. A
+   render-time optical crop removes transparent source-canvas whitespace
+   without editing the master pixels.
 4. `RootNavigator` mounts. In parallel:
    - `StorageService.initialize()` runs (user change detection, local clear if user switched). A signed-out cold start preserves the last owner ID as a cleanup fence rather than deleting it prematurely.
    - Cold-start auth deep links are polled (`Linking.getInitialURL` with retries) for `oneiros-dream-journal://` and processed via `processAuthDeepLink`.

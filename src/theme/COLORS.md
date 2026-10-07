@@ -2,32 +2,36 @@
 
 All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for the full design-system map (buttons, loading, typography).
 
-**Direction:** warm paper field + Deep Ink text + Night Plum actions.
+**Direction:** warm paper + flat dark ink + restrained plum.
 
-## Active palette
+## Locked v1.3.0 palette
+
+The D2.5 direction and exact values are approved as the locked v1.3.0 visual
+foundation. `oneirosPalette` exports exactly seven
+primitives: `PAPER`, `SURFACE`, `INK`, `INK_MUTED`, `PLUM`, `PLUM_SOFT`, and
+`BORDER`. Existing semantic roles alias those primitives rather than creating
+component-local colours. Dark ink remains the default for text and functional
+icons, plum is an accent, and canvas/cards stay warm neutrals. Authored Insights
+PNG pixels are unchanged; defining symbolic ink does not tint or redesign them.
+
+## Runtime palette
 
 | Role | Hex | Token |
 |------|-----|-------|
-| Paper base | `#F8F3EA` | `backgrounds.primary` |
-| Paper wash | `#F3ECE2` | `backgrounds.secondary`, `backgrounds.card` |
-| Raised paper | `#FCF7F0` | `backgrounds.tertiary` |
+| PAPER | `#F3ECE2` | `backgrounds.primary`, `backgrounds.splash` |
+| SURFACE | `#FAF7F1` | cards, fields, nav shelf, raised surfaces |
 | Sand wave | `#DAD2C8` | `backgrounds.wave1` |
 | Deep sand | `#CFC6BA` | `backgrounds.wave2` |
-| Deep Ink | `#2D2430` | `text.primary`, `text.title` |
-| Muted Ink | `#5E5263` | `text.secondary` |
-| Ghost Text | `#8C8290` | `text.muted` |
-| Active Tab Plum | `#4B3158` | `tabBar.iconActive` |
-| Muted Tab Ink | `#756A79` | `tabBar.iconInactive` |
-| Symbolic Black Ink | `#000000` | `iconInks.symbolic` |
-| Ritual Plum | `#65446F` | `text.accent` |
-| Night Plum | `#4B3158` | `accent.buttonPrimary` |
-| Soft Amethyst | `#A88BB2` | `accent.buttonPrimaryDisabled` |
+| INK | `#342A38` | primary/title text, functional and symbolic ink token |
+| INK_MUTED | `#6B606C` | secondary information and quiet functional controls |
+| PLUM | `#5E4566` | active navigation, CTA, text accent |
+| PLUM_SOFT | `#897B8C` | inactive/non-text navigation artwork, disabled accent |
+| BORDER | `#E4DCD2` | borders, dividers, contours, nav contour |
 | Subscription Premium CTA | `#FBF5EC` | `subscriptionButtons.premiumBackground` |
 | Subscription Free CTA | `transparent` | `subscriptionButtons.freeBackground` |
 | Subscription Deeper CTA | `rgba(255,255,255,0.10)` | `subscriptionButtons.deeperBackground` |
 | Old Gold | `#B58A4A` | `accent.oldGold` |
 | Clay Brown | `#8C6B5A` | `accent.clayBrown` |
-| Paper border | `#E2D8CC` | `borders.primary` |
 
 ## Token groups (in use)
 
@@ -42,23 +46,26 @@ All live app colors live in **`src/theme/colors.ts`**. See **`DESIGN.md`** for t
 
 - `surfaces.glass`, `glassStrong`, `glassSoft` — cards, menus, chat
 - `surfaces.field` — inputs, loading panels, chips
-- `surfaces.nav`, `navBorder` — fully opaque warm parchment floating tab shelf (`#FFFDF9`) and its faint translucent contour
+- `surfaces.nav`, `navBorder` — `SURFACE` floating tab shelf plus `BORDER` contour
 - `surfaces.conversationDock` — the existing translucent parchment (`86%` opaque) retained for the Dream Detail conversation composer; it stays separate so nav-shelf experiments do not leak into reading/chat surfaces
 
 ### Text
 
-- `text.primary`, `secondary`, `muted`, `title`, `accent`
+- `text.primary`, `secondary`, `muted`, `title`, `accent`; both secondary and
+  muted essential copy resolve to AA-safe `INK_MUTED`
 - `text.white`, `onAccent`
 - Functional artwork such as the microphone paths and tintable calendar ink raster uses `text.secondary` (Muted Ink), preserving authored line/alpha variation without introducing asset-local colours.
 
 ### Tab navigation
 
-- `tabBar.iconActive` uses Night Plum (`#4B3158`) so the selected tab receives a restrained colour infusion from the existing Oneiros action palette rather than a new decorative accent.
-- `tabBar.iconInactive` uses `#756A79`; inactive glyphs also reduce to `0.58` opacity while labels retain the token at full contrast. Active glyphs render at `0.98`. Hue, contrast, and label weight make state clear without a selection pill or badge.
+- `tabBar.iconActive` uses `PLUM #5E4566`; active glyphs render at `0.98`.
+- `tabBar.iconInactive` uses `PLUM_SOFT #897B8C`; inactive glyphs reduce to
+  `0.58` opacity. Small inactive labels use `INK_MUTED`, not `PLUM_SOFT`.
+  Hue, contrast, and label weight make state clear without a selection pill or badge.
 
 ### Symbolic icons
 
-- `iconInks.symbolic` gives code-native Insights marks the same black-ink value as the authored symbolic PNG assets. It does not recolour navigation or functional controls.
+- `iconInks.symbolic` is `INK #342A38`, ready for separately approved symbolic rendering. Existing authored Insights PNGs remain byte-for-byte and visually unchanged during this token-only pass.
 
 ### Primary actions
 
@@ -68,7 +75,16 @@ Styles: **`buttons.ts`**. Loading: **`loading.ts`**. Press: shared `Button` uses
 - Disabled: same plum fill/border at `opacity: 0.68` (Save dream treatment — app-wide for primary)
 - Secondary/ghost disabled: keep variant fill, fade with `opacity: 0.68`
 
-Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`, `buttonPrimaryDisabled*` (legacy soft lavender — prefer opacity fade on primary CTAs)
+Also: `buttonPrimary`, `buttonPrimaryLight`, `buttonPrimaryLight12`, `buttonPrimary40`, `buttonPrimaryDisabled*`; all shared plum variants derive from `PLUM` or `PLUM_SOFT`.
+
+### Accessibility decision
+
+- `PLUM_SOFT #897B8C` on `SURFACE #FAF7F1` measures `3.72:1`. It is sufficient
+  for inactive/non-text artwork but not small essential labels. Those labels
+  use `INK_MUTED #6B606C` (`5.59:1`) through the shared semantic role; no
+  component-local darkening is permitted.
+- `INK` on `SURFACE` is `12.80:1`, `PLUM` on `SURFACE` is `7.80:1`, and white on
+  `PLUM` is `8.34:1`.
 
 ### Subscription buttons
 

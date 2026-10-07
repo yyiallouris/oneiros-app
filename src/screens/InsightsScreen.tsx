@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
   },
   recentScopeChip: {
     flex: 1,
-    minHeight: 38,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.sm,
@@ -773,6 +773,7 @@ const styles = StyleSheet.create({
   },
   recentLockedCtaWrap: {
     width: '100%',
+    minHeight: 44,
     paddingVertical: spacing.xs,
     alignItems: 'center',
   },
